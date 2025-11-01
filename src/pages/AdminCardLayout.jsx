@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import SuperAdminLayout from "@/components/sa/SuperAdminLayout";
@@ -9,7 +8,46 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Save, RotateCcw } from "lucide-react";
-import { sampleClient, sampleUser, sampleMessage, sampleDesign, sampleNoteStyleProfile } from "@/utils/samplePreviewData.js";
+
+// Sample data for preview
+const sampleClient = {
+  firstName: "John",
+  lastName: "Smith",
+  companyName: "ABC Roofing Co",
+  address: "123 Main Street",
+  address2: "Suite 100",
+  city: "Denver",
+  state: "CO",
+  zipCode: "80202",
+  phone: "(555) 123-4567",
+  email: "john.smith@example.com"
+};
+
+const sampleUser = {
+  firstName: "Sarah",
+  lastName: "Johnson",
+  companyName: "RoofPro Inc",
+  phone: "(555) 987-6543",
+  websiteUrl: "www.roofpro.com"
+};
+
+const sampleMessage = "Thank you for choosing us for your roofing project! We truly appreciate your business and look forward to exceeding your expectations.\n\nYour satisfaction is our top priority, and we're committed to delivering exceptional results.";
+
+const sampleDesign = {
+  id: "sample-design-1",
+  name: "Classic Thank You Card",
+  imageUrl: "https://via.placeholder.com/412x600/e8f4f8/4a5568?text=Thank+You+Card",
+  category: "Thank You"
+};
+
+const sampleNoteStyleProfile = {
+  id: "sample-profile-1",
+  name: "Professional Style",
+  defaultGreeting: "Dear {{firstName}},",
+  signatureText: "Sincerely,\n{{rep_full_name}}\n{{rep_company_name}}\n{{rep_phone}}",
+  handwritingFont: "Caveat",
+  includeSignatureByDefault: true
+};
 
 export default function AdminCardLayout() {
   const [settings, setSettings] = useState(null);
