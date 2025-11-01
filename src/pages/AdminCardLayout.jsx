@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import SuperAdminLayout from "@/components/sa/SuperAdminLayout";
@@ -8,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Save, RotateCcw } from "lucide-react";
-import { sampleClient, sampleUser, sampleMessage, sampleDesign, sampleNoteStyleProfile } from "@/utils/samplePreviewData";
+import { sampleClient, sampleUser, sampleMessage, sampleDesign, sampleNoteStyleProfile } from "@/utils/samplePreviewData.js";
 
 export default function AdminCardLayout() {
   const [settings, setSettings] = useState(null);
