@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -8,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, Save, Loader2 } from "lucide-react";
-import { useAutosave } from "@/hooks/useAutosave";
+import { useAutosave } from "@/hooks/useAutosave.js";
 
 import EditModeSelector from "@/components/mailing/EditModeSelector";
 import PlaceholderSelector from "@/components/mailing/PlaceholderSelector";
