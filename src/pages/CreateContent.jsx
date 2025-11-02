@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -96,7 +95,7 @@ export default function CreateContent() {
   const navigate = useNavigate();
   const textareaRef = useRef(null);
   
-  // Get mailingBatchId from URL (handle both camelCase and lowercase)
+  // Get mailingBatchId from URL - handle both camelCase and lowercase
   const urlParams = new URLSearchParams(window.location.search);
   const mailingBatchId = urlParams.get('mailingBatchId') || urlParams.get('mailingbatchid');
   
@@ -126,7 +125,7 @@ export default function CreateContent() {
     if (mailingBatchId) {
       loadData();
     } else {
-      setError('Missing mailing batch ID');
+      setError('No mailing batch ID provided');
       setLoading(false);
     }
   }, [mailingBatchId]);
@@ -299,7 +298,7 @@ export default function CreateContent() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-indigo-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Loading content editor...</p>
         </div>
       </div>
     );
@@ -313,6 +312,24 @@ export default function CreateContent() {
             <div className="text-center">
               <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
               <p className="text-gray-600 mb-4">{error}</p>
+              <Button onClick={() => navigate(createPageUrl('FindClients'))}>
+                Back to Clients
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!mailingBatch) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
+              <p className="text-gray-600 mb-4">Mailing batch not found</p>
               <Button onClick={() => navigate(createPageUrl('FindClients'))}>
                 Back to Clients
               </Button>
