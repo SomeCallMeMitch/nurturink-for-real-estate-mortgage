@@ -52,10 +52,8 @@ export default function FindClients() {
     const query = searchQuery.toLowerCase();
     
     return clients.filter(client => {
-      const firstName = (client.firstName || '').toLowerCase();
-      const lastName = (client.lastName || '').toLowerCase();
-      const fullName = `${firstName} ${lastName}`.trim();
-      const company = (client.companyName || '').toLowerCase();
+      const fullName = (client.fullName || '').toLowerCase();
+      const company = (client.company || '').toLowerCase();
       
       return fullName.includes(query) || company.includes(query);
     });
@@ -202,7 +200,6 @@ export default function FindClients() {
               <div className="space-y-2">
                 {filteredClients.map((client) => {
                   const isSelected = selectedClientIds.includes(client.id);
-                  const fullName = `${client.firstName || ''} ${client.lastName || ''}`.trim();
                   
                   return (
                     <div
@@ -222,10 +219,10 @@ export default function FindClients() {
                       
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900">
-                          {fullName || 'Unnamed Client'}
+                          {client.fullName || 'Unnamed Client'}
                         </h3>
-                        {client.companyName && (
-                          <p className="text-sm text-gray-500">{client.companyName}</p>
+                        {client.company && (
+                          <p className="text-sm text-gray-500">{client.company}</p>
                         )}
                       </div>
                       
