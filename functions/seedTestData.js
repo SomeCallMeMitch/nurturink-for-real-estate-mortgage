@@ -113,9 +113,29 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    // Get or create organization for this user
+    let orgId = user.orgId;
+    
+    if (!orgId) {
+      // User doesn't have an organization - create one
+      const orgName = user.companyName || `${user.full_name}'s Organization`;
+      
+      const newOrg = await base44.asServiceRole.entities.Organization.create({
+        name: orgName,
+        creditBalance: 0
+      });
+      
+      orgId = newOrg.id;
+      
+      // Update user with the new orgId
+      await base44.auth.updateMe({
+        orgId: orgId
+      });
+    }
+    
     // Check if any clients already exist for this organization
     const existingClients = await base44.entities.Client.filter({
-      orgId: user.orgId
+      orgId: orgId
     });
     
     if (existingClients.length > 0) {
@@ -132,7 +152,7 @@ Deno.serve(async (req) => {
     for (const sampleClient of sampleClients) {
       const client = await base44.entities.Client.create({
         ...sampleClient,
-        orgId: user.orgId,
+        orgId: orgId,
         ownerId: user.id
       });
       createdClients.push(client);
