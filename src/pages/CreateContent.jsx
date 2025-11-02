@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -9,12 +8,88 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, Save, Loader2 } from "lucide-react";
-import { useAutosave } from "@/hooks/useAutosave.js";
+import { debounce } from "lodash";
 
 import EditModeSelector from "@/components/mailing/EditModeSelector";
 import PlaceholderSelector from "@/components/mailing/PlaceholderSelector";
 import TemplateLibrary from "@/components/mailing/TemplateLibrary";
 import CardPreview from "@/components/preview/CardPreview";
+
+// Inline autosave hook
+function useAutosave(data, saveFn, delay = 500, enabled = true) {
+  const isSavingRef = useRef(false);
+  const lastSavedRef = useRef(null);
+  const errorRef = useRef(null);
+  const initialLoadRef = useRef(true);
+  const [, forceUpdate] = useState({});
+
+  const debouncedSave = useRef(
+    debounce(async (dataToSave) => {
+      if (!enabled) return;
+      
+      try {
+        isSavingRef.current = true;
+        forceUpdate({});
+        errorRef.current = null;
+        
+        await saveFn(dataToSave);
+        
+        lastSavedRef.current = new Date();
+        isSavingRef.current = false;
+        forceUpdate({});
+      } catch (error) {
+        console.error('Autosave error:', error);
+        errorRef.current = error;
+        isSavingRef.current = false;
+        forceUpdate({});
+      }
+    }, delay)
+  ).current;
+
+  useEffect(() => {
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+      return;
+    }
+
+    if (!enabled) return;
+
+    debouncedSave(data);
+
+    return () => {
+      debouncedSave.cancel();
+    };
+  }, [data, enabled, debouncedSave]);
+
+  const saveNow = useCallback(async () => {
+    debouncedSave.cancel();
+    
+    try {
+      isSavingRef.current = true;
+      forceUpdate({});
+      errorRef.current = null;
+      
+      await saveFn(data);
+      
+      lastSavedRef.current = new Date();
+      isSavingRef.current = false;
+      forceUpdate({});
+    } catch (error) {
+      console.error('Manual save error:', error);
+      errorRef.current = error;
+      isSavingRef.current = false;
+      forceUpdate({});
+      throw error;
+    }
+  }, [data, saveFn, debouncedSave]);
+
+  return {
+    isSaving: isSavingRef.current,
+    lastSaved: lastSavedRef.current,
+    error: errorRef.current,
+    saveNow
+  };
+}
 
 export default function CreateContent() {
   const navigate = useNavigate();
