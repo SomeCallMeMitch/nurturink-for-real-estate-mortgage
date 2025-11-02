@@ -1,5 +1,5 @@
-import React from 'react';
-import { useCardPreview } from '@/hooks/useCardPreview';
+import React, { useMemo } from 'react';
+import { composeCompleteMessage, messageToLines } from '@/utils/textUtils';
 
 // ============================================
 // PRNG Functions (Pseudo-Random Number Generator)
@@ -79,23 +79,36 @@ const CardPreview = ({
   showLineCounter = true
 }) => {
 
-  // Use custom hook to get rendered lines
-  const { lines } = useCardPreview({ 
-    message, 
-    client, 
-    user, 
-    noteStyleProfile, 
-    previewSettings, 
-    includeGreeting, 
-    includeSignature, 
-    leaveUnknownInPreview 
-  });
+  // Compose the complete message with greeting, body, and signature
+  const composedMessage = useMemo(() => 
+    composeCompleteMessage(
+      includeGreeting ? (noteStyleProfile?.defaultGreeting || '') : '',
+      message,
+      includeSignature ? (noteStyleProfile?.signatureText || '') : '',
+      client,
+      user,
+      noteStyleProfile
+    ),
+    [message, client, user, noteStyleProfile, includeGreeting, includeSignature]
+  );
+
+  // Extract relevant settings for line wrapping
+  const { fontSize, lineHeight, baseTextWidth, maxIndent } = previewSettings;
+
+  // Convert composed message to array of lines for rendering
+  const lines = useMemo(() => 
+    messageToLines(composedMessage, {
+      fontFamily: noteStyleProfile?.handwritingFont || 'Caveat',
+      fontSize: `${fontSize}px`,
+      lineHeight: lineHeight,
+      maxWidth: baseTextWidth,
+      maxIndent: maxIndent
+    }),
+    [composedMessage, noteStyleProfile, fontSize, lineHeight, baseTextWidth, maxIndent]
+  );
 
   // Extract settings from previewSettings prop
   const {
-    fontSize,
-    lineHeight,
-    baseTextWidth,
     baseMarginLeft,
     shortCardMaxLines,
     maxPreviewLines,
@@ -103,7 +116,6 @@ const CardPreview = ({
     gapAboveFold,
     gapBelowFold,
     shortBelowFold,
-    maxIndent,
     indentAmplitude,
     indentNoise,
     indentFrequency,
