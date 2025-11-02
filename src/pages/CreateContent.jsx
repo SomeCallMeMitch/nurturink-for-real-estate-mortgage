@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -95,9 +96,9 @@ export default function CreateContent() {
   const navigate = useNavigate();
   const textareaRef = useRef(null);
   
-  // Get mailingBatchId from URL
+  // Get mailingBatchId from URL (handle both camelCase and lowercase)
   const urlParams = new URLSearchParams(window.location.search);
-  const mailingBatchId = urlParams.get('mailingBatchId');
+  const mailingBatchId = urlParams.get('mailingBatchId') || urlParams.get('mailingbatchid');
   
   // Core data
   const [mailingBatch, setMailingBatch] = useState(null);
