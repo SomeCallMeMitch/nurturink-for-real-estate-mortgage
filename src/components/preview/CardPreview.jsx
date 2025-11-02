@@ -1,11 +1,154 @@
 import React, { useMemo } from 'react';
-import { composeCompleteMessage, messageToLines } from '@/utils/textUtils';
+
+// ============================================
+// Text Utilities (Inlined)
+// ============================================
+
+/**
+ * Replace placeholders in text with actual values
+ */
+function replacePlaceholders(text, client = {}, user = {}, noteStyleProfile = {}, options = {}) {
+  if (!text) return '';
+  
+  const { leaveUnknown = false } = options;
+  
+  const replacements = {
+    'client.firstName': client.firstName || '',
+    'client.lastName': client.lastName || '',
+    'client.fullName': client.fullName || `${client.firstName || ''} ${client.lastName || ''}`.trim(),
+    'client.companyName': client.companyName || '',
+    'firstName': client.firstName || '',
+    'lastName': client.lastName || '',
+    'fullName': client.fullName || `${client.firstName || ''} ${client.lastName || ''}`.trim(),
+    'companyName': client.companyName || '',
+    'user.full_name': user.full_name || '',
+    'user.fullName': user.full_name || '',
+    'user.companyName': user.companyName || '',
+    'user.phone': user.phone || '',
+    'rep_full_name': user.full_name || '',
+    'rep_company_name': user.companyName || '',
+    'rep_phone': user.phone || '',
+  };
+  
+  let result = text;
+  const placeholderRegex = /\{\{([^}]+)\}\}/g;
+  
+  result = result.replace(placeholderRegex, (match, key) => {
+    const trimmedKey = key.trim();
+    if (replacements.hasOwnProperty(trimmedKey)) {
+      return replacements[trimmedKey];
+    }
+    return leaveUnknown ? match : '';
+  });
+  
+  return result;
+}
+
+/**
+ * Compose complete message with greeting, body, and signature
+ */
+function composeCompleteMessage(
+  greeting = '',
+  body = '',
+  signature = '',
+  client = {},
+  user = {},
+  noteStyleProfile = {},
+  options = {}
+) {
+  const parts = [];
+  
+  if (greeting && greeting.trim()) {
+    const processedGreeting = replacePlaceholders(greeting, client, user, noteStyleProfile, options);
+    if (processedGreeting.trim()) {
+      parts.push(processedGreeting);
+    }
+  }
+  
+  if (body && body.trim()) {
+    parts.push(body);
+  }
+  
+  if (signature && signature.trim()) {
+    const processedSignature = replacePlaceholders(signature, client, user, noteStyleProfile, options);
+    if (processedSignature.trim()) {
+      parts.push(processedSignature);
+    }
+  }
+  
+  return parts.join('\n\n');
+}
+
+/**
+ * Measure text width using canvas
+ */
+function measureTextWidth(text, font) {
+  if (typeof document === 'undefined') {
+    return text.length * 10;
+  }
+  
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  context.font = font;
+  const metrics = context.measureText(text);
+  return metrics.width;
+}
+
+/**
+ * Convert message text into array of lines for rendering
+ */
+function messageToLines(text, options = {}) {
+  const {
+    fontFamily = 'Caveat',
+    fontSize = '18px',
+    lineHeight = 1.1,
+    maxWidth = 355,
+    maxIndent = 16
+  } = options;
+  
+  if (!text || !text.trim()) {
+    return [];
+  }
+  
+  const font = `${fontSize} ${fontFamily}`;
+  const effectiveMaxWidth = maxWidth - maxIndent;
+  
+  const lines = [];
+  const paragraphs = text.split('\n');
+  
+  for (const paragraph of paragraphs) {
+    if (!paragraph.trim()) {
+      lines.push('');
+      continue;
+    }
+    
+    const words = paragraph.split(' ');
+    let currentLine = '';
+    
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const width = measureTextWidth(testLine, font);
+      
+      if (width > effectiveMaxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+  }
+  
+  return lines;
+}
 
 // ============================================
 // PRNG Functions (Pseudo-Random Number Generator)
 // ============================================
 
-// String hashing function
 function hash32(str) {
   let h = 0;
   for (let i = 0; i < str.length; i++) {
@@ -14,7 +157,6 @@ function hash32(str) {
   return h >>> 0;
 }
 
-// Mulberry32 PRNG - deterministic random number generator
 function mulberry32(seed) {
   return function() {
     let t = seed += 0x6D2B79F5;
@@ -24,7 +166,6 @@ function mulberry32(seed) {
   };
 }
 
-// Box-Muller transform for gaussian distribution
 function gaussian(rng, mean = 0, stdDev = 1) {
   const u1 = rng();
   const u2 = rng();
@@ -79,7 +220,6 @@ const CardPreview = ({
   showLineCounter = true
 }) => {
 
-  // Compose the complete message with greeting, body, and signature
   const composedMessage = useMemo(() => 
     composeCompleteMessage(
       includeGreeting ? (noteStyleProfile?.defaultGreeting || '') : '',
@@ -92,10 +232,8 @@ const CardPreview = ({
     [message, client, user, noteStyleProfile, includeGreeting, includeSignature]
   );
 
-  // Extract relevant settings for line wrapping
   const { fontSize, lineHeight, baseTextWidth, maxIndent } = previewSettings;
 
-  // Convert composed message to array of lines for rendering
   const lines = useMemo(() => 
     messageToLines(composedMessage, {
       fontFamily: noteStyleProfile?.handwritingFont || 'Caveat',
@@ -107,7 +245,6 @@ const CardPreview = ({
     [composedMessage, noteStyleProfile, fontSize, lineHeight, baseTextWidth, maxIndent]
   );
 
-  // Extract settings from previewSettings prop
   const {
     baseMarginLeft,
     shortCardMaxLines,
@@ -125,10 +262,8 @@ const CardPreview = ({
     frameHeight
   } = previewSettings;
 
-  // Determine if this is a short card
   const isShortCard = lines.length <= shortCardMaxLines;
 
-  // Split lines into top and bottom halves
   let topHalfLines = [];
   let bottomHalfLines = [];
 
@@ -140,19 +275,14 @@ const CardPreview = ({
     bottomHalfLines = lines.slice(midPoint);
   }
 
-  // Create line indenter with seed based on message content
   const seed = hash32(lines.join(''));
   const getIndent = randomIndentEnabled 
     ? makeLineIndenter(seed, { maxIndent, indentAmplitude, indentNoise, indentFrequency })
     : () => 0;
 
-  // Calculate effective text width
   const effectiveTextWidth = baseTextWidth - maxIndent + shiftRight - rightPadding;
-
-  // Font class for handwriting
   const fontClass = getFontClass(noteStyleProfile?.handwritingFont || 'Caveat');
 
-  // Render a single line with indent
   const renderLine = (lineText, lineIndex, globalLineIndex) => {
     const indent = getIndent(globalLineIndex);
     
@@ -192,7 +322,6 @@ const CardPreview = ({
 
   return (
     <div className="flex flex-col items-center">
-      {/* Preview Container */}
       <div 
         className="relative bg-white rounded-lg shadow-lg overflow-hidden"
         style={{ 
@@ -200,7 +329,6 @@ const CardPreview = ({
           height: `${frameHeight}px`
         }}
       >
-        {/* Background Image */}
         {selectedDesign?.imageUrl && (
           <img
             src={selectedDesign.imageUrl}
@@ -209,9 +337,7 @@ const CardPreview = ({
           />
         )}
 
-        {/* Text Content Overlay */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Top Half */}
           <div 
             className="absolute top-0 left-0 right-0"
             style={{ paddingTop: `${topHalfPaddingTop}px` }}
@@ -221,10 +347,8 @@ const CardPreview = ({
             )}
           </div>
 
-          {/* Bottom Half (if not short card) */}
           {!isShortCard && bottomHalfLines.length > 0 && (
             <>
-              {/* Fold Line Indicator */}
               <div 
                 className="absolute left-0 right-0 border-t-2 border-dashed border-gray-300 opacity-30"
                 style={{ 
@@ -245,7 +369,6 @@ const CardPreview = ({
             </>
           )}
 
-          {/* Short card fold line */}
           {isShortCard && (
             <div 
               className="absolute left-0 right-0 border-t-2 border-dashed border-gray-300 opacity-30"
@@ -257,7 +380,6 @@ const CardPreview = ({
         </div>
       </div>
 
-      {/* Preview Info */}
       <div className="mt-4 text-sm text-gray-600 text-center">
         <p>
           {lines.length} lines total
@@ -274,5 +396,4 @@ const CardPreview = ({
   );
 };
 
-// Export with React.memo for performance optimization
 export default React.memo(CardPreview);
