@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 
 // ============================================
@@ -220,7 +221,7 @@ const CardPreview = ({
   includeSignature = true,
   leaveUnknownInPreview = false,
   randomIndentEnabled = true, 
-  showLineCounter = true
+  showLineCounter = false
 }) => {
 
   const composedMessage = useMemo(() => 
@@ -299,14 +300,6 @@ const CardPreview = ({
           minHeight: lineText ? `${fontSize * lineHeight}px` : `${fontSize * lineHeight * 0.5}px`,
         }}
       >
-        {showLineCounter && (
-          <span 
-            className="absolute left-[-30px] text-[10px] text-gray-400 font-mono"
-            style={{ top: '0px' }}
-          >
-            {globalLineIndex + 1}
-          </span>
-        )}
         <span 
           className={fontClass}
           style={{ 
@@ -322,6 +315,9 @@ const CardPreview = ({
       </div>
     );
   };
+
+  // Calculate fold position - ALWAYS at vertical center
+  const foldY = frameHeight / 2;
 
   return (
     <div className="flex flex-col items-center">
@@ -341,8 +337,9 @@ const CardPreview = ({
         )}
 
         <div className="absolute inset-0 pointer-events-none">
+          {/* Top Half Content */}
           <div 
-            className="absolute top-0 left-0 right-0"
+            className="absolute left-0 right-0"
             style={{ paddingTop: `${topHalfPaddingTop}px` }}
           >
             {topHalfLines.map((line, idx) => 
@@ -350,35 +347,26 @@ const CardPreview = ({
             )}
           </div>
 
-          {!isShortCard && bottomHalfLines.length > 0 && (
-            <>
-              <div 
-                className="absolute left-0 right-0 border-t-2 border-dashed border-gray-300 opacity-30"
-                style={{ 
-                  top: `${frameHeight / 2 - gapAboveFold}px`
-                }}
-              />
-              
-              <div 
-                className="absolute left-0 right-0"
-                style={{ 
-                  top: `${frameHeight / 2 + gapBelowFold}px`
-                }}
-              >
-                {bottomHalfLines.map((line, idx) => 
-                  renderLine(line, idx, topHalfLines.length + idx)
-                )}
-              </div>
-            </>
-          )}
+          {/* Fold Line - ALWAYS at vertical center */}
+          <div 
+            className="absolute left-0 right-0 border-t-2 border-dashed border-green-400 opacity-50"
+            style={{ 
+              top: `${foldY}px`
+            }}
+          />
 
-          {isShortCard && (
+          {/* Bottom Half Content (only for non-short cards) */}
+          {!isShortCard && bottomHalfLines.length > 0 && (
             <div 
-              className="absolute left-0 right-0 border-t-2 border-dashed border-gray-300 opacity-30"
+              className="absolute left-0 right-0"
               style={{ 
-                top: `${topHalfPaddingTop + (topHalfLines.length * fontSize * lineHeight) + shortBelowFold}px`
+                top: `${foldY + gapBelowFold}px`
               }}
-            />
+            >
+              {bottomHalfLines.map((line, idx) => 
+                renderLine(line, idx, topHalfLines.length + idx)
+              )}
+            </div>
           )}
         </div>
       </div>
