@@ -45,14 +45,19 @@ export default function SuperAdminLayout({ children }) {
 
   const navItems = [
     {
+      label: "Dashboard",
+      icon: Shield,
+      pageName: "SuperAdminDashboard"
+    },
+    {
       label: "Card Layout",
       icon: LayoutGrid,
-      path: "AdminCardLayout"
+      pageName: "AdminCardLayout"
     },
     {
       label: "Envelope Layout",
       icon: Mail,
-      path: "AdminEnvelopeLayout"
+      pageName: "AdminEnvelopeLayout"
     }
   ];
 
@@ -88,12 +93,13 @@ export default function SuperAdminLayout({ children }) {
             <div className="space-y-1">
               {navItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = currentPath.includes(item.path);
+                const itemUrl = createPageUrl(item.pageName);
+                const isActive = currentPath === itemUrl;
                 
                 return (
                   <Link
-                    key={item.path}
-                    to={createPageUrl(item.path)}
+                    key={item.pageName}
+                    to={itemUrl}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                       isActive
                         ? 'bg-indigo-50 text-indigo-700'

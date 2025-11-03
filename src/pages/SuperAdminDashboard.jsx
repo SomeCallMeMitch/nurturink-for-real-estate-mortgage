@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Layout, Users, CreditCard, BarChart, ImageIcon, Building, Settings, Mail } from 'lucide-react';
@@ -8,71 +9,77 @@ const adminSections = [
   {
     title: 'Card Layout Settings',
     description: 'Fine-tune the rendering settings for notecards.',
-    link: '/super-admin/card-layout',
+    pageName: 'AdminCardLayout',
     icon: Layout,
     status: 'Live',
   },
   {
     title: 'Envelope Layout',
     description: 'Configure envelope address positioning and format.',
-    link: '/super-admin/envelope-layout',
+    pageName: 'AdminEnvelopeLayout',
     icon: Mail,
     status: 'Live',
   },
   {
     title: 'Client Management',
     description: 'View, edit, and manage all clients across the platform.',
-    link: '/admin/clients',
+    pageName: 'AdminClients',
     icon: Users,
     status: 'Live',
   },
   {
     title: 'Organization Management',
     description: 'Manage all organizations using the platform.',
-    link: '/super-admin/organizations',
+    pageName: null,
     icon: Building,
     status: 'Coming Soon',
   },
   {
     title: 'User Management',
     description: 'View, edit, and manage all users and their roles.',
-    link: '/super-admin/users',
+    pageName: null,
     icon: Users,
     status: 'Coming Soon',
   },
   {
     title: 'Design Library',
     description: 'Upload and manage the library of available card designs.',
-    link: '/super-admin/designs',
+    pageName: null,
     icon: ImageIcon,
     status: 'Coming Soon',
   },
   {
     title: 'Analytics & Reports',
     description: 'View mailing statistics, cost analysis, and other reports.',
-    link: '/super-admin/analytics',
+    pageName: null,
     icon: BarChart,
     status: 'Coming Soon',
   },
   {
     title: 'Billing & Credits',
     description: 'Manage platform-wide billing and credit packages.',
-    link: '/super-admin/billing',
+    pageName: null,
     icon: CreditCard,
     status: 'Coming Soon',
   },
   {
     title: 'Platform Settings',
     description: 'Configure global settings and preferences.',
-    link: '/super-admin/settings',
+    pageName: null,
     icon: Settings,
     status: 'Coming Soon',
   },
 ];
 
-const AdminCard = ({ title, description, link, icon: Icon, status }) => {
+const AdminCard = ({ title, description, pageName, icon: Icon, status }) => {
   const navigate = useNavigate();
-  const isLive = status === 'Live';
+  const isLive = status === 'Live' && pageName;
+
+  const handleClick = () => {
+    if (isLive) {
+      navigate(createPageUrl(pageName));
+    }
+  };
 
   return (
     <Card 
@@ -81,7 +88,7 @@ const AdminCard = ({ title, description, link, icon: Icon, status }) => {
           ? 'cursor-pointer hover:border-indigo-500 hover:scale-105' 
           : 'cursor-not-allowed bg-gray-50 opacity-60'
       }`}
-      onClick={() => isLive && navigate(link)}
+      onClick={handleClick}
     >
       <CardHeader className="flex flex-col items-center text-center p-6">
         <Icon className="w-10 h-10 mb-4 text-indigo-600" />
