@@ -1,11 +1,152 @@
 import React, { useMemo } from 'react';
-import { 
-  composeCompleteMessage, 
-  messageToLines 
-} from '@/utils/textUtils';
 
 // ============================================
-// PRNG Functions (Pseudo-Random Number Generator)
+// Text Utilities (Inlined)
+// ============================================
+
+let canvasContext = null;
+
+const getCanvasContext = (fontFamily, fontSize) => {
+  if (!canvasContext) {
+    const canvas = document.createElement('canvas');
+    canvasContext = canvas.getContext('2d');
+  }
+  canvasContext.font = `${fontSize}px ${fontFamily}`;
+  return canvasContext;
+};
+
+const replacePlaceholders = (text, client, user, noteStyleProfile) => {
+  if (!text) return '';
+  
+  let result = text;
+
+  if (client) {
+    result = result.replace(/{{firstName}}/g, client.firstName || '');
+    result = result.replace(/{{lastName}}/g, client.lastName || '');
+    result = result.replace(/{{fullName}}/g, client.fullName || '');
+    result = result.replace(/{{address1}}/g, client.address1 || '');
+    result = result.replace(/{{address2}}/g, client.address2 || '');
+    result = result.replace(/{{city}}/g, client.city || '');
+    result = result.replace(/{{state}}/g, client.state || '');
+    result = result.replace(/{{zip}}/g, client.zip || '');
+    result = result.replace(/{{companyName}}/g, client.companyName || client.company || '');
+  }
+
+  if (user) {
+    result = result.replace(/{{rep_first_name}}/g, user.firstName || '');
+    result = result.replace(/{{rep_last_name}}/g, user.lastName || '');
+    result = result.replace(/{{rep_full_name}}/g, user.full_name || '');
+    result = result.replace(/{{rep_company_name}}/g, user.companyName || '');
+    result = result.replace(/{{rep_phone}}/g, user.phone || '');
+    result = result.replace(/{{url}}/g, user.websiteUrl || user.companyUrl || '');
+  }
+  
+  const today = new Date();
+  result = result.replace(/{{today_date}}/g, today.toLocaleDateString());
+  result = result.replace(/{{current_year}}/g, today.getFullYear().toString());
+
+  return result;
+};
+
+const wrapTextToLines = (text, options = {}) => {
+  if (!text) return [];
+
+  const {
+    fontFamily = 'Caveat',
+    fontSize = 18,
+    maxWidth = 355
+  } = options;
+
+  const ctx = getCanvasContext(fontFamily, fontSize);
+  const paragraphs = text.split('\n');
+  const allLines = [];
+  
+  for (const paragraph of paragraphs) {
+    if (paragraph.trim() === '') {
+      allLines.push('');
+      continue;
+    }
+    
+    const words = paragraph.split(' ');
+    let currentLine = '';
+
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const testWidth = ctx.measureText(testLine).width;
+
+      if (testWidth <= maxWidth) {
+        currentLine = testLine;
+      } else {
+        if (currentLine) {
+          allLines.push(currentLine);
+          currentLine = word;
+        } else {
+          allLines.push(word);
+          currentLine = '';
+        }
+      }
+    }
+
+    if (currentLine) {
+      allLines.push(currentLine);
+    }
+  }
+
+  return allLines;
+};
+
+const composeCompleteMessage = (greeting, messageBody, signature, client, user, noteStyleProfile) => {
+  const parts = [];
+  
+  if (greeting) {
+    const processedGreeting = replacePlaceholders(greeting, client, user, noteStyleProfile);
+    if (processedGreeting.trim()) {
+      parts.push(processedGreeting.trim());
+    }
+  }
+  
+  if (messageBody) {
+    const processedBody = replacePlaceholders(messageBody, client, user, noteStyleProfile);
+    if (processedBody.trim()) {
+      parts.push(processedBody.trim());
+    }
+  }
+  
+  if (signature) {
+    const processedSignature = replacePlaceholders(signature, client, user, noteStyleProfile);
+    if (processedSignature.trim()) {
+      parts.push(processedSignature.trim());
+    }
+  }
+  
+  return parts.join('\n\n');
+};
+
+const messageToLines = (completeMessage, options = {}) => {
+  if (!completeMessage) return [];
+  
+  const { maxIndent = 0, ...wrapOptions } = options;
+  const adjustedMaxWidth = (wrapOptions.maxWidth || 355) - maxIndent;
+  
+  const paragraphs = completeMessage.split('\n\n');
+  const allLines = [];
+  
+  paragraphs.forEach((paragraph, index) => {
+    if (paragraph.trim()) {
+      const lines = wrapTextToLines(paragraph.trim(), { ...wrapOptions, maxWidth: adjustedMaxWidth });
+      allLines.push(...lines);
+      
+      if (index < paragraphs.length - 1) {
+        allLines.push('');
+      }
+    }
+  });
+  
+  return allLines;
+};
+
+// ============================================
+// PRNG Functions
 // ============================================
 
 function hash32(str) {
