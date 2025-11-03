@@ -1,3 +1,4 @@
+
 import React from "react";
 import MainLayout from "./components/layout/MainLayout";
 
@@ -14,7 +15,13 @@ export default function Layout({ children, currentPageName }) {
     "Clients",
     "Settings",
     "AdminClients",
-    "AdminClientEdit"
+    "AdminClientEdit",
+    "SettingsProfile",
+    "SettingsWritingStyle",
+    "SettingsAddresses",
+    "SettingsPhones",
+    "SettingsUrls",
+    "SettingsTeam"
   ];
   
   // Check if current page should use MainLayout

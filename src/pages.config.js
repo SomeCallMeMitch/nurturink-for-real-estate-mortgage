@@ -8,6 +8,8 @@ import EditTemplate from './pages/EditTemplate';
 import CreateContent2 from './pages/CreateContent2';
 import AdminClients from './pages/AdminClients';
 import AdminClientEdit from './pages/AdminClientEdit';
+import SettingsWritingStyle from './pages/SettingsWritingStyle';
+import SettingsProfile from './pages/SettingsProfile';
 import Layout from './Layout.jsx';
 
 
@@ -22,6 +24,8 @@ export const PAGES = {
     "CreateContent2": CreateContent2,
     "AdminClients": AdminClients,
     "AdminClientEdit": AdminClientEdit,
+    "SettingsWritingStyle": SettingsWritingStyle,
+    "SettingsProfile": SettingsProfile,
 }
 
 export const pagesConfig = {

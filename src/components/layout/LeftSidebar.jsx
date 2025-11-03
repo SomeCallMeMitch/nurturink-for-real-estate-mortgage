@@ -17,6 +17,7 @@ export default function LeftSidebar() {
     { name: 'Send a Card', icon: Mail, path: 'FindClients' },
     { name: 'Templates', icon: FileText, path: 'Templates' },
     { name: 'Clients', icon: Users, path: 'AdminClients' },
+    { name: 'Settings', icon: Settings, path: 'SettingsProfile' },
   ];
 
   return (
