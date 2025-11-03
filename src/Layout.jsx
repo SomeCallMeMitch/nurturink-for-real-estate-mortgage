@@ -1,4 +1,3 @@
-
 import React from "react";
 import MainLayout from "./components/layout/MainLayout";
 
@@ -35,6 +34,19 @@ export default function Layout({ children, currentPageName }) {
         href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" 
         rel="stylesheet" 
       />
+      
+      {/* Custom font classes mapped to Google Fonts */}
+      <style>{`
+        .font-caveat {
+          font-family: 'Caveat', cursive;
+        }
+        .font-kalam {
+          font-family: 'Kalam', cursive;
+        }
+        .font-patrick {
+          font-family: 'Patrick Hand', cursive;
+        }
+      `}</style>
       
       {useMainLayout ? (
         <MainLayout>{children}</MainLayout>

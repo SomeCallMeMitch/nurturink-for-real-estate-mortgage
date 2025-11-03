@@ -1,149 +1,8 @@
 import React, { useMemo } from 'react';
-
-// ============================================
-// Text Utilities (Inlined)
-// ============================================
-
-/**
- * Replace placeholders in text with actual values
- */
-function replacePlaceholders(text, client = {}, user = {}, noteStyleProfile = {}, options = {}) {
-  if (!text) return '';
-  
-  const { leaveUnknown = false } = options;
-  
-  const replacements = {
-    'client.firstName': client.firstName || '',
-    'client.lastName': client.lastName || '',
-    'client.fullName': client.fullName || `${client.firstName || ''} ${client.lastName || ''}`.trim(),
-    'client.companyName': client.companyName || '',
-    'firstName': client.firstName || '',
-    'lastName': client.lastName || '',
-    'fullName': client.fullName || `${client.firstName || ''} ${client.lastName || ''}`.trim(),
-    'companyName': client.companyName || '',
-    'user.full_name': user.full_name || '',
-    'user.fullName': user.full_name || '',
-    'user.companyName': user.companyName || '',
-    'user.phone': user.phone || '',
-    'rep_full_name': user.full_name || '',
-    'rep_company_name': user.companyName || '',
-    'rep_phone': user.phone || '',
-  };
-  
-  let result = text;
-  const placeholderRegex = /\{\{([^}]+)\}\}/g;
-  
-  result = result.replace(placeholderRegex, (match, key) => {
-    const trimmedKey = key.trim();
-    if (replacements.hasOwnProperty(trimmedKey)) {
-      return replacements[trimmedKey];
-    }
-    return leaveUnknown ? match : '';
-  });
-  
-  return result;
-}
-
-/**
- * Compose complete message with greeting, body, and signature
- */
-function composeCompleteMessage(
-  greeting = '',
-  body = '',
-  signature = '',
-  client = {},
-  user = {},
-  noteStyleProfile = {},
-  options = {}
-) {
-  const parts = [];
-  
-  if (greeting && greeting.trim()) {
-    const processedGreeting = replacePlaceholders(greeting, client, user, noteStyleProfile, options);
-    if (processedGreeting.trim()) {
-      parts.push(processedGreeting);
-    }
-  }
-  
-  if (body && body.trim()) {
-    parts.push(body);
-  }
-  
-  if (signature && signature.trim()) {
-    const processedSignature = replacePlaceholders(signature, client, user, noteStyleProfile, options);
-    if (processedSignature.trim()) {
-      parts.push(processedSignature);
-    }
-  }
-  
-  return parts.join('\n\n');
-}
-
-/**
- * Measure text width using canvas
- */
-function measureTextWidth(text, font) {
-  if (typeof document === 'undefined') {
-    return text.length * 10;
-  }
-  
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  context.font = font;
-  const metrics = context.measureText(text);
-  return metrics.width;
-}
-
-/**
- * Convert message text into array of lines for rendering
- */
-function messageToLines(text, options = {}) {
-  const {
-    fontFamily = 'Caveat',
-    fontSize = '18px',
-    lineHeight = 1.1,
-    maxWidth = 355,
-    maxIndent = 16
-  } = options;
-  
-  if (!text || !text.trim()) {
-    return [];
-  }
-  
-  const font = `${fontSize} ${fontFamily}`;
-  const effectiveMaxWidth = maxWidth - maxIndent;
-  
-  const lines = [];
-  const paragraphs = text.split('\n');
-  
-  for (const paragraph of paragraphs) {
-    if (!paragraph.trim()) {
-      lines.push('');
-      continue;
-    }
-    
-    const words = paragraph.split(' ');
-    let currentLine = '';
-    
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const width = measureTextWidth(testLine, font);
-      
-      if (width > effectiveMaxWidth && currentLine) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    }
-    
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-  }
-  
-  return lines;
-}
+import { 
+  composeCompleteMessage, 
+  messageToLines 
+} from '@/utils/textUtils';
 
 // ============================================
 // PRNG Functions (Pseudo-Random Number Generator)
@@ -196,11 +55,14 @@ function makeLineIndenter(seed, settings) {
 // Font Class Mapping
 // ============================================
 
-const getFontClass = (fontName) => ({
-  'Caveat': 'font-caveat',
-  'Kalam': 'font-kalam',
-  'Patrick Hand': 'font-patrick-hand',
-}[fontName] || 'font-caveat');
+const getFontClass = (fontName) => {
+  const fontMap = {
+    'Caveat': 'font-caveat',
+    'Kalam': 'font-kalam',
+    'Patrick Hand': 'font-patrick'
+  };
+  return fontMap[fontName] || 'font-caveat';
+};
 
 // ============================================
 // CardPreview Component
@@ -237,7 +99,7 @@ const CardPreview = ({
   const lines = useMemo(() => 
     messageToLines(composedMessage, {
       fontFamily: noteStyleProfile?.handwritingFont || 'Caveat',
-      fontSize: `${fontSize}px`,
+      fontSize: fontSize,
       lineHeight: lineHeight,
       maxWidth: baseTextWidth,
       maxIndent: maxIndent
@@ -305,7 +167,7 @@ const CardPreview = ({
           </span>
         )}
         <span 
-          className={`${fontClass}`}
+          className={fontClass}
           style={{ 
             fontSize: `${fontSize}px`,
             lineHeight: lineHeight,
