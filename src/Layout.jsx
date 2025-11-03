@@ -1,4 +1,3 @@
-
 import React from "react";
 import MainLayout from "./components/layout/MainLayout";
 
@@ -8,12 +7,14 @@ export default function Layout({ children, currentPageName }) {
     "Home",
     "FindClients", 
     "CreateContent",
-    "CreateContent2", // Added "CreateContent2" here
+    "CreateContent2",
     "Templates",
     "EditTemplate",
     "Analytics",
     "Clients",
-    "Settings"
+    "Settings",
+    "AdminClients",
+    "AdminClientEdit"
   ];
   
   // Check if current page should use MainLayout

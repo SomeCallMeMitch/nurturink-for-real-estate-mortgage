@@ -6,6 +6,8 @@ import CreateContent from './pages/CreateContent';
 import Templates from './pages/Templates';
 import EditTemplate from './pages/EditTemplate';
 import CreateContent2 from './pages/CreateContent2';
+import AdminClients from './pages/AdminClients';
+import AdminClientEdit from './pages/AdminClientEdit';
 import Layout from './Layout.jsx';
 
 
@@ -18,6 +20,8 @@ export const PAGES = {
     "Templates": Templates,
     "EditTemplate": EditTemplate,
     "CreateContent2": CreateContent2,
+    "AdminClients": AdminClients,
+    "AdminClientEdit": AdminClientEdit,
 }
 
 export const pagesConfig = {
