@@ -8,7 +8,6 @@ export default function Layout({ children, currentPageName }) {
     "Home",
     "FindClients", 
     "CreateContent",
-    "CreateContent2",
     "Templates",
     "EditTemplate",
     "Analytics",

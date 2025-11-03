@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -170,6 +169,7 @@ export default function CreateContent() {
       console.log('📡 Step 1: Loading user...');
       const currentUser = await base44.auth.me();
       console.log('✅ User loaded:', currentUser.email);
+      console.log('👤 User orgId:', currentUser.orgId);
       setUser(currentUser);
       
       console.log('📡 Step 2: Loading mailing batch...');
@@ -199,13 +199,23 @@ export default function CreateContent() {
       setClients(clientList);
       
       console.log('📡 Step 4: Loading templates...');
+      console.log('🔍 Template query filter:', {
+        $or: [
+          { orgId: currentUser.orgId },
+          { type: 'platform' }
+        ]
+      });
+      
       const templateList = await base44.entities.Template.filter({
         $or: [
           { orgId: currentUser.orgId },
           { type: 'platform' }
         ]
       });
-      console.log('✅ Templates loaded:', templateList.length);
+      
+      console.log('✅ Templates loaded:', templateList.length, 'templates');
+      console.log('📝 Template details:', templateList);
+      
       setTemplates(templateList);
       
       console.log('📡 Step 5: Loading note style profiles...');
@@ -222,13 +232,6 @@ export default function CreateContent() {
         setInstanceSettings(settingsResponse.data);
       } catch (settingsError) {
         console.error('⚠️ Failed to load instance settings, using fallback:', settingsError);
-        console.error('Settings error details:', {
-          message: settingsError.message,
-          status: settingsError.response?.status,
-          data: settingsError.response?.data
-        });
-        
-        // Use fallback settings instead of failing
         setInstanceSettings(FALLBACK_SETTINGS);
       }
       
@@ -236,18 +239,11 @@ export default function CreateContent() {
       setLoading(false);
     } catch (err) {
       console.error('❌ Failed to load data:', err);
-      console.error('Error details:', {
-        message: err.message,
-        stack: err.stack,
-        response: err.response
-      });
-      
       setError(err.message || 'Failed to load data');
       setErrorDetails(JSON.stringify({
         message: err.message,
         status: err.response?.status,
-        data: err.response?.data,
-        stack: err.stack?.split('\n').slice(0, 3)
+        data: err.response?.data
       }, null, 2));
       setLoading(false);
     }
@@ -371,7 +367,6 @@ export default function CreateContent() {
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-indigo-600 mx-auto mb-4 animate-spin" />
           <p className="text-gray-600">Loading content editor...</p>
-          <p className="text-sm text-gray-400 mt-2">Check browser console for debug logs</p>
         </div>
       </div>
     );
@@ -396,16 +391,6 @@ export default function CreateContent() {
                 </pre>
               </div>
             )}
-            
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <h3 className="font-semibold text-sm text-blue-900 mb-2">Debug Checklist:</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>✓ URL parameter present: {mailingBatchId ? 'Yes' : 'No'}</li>
-                <li>✓ User authenticated: {user ? 'Yes' : 'No'}</li>
-                <li>✓ Browser console logs available</li>
-                <li>✓ Network tab shows failed requests</li>
-              </ul>
-            </div>
             
             <div className="flex gap-3 justify-center">
               <Button onClick={() => navigate(createPageUrl('Home'))}>
@@ -432,7 +417,6 @@ export default function CreateContent() {
             <div className="text-center">
               <h2 className="text-xl font-bold text-red-600 mb-2">Mailing Batch Not Found</h2>
               <p className="text-gray-600 mb-4">The requested mailing batch could not be found.</p>
-              <p className="text-sm text-gray-500 mb-4">Batch ID: {mailingBatchId}</p>
               <Button onClick={() => navigate(createPageUrl('FindClients'))}>
                 Back to Clients
               </Button>
@@ -467,19 +451,53 @@ export default function CreateContent() {
                   Saving...
                 </span>
               ) : lastSaved ? (
-                <span className="flex items-center gap-2">
-                  <Save className="w-4 h-4 text-green-500" />
-                  Saved {new Date(lastSaved).toLocaleTimeString()}
+                <span className="flex items-center gap-2 text-green-600">
+                  <Save className="w-4 h-4" />
+                  All changes saved
                 </span>
               ) : null}
             </div>
           </div>
         </div>
 
-        {/* Three-Column Layout */}
+        {/* Three-Column Layout - CORRECTED */}
         <div className="grid grid-cols-12 gap-6">
-          {/* Left Column: Template Library */}
-          <div className="col-span-3">
+          {/* Left Column: Recipients + Template Library */}
+          <div className="col-span-3 space-y-6">
+            {/* Recipients Section */}
+            <Card>
+              <CardContent className="pt-6">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Recipients</h3>
+                <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                  <span>1/{clients.length}</span>
+                  <div className="flex gap-1">
+                    <button className="hover:text-gray-700">←</button>
+                    <button className="hover:text-gray-700">→</button>
+                  </div>
+                </div>
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {clients.map(client => {
+                    const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
+                    
+                    return (
+                      <button
+                        key={client.id}
+                        onClick={() => handleRecipientClick(client.id)}
+                        className={`w-full text-left px-3 py-2 text-sm rounded transition-all ${
+                          isEditing
+                            ? 'bg-[#fff8f8] border-l-4 border-l-[#d32f2f] font-medium text-gray-900'
+                            : 'border-l-4 border-l-transparent hover:bg-gray-50 text-gray-700'
+                        }`}
+                      >
+                        {client.fullName || 'Unnamed Client'}
+                      </button>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Template Library */}
             <TemplateLibrary
               templates={templates}
               onTemplateSelect={handleTemplateSelect}
@@ -487,80 +505,22 @@ export default function CreateContent() {
             />
           </div>
 
-          {/* Center Column: Editor */}
-          <div className="col-span-5 space-y-4">
-            {/* Edit Mode Selector */}
+          {/* Center Column: Message Editor */}
+          <div className="col-span-5">
             <Card>
-              <CardContent className="pt-6">
+              <CardContent className="pt-6 space-y-6">
+                {/* Edit Mode Selector */}
                 <EditModeSelector
                   mode={editMode}
                   selectedRecipientId={selectedRecipientId}
                   recipients={recipients}
                   onModeChange={handleModeChange}
                 />
-              </CardContent>
-            </Card>
 
-            {/* Recipient List - Now Clickable */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-1">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-3">
-                    Recipients ({clients.length})
-                  </h3>
-                  <div className="max-h-48 overflow-y-auto space-y-1">
-                    {clients.map(client => {
-                      const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
-                      const hasOverride = localContentOverrides[client.id];
-                      
-                      return (
-                        <button
-                          key={client.id}
-                          onClick={() => handleRecipientClick(client.id)}
-                          className={`w-full text-left px-3 py-2 text-sm rounded transition-all ${
-                            isEditing
-                              ? 'bg-[#fff8f8] border-l-4 border-l-[#d32f2f] font-medium text-gray-900'
-                              : 'border-l-4 border-l-transparent hover:bg-gray-50 text-gray-700 hover:text-gray-900'
-                          }`}
-                        >
-                          <span>{client.fullName || 'Unnamed Client'}</span>
-                          {hasOverride && (
-                            <span className="ml-2 text-xs text-indigo-600 font-normal">(customized)</span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Message Editor */}
-            <Card>
-              <CardContent className="pt-6 space-y-4">
+                {/* Writing Style */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Message
-                  </label>
-                  <Textarea
-                    ref={textareaRef}
-                    value={getCurrentMessage()}
-                    onChange={(e) => handleMessageChange(e.target.value)}
-                    placeholder="Type your message here..."
-                    className="min-h-[300px] font-mono text-sm"
-                  />
-                </div>
-
-                <PlaceholderSelector onPlaceholderSelect={handlePlaceholderSelect} />
-              </CardContent>
-            </Card>
-
-            {/* Options */}
-            <Card>
-              <CardContent className="pt-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Note Style Profile
+                    Writing Style
                   </label>
                   <Select
                     value={localSelectedNoteStyleProfileId || ''}
@@ -579,7 +539,22 @@ export default function CreateContent() {
                   </Select>
                 </div>
 
-                <div className="flex items-center gap-6">
+                {/* Message Editor */}
+                <div>
+                  <Textarea
+                    ref={textareaRef}
+                    value={getCurrentMessage()}
+                    onChange={(e) => handleMessageChange(e.target.value)}
+                    placeholder="Type your message here..."
+                    className="min-h-[300px] text-sm"
+                  />
+                </div>
+
+                {/* Placeholder Buttons */}
+                <PlaceholderSelector onPlaceholderSelect={handlePlaceholderSelect} />
+
+                {/* Include Options */}
+                <div className="flex items-center gap-6 pt-4 border-t">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="includeGreeting"
@@ -610,7 +585,7 @@ export default function CreateContent() {
           <div className="col-span-4">
             <Card className="sticky top-6">
               <CardContent className="pt-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Live Preview</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">Preview for {getCurrentClient().fullName || 'Client'}</h3>
                 
                 {instanceSettings && (
                   <CardPreview
@@ -623,7 +598,7 @@ export default function CreateContent() {
                     includeGreeting={localIncludeGreeting}
                     includeSignature={localIncludeSignature}
                     randomIndentEnabled={true}
-                    showLineCounter={false}
+                    showLineCounter={true}
                   />
                 )}
                 
@@ -639,17 +614,17 @@ export default function CreateContent() {
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            {editMode === 'bulk' ? 'Editing all recipients' : `Editing: ${getCurrentClient().fullName || 'Unnamed Client'}`}
+            {clients.length} clients selected
           </div>
           
           <Button
             onClick={handleContinue}
-            className="bg-indigo-600 hover:bg-indigo-700 gap-2"
+            className="bg-orange-500 hover:bg-orange-600 gap-2"
           >
-            Continue to Design
+            Continue to Select Design
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>

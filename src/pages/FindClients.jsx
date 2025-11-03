@@ -97,8 +97,8 @@ export default function FindClients() {
       
       const { mailingBatchId } = response.data;
       
-      // Navigate to content creation page - UPDATED TO USE CreateContent2
-      navigate(createPageUrl(`CreateContent2?mailingBatchId=${mailingBatchId}`));
+      // Navigate to content creation page - UPDATED TO USE CreateContent
+      navigate(createPageUrl(`CreateContent?mailingBatchId=${mailingBatchId}`));
       
     } catch (err) {
       console.error('Failed to initialize mailing batch:', err);
