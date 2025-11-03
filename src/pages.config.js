@@ -10,6 +10,9 @@ import AdminClients from './pages/AdminClients';
 import AdminClientEdit from './pages/AdminClientEdit';
 import SettingsWritingStyle from './pages/SettingsWritingStyle';
 import SettingsProfile from './pages/SettingsProfile';
+import SettingsAddresses from './pages/SettingsAddresses';
+import SettingsPhones from './pages/SettingsPhones';
+import SettingsUrls from './pages/SettingsUrls';
 import Layout from './Layout.jsx';
 
 
@@ -26,6 +29,9 @@ export const PAGES = {
     "AdminClientEdit": AdminClientEdit,
     "SettingsWritingStyle": SettingsWritingStyle,
     "SettingsProfile": SettingsProfile,
+    "SettingsAddresses": SettingsAddresses,
+    "SettingsPhones": SettingsPhones,
+    "SettingsUrls": SettingsUrls,
 }
 
 export const pagesConfig = {
