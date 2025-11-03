@@ -1,6 +1,20 @@
 import React from "react";
+import MainLayout from "./components/layout/MainLayout";
 
 export default function Layout({ children, currentPageName }) {
+  // Pages that should use MainLayout
+  const mainAppPages = [
+    "Home",
+    "FindClients", 
+    "CreateContent",
+    "Analytics",
+    "Clients",
+    "Settings"
+  ];
+  
+  // Check if current page should use MainLayout
+  const useMainLayout = mainAppPages.includes(currentPageName);
+  
   return (
     <>
       {/* Google Fonts for handwritten card preview */}
@@ -11,7 +25,11 @@ export default function Layout({ children, currentPageName }) {
         rel="stylesheet" 
       />
       
-      {children}
+      {useMainLayout ? (
+        <MainLayout>{children}</MainLayout>
+      ) : (
+        children
+      )}
     </>
   );
 }

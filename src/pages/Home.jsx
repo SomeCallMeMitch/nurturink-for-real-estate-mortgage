@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -10,6 +11,8 @@ export default function Home() {
   const navigate = useNavigate();
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState(null);
+  const [seedingTemplates, setSeedingTemplates] = useState(false);
+  const [templateSeedResult, setTemplateSeedResult] = useState(null);
 
   const handleSeedData = async () => {
     try {
@@ -32,6 +35,35 @@ export default function Home() {
       });
     } finally {
       setSeeding(false);
+    }
+  };
+
+  const handleSeedTemplatesAndProfiles = async () => {
+    try {
+      setSeedingTemplates(true);
+      setTemplateSeedResult(null);
+      
+      const profileResult = await base44.functions.invoke('seedNoteStyleProfiles');
+      const templateResult = await base44.functions.invoke('seedTemplates');
+      
+      const profileSuccess = profileResult.data.success;
+      const templateSuccess = templateResult.data.success;
+      
+      setTemplateSeedResult({
+        success: profileSuccess || templateSuccess,
+        message: `${profileResult.data.message} ${templateResult.data.message}`,
+        profileCount: profileResult.data.profileCount,
+        templateCount: templateResult.data.templateCount
+      });
+      
+    } catch (error) {
+      console.error('Failed to seed templates and profiles:', error);
+      setTemplateSeedResult({
+        success: false,
+        message: error.response?.data?.error || 'Failed to seed templates and profiles'
+      });
+    } finally {
+      setSeedingTemplates(false);
     }
   };
 
@@ -131,6 +163,62 @@ export default function Home() {
               </CardContent>
             )}
           </Card>
+
+          {/* Seed Templates & Profiles */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Mail className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <CardTitle>Templates & Profiles</CardTitle>
+                    <CardDescription>
+                      Create sample templates and note style profiles
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleSeedTemplatesAndProfiles}
+                  variant="outline"
+                  disabled={seedingTemplates}
+                  className="border-green-600 text-green-600 hover:bg-green-50"
+                >
+                  {seedingTemplates ? 'Creating...' : 'Seed Templates'}
+                </Button>
+              </div>
+            </CardHeader>
+
+            {/* Template Seed Result Message */}
+            {templateSeedResult && (
+              <CardContent>
+                <div className={`flex items-start gap-3 p-4 rounded-lg ${
+                  templateSeedResult.success 
+                    ? 'bg-green-50 border border-green-200' 
+                    : 'bg-yellow-50 border border-yellow-200'
+                }`}>
+                  {templateSeedResult.success ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p className={`font-medium ${
+                      templateSeedResult.success ? 'text-green-900' : 'text-yellow-900'
+                    }`}>
+                      {templateSeedResult.message}
+                    </p>
+                    {templateSeedResult.success && (
+                      <p className="text-sm text-green-700 mt-1">
+                        Templates are ready to use in the content editor!
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
         </div>
 
         {/* Info Box */}
@@ -144,14 +232,18 @@ export default function Home() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">2.</span>
-                <span>Click "Send a Card" to start the workflow</span>
+                <span>Click "Seed Templates" to create sample templates and note style profiles (first time only)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">3.</span>
-                <span>Select clients and compose your message</span>
+                <span>Click "Send a Card" to start the workflow</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">4.</span>
+                <span>Select clients and compose your message</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-semibold text-indigo-600">5.</span>
                 <span>Choose a design and send your notecards!</span>
               </li>
             </ol>
