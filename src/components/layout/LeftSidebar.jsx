@@ -1,12 +1,14 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Home, Send, Settings, BarChart2, Users, LogOut } from "lucide-react";
+import { Home, Send, Settings, BarChart2, Users, LogOut, FileText } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 const navItems = [
   { name: "Home", path: "/", icon: Home },
   { name: "Send a Card", path: "/findclients", icon: Send },
+  { name: "Templates", path: "/templates", icon: FileText },
   { name: "Analytics", path: "/analytics", icon: BarChart2 },
   { name: "Clients", path: "/clients", icon: Users },
   { name: "Settings", path: "/settings", icon: Settings },
