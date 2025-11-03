@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -96,8 +97,8 @@ export default function FindClients() {
       
       const { mailingBatchId } = response.data;
       
-      // Navigate to content creation page
-      navigate(createPageUrl(`CreateContent?mailingBatchId=${mailingBatchId}`));
+      // Navigate to content creation page - UPDATED TO USE CreateContent2
+      navigate(createPageUrl(`CreateContent2?mailingBatchId=${mailingBatchId}`));
       
     } catch (err) {
       console.error('Failed to initialize mailing batch:', err);
