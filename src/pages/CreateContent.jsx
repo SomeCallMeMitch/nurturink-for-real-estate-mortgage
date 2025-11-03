@@ -281,6 +281,12 @@ export default function CreateContent() {
     setSelectedRecipientId(recipientId);
   };
 
+  // Handle clicking on a recipient name in the list
+  const handleRecipientClick = (clientId) => {
+    setEditMode('individual');
+    setSelectedRecipientId(clientId);
+  };
+
   // Get current message based on mode
   const getCurrentMessage = () => {
     if (editMode === 'bulk') {
@@ -477,6 +483,7 @@ export default function CreateContent() {
             <TemplateLibrary
               templates={templates}
               onTemplateSelect={handleTemplateSelect}
+              user={user}
             />
           </div>
 
@@ -494,30 +501,36 @@ export default function CreateContent() {
               </CardContent>
             </Card>
 
-            {/* Recipient List */}
+            {/* Recipient List - Now Clickable */}
             <Card>
               <CardContent className="pt-6">
-                <div className="max-h-32 overflow-y-auto space-y-1">
-                  {clients.map(client => {
-                    const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
-                    const hasOverride = localContentOverrides[client.id];
-                    
-                    return (
-                      <div
-                        key={client.id}
-                        className={`px-3 py-2 text-sm rounded transition-colors ${
-                          isEditing
-                            ? 'bg-[#fff8f8] border-l-3 border-l-[#d32f2f] font-medium pl-[13px]'
-                            : 'border-l-3 border-l-transparent'
-                        }`}
-                      >
-                        <span className="text-gray-900">{client.fullName || 'Unnamed Client'}</span>
-                        {hasOverride && (
-                          <span className="ml-2 text-xs text-indigo-600">(customized)</span>
-                        )}
-                      </div>
-                    );
-                  })}
+                <div className="space-y-1">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 px-3">
+                    Recipients ({clients.length})
+                  </h3>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {clients.map(client => {
+                      const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
+                      const hasOverride = localContentOverrides[client.id];
+                      
+                      return (
+                        <button
+                          key={client.id}
+                          onClick={() => handleRecipientClick(client.id)}
+                          className={`w-full text-left px-3 py-2 text-sm rounded transition-all ${
+                            isEditing
+                              ? 'bg-[#fff8f8] border-l-4 border-l-[#d32f2f] font-medium text-gray-900'
+                              : 'border-l-4 border-l-transparent hover:bg-gray-50 text-gray-700 hover:text-gray-900'
+                          }`}
+                        >
+                          <span>{client.fullName || 'Unnamed Client'}</span>
+                          {hasOverride && (
+                            <span className="ml-2 text-xs text-indigo-600 font-normal">(customized)</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </CardContent>
             </Card>
