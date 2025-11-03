@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -169,6 +170,7 @@ export default function CreateContent2() {
       console.log('📡 Step 1: Loading user...');
       const currentUser = await base44.auth.me();
       console.log('✅ User loaded:', currentUser.email);
+      console.log('👤 User orgId:', currentUser.orgId);
       setUser(currentUser);
       
       console.log('📡 Step 2: Loading mailing batch...');
@@ -198,13 +200,23 @@ export default function CreateContent2() {
       setClients(clientList);
       
       console.log('📡 Step 4: Loading templates...');
+      console.log('🔍 Template query filter:', {
+        $or: [
+          { orgId: currentUser.orgId },
+          { type: 'platform' }
+        ]
+      });
+      
       const templateList = await base44.entities.Template.filter({
         $or: [
           { orgId: currentUser.orgId },
           { type: 'platform' }
         ]
       });
-      console.log('✅ Templates loaded:', templateList.length);
+      
+      console.log('✅ Templates loaded:', templateList.length, 'templates');
+      console.log('📝 Template details:', templateList);
+      
       setTemplates(templateList);
       
       console.log('📡 Step 5: Loading note style profiles...');

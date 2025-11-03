@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -41,15 +42,27 @@ export default function Templates() {
       setLoading(true);
       
       const currentUser = await base44.auth.me();
+      console.log('📋 Templates Page - Current User:', currentUser);
+      console.log('📋 User orgId:', currentUser.orgId);
       setUser(currentUser);
       
       // Load templates for user's organization
+      console.log('🔍 Querying templates with filter:', {
+        $or: [
+          { orgId: currentUser.orgId },
+          { type: 'platform' }
+        ]
+      });
+      
       const templateList = await base44.entities.Template.filter({
         $or: [
           { orgId: currentUser.orgId },
           { type: 'platform' }
         ]
       });
+      
+      console.log('✅ Templates loaded:', templateList.length, 'templates');
+      console.log('📝 Template details:', templateList);
       
       setTemplates(templateList);
       
@@ -61,10 +74,12 @@ export default function Templates() {
         ]
       });
       
+      console.log('✅ Categories loaded:', categoryList.length, 'categories');
+      
       setCategories(categoryList);
       
     } catch (error) {
-      console.error('Failed to load templates:', error);
+      console.error('❌ Failed to load templates:', error);
     } finally {
       setLoading(false);
     }
