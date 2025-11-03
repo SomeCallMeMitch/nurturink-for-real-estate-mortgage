@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
-import { requireSuperAdmin } from './utils/requireSuperAdmin.js';
 
 // Default settings to initialize if no record exists
 const DEFAULT_SETTINGS = {
@@ -35,8 +34,16 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verify super admin access
-    await requireSuperAdmin(base44);
+    // Verify user is authenticated and is super admin
+    const user = await base44.auth.me();
+    
+    if (!user) {
+      return Response.json({ error: 'Unauthorized: Authentication required' }, { status: 401 });
+    }
+    
+    if (user.appRole !== 'super_admin') {
+      return Response.json({ error: 'Unauthorized: Super admin access required' }, { status: 403 });
+    }
     
     // Query for existing settings (singleton pattern)
     const settings = await base44.asServiceRole.entities.InstanceSettings.list();
@@ -52,11 +59,6 @@ Deno.serve(async (req) => {
     
   } catch (error) {
     console.error('Error in getInstanceSettings:', error);
-    
-    if (error.message.includes('Unauthorized')) {
-      return Response.json({ error: error.message }, { status: 403 });
-    }
-    
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
