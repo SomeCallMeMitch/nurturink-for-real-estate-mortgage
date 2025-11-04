@@ -55,6 +55,8 @@ const replacePlaceholders = (text, client, user, noteStyleProfile) => {
   // User/Me placeholders - NEW SYNTAX
   if (user) {
     // Name placeholders
+    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || ''); // ADDED
+    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || ''); // ADDED
     result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
     
     // Contact placeholders

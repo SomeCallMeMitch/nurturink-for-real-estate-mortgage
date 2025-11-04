@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Search, FileEdit } from 'lucide-react';
@@ -55,6 +56,8 @@ export default function PlaceholderModal({ onPlaceholderSelect }) {
         {
           title: 'NAME',
           placeholders: [
+            { code: '{{me.firstName}}', description: 'Your first name', example: 'John' },
+            { code: '{{me.lastName}}', description: 'Your last name', example: 'Smith' },
             { code: '{{me.fullName}}', description: 'Your full name', example: 'John Smith' }
           ]
         },
