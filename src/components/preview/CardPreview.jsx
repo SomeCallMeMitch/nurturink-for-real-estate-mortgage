@@ -1,7 +1,7 @@
-
 import React, { useMemo } from 'react';
+import { replacePlaceholders, composeCompleteMessage } from '@/utils/placeholderUtils';
 
-// Utility functions
+// Utility function for font mapping
 const getFontClass = (fontName) => {
   const fontMap = {
     'Caveat': 'font-caveat',
@@ -12,104 +12,7 @@ const getFontClass = (fontName) => {
   return fontMap[fontName] || 'font-caveat';
 };
 
-const replacePlaceholders = (text, client, user, organization, noteStyleProfile) => {
-  if (!text) return '';
-  
-  let result = text;
-  
-  // Client placeholders - NEW SYNTAX
-  if (client) {
-    // Name placeholders
-    result = result.replace(/\{\{client\.firstName\}\}/g, client.firstName || '');
-    result = result.replace(/\{\{client\.lastName\}\}/g, client.lastName || '');
-    result = result.replace(/\{\{client\.fullName\}\}/g, client.fullName || '');
-    
-    // Calculate initials
-    const initials = ((client.firstName?.[0] || '') + (client.lastName?.[0] || '')).toUpperCase();
-    result = result.replace(/\{\{client\.initials\}\}/g, initials);
-    
-    // Contact placeholders
-    result = result.replace(/\{\{client\.email\}\}/g, client.email || '');
-    result = result.replace(/\{\{client\.phone\}\}/g, client.phone || '');
-    
-    // Address placeholders
-    result = result.replace(/\{\{client\.street\}\}/g, client.street || '');
-    result = result.replace(/\{\{client\.city\}\}/g, client.city || '');
-    result = result.replace(/\{\{client\.state\}\}/g, client.state || '');
-    result = result.replace(/\{\{client\.zipCode\}\}/g, client.zipCode || '');
-    
-    // Business placeholders
-    result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
-    
-    // LEGACY SUPPORT - Keep old placeholder syntax working
-    result = result.replace(/\{\{firstName\}\}/g, client.firstName || '');
-    result = result.replace(/\{\{lastName\}\}/g, client.lastName || '');
-    result = result.replace(/\{\{fullName\}\}/g, client.fullName || '');
-    result = result.replace(/\{\{company\}\}/g, client.company || '');
-    result = result.replace(/\{\{address1\}\}/g, client.street || '');
-    result = result.replace(/\{\{city\}\}/g, client.city || '');
-    result = result.replace(/\{\{state\}\}/g, client.state || '');
-    result = result.replace(/\{\{zip\}\}/g, client.zipCode || '');
-  }
-  
-  // User/Me placeholders - NEW SYNTAX
-  if (user) {
-    // Name placeholders
-    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || ''); // ADDED
-    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || ''); // ADDED
-    result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
-    
-    // Contact placeholders
-    result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
-    result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
-    
-    // Business placeholders
-    result = result.replace(/\{\{me\.title\}\}/g, user.title || '');
-    result = result.replace(/\{\{me\.companyName\}\}/g, user.companyName || '');
-    
-    // Address placeholders
-    result = result.replace(/\{\{me\.street\}\}/g, user.street || '');
-    result = result.replace(/\{\{me\.city\}\}/g, user.city || '');
-    result = result.replace(/\{\{me\.state\}\}/g, user.state || '');
-    result = result.replace(/\{\{me\.zipCode\}\}/g, user.zipCode || '');
-    
-    // LEGACY SUPPORT - Keep old placeholder syntax working
-    result = result.replace(/\{\{rep_full_name\}\}/g, user.full_name || '');
-    result = result.replace(/\{\{rep_first_name\}\}/g, user.firstName || '');
-    result = result.replace(/\{\{rep_last_name\}\}/g, user.lastName || '');
-    result = result.replace(/\{\{rep_company_name\}\}/g, user.companyName || '');
-    result = result.replace(/\{\{rep_phone\}\}/g, user.phone || '');
-  }
-  
-  // Organization placeholders - NEW SYNTAX
-  if (organization) {
-    result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
-    result = result.replace(/\{\{org\.website\}\}/g, organization.website || '');
-    result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
-    result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
-  }
-  
-  return result;
-};
-
-const composeCompleteMessage = (greeting, body, signature, client, user, organization, noteStyleProfile) => {
-  const parts = [];
-  
-  if (greeting) {
-    parts.push(replacePlaceholders(greeting, client, user, organization, noteStyleProfile));
-  }
-  
-  if (body) {
-    parts.push(replacePlaceholders(body, client, user, organization, noteStyleProfile));
-  }
-  
-  if (signature) {
-    parts.push(replacePlaceholders(signature, client, user, organization, noteStyleProfile));
-  }
-  
-  return parts.join('\n');
-};
-
+// Message line breaking logic
 const messageToLines = (message, config) => {
   if (!message) return [];
   
@@ -153,6 +56,7 @@ const messageToLines = (message, config) => {
   return allLines;
 };
 
+// Simple hash function for seed generation
 const hash32 = (str) => {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -163,6 +67,7 @@ const hash32 = (str) => {
   return Math.abs(hash);
 };
 
+// Random indent generator for handwritten effect
 const makeLineIndenter = (seed, { maxIndent, indentAmplitude, indentNoise, indentFrequency }) => {
   const rng = (s) => {
     const x = Math.sin(s) * 10000;
