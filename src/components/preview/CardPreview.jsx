@@ -17,26 +17,71 @@ const replacePlaceholders = (text, client, user, noteStyleProfile) => {
   
   let result = text;
   
-  // Client placeholders
+  // Client placeholders - NEW SYNTAX
   if (client) {
+    // Name placeholders
+    result = result.replace(/\{\{client\.firstName\}\}/g, client.firstName || '');
+    result = result.replace(/\{\{client\.lastName\}\}/g, client.lastName || '');
+    result = result.replace(/\{\{client\.fullName\}\}/g, client.fullName || '');
+    
+    // Calculate initials
+    const initials = ((client.firstName?.[0] || '') + (client.lastName?.[0] || '')).toUpperCase();
+    result = result.replace(/\{\{client\.initials\}\}/g, initials);
+    
+    // Contact placeholders
+    result = result.replace(/\{\{client\.email\}\}/g, client.email || '');
+    result = result.replace(/\{\{client\.phone\}\}/g, client.phone || '');
+    
+    // Address placeholders
+    result = result.replace(/\{\{client\.street\}\}/g, client.street || '');
+    result = result.replace(/\{\{client\.city\}\}/g, client.city || '');
+    result = result.replace(/\{\{client\.state\}\}/g, client.state || '');
+    result = result.replace(/\{\{client\.zipCode\}\}/g, client.zipCode || '');
+    
+    // Business placeholders
+    result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
+    
+    // LEGACY SUPPORT - Keep old placeholder syntax working
     result = result.replace(/\{\{firstName\}\}/g, client.firstName || '');
     result = result.replace(/\{\{lastName\}\}/g, client.lastName || '');
     result = result.replace(/\{\{fullName\}\}/g, client.fullName || '');
     result = result.replace(/\{\{company\}\}/g, client.company || '');
-    result = result.replace(/\{\{address1\}\}/g, client.address1 || '');
+    result = result.replace(/\{\{address1\}\}/g, client.street || '');
     result = result.replace(/\{\{city\}\}/g, client.city || '');
     result = result.replace(/\{\{state\}\}/g, client.state || '');
-    result = result.replace(/\{\{zip\}\}/g, client.zip || '');
+    result = result.replace(/\{\{zip\}\}/g, client.zipCode || '');
   }
   
-  // User/Rep placeholders
+  // User/Me placeholders - NEW SYNTAX
   if (user) {
+    // Name placeholders
+    result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
+    
+    // Contact placeholders
+    result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
+    result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
+    
+    // Business placeholders
+    result = result.replace(/\{\{me\.title\}\}/g, user.title || '');
+    result = result.replace(/\{\{me\.companyName\}\}/g, user.companyName || '');
+    
+    // Address placeholders
+    result = result.replace(/\{\{me\.street\}\}/g, user.street || '');
+    result = result.replace(/\{\{me\.city\}\}/g, user.city || '');
+    result = result.replace(/\{\{me\.state\}\}/g, user.state || '');
+    result = result.replace(/\{\{me\.zipCode\}\}/g, user.zipCode || '');
+    
+    // LEGACY SUPPORT - Keep old placeholder syntax working
     result = result.replace(/\{\{rep_full_name\}\}/g, user.full_name || '');
     result = result.replace(/\{\{rep_first_name\}\}/g, user.firstName || '');
     result = result.replace(/\{\{rep_last_name\}\}/g, user.lastName || '');
     result = result.replace(/\{\{rep_company_name\}\}/g, user.companyName || '');
     result = result.replace(/\{\{rep_phone\}\}/g, user.phone || '');
   }
+  
+  // Organization placeholders - NEW SYNTAX
+  // Note: org data would need to be passed in if available
+  // For now, these will remain as-is if org data not provided
   
   return result;
 };
@@ -213,17 +258,14 @@ const CardPreview = ({
       return { topHalfLines: lines, bottomHalfLines: [] };
     }
 
-    // Calculate actual line height in pixels
     const lineHeightPx = fontSize * lineHeight;
     
-    // Calculate vertical positions for each line
     let currentY = topPadding;
     const linePositions = [];
     
     for (let i = 0; i < lines.length; i++) {
       const lineText = lines[i];
-      // Empty lines take up half the normal line height as per renderLine logic
-      const thisLineHeight = lineText ? lineHeightPx : lineHeightPx * 0.5; 
+      const thisLineHeight = lineText ? lineHeightPx : lineHeightPx * 0.5;
       
       linePositions.push({
         index: i,
@@ -234,7 +276,6 @@ const CardPreview = ({
       currentY += thisLineHeight;
     }
     
-    // Find where content naturally crosses the fold
     let dynamicSplitIndex = lines.length;
     for (let i = 0; i < linePositions.length; i++) {
       if (linePositions[i].endY > foldY) {
@@ -243,11 +284,9 @@ const CardPreview = ({
       }
     }
     
-    // Protect signature from splitting
     if (signatureLineCount > 0) {
       const signatureStartIndex = lines.length - signatureLineCount;
       
-      // If the split would break the signature, move split to start of signature
       if (dynamicSplitIndex > signatureStartIndex && dynamicSplitIndex < lines.length) {
         dynamicSplitIndex = signatureStartIndex;
       }

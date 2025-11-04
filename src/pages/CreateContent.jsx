@@ -12,7 +12,7 @@ import { ArrowRight, Save, Loader2, AlertTriangle } from "lucide-react";
 import { debounce } from "lodash";
 
 import EditModeSelector from "@/components/mailing/EditModeSelector";
-import PlaceholderSelector from "@/components/mailing/PlaceholderSelector";
+import PlaceholderModal from "@/components/mailing/PlaceholderModal";
 import TemplateLibrary from "@/components/mailing/TemplateLibrary";
 import CardPreview from "@/components/preview/CardPreview";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
@@ -584,8 +584,8 @@ export default function CreateContent() {
                   />
                 </div>
 
-                {/* Placeholder Buttons */}
-                <PlaceholderSelector onPlaceholderSelect={handlePlaceholderSelect} />
+                {/* Placeholder Buttons - REPLACED WITH MODAL */}
+                <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
 
                 {/* Include Options */}
                 <div className="flex items-center gap-6 pt-4 border-t">
