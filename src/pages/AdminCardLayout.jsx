@@ -76,8 +76,17 @@ export default function AdminCardLayout() {
       setLoading(true);
       setError(null);
       const response = await base44.functions.invoke('getInstanceSettings');
-      setSettings(response.data);
-      setLocalSettings(response.data);
+      // Ensure cardPreviewSettings exists and has default boolean values for new controls
+      const loadedSettings = {
+        ...response.data,
+        cardPreviewSettings: {
+          ...response.data.cardPreviewSettings,
+          includeGreeting: response.data.cardPreviewSettings?.includeGreeting ?? false,
+          includeSignature: response.data.cardPreviewSettings?.includeSignature ?? false,
+        }
+      };
+      setSettings(loadedSettings);
+      setLocalSettings(loadedSettings);
     } catch (err) {
       console.error('Failed to load settings:', err);
       setError(err.response?.data?.error || 'Failed to load settings');
@@ -113,7 +122,8 @@ export default function AdminCardLayout() {
       ...prev,
       cardPreviewSettings: {
         ...prev.cardPreviewSettings,
-        [key]: parseFloat(value) || 0
+        // Handle boolean values directly, otherwise parse as float or default to 0
+        [key]: typeof value === 'boolean' ? value : parseFloat(value) || 0
       }
     }));
   };
@@ -242,6 +252,22 @@ export default function AdminCardLayout() {
                       <SelectItem value="long">Long Message</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeGreeting"
+                    checked={s.includeGreeting}
+                    onCheckedChange={(checked) => updateSetting('includeGreeting', checked)}
+                  />
+                  <Label htmlFor="includeGreeting">Include Greeting in Preview</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeSignature"
+                    checked={s.includeSignature}
+                    onCheckedChange={(checked) => updateSetting('includeSignature', checked)}
+                  />
+                  <Label htmlFor="includeSignature">Include Signature in Preview</Label>
                 </div>
               </CardContent>
             </Card>
@@ -464,8 +490,8 @@ export default function AdminCardLayout() {
                   noteStyleProfile={SAMPLE_NOTE_PROFILE}
                   selectedDesign={null}
                   previewSettings={localSettings.cardPreviewSettings}
-                  includeGreeting={false} {/* Changed from true to false */}
-                  includeSignature={false} {/* Changed from true to false */}
+                  includeGreeting={s.includeGreeting}
+                  includeSignature={s.includeSignature}
                   randomIndentEnabled={true}
                   showLineCounter={true}
                 />
