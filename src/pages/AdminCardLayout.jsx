@@ -464,8 +464,8 @@ export default function AdminCardLayout() {
                   noteStyleProfile={SAMPLE_NOTE_PROFILE}
                   selectedDesign={null}
                   previewSettings={localSettings.cardPreviewSettings}
-                  includeGreeting={true}
-                  includeSignature={true}
+                  includeGreeting={false} {/* Changed from true to false */}
+                  includeSignature={false} {/* Changed from true to false */}
                   randomIndentEnabled={true}
                   showLineCounter={true}
                 />

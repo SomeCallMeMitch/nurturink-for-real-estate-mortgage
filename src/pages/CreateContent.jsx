@@ -20,7 +20,7 @@ import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 // Default fallback settings if API fails
 const FALLBACK_SETTINGS = {
   cardPreviewSettings: {
-    fontSize: 24,
+    fontSize: 22, // Changed from 24 to 22
     lineHeight: 1,
     baseTextWidth: 360,
     baseMarginLeft: 40,
