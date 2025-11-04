@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 
 // Utility functions
@@ -207,14 +208,17 @@ const CardPreview = ({
   const renderLine = (lineText, lineIndex, globalLineIndex) => {
     const indent = getIndent(globalLineIndex);
     
+    // Calculate actual line height in pixels
+    const lineHeightPx = fontSize * lineHeight;
+    
     return (
       <div
         key={globalLineIndex}
-        className="relative"
+        className="relative overflow-hidden"
         style={{
           marginLeft: `${baseMarginLeft + indent}px`,
           width: `${effectiveTextWidth}px`,
-          minHeight: lineText ? `${fontSize * lineHeight}px` : `${fontSize * lineHeight * 0.5}px`,
+          height: lineText ? `${lineHeightPx}px` : `${lineHeightPx * 0.5}px`,
         }}
       >
         <span 
@@ -254,10 +258,13 @@ const CardPreview = ({
         )}
 
         <div className="absolute inset-0 pointer-events-none">
-          {/* Top Half Content */}
+          {/* Top Half Content with gap below */}
           <div 
             className="absolute left-0 right-0"
-            style={{ paddingTop: `${topPadding}px` }}
+            style={{ 
+              paddingTop: `${topPadding}px`,
+              paddingBottom: `${gapAboveFold}px`
+            }}
           >
             {topHalfLines.map((line, idx) => 
               renderLine(line, idx, idx)
@@ -272,12 +279,13 @@ const CardPreview = ({
             }}
           />
 
-          {/* Bottom Half Content (only for non-short cards) */}
+          {/* Bottom Half Content with gap above */}
           {!isShortCard && bottomHalfLines.length > 0 && (
             <div 
               className="absolute left-0 right-0"
               style={{ 
-                top: `${foldY + gapBelowFold}px`
+                top: `${foldY}px`,
+                paddingTop: `${gapBelowFold}px`
               }}
             >
               {bottomHalfLines.map((line, idx) => 
