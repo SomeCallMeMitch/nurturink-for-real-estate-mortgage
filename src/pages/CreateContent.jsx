@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -199,17 +200,27 @@ export default function CreateContent() {
       setClients(clientList);
       
       console.log('📡 Step 4: Loading templates...');
+      
+      // Query templates with explicit status and type filters to match seeded data
       console.log('🔍 Template query filter:', {
         $or: [
-          { orgId: currentUser.orgId },
-          { type: 'platform' }
+          { orgId: currentUser.orgId, type: 'organization', status: 'approved' },
+          { type: 'platform', status: 'approved', isDefault: true }
         ]
       });
       
       const templateList = await base44.entities.Template.filter({
         $or: [
-          { orgId: currentUser.orgId },
-          { type: 'platform' }
+          { 
+            orgId: currentUser.orgId, 
+            type: 'organization', 
+            status: 'approved' 
+          },
+          { 
+            type: 'platform', 
+            status: 'approved', 
+            isDefault: true 
+          }
         ]
       });
       
