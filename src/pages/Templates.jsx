@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -10,16 +10,16 @@ import { Plus } from 'lucide-react';
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
-    const [allTemplates, setAllTemplates] = useState({
-        personal: [],
-        organization: [],
-        platform: []
-    });
+    const [allTemplates, setAllTemplates] = useState([]);
     const [allCategories, setAllCategories] = useState([]);
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [filters, setFilters] = useState({ search: '', categoryIds: [] });
+    const [filters, setFilters] = useState({ 
+      search: '', 
+      viewMode: 'all', // favorites, my, org, all
+      categoryId: null 
+    });
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -29,20 +29,20 @@ export default function TemplatesPage() {
             setUser(currentUser);
 
             const [personal, organization, platform, categories] = await Promise.all([
-                // Personal templates: created by this user, type='personal'
+                // Personal templates
                 base44.entities.Template.filter({ 
                     createdByUserId: currentUser.id, 
                     type: 'personal' 
                 }),
                 
-                // Organization templates: match orgId, type='organization', status='approved'
+                // Organization templates
                 base44.entities.Template.filter({ 
                     orgId: currentUser.orgId, 
                     type: 'organization',
                     status: 'approved'
                 }),
                 
-                // Platform templates: type='platform', isDefault=true, status='approved'
+                // Platform templates
                 base44.entities.Template.filter({ 
                     type: 'platform',
                     isDefault: true, 
@@ -53,13 +53,17 @@ export default function TemplatesPage() {
                 base44.entities.TemplateCategory.list()
             ]);
 
+            // Combine all templates into single array
+            const combined = [...personal, ...organization, ...platform];
+
             console.log('📊 Templates loaded:', {
                 personal: personal.length,
                 organization: organization.length,
-                platform: platform.length
+                platform: platform.length,
+                total: combined.length
             });
 
-            setAllTemplates({ personal, organization, platform });
+            setAllTemplates(combined);
             setAllCategories(categories);
         } catch (err) {
             console.error("Failed to fetch templates:", err);
@@ -96,31 +100,41 @@ export default function TemplatesPage() {
     };
     
     const handleTemplateDeleted = (deletedTemplateId) => {
-        setAllTemplates(prev => ({
-            ...prev,
-            personal: prev.personal.filter(t => t.id !== deletedTemplateId),
-            organization: prev.organization.filter(t => t.id !== deletedTemplateId),
-            platform: prev.platform.filter(t => t.id !== deletedTemplateId), 
-        }));
+        setAllTemplates(prev => prev.filter(t => t.id !== deletedTemplateId));
     };
 
-    const filterTemplates = (templates) => {
-        return templates.filter(template => {
-            const searchLower = filters.search.toLowerCase();
-            const nameMatch = template.name.toLowerCase().includes(searchLower);
-            const contentMatch = template.content.toLowerCase().includes(searchLower);
-            
-            const categoryMatch = !filters.categoryIds?.length || 
-              (template.templateCategoryIds && 
-               filters.categoryIds.some(catId => template.templateCategoryIds.includes(catId)));
+    // Apply all filters
+    const filteredTemplates = useMemo(() => {
+      let filtered = allTemplates;
 
-            return (nameMatch || contentMatch) && categoryMatch;
-        });
-    };
+      // View mode filter
+      if (filters.viewMode === 'favorites') {
+        const favoriteIds = user?.favoriteTemplateIds || [];
+        filtered = filtered.filter(t => favoriteIds.includes(t.id));
+      } else if (filters.viewMode === 'my') {
+        filtered = filtered.filter(t => t.createdByUserId === user?.id);
+      } else if (filters.viewMode === 'org') {
+        filtered = filtered.filter(t => t.type === 'organization');
+      }
 
-    const filteredPersonal = filterTemplates(allTemplates.personal);
-    const filteredOrganization = filterTemplates(allTemplates.organization);
-    const filteredPlatform = filterTemplates(allTemplates.platform);
+      // Category filter
+      if (filters.categoryId) {
+        filtered = filtered.filter(t => 
+          t.templateCategoryIds && t.templateCategoryIds.includes(filters.categoryId)
+        );
+      }
+
+      // Search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        filtered = filtered.filter(t => 
+          t.name.toLowerCase().includes(searchLower) ||
+          t.content.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return filtered;
+    }, [allTemplates, filters, user]);
 
     return (
         <div className="space-y-6">
@@ -162,37 +176,14 @@ export default function TemplatesPage() {
             )}
 
             {!isLoading && !error && (
-                <>
-                    {/* Organization Templates */}
-                    <TemplateGrid
-                        title="Organization Templates"
-                        templates={filteredOrganization}
-                        user={user}
-                        onFavoriteToggle={handleFavoriteToggle}
-                        onTemplateDeleted={handleTemplateDeleted}
-                        emptyMessage="No organization templates yet. Create one to share with your team!"
-                    />
-
-                    {/* Personal Templates */}
-                    <TemplateGrid
-                        title="My Templates"
-                        templates={filteredPersonal}
-                        user={user}
-                        onFavoriteToggle={handleFavoriteToggle}
-                        onTemplateDeleted={handleTemplateDeleted}
-                        emptyMessage="No personal templates yet. Create your first template!"
-                    />
-
-                    {/* Platform Templates */}
-                    <TemplateGrid
-                        title="Platform Templates"
-                        templates={filteredPlatform}
-                        user={user}
-                        onFavoriteToggle={handleFavoriteToggle}
-                        onTemplateDeleted={handleTemplateDeleted}
-                        emptyMessage="No platform templates available."
-                    />
-                </>
+                <TemplateGrid
+                    title={`Templates (${filteredTemplates.length})`}
+                    templates={filteredTemplates}
+                    user={user}
+                    onFavoriteToggle={handleFavoriteToggle}
+                    onTemplateDeleted={handleTemplateDeleted}
+                    emptyMessage="No templates match your filters. Try adjusting your search or filters."
+                />
             )}
         </div>
     );

@@ -13,6 +13,8 @@ export default function Home() {
   const [seedResult, setSeedResult] = useState(null);
   const [seedingTemplates, setSeedingTemplates] = useState(false);
   const [templateSeedResult, setTemplateSeedResult] = useState(null);
+  const [seedingCategories, setSeedingCategories] = useState(false);
+  const [categorySeedResult, setCategorySeedResult] = useState(null);
 
   const handleSeedData = async () => {
     try {
@@ -35,6 +37,30 @@ export default function Home() {
       });
     } finally {
       setSeeding(false);
+    }
+  };
+
+  const handleSeedCategories = async () => {
+    try {
+      setSeedingCategories(true);
+      setCategorySeedResult(null);
+      
+      const response = await base44.functions.invoke('seedTemplateCategories');
+      
+      setCategorySeedResult({
+        success: response.data.success,
+        message: response.data.message,
+        categoryCount: response.data.categoryCount
+      });
+      
+    } catch (error) {
+      console.error('Failed to seed categories:', error);
+      setCategorySeedResult({
+        success: false,
+        message: error.response?.data?.error || 'Failed to seed template categories'
+      });
+    } finally {
+      setSeedingCategories(false);
     }
   };
 
@@ -164,6 +190,61 @@ export default function Home() {
             )}
           </Card>
 
+          {/* Seed Template Categories (Super Admin Only) */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <Database className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <CardTitle>Template Categories</CardTitle>
+                    <CardDescription>
+                      Create platform-wide template categories (Super Admin only)
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleSeedCategories}
+                  variant="outline"
+                  disabled={seedingCategories}
+                  className="border-purple-600 text-purple-600 hover:bg-purple-50"
+                >
+                  {seedingCategories ? 'Creating...' : 'Seed Categories'}
+                </Button>
+              </div>
+            </CardHeader>
+
+            {categorySeedResult && (
+              <CardContent>
+                <div className={`flex items-start gap-3 p-4 rounded-lg ${
+                  categorySeedResult.success 
+                    ? 'bg-green-50 border border-green-200' 
+                    : 'bg-yellow-50 border border-yellow-200'
+                }`}>
+                  {categorySeedResult.success ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p className={`font-medium ${
+                      categorySeedResult.success ? 'text-green-900' : 'text-yellow-900'
+                    }`}>
+                      {categorySeedResult.message}
+                    </p>
+                    {categorySeedResult.success && (
+                      <p className="text-sm text-green-700 mt-1">
+                        Categories are ready for templates!
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+
           {/* Seed Templates & Profiles */}
           <Card>
             <CardHeader>
@@ -232,18 +313,22 @@ export default function Home() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">2.</span>
-                <span>Click "Seed Templates" to create sample templates and note style profiles (first time only)</span>
+                <span>Click "Seed Categories" to create template categories (super admin, first time only)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">3.</span>
-                <span>Click "Send a Card" to start the workflow</span>
+                <span>Click "Seed Templates" to create sample templates and note style profiles (first time only)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">4.</span>
-                <span>Select clients and compose your message</span>
+                <span>Click "Send a Card" to start the workflow</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">5.</span>
+                <span>Select clients and compose your message</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-semibold text-indigo-600">6.</span>
                 <span>Choose a design and send your notecards!</span>
               </li>
             </ol>

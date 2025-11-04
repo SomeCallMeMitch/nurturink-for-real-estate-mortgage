@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
 const sampleTemplates = [
@@ -7,70 +6,80 @@ const sampleTemplates = [
     content: "Thanks for letting us help with your roof after the storm. I know how stressful this process can be, and I'm glad we could make it a little easier. If you know anyone else going through the same thing, I'd be grateful if you mentioned us.",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: ["Thank You", "Storm Response"]
   },
   {
     name: "Job Complete – Simple & Sincere",
     content: "Just wanted to say thanks for trusting us with your roof. It was a pleasure working with you, and I hope everything holds up strong for years to come. Let me know if you ever need anything — I'm always here.",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: ["Thank You"]
   },
   {
     name: "Genuine Referral Ask – Warm & Personal",
     content: "I've been thinking about you since we finished your roof. If you know someone who's dealing with storm damage or an old roof, I'd be so grateful if you mentioned us. A simple 'They did great work for me' means the world.",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: ["Referral Request", "Follow-Up"]
   },
   {
     name: "Review Request – Simple & Direct",
     content: "We just wrapped up your project and I wanted to ask — if you've got a minute, would you consider leaving a quick review? It helps us keep doing good work for families like yours. Either way, thank you for the opportunity.",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: ["Review Request"]
   },
   {
     name: "Personal Follow-Up – Not Pushy",
     content: "I know you've got a lot on your plate. I've been by your place a couple times and just wanted to follow up personally. No pressure — just wanted you to know we're here if you need us.",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: ["Follow-Up"]
   },
   {
     name: "Mid-Week Check-In",
     content: "No big reason — just thinking about you this week. Hope everything's going well, and that your home feels safe and secure. If you ever need anything roofing-related, I'm just a call away.",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: ["Follow-Up"]
   },
   {
     name: "The 'Just Met You' Follow-Up",
     content: "It was great meeting you today. I really appreciated you taking the time to chat about your roof.\n\nI'll be in touch soon with the information we discussed. In the meantime, don't hesitate to call if anything comes to mind.",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: ["Lead Nurture"]
   },
   {
     name: "Gentle Nudge for Unresponsive Lead",
     content: "Just wanted to gently follow up on the estimate I sent over. I know life gets busy!\n\nIs there any additional information I can provide to help with your decision? Happy to chat for a few minutes if it's helpful.",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: ["Lead Nurture", "Follow-Up"]
   },
   {
     name: "After the Storm - High Impact (Lead)",
     content: "Following up on the recent storm in your area. Many of your neighbors are getting their roofs checked for damage. A quick, free inspection could save you thousands down the road.\n\nWould you be open to a 15-minute look? No strings attached.",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: ["Storm Response", "Lead Nurture"]
   },
   {
     name: "Test Template",
     content: "Believe it or not, this letter is actually written with a real Bic pen by our robots! As you can see, the software will use a different letter format for each character, that way, none of the letters will look the same when you see them next to each other.\n\nKeep in mind, this is a general sample, and we can create any size mail piece, any cardstock, any envelopes, and craft your perfect custom mail piece!",
     type: "organization",
     status: "approved",
-    isDefault: false
+    isDefault: false,
+    categoryNames: []
   }
 ];
 
@@ -101,12 +110,27 @@ Deno.serve(async (req) => {
       });
     }
     
+    // Load all template categories to map names to IDs
+    const allCategories = await base44.entities.TemplateCategory.list();
+    const categoryMap = {};
+    allCategories.forEach(cat => {
+      categoryMap[cat.name] = cat.id;
+    });
+    
     // Create all sample templates
     const createdTemplates = [];
     
     for (const sampleTemplate of sampleTemplates) {
+      const { categoryNames, ...templateData } = sampleTemplate;
+      
+      // Convert category names to IDs
+      const templateCategoryIds = categoryNames
+        .map(name => categoryMap[name])
+        .filter(id => id); // Remove any undefined IDs
+      
       const template = await base44.entities.Template.create({
-        ...sampleTemplate,
+        ...templateData,
+        templateCategoryIds,
         createdByUserId: user.id,
         orgId: user.orgId
       });

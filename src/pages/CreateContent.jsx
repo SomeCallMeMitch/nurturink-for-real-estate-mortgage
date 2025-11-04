@@ -471,10 +471,10 @@ export default function CreateContent() {
           </div>
         </div>
 
-        {/* Three-Column Layout - CORRECTED */}
+        {/* Three-Column Layout - FIXED WIDTHS */}
         <div className="grid grid-cols-12 gap-6">
-          {/* Left Column: Recipients + Template Library */}
-          <div className="col-span-3 space-y-6">
+          {/* Left Column: Recipients + Template Library - INCREASED FROM 3 TO 4 */}
+          <div className="col-span-4 space-y-6">
             {/* Recipients Section */}
             <Card>
               <CardContent className="pt-6">
@@ -516,8 +516,8 @@ export default function CreateContent() {
             />
           </div>
 
-          {/* Center Column: Message Editor */}
-          <div className="col-span-5">
+          {/* Center Column: Message Editor - DECREASED FROM 5 TO 4 */}
+          <div className="col-span-4">
             <Card>
               <CardContent className="pt-6 space-y-6">
                 {/* Edit Mode Selector */}
@@ -592,32 +592,35 @@ export default function CreateContent() {
             </Card>
           </div>
 
-          {/* Right Column: Preview */}
+          {/* Right Column: Preview - STAYS AT 4 */}
           <div className="col-span-4">
             <Card className="sticky top-6">
               <CardContent className="pt-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Preview for {getCurrentClient().fullName || 'Client'}</h3>
                 
-                {instanceSettings && (
-                  <CardPreview
-                    message={getCurrentMessage()}
-                    client={getCurrentClient()}
-                    user={user}
-                    noteStyleProfile={selectedNoteStyleProfile}
-                    selectedDesign={null}
-                    previewSettings={instanceSettings.cardPreviewSettings}
-                    includeGreeting={localIncludeGreeting}
-                    includeSignature={localIncludeSignature}
-                    randomIndentEnabled={true}
-                    showLineCounter={true}
-                  />
-                )}
-                
-                {!instanceSettings && (
-                  <div className="text-center py-12 text-gray-500">
-                    Loading preview...
-                  </div>
-                )}
+                {/* Preview container with proper width */}
+                <div className="flex justify-center">
+                  {instanceSettings && (
+                    <CardPreview
+                      message={getCurrentMessage()}
+                      client={getCurrentClient()}
+                      user={user}
+                      noteStyleProfile={selectedNoteStyleProfile}
+                      selectedDesign={null}
+                      previewSettings={instanceSettings.cardPreviewSettings}
+                      includeGreeting={localIncludeGreeting}
+                      includeSignature={localIncludeSignature}
+                      randomIndentEnabled={true}
+                      showLineCounter={true}
+                    />
+                  )}
+                  
+                  {!instanceSettings && (
+                    <div className="text-center py-12 text-gray-500">
+                      Loading preview...
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>

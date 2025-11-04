@@ -1,7 +1,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, X } from 'lucide-react';
+import { Search, X, Star, User, Users, Grid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function TemplateFilterControls({ filters, setFilters, categories }) {
@@ -9,61 +9,90 @@ export default function TemplateFilterControls({ filters, setFilters, categories
     setFilters(prev => ({ ...prev, search: e.target.value }));
   };
 
-  const handleCategoryToggle = (categoryId) => {
-    setFilters(prev => {
-      const currentCategories = prev.categoryIds || [];
-      const newCategories = currentCategories.includes(categoryId)
-        ? currentCategories.filter(id => id !== categoryId)
-        : [...currentCategories, categoryId];
-      
-      return { ...prev, categoryIds: newCategories };
-    });
+  const handleViewModeChange = (mode) => {
+    setFilters(prev => ({ ...prev, viewMode: mode, categoryId: null }));
+  };
+
+  const handleCategoryChange = (categoryId) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      categoryId: categoryId === 'all' ? null : categoryId,
+      viewMode: 'all'
+    }));
   };
 
   const clearFilters = () => {
-    setFilters({ search: '', categoryIds: [] });
+    setFilters({ search: '', viewMode: 'all', categoryId: null });
   };
 
-  const hasActiveFilters = filters.search || (filters.categoryIds && filters.categoryIds.length > 0);
+  const hasActiveFilters = filters.search || filters.viewMode !== 'all' || filters.categoryId;
+
+  const viewModes = [
+    { id: 'favorites', label: 'Favorites', icon: Star },
+    { id: 'my', label: 'My Templates', icon: User },
+    { id: 'org', label: 'Organization', icon: Users },
+    { id: 'all', label: 'All', icon: Grid }
+  ];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <div className="flex flex-col md:flex-row gap-4">
-        {/* Search */}
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder="Search templates..."
-            value={filters.search}
-            onChange={handleSearchChange}
-            className="pl-9"
-          />
-        </div>
+    <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+      {/* Search Bar */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Input
+          placeholder="Search templates..."
+          value={filters.search}
+          onChange={handleSearchChange}
+          className="pl-9"
+        />
+      </div>
 
-        {/* Category Filter */}
+      {/* View Mode Tabs */}
+      <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
+        {viewModes.map((mode) => {
+          const Icon = mode.icon;
+          const isActive = filters.viewMode === mode.id;
+          
+          return (
+            <button
+              key={mode.id}
+              onClick={() => handleViewModeChange(mode.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              {mode.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Category Filter & Clear Button */}
+      <div className="flex items-center gap-3">
         {categories.length > 0 && (
-          <Select
-            value={filters.categoryIds?.[0] || ''}
-            onValueChange={(value) => {
-              if (value) {
-                handleCategoryToggle(value);
-              }
-            }}
-          >
-            <SelectTrigger className="w-full md:w-48">
-              <SelectValue placeholder="Filter by category" />
-            </SelectTrigger>
-            <SelectContent>
-              {categories.map(category => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex-1">
+            <Select
+              value={filters.categoryId || 'all'}
+              onValueChange={handleCategoryChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         )}
 
-        {/* Clear Filters */}
         {hasActiveFilters && (
           <Button
             variant="ghost"
@@ -71,29 +100,29 @@ export default function TemplateFilterControls({ filters, setFilters, categories
             className="gap-2"
           >
             <X className="w-4 h-4" />
-            Clear
+            Clear Filters
           </Button>
         )}
       </div>
 
-      {/* Active Category Pills */}
-      {filters.categoryIds && filters.categoryIds.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-3">
-          {filters.categoryIds.map(categoryId => {
-            const category = categories.find(c => c.id === categoryId);
-            if (!category) return null;
-            
-            return (
-              <button
-                key={categoryId}
-                onClick={() => handleCategoryToggle(categoryId)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm hover:bg-indigo-200 transition-colors"
-              >
-                {category.name}
-                <X className="w-3 h-3" />
-              </button>
-            );
-          })}
+      {/* Active Filter Summary */}
+      {hasActiveFilters && (
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+          {filters.viewMode !== 'all' && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">
+              {viewModes.find(m => m.id === filters.viewMode)?.label}
+            </span>
+          )}
+          {filters.categoryId && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+              {categories.find(c => c.id === filters.categoryId)?.name}
+            </span>
+          )}
+          {filters.search && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+              Search: "{filters.search}"
+            </span>
+          )}
         </div>
       )}
     </div>
