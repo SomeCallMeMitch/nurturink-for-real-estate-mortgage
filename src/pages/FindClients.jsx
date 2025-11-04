@@ -98,7 +98,7 @@ export default function FindClients() {
       
       const { mailingBatchId } = response.data;
       
-      // Navigate to content creation page - UPDATED TO USE CreateContent
+      // Navigate to content creation page
       navigate(createPageUrl(`CreateContent?mailingBatchId=${mailingBatchId}`));
       
     } catch (err) {
@@ -120,24 +120,11 @@ export default function FindClients() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-gray-50">
       {/* Workflow Steps Header */}
       <WorkflowSteps currentStep={1} creditsLeft={0} />
       
       <div className="max-w-5xl mx-auto p-6">
-        {/* The original Header content below was removed as WorkflowSteps replaces it */}
-        {/* <div className="mb-8">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <span>Send a Card</span>
-            <span>•</span>
-            <span className="text-indigo-600 font-medium">Step 1 of 4</span>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Select Recipients</h1>
-          <p className="text-gray-600">
-            Choose the clients you want to send a notecard to. You can select one or multiple recipients.
-          </p>
-        </div> */}
-
         {/* Error Message */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
@@ -174,22 +161,35 @@ export default function FindClients() {
                 {filteredClients.length} {filteredClients.length === 1 ? 'Client' : 'Clients'}
               </CardTitle>
               
-              {/* Select All Checkbox */}
-              {filteredClients.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="select-all"
-                    checked={allSelected}
-                    onCheckedChange={handleSelectAll}
-                  />
-                  <label
-                    htmlFor="select-all"
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    Select All
-                  </label>
-                </div>
-              )}
+              {/* Continue Button and Select All Checkbox */}
+              <div className="flex items-center gap-4">
+                {/* Continue Button */}
+                <Button
+                  onClick={handleContinue}
+                  disabled={selectedClientIds.length === 0 || initializing}
+                  className="bg-indigo-600 hover:bg-indigo-700 gap-2"
+                >
+                  {initializing ? 'Initializing...' : 'Continue to Content'}
+                  {!initializing && <ArrowRight className="w-4 h-4" />}
+                </Button>
+                
+                {/* Select All Checkbox */}
+                {filteredClients.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="select-all"
+                      checked={allSelected}
+                      onCheckedChange={handleSelectAll}
+                    />
+                    <label
+                      htmlFor="select-all"
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      Select All
+                    </label>
+                  </div>
+                )}
+              </div>
             </div>
           </CardHeader>
           
@@ -243,27 +243,6 @@ export default function FindClients() {
             )}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-sm">
-            <span className="font-semibold text-gray-900">{selectedClientIds.length}</span>
-            <span className="text-gray-600">
-              {' '}{selectedClientIds.length === 1 ? 'client' : 'clients'} selected
-            </span>
-          </div>
-          
-          <Button
-            onClick={handleContinue}
-            disabled={selectedClientIds.length === 0 || initializing}
-            className="bg-indigo-600 hover:bg-indigo-700 gap-2"
-          >
-            {initializing ? 'Initializing...' : 'Continue to Content'}
-            {!initializing && <ArrowRight className="w-4 h-4" />}
-          </Button>
-        </div>
       </div>
     </div>
   );

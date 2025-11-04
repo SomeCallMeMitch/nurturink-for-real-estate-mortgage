@@ -251,6 +251,13 @@ export default function CreateContent() {
       console.log('✅ Note style profiles loaded:', profileList.length);
       setNoteStyleProfiles(profileList);
       
+      // Auto-select default profile if batch doesn't have one selected
+      if (!batchData.selectedNoteStyleProfileId && profileList.length > 0) {
+        const defaultProfile = profileList.find(p => p.isDefault) || profileList[0];
+        setLocalSelectedNoteStyleProfileId(defaultProfile.id);
+        console.log('✅ Auto-selected default note style profile:', defaultProfile.name);
+      }
+      
       console.log('📡 Step 6: Loading instance settings...');
       try {
         const settingsResponse = await base44.functions.invoke('getInstanceSettings');
@@ -473,16 +480,16 @@ export default function CreateContent() {
         <div className="grid grid-cols-12 gap-6">
           {/* Left Column: Recipients + Template Library */}
           <div style={{ gridColumn: `span ${columnWidths.leftColumnSpan}` }} className="space-y-6">
-            {/* Recipients Section */}
+            {/* Recipients Section - INCREASED FONT SIZE BY 25% */}
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-700">Recipients</h3>
-                  <div className="text-xs text-gray-500">
+                  <h3 className="text-base font-bold text-gray-900">Recipients</h3>
+                  <div className="text-sm font-medium text-gray-900">
                     {clients.length} {clients.length === 1 ? 'recipient' : 'recipients'}
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                <div className="flex items-center justify-between text-sm text-gray-900 mb-3 font-medium">
                   <span>1/{clients.length}</span>
                   <div className="flex gap-1">
                     <button className="hover:text-gray-700">←</button>
@@ -497,10 +504,10 @@ export default function CreateContent() {
                       <button
                         key={client.id}
                         onClick={() => handleRecipientClick(client.id)}
-                        className={`w-full text-left px-3 py-2 text-sm rounded transition-all ${
+                        className={`w-full text-left px-3 py-2 text-base rounded transition-all ${
                           isEditing
-                            ? 'bg-[#fff8f8] border-l-4 border-l-[#d32f2f] font-medium text-gray-900'
-                            : 'border-l-4 border-l-transparent hover:bg-gray-50 text-gray-700'
+                            ? 'bg-[#fff8f8] border-l-4 border-l-[#d32f2f] font-semibold text-gray-900'
+                            : 'border-l-4 border-l-transparent hover:bg-gray-50 text-gray-900 font-medium'
                         }`}
                       >
                         {client.fullName || 'Unnamed Client'}
