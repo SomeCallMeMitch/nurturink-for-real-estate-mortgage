@@ -182,20 +182,82 @@ const CardPreview = ({
   } = previewSettings;
 
   const isShortCard = lines.length <= shortCardMaxLines;
-
-  // Use different top padding based on card length
   const topPadding = isShortCard ? topHalfPaddingTop : longCardTopPadding;
+  const foldY = frameHeight / 2;
 
-  let topHalfLines = [];
-  let bottomHalfLines = [];
+  // Calculate signature line count
+  const signatureLineCount = useMemo(() => {
+    if (!includeSignature || !noteStyleProfile?.signatureText) return 0;
+    
+    const rawSignature = replacePlaceholders(
+      noteStyleProfile.signatureText,
+      client,
+      user,
+      noteStyleProfile
+    );
+    
+    const sigLines = messageToLines(rawSignature, {
+      fontFamily: noteStyleProfile?.handwritingFont || 'Caveat',
+      fontSize: fontSize,
+      lineHeight: lineHeight,
+      maxWidth: baseTextWidth,
+      maxIndent: maxIndent
+    });
+    
+    return sigLines.length;
+  }, [includeSignature, noteStyleProfile, client, user, fontSize, lineHeight, baseTextWidth, maxIndent]);
 
-  if (isShortCard) {
-    topHalfLines = lines;
-  } else {
-    const midPoint = Math.ceil(lines.length / 2);
-    topHalfLines = lines.slice(0, midPoint);
-    bottomHalfLines = lines.slice(midPoint);
-  }
+  // Calculate dynamic split point with signature protection
+  const { topHalfLines, bottomHalfLines } = useMemo(() => {
+    if (isShortCard) {
+      return { topHalfLines: lines, bottomHalfLines: [] };
+    }
+
+    // Calculate actual line height in pixels
+    const lineHeightPx = fontSize * lineHeight;
+    
+    // Calculate vertical positions for each line
+    let currentY = topPadding;
+    const linePositions = [];
+    
+    for (let i = 0; i < lines.length; i++) {
+      const lineText = lines[i];
+      // Empty lines take up half the normal line height as per renderLine logic
+      const thisLineHeight = lineText ? lineHeightPx : lineHeightPx * 0.5; 
+      
+      linePositions.push({
+        index: i,
+        startY: currentY,
+        endY: currentY + thisLineHeight
+      });
+      
+      currentY += thisLineHeight;
+    }
+    
+    // Find where content naturally crosses the fold
+    let dynamicSplitIndex = lines.length;
+    for (let i = 0; i < linePositions.length; i++) {
+      if (linePositions[i].endY > foldY) {
+        dynamicSplitIndex = i;
+        break;
+      }
+    }
+    
+    // Protect signature from splitting
+    if (signatureLineCount > 0) {
+      const signatureStartIndex = lines.length - signatureLineCount;
+      
+      // If the split would break the signature, move split to start of signature
+      if (dynamicSplitIndex > signatureStartIndex && dynamicSplitIndex < lines.length) {
+        dynamicSplitIndex = signatureStartIndex;
+      }
+    }
+    
+    return {
+      topHalfLines: lines.slice(0, dynamicSplitIndex),
+      bottomHalfLines: lines.slice(dynamicSplitIndex)
+    };
+  }, [lines, isShortCard, fontSize, lineHeight, topPadding, foldY, signatureLineCount]);
 
   const seed = hash32(lines.join(''));
   const getIndent = randomIndentEnabled 
@@ -207,8 +269,6 @@ const CardPreview = ({
 
   const renderLine = (lineText, lineIndex, globalLineIndex) => {
     const indent = getIndent(globalLineIndex);
-    
-    // Calculate actual line height in pixels
     const lineHeightPx = fontSize * lineHeight;
     
     return (
@@ -237,9 +297,6 @@ const CardPreview = ({
     );
   };
 
-  // Calculate fold position - ALWAYS at vertical center
-  const foldY = frameHeight / 2;
-
   return (
     <div className="flex flex-col items-center">
       <div 
@@ -258,7 +315,7 @@ const CardPreview = ({
         )}
 
         <div className="absolute inset-0 pointer-events-none">
-          {/* Top Half Content with gap below */}
+          {/* Top Half Content */}
           <div 
             className="absolute left-0 right-0"
             style={{ 
@@ -279,7 +336,7 @@ const CardPreview = ({
             }}
           />
 
-          {/* Bottom Half Content with gap above */}
+          {/* Bottom Half Content */}
           {!isShortCard && bottomHalfLines.length > 0 && (
             <div 
               className="absolute left-0 right-0"
