@@ -1,45 +1,43 @@
-import React, { useState, useEffect, useRef } from "react";
-import { base44 } from "@/api/base44Client";
-import { useNavigate } from "react-router-dom";
-import { createPageUrl } from "@/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Save, Loader2, Code2, Info } from "lucide-react";
-import PlaceholderSelector from "@/components/mailing/PlaceholderSelector";
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 
 export default function EditTemplate() {
   const navigate = useNavigate();
-  const textareaRef = useRef(null);
-
-  // Get template ID from URL
   const urlParams = new URLSearchParams(window.location.search);
   const templateId = urlParams.get('id');
   const isNew = templateId === 'new';
 
-  const [loading, setLoading] = useState(!isNew);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
-
-  const [formData, setFormData] = useState({
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  const [template, setTemplate] = useState({
     name: '',
     content: '',
-    type: 'personal',
-    templateCategoryIds: []
+    templateCategoryIds: [],
+    status: 'approved',  // Changed from 'private' to 'approved'
+    isDefault: false,
+    type: 'organization'
   });
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [templateId]);
 
   const loadData = async () => {
     try {
+      setLoading(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
@@ -52,127 +50,65 @@ export default function EditTemplate() {
       });
       setCategories(categoryList);
 
-      // Load existing template if editing
+      // Load template if editing
       if (!isNew) {
-        setLoading(true);
         const templates = await base44.entities.Template.filter({ id: templateId });
-
-        if (templates.length === 0) {
-          setError('Template not found');
-          return;
+        if (templates.length > 0) {
+          setTemplate(templates[0]);
+        } else {
+          alert('Template not found');
+          navigate(createPageUrl('Templates'));
         }
-
-        const template = templates[0];
-        setFormData({
-          name: template.name,
-          content: template.content,
-          type: template.type || 'personal',
-          templateCategoryIds: template.templateCategoryIds || []
-        });
       }
-    } catch (err) {
-      console.error('Failed to load data:', err);
-      setError('Failed to load template data');
+    } catch (error) {
+      console.error('Failed to load data:', error);
+      alert('Failed to load template data');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handlePlaceholderInsert = (placeholder) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const currentContent = formData.content;
-
-    const newContent =
-      currentContent.slice(0, start) +
-      placeholder +
-      currentContent.slice(end);
-
-    handleChange('content', newContent);
-
-    // Set cursor position after placeholder
-    setTimeout(() => {
-      textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
-      textarea.focus();
-    }, 0);
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
-
-    // Validation
-    if (!formData.name.trim()) {
-      alert('Template name is required');
-      return;
-    }
-
-    if (!formData.content.trim()) {
-      alert('Template content is required');
+  const handleSave = async () => {
+    if (!template.name.trim() || !template.content.trim()) {
+      alert('Please fill in both name and content');
       return;
     }
 
     try {
       setSaving(true);
-      setError(null);
-
-      const templateData = {
-        ...formData,
-        orgId: user.orgId,
-        createdByUserId: user.id,
-        status: 'private'
-      };
 
       if (isNew) {
-        await base44.entities.Template.create(templateData);
+        await base44.entities.Template.create({
+          ...template,
+          createdByUserId: user.id,
+          orgId: user.orgId
+        });
       } else {
-        await base44.entities.Template.update(templateId, templateData);
+        await base44.entities.Template.update(templateId, template);
       }
 
       navigate(createPageUrl('Templates'));
-    } catch (err) {
-      console.error('Failed to save template:', err);
-      setError('Failed to save template. Please try again.');
+    } catch (error) {
+      console.error('Failed to save template:', error);
+      alert('Failed to save template. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
-  const placeholders = [
-    { label: 'Client First Name', value: '{{firstName}}' },
-    { label: 'Client Last Name', value: '{{lastName}}' },
-    { label: 'Client Full Name', value: '{{fullName}}' },
-    { label: 'Client Company', value: '{{companyName}}' },
-    { label: 'Your Name', value: '{{rep_full_name}}' },
-    { label: 'Your Company', value: '{{rep_company_name}}' },
-    { label: 'Your Phone', value: '{{rep_phone}}' },
-  ];
+  const handleCategoryToggle = (categoryId) => {
+    setTemplate(prev => ({
+      ...prev,
+      templateCategoryIds: prev.templateCategoryIds.includes(categoryId)
+        ? prev.templateCategoryIds.filter(id => id !== categoryId)
+        : [...prev.templateCategoryIds, categoryId]
+    }));
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error && !isNew) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={() => navigate(createPageUrl('Templates'))}>
-              Back to Templates
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -188,167 +124,152 @@ export default function EditTemplate() {
             className="mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Content Library
+            Back to Templates
           </Button>
+          
           <h1 className="text-3xl font-bold text-gray-900">
-            {isNew ? 'Create Template' : 'Edit Template'}
+            {isNew ? 'Create New Template' : 'Edit Template'}
           </h1>
+          <p className="text-gray-600 mt-1">
+            {isNew ? 'Create a reusable message template' : 'Update your template'}
+          </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSave}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Template Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Template Name */}
+        <Card>
+          <CardContent className="pt-6 space-y-6">
+            {/* Template Name */}
+            <div>
+              <Label htmlFor="name">Template Name *</Label>
+              <Input
+                id="name"
+                value={template.name}
+                onChange={(e) => setTemplate({ ...template, name: e.target.value })}
+                placeholder="e.g., Thank You - Post Project"
+              />
+            </div>
+
+            {/* Template Content */}
+            <div>
+              <Label htmlFor="content">Message Content *</Label>
+              <Textarea
+                id="content"
+                value={template.content}
+                onChange={(e) => setTemplate({ ...template, content: e.target.value })}
+                placeholder="Write your template message here..."
+                className="min-h-[200px]"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Use placeholders like {'{{firstName}}'} and {'{{companyName}}'} for personalization
+              </p>
+            </div>
+
+            {/* Categories */}
+            {categories.length > 0 && (
               <div>
-                <Label htmlFor="name">
-                  Template Name <span className="text-red-600">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  placeholder="e.g., Thank You After Storm, Follow-Up Check-In"
-                  required
-                />
-              </div>
-
-              {/* Template Type */}
-              <div>
-                <Label htmlFor="type">Sharing</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value) => handleChange('type', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="personal">Personal (Only Me)</SelectItem>
-                    <SelectItem value="organization">Shared with Organization</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Personal templates are only visible to you. Shared templates are visible to your entire team.
-                </p>
-              </div>
-
-              {/* Categories */}
-              {categories.length > 0 && (
-                <div>
-                  <Label htmlFor="category">Category (Optional)</Label>
-                  <Select
-                    value={formData.templateCategoryIds[0] || ''}
-                    onValueChange={(value) => handleChange('templateCategoryIds', value ? [value] : [])}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={null}>No Category</SelectItem>
-                      {categories.map(category => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              {/* Message Content */}
-              <div>
-                <Label htmlFor="content">
-                  Message Content <span className="text-red-600">*</span>
-                </Label>
-                <Textarea
-                  ref={textareaRef}
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => handleChange('content', e.target.value)}
-                  placeholder="Write your template message here..."
-                  className="min-h-[300px] text-sm"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Use placeholders like {'{{firstName}}'} to personalize content for each recipient
-                </p>
-              </div>
-
-              {/* Placeholder Selector */}
-              <div>
-                <Label className="mb-2 block">Insert Placeholders</Label>
-                <PlaceholderSelector onPlaceholderSelect={handlePlaceholderInsert} />
-              </div>
-
-              {/* Placeholder Reference */}
-              <Card className="bg-blue-50 border-blue-200">
-                <CardContent className="pt-4">
-                  <div className="flex items-start gap-2 mb-3">
-                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="font-semibold text-sm text-blue-900 mb-2">
-                        Available Placeholders
-                      </h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        {placeholders.map((placeholder) => (
-                          <div key={placeholder.value} className="flex items-center gap-2">
-                            <code className="text-xs bg-white px-2 py-1 rounded border border-blue-200">
-                              {placeholder.value}
-                            </code>
-                            <span className="text-xs text-blue-800">{placeholder.label}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-xs text-blue-700 mt-3">
-                        These placeholders will be automatically replaced with real client and user data when you send a card.
-                      </p>
+                <Label>Categories (Optional)</Label>
+                <div className="mt-2 space-y-2">
+                  {categories.map(category => (
+                    <div key={category.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`category-${category.id}`}
+                        checked={template.templateCategoryIds.includes(category.id)}
+                        onCheckedChange={() => handleCategoryToggle(category.id)}
+                      />
+                      <label
+                        htmlFor={`category-${category.id}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        {category.name}
+                      </label>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Error Message */}
-              {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-                  {error}
+                  ))}
                 </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => navigate(createPageUrl('Templates'))}
-                  disabled={saving}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={saving}
-                  className="bg-indigo-600 hover:bg-indigo-700"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Template
-                    </>
-                  )}
-                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </form>
+            )}
+
+            {/* Template Type */}
+            <div>
+              <Label htmlFor="type">Template Visibility</Label>
+              <Select
+                value={template.type}
+                onValueChange={(value) => setTemplate({ ...template, type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="personal">Personal (Only You)</SelectItem>
+                  <SelectItem value="organization">Organization (All Team Members)</SelectItem>
+                  {user?.appRole === 'super_admin' && (
+                    <SelectItem value="platform">Platform (All Users)</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Status */}
+            <div>
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={template.status}
+                onValueChange={(value) => setTemplate({ ...template, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Is Default (Super Admin Only) */}
+            {user?.appRole === 'super_admin' && (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isDefault"
+                  checked={template.isDefault}
+                  onCheckedChange={(checked) => setTemplate({ ...template, isDefault: checked })}
+                />
+                <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
+                  Mark as Platform Default Template
+                </label>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-indigo-600 hover:bg-indigo-700"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Template
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => navigate(createPageUrl('Templates'))}
+                disabled={saving}
+              >
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
