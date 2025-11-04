@@ -1,224 +1,130 @@
-
 import React, { useMemo } from 'react';
 
-// ============================================
-// Text Utilities (Inlined)
-// ============================================
-
-let canvasContext = null;
-
-const getCanvasContext = (fontFamily, fontSize) => {
-  if (!canvasContext) {
-    const canvas = document.createElement('canvas');
-    canvasContext = canvas.getContext('2d');
-  }
-  canvasContext.font = `${fontSize}px ${fontFamily}`;
-  return canvasContext;
+// Utility functions
+const getFontClass = (fontName) => {
+  const fontMap = {
+    'Caveat': 'font-caveat',
+    'Patrick Hand': 'font-patrick-hand',
+    'Indie Flower': 'font-indie-flower',
+    'Dancing Script': 'font-dancing-script'
+  };
+  return fontMap[fontName] || 'font-caveat';
 };
 
 const replacePlaceholders = (text, client, user, noteStyleProfile) => {
   if (!text) return '';
   
   let result = text;
-
+  
+  // Client placeholders
   if (client) {
-    result = result.replace(/{{firstName}}/g, client.firstName || '');
-    result = result.replace(/{{lastName}}/g, client.lastName || '');
-    result = result.replace(/{{fullName}}/g, client.fullName || '');
-    result = result.replace(/{{address1}}/g, client.address1 || '');
-    result = result.replace(/{{address2}}/g, client.address2 || '');
-    result = result.replace(/{{city}}/g, client.city || '');
-    result = result.replace(/{{state}}/g, client.state || '');
-    result = result.replace(/{{zip}}/g, client.zip || '');
-    result = result.replace(/{{companyName}}/g, client.companyName || client.company || '');
-  }
-
-  if (user) {
-    result = result.replace(/{{rep_first_name}}/g, user.firstName || '');
-    result = result.replace(/{{rep_last_name}}/g, user.lastName || '');
-    result = result.replace(/{{rep_full_name}}/g, user.full_name || '');
-    result = result.replace(/{{rep_company_name}}/g, user.companyName || '');
-    result = result.replace(/{{rep_phone}}/g, user.phone || '');
-    result = result.replace(/{{url}}/g, user.websiteUrl || user.companyUrl || '');
+    result = result.replace(/\{\{firstName\}\}/g, client.firstName || '');
+    result = result.replace(/\{\{lastName\}\}/g, client.lastName || '');
+    result = result.replace(/\{\{fullName\}\}/g, client.fullName || '');
+    result = result.replace(/\{\{company\}\}/g, client.company || '');
+    result = result.replace(/\{\{address1\}\}/g, client.address1 || '');
+    result = result.replace(/\{\{city\}\}/g, client.city || '');
+    result = result.replace(/\{\{state\}\}/g, client.state || '');
+    result = result.replace(/\{\{zip\}\}/g, client.zip || '');
   }
   
-  const today = new Date();
-  result = result.replace(/{{today_date}}/g, today.toLocaleDateString());
-  result = result.replace(/{{current_year}}/g, today.getFullYear().toString());
-
+  // User/Rep placeholders
+  if (user) {
+    result = result.replace(/\{\{rep_full_name\}\}/g, user.full_name || '');
+    result = result.replace(/\{\{rep_first_name\}\}/g, user.firstName || '');
+    result = result.replace(/\{\{rep_last_name\}\}/g, user.lastName || '');
+    result = result.replace(/\{\{rep_company_name\}\}/g, user.companyName || '');
+    result = result.replace(/\{\{rep_phone\}\}/g, user.phone || '');
+  }
+  
   return result;
 };
 
-const wrapTextToLines = (text, options = {}) => {
-  if (!text) return [];
+const composeCompleteMessage = (greeting, body, signature, client, user, noteStyleProfile) => {
+  const parts = [];
+  
+  if (greeting) {
+    parts.push(replacePlaceholders(greeting, client, user, noteStyleProfile));
+  }
+  
+  if (body) {
+    parts.push(replacePlaceholders(body, client, user, noteStyleProfile));
+  }
+  
+  if (signature) {
+    parts.push(replacePlaceholders(signature, client, user, noteStyleProfile));
+  }
+  
+  return parts.join('\n');
+};
 
-  const {
-    fontFamily = 'Caveat',
-    fontSize = 18,
-    maxWidth = 355
-  } = options;
-
-  const ctx = getCanvasContext(fontFamily, fontSize);
-  const paragraphs = text.split('\n');
+const messageToLines = (message, config) => {
+  if (!message) return [];
+  
+  const { fontFamily, fontSize, lineHeight, maxWidth, maxIndent } = config;
+  
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  context.font = `${fontSize}px ${fontFamily}`;
+  
+  const effectiveMaxWidth = maxWidth - maxIndent;
+  
+  const paragraphs = message.split('\n');
   const allLines = [];
   
-  for (const paragraph of paragraphs) {
+  paragraphs.forEach((paragraph) => {
     if (paragraph.trim() === '') {
       allLines.push('');
-      continue;
+      return;
     }
     
     const words = paragraph.split(' ');
     let currentLine = '';
-
-    for (const word of words) {
+    
+    words.forEach((word, index) => {
       const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const testWidth = ctx.measureText(testLine).width;
-
-      if (testWidth <= maxWidth) {
-        currentLine = testLine;
-      } else {
-        if (currentLine) {
-          allLines.push(currentLine);
-          currentLine = word;
-        } else {
-          // If a single word is longer than maxWidth, it should still be added.
-          // This also handles cases where currentLine is empty and a word is too long.
-          allLines.push(word);
-          currentLine = '';
-        }
-      }
-    }
-
-    if (currentLine) {
-      allLines.push(currentLine);
-    }
-  }
-
-  return allLines;
-};
-
-const composeCompleteMessage = (greeting, messageBody, signature, client, user, noteStyleProfile) => {
-  const parts = [];
-  
-  if (greeting) {
-    const processedGreeting = replacePlaceholders(greeting, client, user, noteStyleProfile);
-    if (processedGreeting.trim()) {
-      parts.push(processedGreeting.trim());
-    }
-  }
-  
-  if (messageBody) {
-    const processedBody = replacePlaceholders(messageBody, client, user, noteStyleProfile);
-    if (processedBody.trim()) {
-      parts.push(processedBody.trim());
-    }
-  }
-  
-  if (signature) {
-    const processedSignature = replacePlaceholders(signature, client, user, noteStyleProfile);
-    if (processedSignature.trim()) {
-      parts.push(processedSignature.trim());
-    }
-  }
-  
-  return parts.join('\n\n');
-};
-
-const messageToLines = (completeMessage, options = {}) => {
-  if (!completeMessage) return [];
-  
-  const { maxIndent = 0, ...wrapOptions } = options;
-  const adjustedMaxWidth = (wrapOptions.maxWidth || 355) - maxIndent;
-  
-  const paragraphs = completeMessage.split('\n\n');
-  const allLines = [];
-  
-  paragraphs.forEach((paragraph, index) => {
-    if (paragraph.trim()) {
-      const lines = wrapTextToLines(paragraph.trim(), { ...wrapOptions, maxWidth: adjustedMaxWidth });
-      allLines.push(...lines);
+      const metrics = context.measureText(testLine);
       
-      if (index < paragraphs.length - 1 && lines.length > 0) { // Add empty line only if paragraph had content
-        allLines.push('');
+      if (metrics.width > effectiveMaxWidth && currentLine) {
+        allLines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
       }
-    } else if (index < paragraphs.length - 1) { // Preserve empty paragraphs as empty lines
-      allLines.push('');
-    }
+      
+      if (index === words.length - 1) {
+        allLines.push(currentLine);
+      }
+    });
   });
   
   return allLines;
 };
 
-// ============================================
-// PRNG Functions
-// ============================================
-
-function hash32(str) {
-  let h = 0;
+const hash32 = (str) => {
+  let hash = 0;
   for (let i = 0; i < str.length; i++) {
-    h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
   }
-  return h >>> 0;
-}
-
-function mulberry32(seed) {
-  return function() {
-    let t = seed += 0x6D2B79F5;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function gaussian(rng, mean = 0, stdDev = 1) {
-  const u1 = rng();
-  const u2 = rng();
-  const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-  return z0 * stdDev + mean;
-}
-
-// ============================================
-// Line Indenting Logic
-// ============================================
-
-function makeLineIndenter(seed, settings) {
-  const { maxIndent, indentAmplitude, indentNoise, indentFrequency } = settings;
-  const rng = mulberry32(seed);
-  
-  return (lineIndex) => {
-    if (maxIndent === 0) return 0;
-    
-    // Normalize indentAmplitude relative to maxIndent
-    // The wave should contribute a fraction of maxIndent
-    const adjustedAmplitude = maxIndent * indentAmplitude; 
-    const adjustedNoise = maxIndent * indentNoise;
-
-    const wave = Math.sin(lineIndex * indentFrequency) * adjustedAmplitude;
-    const noise = gaussian(rng, 0, adjustedNoise);
-    const raw = wave + noise;
-    
-    // Clamp the indent to be within [0, maxIndent]
-    return Math.max(0, Math.min(maxIndent, raw));
-  };
-}
-
-// ============================================
-// Font Class Mapping
-// ============================================
-
-const getFontClass = (fontName) => {
-  const fontMap = {
-    'Caveat': 'font-caveat',
-    'Kalam': 'font-kalam',
-    'Patrick Hand': 'font-patrick'
-  };
-  return fontMap[fontName] || 'font-caveat';
+  return Math.abs(hash);
 };
 
-// ============================================
-// CardPreview Component
-// ============================================
+const makeLineIndenter = (seed, { maxIndent, indentAmplitude, indentNoise, indentFrequency }) => {
+  const rng = (s) => {
+    const x = Math.sin(s) * 10000;
+    return x - Math.floor(x);
+  };
+  
+  return (lineIndex) => {
+    const drift = indentAmplitude * Math.sin(lineIndex * indentFrequency + seed);
+    const noise = indentNoise * (rng(seed + lineIndex) - 0.5) * 2;
+    const total = drift + noise;
+    
+    return Math.max(0, Math.min(maxIndent, total));
+  };
+};
 
 const CardPreview = ({ 
   message = '', 
@@ -264,7 +170,7 @@ const CardPreview = ({
     shortCardMaxLines,
     maxPreviewLines,
     topHalfPaddingTop,
-    longCardTopPadding, // NEW
+    longCardTopPadding,
     gapAboveFold,
     gapBelowFold,
     indentAmplitude,
@@ -295,7 +201,7 @@ const CardPreview = ({
     ? makeLineIndenter(seed, { maxIndent, indentAmplitude, indentNoise, indentFrequency })
     : () => 0;
 
-  const effectiveTextWidth = baseTextWidth - maxIndent; // CHANGED: Removed shiftRight and rightPadding
+  const effectiveTextWidth = baseTextWidth - maxIndent;
   const fontClass = getFontClass(noteStyleProfile?.handwritingFont || 'Caveat');
 
   const renderLine = (lineText, lineIndex, globalLineIndex) => {
@@ -306,8 +212,8 @@ const CardPreview = ({
         key={globalLineIndex}
         className="relative"
         style={{
-          marginLeft: `${baseMarginLeft + indent}px`, // CHANGED: Removed shiftRight
-          width: `${effectiveTextWidth}px`, // Now uses the updated effectiveTextWidth
+          marginLeft: `${baseMarginLeft + indent}px`,
+          width: `${effectiveTextWidth}px`,
           minHeight: lineText ? `${fontSize * lineHeight}px` : `${fontSize * lineHeight * 0.5}px`,
         }}
       >
@@ -351,7 +257,7 @@ const CardPreview = ({
           {/* Top Half Content */}
           <div 
             className="absolute left-0 right-0"
-            style={{ paddingTop: `${topPadding}px` }} {/* CHANGED: Uses topPadding */}
+            style={{ paddingTop: `${topPadding}px` }}
           >
             {topHalfLines.map((line, idx) => 
               renderLine(line, idx, idx)
