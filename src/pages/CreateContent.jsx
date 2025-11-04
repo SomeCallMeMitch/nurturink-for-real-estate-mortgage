@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -201,33 +200,40 @@ export default function CreateContent() {
       
       console.log('📡 Step 4: Loading templates...');
       
-      // Query templates with explicit status and type filters to match seeded data
-      console.log('🔍 Template query filter:', {
-        $or: [
-          { orgId: currentUser.orgId, type: 'organization', status: 'approved' },
-          { type: 'platform', status: 'approved', isDefault: true }
-        ]
+      // Load all templates using the same queries as Templates page
+      const [personal, organization, platform] = await Promise.all([
+        // Personal templates
+        base44.entities.Template.filter({ 
+          createdByUserId: currentUser.id, 
+          type: 'personal' 
+        }),
+        
+        // Organization templates
+        base44.entities.Template.filter({ 
+          orgId: currentUser.orgId, 
+          type: 'organization',
+          status: 'approved'
+        }),
+        
+        // Platform templates
+        base44.entities.Template.filter({ 
+          type: 'platform',
+          isDefault: true, 
+          status: 'approved' 
+        })
+      ]);
+      
+      // Combine all templates
+      const allTemplates = [...personal, ...organization, ...platform];
+      
+      console.log('✅ Templates loaded:', {
+        personal: personal.length,
+        organization: organization.length,
+        platform: platform.length,
+        total: allTemplates.length
       });
       
-      const templateList = await base44.entities.Template.filter({
-        $or: [
-          { 
-            orgId: currentUser.orgId, 
-            type: 'organization', 
-            status: 'approved' 
-          },
-          { 
-            type: 'platform', 
-            status: 'approved', 
-            isDefault: true 
-          }
-        ]
-      });
-      
-      console.log('✅ Templates loaded:', templateList.length, 'templates');
-      console.log('📝 Template details:', templateList);
-      
-      setTemplates(templateList);
+      setTemplates(allTemplates);
       
       console.log('📡 Step 5: Loading note style profiles...');
       const profileList = await base44.entities.NoteStyleProfile.filter({
@@ -440,7 +446,7 @@ export default function CreateContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-[1600px] mx-auto p-6">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
@@ -471,10 +477,10 @@ export default function CreateContent() {
           </div>
         </div>
 
-        {/* Three-Column Layout - FIXED WIDTHS */}
+        {/* Three-Column Layout - UPDATED WIDTHS: 5-3-4 */}
         <div className="grid grid-cols-12 gap-6">
-          {/* Left Column: Recipients + Template Library - INCREASED FROM 3 TO 4 */}
-          <div className="col-span-4 space-y-6">
+          {/* Left Column: Recipients + Template Library - INCREASED TO 5 (41.67%) */}
+          <div className="col-span-5 space-y-6">
             {/* Recipients Section */}
             <Card>
               <CardContent className="pt-6">
@@ -516,8 +522,8 @@ export default function CreateContent() {
             />
           </div>
 
-          {/* Center Column: Message Editor - DECREASED FROM 5 TO 4 */}
-          <div className="col-span-4">
+          {/* Center Column: Message Editor - DECREASED TO 3 (25%) */}
+          <div className="col-span-3">
             <Card>
               <CardContent className="pt-6 space-y-6">
                 {/* Edit Mode Selector */}
@@ -592,27 +598,29 @@ export default function CreateContent() {
             </Card>
           </div>
 
-          {/* Right Column: Preview - STAYS AT 4 */}
+          {/* Right Column: Preview - STAYS AT 4 (33.33%) */}
           <div className="col-span-4">
             <Card className="sticky top-6">
               <CardContent className="pt-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Preview for {getCurrentClient().fullName || 'Client'}</h3>
                 
-                {/* Preview container with proper width */}
-                <div className="flex justify-center">
+                {/* Preview container with proper width and padding */}
+                <div className="flex justify-center px-4">
                   {instanceSettings && (
-                    <CardPreview
-                      message={getCurrentMessage()}
-                      client={getCurrentClient()}
-                      user={user}
-                      noteStyleProfile={selectedNoteStyleProfile}
-                      selectedDesign={null}
-                      previewSettings={instanceSettings.cardPreviewSettings}
-                      includeGreeting={localIncludeGreeting}
-                      includeSignature={localIncludeSignature}
-                      randomIndentEnabled={true}
-                      showLineCounter={true}
-                    />
+                    <div className="w-full max-w-[440px]">
+                      <CardPreview
+                        message={getCurrentMessage()}
+                        client={getCurrentClient()}
+                        user={user}
+                        noteStyleProfile={selectedNoteStyleProfile}
+                        selectedDesign={null}
+                        previewSettings={instanceSettings.cardPreviewSettings}
+                        includeGreeting={localIncludeGreeting}
+                        includeSignature={localIncludeSignature}
+                        randomIndentEnabled={true}
+                        showLineCounter={true}
+                      />
+                    </div>
                   )}
                   
                   {!instanceSettings && (
@@ -629,7 +637,7 @@ export default function CreateContent() {
 
       {/* Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="text-sm text-gray-600">
             {clients.length} clients selected
           </div>

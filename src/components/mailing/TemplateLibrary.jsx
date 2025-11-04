@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { FileText, Star, Search } from 'lucide-react';
+import { FileText, Star, Search, User, Users, Grid } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 /**
@@ -14,13 +14,13 @@ import { base44 } from '@/api/base44Client';
  */
 export default function TemplateLibrary({ templates, onTemplateSelect, user }) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('favorites');
+  const [activeCategory, setActiveCategory] = useState('all');
   const [hoveredTemplate, setHoveredTemplate] = useState(null);
   const [favoriteIds, setFavoriteIds] = useState(user?.favoriteTemplateIds || []);
   
   // Filter templates by category and search
   const filteredTemplates = useMemo(() => {
-    let filtered = templates;
+    let filtered = templates || [];
     
     // Category filtering
     if (activeCategory === 'favorites') {
@@ -68,9 +68,9 @@ export default function TemplateLibrary({ templates, onTemplateSelect, user }) {
   
   const categories = [
     { id: 'favorites', label: 'Favorites', icon: Star },
-    { id: 'my', label: 'My' },
-    { id: 'org', label: 'Org' },
-    { id: 'all', label: 'All' }
+    { id: 'my', label: 'My', icon: User },
+    { id: 'org', label: 'Org', icon: Users },
+    { id: 'all', label: 'All', icon: Grid }
   ];
 
   return (
@@ -110,8 +110,8 @@ export default function TemplateLibrary({ templates, onTemplateSelect, user }) {
                     : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                 }`}
               >
-                {Icon && <Icon className="w-4 h-4" fill={isActive ? "currentColor" : "none"} />}
-                {!Icon && category.label}
+                <Icon className="w-4 h-4" fill={isActive ? "currentColor" : "none"} />
+                {category.label}
               </button>
             );
           })}
@@ -123,7 +123,11 @@ export default function TemplateLibrary({ templates, onTemplateSelect, user }) {
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
               <p className="text-sm text-gray-500">
-                {searchQuery ? 'No templates match your search' : 'No templates in this category'}
+                {searchQuery ? 'No templates match your search' : 
+                 activeCategory === 'favorites' ? 'No favorite templates yet' :
+                 activeCategory === 'my' ? 'No personal templates yet' :
+                 activeCategory === 'org' ? 'No organization templates yet' :
+                 'No templates available'}
               </p>
             </div>
           ) : (
@@ -164,8 +168,8 @@ export default function TemplateLibrary({ templates, onTemplateSelect, user }) {
                     
                     {/* Hover Tooltip */}
                     {isHovered && (
-                      <div className="absolute left-full ml-2 top-0 z-50 w-80 animate-in fade-in-0 slide-in-from-left-2 duration-200">
-                        <div className="bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4">
+                      <div className="absolute left-full ml-2 top-0 z-50 animate-in fade-in-0 slide-in-from-left-2 duration-200">
+                        <div className="bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4" style={{ width: '320px' }}>
                           {/* Arrow */}
                           <div className="absolute right-full top-4 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-gray-300" />
                           <div className="absolute right-full top-4 ml-0.5 w-0 h-0 border-t-8 border-t-transparent border-b-8 border-b-transparent border-r-8 border-r-white" />
@@ -173,7 +177,7 @@ export default function TemplateLibrary({ templates, onTemplateSelect, user }) {
                           <h4 className="font-semibold text-gray-900 mb-2">
                             {template.name}
                           </h4>
-                          <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                          <p className="text-sm text-gray-600 whitespace-pre-wrap max-h-48 overflow-y-auto">
                             {template.content}
                           </p>
                         </div>
