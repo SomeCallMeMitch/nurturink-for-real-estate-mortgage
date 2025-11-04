@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Save, RotateCcw, CheckCircle, AlertCircle } from 'lucide-react';
 import CardPreview from '@/components/preview/CardPreview';
 
@@ -21,11 +23,11 @@ const SAMPLE_CLIENT = {
 };
 
 const SAMPLE_USER = {
-  full_name: "Mike Johnson",
-  firstName: "Mike",
-  lastName: "Johnson",
-  companyName: "RoofScribe",
-  phone: "(555) 123-4567"
+  full_name: "Mitch Fields",
+  firstName: "Mitch",
+  lastName: "Fields",
+  companyName: "ScribeHandwritten.com",
+  phone: "916-555-1212"
 };
 
 const SAMPLE_NOTE_PROFILE = {
@@ -35,19 +37,38 @@ const SAMPLE_NOTE_PROFILE = {
   handwritingFont: "Caveat"
 };
 
-const SAMPLE_MESSAGE = "Thank you for your recent roofing project with us! We truly appreciate your business and hope you're enjoying your new roof.\n\nIf you have any questions or need anything, please don't hesitate to reach out.";
+// Multiple test messages
+const TEST_MESSAGES = {
+  short: "Thank you for your recent roofing project with us! We truly appreciate your business.",
+  long: "Hello, my name's James,\nBelieve it or not, this letter is actually written with a real Bic pen, by our robots!\nAs you can see, the software will use a different letter format for each character, that way, none of the letters will look the same when you see them next to each other.\nKeep in mind, this is a general sample, and we can create any size mail piece, any cardstock, any envelopes, and craft your perfect custom mail piece!\n\nThank you,\n\nMitch Fields\nwww.ScribeHandwritten.com\n916-555-1212"
+};
+
+const GREETING_OPTIONS = [
+  { label: "Dear {{firstName}},", value: "Dear {{firstName}}," },
+  { label: "Hi {{firstName}}!", value: "Hi {{firstName}}!" },
+  { label: "Hello {{firstName}},", value: "Hello {{firstName}}," }
+];
+
+const SIGNATURE_OPTIONS = [
+  { label: "Sincerely, {{rep_full_name}}", value: "Sincerely,\n{{rep_full_name}}\n{{rep_company_name}}" },
+  { label: "Best, {{rep_full_name}}", value: "Best,\n{{rep_full_name}}" },
+  { label: "Thank you, {{rep_full_name}}", value: "Thank you,\n{{rep_full_name}}\n{{rep_company_name}}\n{{rep_phone}}" }
+];
 
 export default function AdminCardLayout() {
   const [settings, setSettings] = useState(null);
   const [localSettings, setLocalSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState(null); // 'success', 'error', null
+  const [saveStatus, setSaveStatus] = useState(null);
   const [error, setError] = useState(null);
   
   // Preview controls
+  const [testMessage, setTestMessage] = useState('long');
   const [includeGreeting, setIncludeGreeting] = useState(true);
+  const [selectedGreeting, setSelectedGreeting] = useState(GREETING_OPTIONS[0].value);
   const [includeSignature, setIncludeSignature] = useState(true);
+  const [selectedSignature, setSelectedSignature] = useState(SIGNATURE_OPTIONS[0].value);
 
   useEffect(() => {
     loadSettings();
@@ -147,15 +168,22 @@ export default function AdminCardLayout() {
 
   const s = localSettings.cardPreviewSettings;
 
+  // Create dynamic note profile for preview
+  const previewNoteProfile = {
+    ...SAMPLE_NOTE_PROFILE,
+    defaultGreeting: selectedGreeting,
+    signatureText: selectedSignature
+  };
+
   return (
     <SuperAdminLayout>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Card Layout Settings</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Preview Layout Settings</h1>
             <p className="text-gray-600 mt-1">
-              Fine-tune the preview rendering for notecards
+              Adjust positioning, sizing, and appearance of handwritten note previews
             </p>
           </div>
           
@@ -207,192 +235,285 @@ export default function AdminCardLayout() {
         <div className="grid grid-cols-12 gap-6">
           {/* Left: Settings Controls */}
           <div className="col-span-5 space-y-6">
-            {/* Typography */}
+            {/* Preview Controls */}
             <Card>
               <CardHeader>
-                <CardTitle>Typography</CardTitle>
+                <CardTitle>Preview Controls</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Font Size (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.fontSize}
-                    onChange={(e) => updateSetting('fontSize', e.target.value)}
-                    min={10}
-                    max={30}
-                    step={1}
-                  />
+                  <Label>Test Message</Label>
+                  <Select value={testMessage} onValueChange={setTestMessage}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="short">Short Message (Test shortBelowFold)</SelectItem>
+                      <SelectItem value="long">Long Message</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <Label>Line Height</Label>
-                  <Input
-                    type="number"
-                    value={s.lineHeight}
-                    onChange={(e) => updateSetting('lineHeight', e.target.value)}
-                    min={0.8}
-                    max={2}
-                    step={0.1}
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeGreeting"
+                    checked={includeGreeting}
+                    onCheckedChange={setIncludeGreeting}
                   />
+                  <Label htmlFor="includeGreeting" className="cursor-pointer">
+                    Include Greeting
+                  </Label>
+                </div>
+
+                {includeGreeting && (
+                  <div>
+                    <Label>Greeting Text</Label>
+                    <Select value={selectedGreeting} onValueChange={setSelectedGreeting}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GREETING_OPTIONS.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeSignature"
+                    checked={includeSignature}
+                    onCheckedChange={setIncludeSignature}
+                  />
+                  <Label htmlFor="includeSignature" className="cursor-pointer">
+                    Include Signature
+                  </Label>
+                </div>
+
+                {includeSignature && (
+                  <div>
+                    <Label>Signature Text</Label>
+                    <Select value={selectedSignature} onValueChange={setSelectedSignature}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SIGNATURE_OPTIONS.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Typography & Sizing */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Typography & Sizing</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Font Size (px)</Label>
+                    <Input
+                      type="number"
+                      value={s.fontSize}
+                      onChange={(e) => updateSetting('fontSize', e.target.value)}
+                      min={10}
+                      max={30}
+                      step={1}
+                    />
+                  </div>
+                  <div>
+                    <Label>Line Height</Label>
+                    <Input
+                      type="number"
+                      value={s.lineHeight}
+                      onChange={(e) => updateSetting('lineHeight', e.target.value)}
+                      min={0.8}
+                      max={2}
+                      step={0.1}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Text Width (px)</Label>
+                    <Input
+                      type="number"
+                      value={s.baseTextWidth}
+                      onChange={(e) => updateSetting('baseTextWidth', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Left Margin (px)</Label>
+                    <Input
+                      type="number"
+                      value={s.baseMarginLeft}
+                      onChange={(e) => updateSetting('baseMarginLeft', e.target.value)}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Sizing & Limits */}
+            {/* Line Limits & Flow */}
             <Card>
               <CardHeader>
-                <CardTitle>Sizing & Limits</CardTitle>
+                <CardTitle>Line Limits & Flow</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label>Base Text Width (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.baseTextWidth}
-                    onChange={(e) => updateSetting('baseTextWidth', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Frame Width (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.frameWidth}
-                    onChange={(e) => updateSetting('frameWidth', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Frame Height (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.frameHeight}
-                    onChange={(e) => updateSetting('frameHeight', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Short Card Max Lines</Label>
-                  <Input
-                    type="number"
-                    value={s.shortCardMaxLines}
-                    onChange={(e) => updateSetting('shortCardMaxLines', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Max Preview Lines</Label>
-                  <Input
-                    type="number"
-                    value={s.maxPreviewLines}
-                    onChange={(e) => updateSetting('maxPreviewLines', e.target.value)}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Short Card Max Lines</Label>
+                    <Input
+                      type="number"
+                      value={s.shortCardMaxLines}
+                      onChange={(e) => updateSetting('shortCardMaxLines', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Max Preview Lines</Label>
+                    <Input
+                      type="number"
+                      value={s.maxPreviewLines}
+                      onChange={(e) => updateSetting('maxPreviewLines', e.target.value)}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Positioning */}
+            {/* Vertical Positioning */}
             <Card>
               <CardHeader>
-                <CardTitle>Positioning</CardTitle>
+                <CardTitle>Vertical Positioning (pixels)</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label>Base Margin Left (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.baseMarginLeft}
-                    onChange={(e) => updateSetting('baseMarginLeft', e.target.value)}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Top Half Padding</Label>
+                    <Input
+                      type="number"
+                      value={s.longCardTopPadding}
+                      onChange={(e) => updateSetting('longCardTopPadding', e.target.value)}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">For long cards (&gt;13 lines)</p>
+                  </div>
+                  <div>
+                    <Label>Short Card Top Offset</Label>
+                    <Input
+                      type="number"
+                      value={s.topHalfPaddingTop}
+                      onChange={(e) => updateSetting('topHalfPaddingTop', e.target.value)}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">For short cards (≤13 lines)</p>
+                  </div>
                 </div>
-                <div>
-                  <Label>Top Half Padding Top (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.topHalfPaddingTop}
-                    onChange={(e) => updateSetting('topHalfPaddingTop', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Gap Above Fold (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.gapAboveFold}
-                    onChange={(e) => updateSetting('gapAboveFold', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Gap Below Fold (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.gapBelowFold}
-                    onChange={(e) => updateSetting('gapBelowFold', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Short Below Fold (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.shortBelowFold}
-                    onChange={(e) => updateSetting('shortBelowFold', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Shift Right (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.shiftRight}
-                    onChange={(e) => updateSetting('shiftRight', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Right Padding (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.rightPadding}
-                    onChange={(e) => updateSetting('rightPadding', e.target.value)}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Gap Above Fold</Label>
+                    <Input
+                      type="number"
+                      value={s.gapAboveFold}
+                      onChange={(e) => updateSetting('gapAboveFold', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Gap Below Fold</Label>
+                    <Input
+                      type="number"
+                      value={s.gapBelowFold}
+                      onChange={(e) => updateSetting('gapBelowFold', e.target.value)}
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Indentation */}
+            {/* Natural Handwriting Indents */}
             <Card>
               <CardHeader>
-                <CardTitle>Indentation (Handwritten Effect)</CardTitle>
+                <CardTitle>Natural Handwriting Indents</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label>Max Indent (px)</Label>
-                  <Input
-                    type="number"
-                    value={s.maxIndent}
-                    onChange={(e) => updateSetting('maxIndent', e.target.value)}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Max Indent (px)</Label>
+                    <Input
+                      type="number"
+                      value={s.maxIndent}
+                      onChange={(e) => updateSetting('maxIndent', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Drift Amplitude</Label>
+                    <Input
+                      type="number"
+                      value={s.indentAmplitude}
+                      onChange={(e) => updateSetting('indentAmplitude', e.target.value)}
+                      step={0.1}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Indent Amplitude</Label>
-                  <Input
-                    type="number"
-                    value={s.indentAmplitude}
-                    onChange={(e) => updateSetting('indentAmplitude', e.target.value)}
-                    step={0.1}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Random Noise (px)</Label>
+                    <Input
+                      type="number"
+                      value={s.indentNoise}
+                      onChange={(e) => updateSetting('indentNoise', e.target.value)}
+                      step={0.1}
+                    />
+                  </div>
+                  <div>
+                    <Label>Drift Frequency</Label>
+                    <Input
+                      type="number"
+                      value={s.indentFrequency}
+                      onChange={(e) => updateSetting('indentFrequency', e.target.value)}
+                      step={0.05}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Indent Noise</Label>
-                  <Input
-                    type="number"
-                    value={s.indentNoise}
-                    onChange={(e) => updateSetting('indentNoise', e.target.value)}
-                    step={0.1}
-                  />
+              </CardContent>
+            </Card>
+
+            {/* Frame Dimensions */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Frame Dimensions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Frame Width (px)</Label>
+                    <Input
+                      type="number"
+                      value={s.frameWidth}
+                      onChange={(e) => updateSetting('frameWidth', e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label>Frame Height (px)</Label>
+                    <Input
+                      type="number"
+                      value={s.frameHeight}
+                      onChange={(e) => updateSetting('frameHeight', e.target.value)}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Indent Frequency</Label>
-                  <Input
-                    type="number"
-                    value={s.indentFrequency}
-                    onChange={(e) => updateSetting('indentFrequency', e.target.value)}
-                    step={0.05}
-                  />
-                </div>
+                <p className="text-xs text-gray-500">
+                  These control the exact size of the preview window across the app
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -402,33 +523,13 @@ export default function AdminCardLayout() {
             <Card className="sticky top-6">
               <CardHeader>
                 <CardTitle>Live Preview</CardTitle>
-                <div className="flex gap-4 mt-4">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={includeGreeting}
-                      onChange={(e) => setIncludeGreeting(e.target.checked)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">Include Greeting</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={includeSignature}
-                      onChange={(e) => setIncludeSignature(e.target.checked)}
-                      className="w-4 h-4"
-                    />
-                    <span className="text-sm">Include Signature</span>
-                  </label>
-                </div>
               </CardHeader>
               <CardContent className="flex justify-center">
                 <CardPreview
-                  message={SAMPLE_MESSAGE}
+                  message={TEST_MESSAGES[testMessage]}
                   client={SAMPLE_CLIENT}
                   user={SAMPLE_USER}
-                  noteStyleProfile={SAMPLE_NOTE_PROFILE}
+                  noteStyleProfile={previewNoteProfile}
                   selectedDesign={null}
                   previewSettings={localSettings.cardPreviewSettings}
                   includeGreeting={includeGreeting}

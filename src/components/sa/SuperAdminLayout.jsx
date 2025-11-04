@@ -46,7 +46,7 @@ export default function SuperAdminLayout({ children }) {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: 'SuperAdminDashboard' },
-    { id: 'card-layout', label: 'Card Layout', icon: Layout, path: 'AdminCardLayout' },
+    { id: 'preview-layout', label: 'Preview Layout', icon: Layout, path: 'AdminCardLayout' },
     { id: 'content-layout', label: 'Content Layout', icon: Layout, path: 'AdminCreateContentLayout' },
     { id: 'envelope-layout', label: 'Envelope Layout', icon: Mail, path: 'AdminEnvelopeLayout' },
   ];

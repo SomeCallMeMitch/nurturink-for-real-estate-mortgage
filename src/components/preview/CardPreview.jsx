@@ -82,6 +82,8 @@ const wrapTextToLines = (text, options = {}) => {
           allLines.push(currentLine);
           currentLine = word;
         } else {
+          // If a single word is longer than maxWidth, it should still be added.
+          // This also handles cases where currentLine is empty and a word is too long.
           allLines.push(word);
           currentLine = '';
         }
@@ -137,9 +139,11 @@ const messageToLines = (completeMessage, options = {}) => {
       const lines = wrapTextToLines(paragraph.trim(), { ...wrapOptions, maxWidth: adjustedMaxWidth });
       allLines.push(...lines);
       
-      if (index < paragraphs.length - 1) {
+      if (index < paragraphs.length - 1 && lines.length > 0) { // Add empty line only if paragraph had content
         allLines.push('');
       }
+    } else if (index < paragraphs.length - 1) { // Preserve empty paragraphs as empty lines
+      allLines.push('');
     }
   });
   
@@ -185,10 +189,16 @@ function makeLineIndenter(seed, settings) {
   return (lineIndex) => {
     if (maxIndent === 0) return 0;
     
-    const wave = Math.sin(lineIndex * indentFrequency) * indentAmplitude;
-    const noise = gaussian(rng, 0, indentNoise);
+    // Normalize indentAmplitude relative to maxIndent
+    // The wave should contribute a fraction of maxIndent
+    const adjustedAmplitude = maxIndent * indentAmplitude; 
+    const adjustedNoise = maxIndent * indentNoise;
+
+    const wave = Math.sin(lineIndex * indentFrequency) * adjustedAmplitude;
+    const noise = gaussian(rng, 0, adjustedNoise);
     const raw = wave + noise;
     
+    // Clamp the indent to be within [0, maxIndent]
     return Math.max(0, Math.min(maxIndent, raw));
   };
 }
@@ -254,19 +264,20 @@ const CardPreview = ({
     shortCardMaxLines,
     maxPreviewLines,
     topHalfPaddingTop,
+    longCardTopPadding, // NEW
     gapAboveFold,
     gapBelowFold,
-    shortBelowFold,
     indentAmplitude,
     indentNoise,
     indentFrequency,
-    shiftRight,
-    rightPadding,
     frameWidth,
     frameHeight
   } = previewSettings;
 
   const isShortCard = lines.length <= shortCardMaxLines;
+
+  // Use different top padding based on card length
+  const topPadding = isShortCard ? topHalfPaddingTop : longCardTopPadding;
 
   let topHalfLines = [];
   let bottomHalfLines = [];
@@ -284,7 +295,7 @@ const CardPreview = ({
     ? makeLineIndenter(seed, { maxIndent, indentAmplitude, indentNoise, indentFrequency })
     : () => 0;
 
-  const effectiveTextWidth = baseTextWidth - maxIndent + shiftRight - rightPadding;
+  const effectiveTextWidth = baseTextWidth - maxIndent; // CHANGED: Removed shiftRight and rightPadding
   const fontClass = getFontClass(noteStyleProfile?.handwritingFont || 'Caveat');
 
   const renderLine = (lineText, lineIndex, globalLineIndex) => {
@@ -295,8 +306,8 @@ const CardPreview = ({
         key={globalLineIndex}
         className="relative"
         style={{
-          marginLeft: `${baseMarginLeft + indent + shiftRight}px`,
-          width: `${effectiveTextWidth}px`,
+          marginLeft: `${baseMarginLeft + indent}px`, // CHANGED: Removed shiftRight
+          width: `${effectiveTextWidth}px`, // Now uses the updated effectiveTextWidth
           minHeight: lineText ? `${fontSize * lineHeight}px` : `${fontSize * lineHeight * 0.5}px`,
         }}
       >
@@ -340,7 +351,7 @@ const CardPreview = ({
           {/* Top Half Content */}
           <div 
             className="absolute left-0 right-0"
-            style={{ paddingTop: `${topHalfPaddingTop}px` }}
+            style={{ paddingTop: `${topPadding}px` }} {/* CHANGED: Uses topPadding */}
           >
             {topHalfLines.map((line, idx) => 
               renderLine(line, idx, idx)

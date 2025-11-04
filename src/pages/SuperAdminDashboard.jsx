@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -45,8 +46,8 @@ export default function SuperAdminDashboard() {
 
   const adminCards = [
     {
-      id: 'card-layout',
-      title: 'Card Layout Settings',
+      id: 'preview-layout',
+      title: 'Preview Layout Settings',
       description: 'Configure card preview rendering, text positioning, and handwritten effects',
       icon: Layout,
       path: 'AdminCardLayout',
@@ -147,7 +148,7 @@ export default function SuperAdminDashboard() {
         <div className="mt-8 p-6 bg-blue-50 border border-blue-200 rounded-lg">
           <h3 className="font-semibold text-blue-900 mb-2">💡 About Super Admin Settings</h3>
           <ul className="space-y-2 text-sm text-blue-800">
-            <li>• <strong>Card Layout:</strong> Controls how handwritten text appears on cards (spacing, indentation, font sizes)</li>
+            <li>• <strong>Preview Layout:</strong> Controls how handwritten text appears on cards (spacing, indentation, font sizes)</li>
             <li>• <strong>Content Layout:</strong> Adjusts the column widths in the content editor for optimal workflow</li>
             <li>• <strong>Envelope Layout:</strong> Positions addresses correctly on physical envelopes</li>
             <li>• All changes take effect immediately for all users system-wide</li>
