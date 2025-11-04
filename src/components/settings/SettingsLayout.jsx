@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -8,11 +9,11 @@ export default function SettingsLayout({ children }) {
 
   const navItems = [
     { name: 'Profile', icon: User, path: 'SettingsProfile' },
+    { name: 'Organization', icon: Users, path: 'SettingsOrganization' },
     { name: 'Writing Style', icon: MessageSquare, path: 'SettingsWritingStyle' },
     { name: 'Addresses', icon: MapPin, path: 'SettingsAddresses' },
     { name: 'Phone Numbers', icon: Phone, path: 'SettingsPhones' },
-    { name: 'Websites & URLs', icon: Globe, path: 'SettingsUrls' },
-    { name: 'Team', icon: Users, path: 'SettingsTeam' },
+    { name: 'Websites & URLs', icon: Globe, path: 'SettingsUrls' }
   ];
 
   return (

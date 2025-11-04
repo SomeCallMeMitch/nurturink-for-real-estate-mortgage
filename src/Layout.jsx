@@ -1,3 +1,4 @@
+
 import React from "react";
 import MainLayout from "./components/layout/MainLayout";
 
@@ -15,6 +16,7 @@ export default function Layout({ children, currentPageName }) {
     "AdminClients",
     "AdminClientEdit",
     "SettingsProfile",
+    "SettingsOrganization",
     "SettingsWritingStyle",
     "SettingsAddresses",
     "SettingsPhones",
