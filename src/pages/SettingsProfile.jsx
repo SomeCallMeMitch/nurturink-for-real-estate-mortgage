@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import SettingsLayout from "@/components/settings/SettingsLayout";
@@ -14,8 +15,13 @@ export default function SettingsProfile() {
   const [successMessage, setSuccessMessage] = useState('');
 
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     full_name: '',
-    email: ''
+    email: '',
+    title: '',
+    phone: '',
+    companyName: ''
   });
 
   useEffect(() => {
@@ -28,8 +34,13 @@ export default function SettingsProfile() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setFormData({
+        firstName: currentUser.firstName || '',
+        lastName: currentUser.lastName || '',
         full_name: currentUser.full_name || '',
-        email: currentUser.email || ''
+        email: currentUser.email || '',
+        title: currentUser.title || '',
+        phone: currentUser.phone || '',
+        companyName: currentUser.companyName || ''
       });
     } catch (error) {
       console.error('Failed to load user:', error);
@@ -42,7 +53,7 @@ export default function SettingsProfile() {
     e.preventDefault();
 
     if (!formData.full_name.trim()) {
-      alert('Name is required');
+      alert('Full Name is required');
       return;
     }
 
@@ -51,7 +62,12 @@ export default function SettingsProfile() {
       setSuccessMessage('');
 
       await base44.auth.updateMe({
-        full_name: formData.full_name
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        full_name: formData.full_name,
+        title: formData.title,
+        phone: formData.phone,
+        companyName: formData.companyName
       });
 
       setSuccessMessage('Profile updated successfully!');
@@ -92,6 +108,37 @@ export default function SettingsProfile() {
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Name Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* First Name */}
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  placeholder="John"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Used in placeholders like {'{{me.firstName}}'}
+                </p>
+              </div>
+
+              {/* Last Name */}
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  placeholder="Smith"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Used in placeholders like {'{{me.lastName}}'}
+                </p>
+              </div>
+            </div>
+
             {/* Full Name */}
             <div>
               <Label htmlFor="full_name">
@@ -104,6 +151,52 @@ export default function SettingsProfile() {
                 placeholder="John Smith"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Used in placeholders like {'{{me.fullName}}'}
+              </p>
+            </div>
+
+            {/* Job Title */}
+            <div>
+              <Label htmlFor="title">Job Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                placeholder="Senior Advisor"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Used in placeholders like {'{{me.title}}'}
+              </p>
+            </div>
+
+            {/* Company Name */}
+            <div>
+              <Label htmlFor="companyName">Company Name</Label>
+              <Input
+                id="companyName"
+                value={formData.companyName}
+                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                placeholder="Smith Roofing"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Used in placeholders like {'{{me.companyName}}'}
+              </p>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="(555) 123-4567"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Used in placeholders like {'{{me.phone}}'}
+              </p>
             </div>
 
             {/* Email (Read-only) */}
