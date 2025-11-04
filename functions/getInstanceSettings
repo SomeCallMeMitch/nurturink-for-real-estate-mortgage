@@ -3,10 +3,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 // Default settings to initialize if no record exists
 const DEFAULT_SETTINGS = {
   cardPreviewSettings: {
-    fontSize: 18,
-    lineHeight: 1.1,
-    baseTextWidth: 355,
-    baseMarginLeft: 48,
+    fontSize: 24,
+    lineHeight: 1,
+    baseTextWidth: 360,
+    baseMarginLeft: 40,
     shortCardMaxLines: 13,
     maxPreviewLines: 19,
     topHalfPaddingTop: 345,

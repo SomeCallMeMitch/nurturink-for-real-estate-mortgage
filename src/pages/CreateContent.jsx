@@ -20,22 +20,20 @@ import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 // Default fallback settings if API fails
 const FALLBACK_SETTINGS = {
   cardPreviewSettings: {
-    fontSize: 18,
-    lineHeight: 1.1,
-    baseTextWidth: 355,
-    baseMarginLeft: 48,
+    fontSize: 24,
+    lineHeight: 1,
+    baseTextWidth: 360,
+    baseMarginLeft: 40,
     shortCardMaxLines: 13,
     maxPreviewLines: 19,
-    topHalfPaddingTop: 125,
+    topHalfPaddingTop: 345,
+    longCardTopPadding: 110,
     gapAboveFold: 14,
     gapBelowFold: 14,
-    shortBelowFold: 14,
     maxIndent: 16,
     indentAmplitude: 6,
     indentNoise: 2,
     indentFrequency: 0.35,
-    shiftRight: 0,
-    rightPadding: 12,
     frameWidth: 412,
     frameHeight: 600
   }

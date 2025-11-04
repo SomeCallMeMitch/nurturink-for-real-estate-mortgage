@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
@@ -40,7 +41,7 @@ const SAMPLE_NOTE_PROFILE = {
 // Multiple test messages
 const TEST_MESSAGES = {
   short: "Thank you for your recent roofing project with us! We truly appreciate your business.",
-  long: "Hello, my name's James,\nBelieve it or not, this letter is actually written with a real Bic pen, by our robots!\nAs you can see, the software will use a different letter format for each character, that way, none of the letters will look the same when you see them next to each other.\nKeep in mind, this is a general sample, and we can create any size mail piece, any cardstock, any envelopes, and craft your perfect custom mail piece!\n\nThank you,\n\nMitch Fields\nwww.ScribeHandwritten.com\n916-555-1212"
+  long: "Hello, my name's James,\n\nBelieve it or not, this letter is actually written with a real Bic pen, by our robots!\nAs you can see, the software will use a different letter format for each character, that way, none of the letters will look the same when you see them next to each other.\nKeep in mind, this is a general sample, and we can create any size mail piece, any cardstock, any envelopes, and craft your perfect custom mail piece!\n\nThank you,\n\nMitch Fields\nwww.ScribeHandwritten.com\n916-555-1212"
 };
 
 const GREETING_OPTIONS = [
@@ -65,10 +66,6 @@ export default function AdminCardLayout() {
   
   // Preview controls
   const [testMessage, setTestMessage] = useState('long');
-  const [includeGreeting, setIncludeGreeting] = useState(true);
-  const [selectedGreeting, setSelectedGreeting] = useState(GREETING_OPTIONS[0].value);
-  const [includeSignature, setIncludeSignature] = useState(true);
-  const [selectedSignature, setSelectedSignature] = useState(SIGNATURE_OPTIONS[0].value);
 
   useEffect(() => {
     loadSettings();
@@ -168,13 +165,6 @@ export default function AdminCardLayout() {
 
   const s = localSettings.cardPreviewSettings;
 
-  // Create dynamic note profile for preview
-  const previewNoteProfile = {
-    ...SAMPLE_NOTE_PROFILE,
-    defaultGreeting: selectedGreeting,
-    signatureText: selectedSignature
-  };
-
   return (
     <SuperAdminLayout>
       <div className="max-w-7xl mx-auto">
@@ -248,69 +238,11 @@ export default function AdminCardLayout() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="short">Short Message (Test shortBelowFold)</SelectItem>
+                      <SelectItem value="short">Short Message</SelectItem>
                       <SelectItem value="long">Long Message</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="includeGreeting"
-                    checked={includeGreeting}
-                    onCheckedChange={setIncludeGreeting}
-                  />
-                  <Label htmlFor="includeGreeting" className="cursor-pointer">
-                    Include Greeting
-                  </Label>
-                </div>
-
-                {includeGreeting && (
-                  <div>
-                    <Label>Greeting Text</Label>
-                    <Select value={selectedGreeting} onValueChange={setSelectedGreeting}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {GREETING_OPTIONS.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="includeSignature"
-                    checked={includeSignature}
-                    onCheckedChange={setIncludeSignature}
-                  />
-                  <Label htmlFor="includeSignature" className="cursor-pointer">
-                    Include Signature
-                  </Label>
-                </div>
-
-                {includeSignature && (
-                  <div>
-                    <Label>Signature Text</Label>
-                    <Select value={selectedSignature} onValueChange={setSelectedSignature}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {SIGNATURE_OPTIONS.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
               </CardContent>
             </Card>
 
@@ -529,11 +461,11 @@ export default function AdminCardLayout() {
                   message={TEST_MESSAGES[testMessage]}
                   client={SAMPLE_CLIENT}
                   user={SAMPLE_USER}
-                  noteStyleProfile={previewNoteProfile}
+                  noteStyleProfile={SAMPLE_NOTE_PROFILE}
                   selectedDesign={null}
                   previewSettings={localSettings.cardPreviewSettings}
-                  includeGreeting={includeGreeting}
-                  includeSignature={includeSignature}
+                  includeGreeting={true}
+                  includeSignature={true}
                   randomIndentEnabled={true}
                   showLineCounter={true}
                 />
