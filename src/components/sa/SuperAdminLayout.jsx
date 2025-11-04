@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Settings, LayoutGrid, Mail, Shield } from "lucide-react";
+import { Settings, LayoutGrid, Mail, Shield, Home, Layout } from "lucide-react"; // Added Home and Layout
 
 export default function SuperAdminLayout({ children }) {
   const [user, setUser] = useState(null);
@@ -43,22 +44,11 @@ export default function SuperAdminLayout({ children }) {
     );
   }
 
-  const navItems = [
-    {
-      label: "Dashboard",
-      icon: Shield,
-      pageName: "SuperAdminDashboard"
-    },
-    {
-      label: "Card Layout",
-      icon: LayoutGrid,
-      pageName: "AdminCardLayout"
-    },
-    {
-      label: "Envelope Layout",
-      icon: Mail,
-      pageName: "AdminEnvelopeLayout"
-    }
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: Home, path: 'SuperAdminDashboard' },
+    { id: 'card-layout', label: 'Card Layout', icon: Layout, path: 'AdminCardLayout' },
+    { id: 'content-layout', label: 'Content Layout', icon: Layout, path: 'AdminCreateContentLayout' },
+    { id: 'envelope-layout', label: 'Envelope Layout', icon: Mail, path: 'AdminEnvelopeLayout' },
   ];
 
   const currentPath = location.pathname;
@@ -91,14 +81,14 @@ export default function SuperAdminLayout({ children }) {
         <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-73px)]">
           <nav className="p-4">
             <div className="space-y-1">
-              {navItems.map((item) => {
+              {menuItems.map((item) => { // Changed navItems to menuItems
                 const Icon = item.icon;
-                const itemUrl = createPageUrl(item.pageName);
+                const itemUrl = createPageUrl(item.path); // Changed item.pageName to item.path
                 const isActive = currentPath === itemUrl;
                 
                 return (
                   <Link
-                    key={item.pageName}
+                    key={item.id} // Changed item.pageName to item.id
                     to={itemUrl}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                       isActive

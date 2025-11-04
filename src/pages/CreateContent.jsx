@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +15,7 @@ import EditModeSelector from "@/components/mailing/EditModeSelector";
 import PlaceholderSelector from "@/components/mailing/PlaceholderSelector";
 import TemplateLibrary from "@/components/mailing/TemplateLibrary";
 import CardPreview from "@/components/preview/CardPreview";
+import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 
 // Default fallback settings if API fails
 const FALLBACK_SETTINGS = {
@@ -137,6 +139,13 @@ export default function CreateContent() {
   const [errorDetails, setErrorDetails] = useState(null);
   const [editMode, setEditMode] = useState('bulk');
   const [selectedRecipientId, setSelectedRecipientId] = useState(null);
+
+  // Add state for column widths
+  const [columnWidths, setColumnWidths] = useState({ 
+    leftColumnSpan: 5, 
+    centerColumnSpan: 3, 
+    rightColumnSpan: 4 
+  });
   
   // Local editable state (for autosave)
   const [localGlobalMessage, setLocalGlobalMessage] = useState('');
@@ -250,6 +259,16 @@ export default function CreateContent() {
       } catch (settingsError) {
         console.error('⚠️ Failed to load instance settings, using fallback:', settingsError);
         setInstanceSettings(FALLBACK_SETTINGS);
+      }
+      
+      console.log('📡 Step 7: Loading column width settings...');
+      try {
+        const layoutResponse = await base44.functions.invoke('getCreateContentLayoutSettings');
+        console.log('✅ Column width settings loaded:', layoutResponse);
+        setColumnWidths(layoutResponse.data);
+      } catch (layoutError) {
+        console.error('⚠️ Failed to load column width settings, using defaults:', layoutError);
+        // Keep default values already set in state
       }
       
       console.log('✅ All data loaded successfully');
@@ -446,45 +465,23 @@ export default function CreateContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
+      {/* Workflow Steps Header */}
+      <WorkflowSteps currentStep={2} creditsLeft={user?.creditBalance || 0} />
+      
       <div className="max-w-[1600px] mx-auto p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-            <span>Send a Card</span>
-            <span>•</span>
-            <span className="text-indigo-600 font-medium">Step 2 of 4</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-1">Create Content</h1>
-              <p className="text-gray-600">
-                Compose your message for {clients.length} {clients.length === 1 ? 'recipient' : 'recipients'}
-              </p>
-            </div>
-            <div className="text-sm text-gray-500">
-              {isSaving ? (
-                <span className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
-                </span>
-              ) : lastSaved ? (
-                <span className="flex items-center gap-2 text-green-600">
-                  <Save className="w-4 h-4" />
-                  All changes saved
-                </span>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
-        {/* Three-Column Layout - UPDATED WIDTHS: 5-3-4 */}
+        {/* Three-Column Layout - DYNAMIC WIDTHS */}
         <div className="grid grid-cols-12 gap-6">
-          {/* Left Column: Recipients + Template Library - INCREASED TO 5 (41.67%) */}
-          <div className="col-span-5 space-y-6">
+          {/* Left Column: Recipients + Template Library */}
+          <div style={{ gridColumn: `span ${columnWidths.leftColumnSpan}` }} className="space-y-6">
             {/* Recipients Section */}
             <Card>
               <CardContent className="pt-6">
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Recipients</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-700">Recipients</h3>
+                  <div className="text-xs text-gray-500">
+                    {clients.length} {clients.length === 1 ? 'recipient' : 'recipients'}
+                  </div>
+                </div>
                 <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                   <span>1/{clients.length}</span>
                   <div className="flex gap-1">
@@ -522,10 +519,25 @@ export default function CreateContent() {
             />
           </div>
 
-          {/* Center Column: Message Editor - DECREASED TO 3 (25%) */}
-          <div className="col-span-3">
+          {/* Center Column: Message Editor */}
+          <div style={{ gridColumn: `span ${columnWidths.centerColumnSpan}` }}>
             <Card>
               <CardContent className="pt-6 space-y-6">
+                {/* Save Status */}
+                <div className="flex items-center justify-end text-xs text-gray-500">
+                  {isSaving ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Saving...
+                    </span>
+                  ) : lastSaved ? (
+                    <span className="flex items-center gap-2 text-green-600">
+                      <Save className="w-3 h-3" />
+                      Saved
+                    </span>
+                  ) : null}
+                </div>
+
                 {/* Edit Mode Selector */}
                 <EditModeSelector
                   mode={editMode}
@@ -598,8 +610,8 @@ export default function CreateContent() {
             </Card>
           </div>
 
-          {/* Right Column: Preview - STAYS AT 4 (33.33%) */}
-          <div className="col-span-4">
+          {/* Right Column: Preview */}
+          <div style={{ gridColumn: `span ${columnWidths.rightColumnSpan}` }}>
             <Card className="sticky top-6">
               <CardContent className="pt-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Preview for {getCurrentClient().fullName || 'Client'}</h3>

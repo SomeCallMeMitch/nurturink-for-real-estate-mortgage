@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Filter, ArrowRight, Users } from "lucide-react";
+import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 
 export default function FindClients() {
   const navigate = useNavigate();
@@ -120,9 +121,12 @@ export default function FindClients() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
+      {/* Workflow Steps Header */}
+      <WorkflowSteps currentStep={1} creditsLeft={0} />
+      
       <div className="max-w-5xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-8">
+        {/* The original Header content below was removed as WorkflowSteps replaces it */}
+        {/* <div className="mb-8">
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
             <span>Send a Card</span>
             <span>•</span>
@@ -132,7 +136,7 @@ export default function FindClients() {
           <p className="text-gray-600">
             Choose the clients you want to send a notecard to. You can select one or multiple recipients.
           </p>
-        </div>
+        </div> */}
 
         {/* Error Message */}
         {error && (

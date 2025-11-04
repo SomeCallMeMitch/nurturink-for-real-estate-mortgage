@@ -13,6 +13,7 @@ import SettingsAddresses from './pages/SettingsAddresses';
 import SettingsPhones from './pages/SettingsPhones';
 import SettingsUrls from './pages/SettingsUrls';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import AdminCreateContentLayout from './pages/AdminCreateContentLayout';
 import Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "SettingsPhones": SettingsPhones,
     "SettingsUrls": SettingsUrls,
     "SuperAdminDashboard": SuperAdminDashboard,
+    "AdminCreateContentLayout": AdminCreateContentLayout,
 }
 
 export const pagesConfig = {
