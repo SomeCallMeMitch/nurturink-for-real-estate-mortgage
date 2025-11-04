@@ -12,7 +12,7 @@ const getFontClass = (fontName) => {
   return fontMap[fontName] || 'font-caveat';
 };
 
-const replacePlaceholders = (text, client, user, noteStyleProfile) => {
+const replacePlaceholders = (text, client, user, organization, noteStyleProfile) => {
   if (!text) return '';
   
   let result = text;
@@ -82,25 +82,29 @@ const replacePlaceholders = (text, client, user, noteStyleProfile) => {
   }
   
   // Organization placeholders - NEW SYNTAX
-  // Note: org data would need to be passed in if available
-  // For now, these will remain as-is if org data not provided
+  if (organization) {
+    result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
+    result = result.replace(/\{\{org\.website\}\}/g, organization.website || '');
+    result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
+    result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
+  }
   
   return result;
 };
 
-const composeCompleteMessage = (greeting, body, signature, client, user, noteStyleProfile) => {
+const composeCompleteMessage = (greeting, body, signature, client, user, organization, noteStyleProfile) => {
   const parts = [];
   
   if (greeting) {
-    parts.push(replacePlaceholders(greeting, client, user, noteStyleProfile));
+    parts.push(replacePlaceholders(greeting, client, user, organization, noteStyleProfile));
   }
   
   if (body) {
-    parts.push(replacePlaceholders(body, client, user, noteStyleProfile));
+    parts.push(replacePlaceholders(body, client, user, organization, noteStyleProfile));
   }
   
   if (signature) {
-    parts.push(replacePlaceholders(signature, client, user, noteStyleProfile));
+    parts.push(replacePlaceholders(signature, client, user, organization, noteStyleProfile));
   }
   
   return parts.join('\n');
@@ -178,6 +182,7 @@ const CardPreview = ({
   message = '', 
   client, 
   user,
+  organization,
   noteStyleProfile, 
   selectedDesign, 
   previewSettings,
@@ -195,9 +200,10 @@ const CardPreview = ({
       includeSignature ? (noteStyleProfile?.signatureText || '') : '',
       client,
       user,
+      organization,
       noteStyleProfile
     ),
-    [message, client, user, noteStyleProfile, includeGreeting, includeSignature]
+    [message, client, user, organization, noteStyleProfile, includeGreeting, includeSignature]
   );
 
   const { fontSize, lineHeight, baseTextWidth, maxIndent } = previewSettings;
@@ -240,6 +246,7 @@ const CardPreview = ({
       noteStyleProfile.signatureText,
       client,
       user,
+      organization,
       noteStyleProfile
     );
     
@@ -252,7 +259,7 @@ const CardPreview = ({
     });
     
     return sigLines.length;
-  }, [includeSignature, noteStyleProfile, client, user, fontSize, lineHeight, baseTextWidth, maxIndent]);
+  }, [includeSignature, noteStyleProfile, client, user, organization, fontSize, lineHeight, baseTextWidth, maxIndent]);
 
   // Calculate dynamic split point with signature protection
   const { topHalfLines, bottomHalfLines } = useMemo(() => {

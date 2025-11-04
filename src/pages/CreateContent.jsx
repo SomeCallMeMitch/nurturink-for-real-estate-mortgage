@@ -130,6 +130,7 @@ export default function CreateContent() {
   const [noteStyleProfiles, setNoteStyleProfiles] = useState([]);
   const [instanceSettings, setInstanceSettings] = useState(null);
   const [user, setUser] = useState(null);
+  const [organization, setOrganization] = useState(null); // ADDED
   
   // UI state
   const [loading, setLoading] = useState(true);
@@ -179,7 +180,21 @@ export default function CreateContent() {
       console.log('👤 User orgId:', currentUser.orgId);
       setUser(currentUser);
       
-      console.log('📡 Step 2: Loading mailing batch...');
+      // Load organization data
+      console.log('📡 Step 2: Loading organization...');
+      if (currentUser.orgId) {
+        const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
+        if (orgList && orgList.length > 0) {
+          console.log('✅ Organization loaded:', orgList[0].name);
+          setOrganization(orgList[0]);
+        } else {
+          console.log('⚠️ Organization not found for orgId:', currentUser.orgId);
+        }
+      } else {
+        console.log('⚠️ User has no orgId');
+      }
+      
+      console.log('📡 Step 3: Loading mailing batch...');
       const batch = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
       console.log('✅ Mailing batch query result:', batch);
       
@@ -198,17 +213,17 @@ export default function CreateContent() {
       setLocalIncludeSignature(batchData.includeSignature);
       setLocalSelectedNoteStyleProfileId(batchData.selectedNoteStyleProfileId);
       
-      console.log('📡 Step 3: Loading clients...');
+      console.log('📡 Step 4: Loading clients...');
       const clientList = await base44.entities.Client.filter({
         id: { $in: batchData.selectedClientIds }
       });
       console.log('✅ Clients loaded:', clientList.length);
       setClients(clientList);
       
-      console.log('📡 Step 4: Loading templates...');
+      console.log('📡 Step 5: Loading templates...');
       
       // Load all templates using the same queries as Templates page
-      const [personal, organization, platform] = await Promise.all([
+      const [personal, organizationTemplates, platform] = await Promise.all([
         // Personal templates
         base44.entities.Template.filter({ 
           createdByUserId: currentUser.id, 
@@ -231,18 +246,18 @@ export default function CreateContent() {
       ]);
       
       // Combine all templates
-      const allTemplates = [...personal, ...organization, ...platform];
+      const allTemplates = [...personal, ...organizationTemplates, ...platform];
       
       console.log('✅ Templates loaded:', {
         personal: personal.length,
-        organization: organization.length,
+        organization: organizationTemplates.length,
         platform: platform.length,
         total: allTemplates.length
       });
       
       setTemplates(allTemplates);
       
-      console.log('📡 Step 5: Loading note style profiles...');
+      console.log('📡 Step 6: Loading note style profiles...');
       const profileList = await base44.entities.NoteStyleProfile.filter({
         orgId: currentUser.orgId
       });
@@ -256,7 +271,7 @@ export default function CreateContent() {
         console.log('✅ Auto-selected default note style profile:', defaultProfile.name);
       }
       
-      console.log('📡 Step 6: Loading instance settings...');
+      console.log('📡 Step 7: Loading instance settings...');
       try {
         const settingsResponse = await base44.functions.invoke('getInstanceSettings');
         console.log('✅ Instance settings loaded:', settingsResponse);
@@ -266,7 +281,7 @@ export default function CreateContent() {
         setInstanceSettings(FALLBACK_SETTINGS);
       }
       
-      console.log('📡 Step 7: Loading column width settings...');
+      console.log('📡 Step 8: Loading column width settings...'); // Changed from 7 to 8
       try {
         const layoutResponse = await base44.functions.invoke('getCreateContentLayoutSettings');
         console.log('✅ Column width settings loaded:', layoutResponse);
@@ -629,6 +644,7 @@ export default function CreateContent() {
                         message={getCurrentMessage()}
                         client={getCurrentClient()}
                         user={user}
+                        organization={organization} // ADDED
                         noteStyleProfile={selectedNoteStyleProfile}
                         selectedDesign={null}
                         previewSettings={instanceSettings.cardPreviewSettings}
