@@ -14,6 +14,7 @@ import SettingsPhones from './pages/SettingsPhones';
 import SettingsUrls from './pages/SettingsUrls';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import AdminCreateContentLayout from './pages/AdminCreateContentLayout';
+import SettingsOrganization from './pages/SettingsOrganization';
 import Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "SettingsUrls": SettingsUrls,
     "SuperAdminDashboard": SuperAdminDashboard,
     "AdminCreateContentLayout": AdminCreateContentLayout,
+    "SettingsOrganization": SettingsOrganization,
 }
 
 export const pagesConfig = {
