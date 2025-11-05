@@ -180,6 +180,7 @@ export default function TemplatesPage() {
                 <TemplateGrid
                     title={`Templates (${filteredTemplates.length})`}
                     templates={filteredTemplates}
+                    categories={allCategories}
                     user={user}
                     onFavoriteToggle={handleFavoriteToggle}
                     onTemplateDeleted={handleTemplateDeleted}

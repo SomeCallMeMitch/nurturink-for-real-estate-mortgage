@@ -8,12 +8,22 @@ import { Star, Pencil, FileText } from 'lucide-react';
 export default function TemplateGrid({ 
   title, 
   templates, 
+  categories = [],
   user, 
   onFavoriteToggle, 
   onTemplateDeleted,
   emptyMessage 
 }) {
   const navigate = useNavigate();
+
+  // Create a map for quick category lookup
+  const categoryMap = React.useMemo(() => {
+    const map = {};
+    categories.forEach(cat => {
+      map[cat.id] = cat.name;
+    });
+    return map;
+  }, [categories]);
 
   if (!templates || templates.length === 0) {
     return (
@@ -39,6 +49,11 @@ export default function TemplateGrid({
         {templates.map((template) => {
           const isFavorite = userFavorites.includes(template.id);
           const canEdit = template.createdByUserId === user?.id || user?.appRole === 'super_admin';
+          
+          // Get category names for this template
+          const templateCategories = (template.templateCategoryIds || [])
+            .map(catId => categoryMap[catId])
+            .filter(Boolean);
 
           return (
             <Card 
@@ -92,7 +107,7 @@ export default function TemplateGrid({
                 </p>
                 
                 {/* Template Metadata */}
-                <div className="mt-4 flex items-center gap-2 text-xs text-gray-500">
+                <div className="mt-4 flex items-center gap-2 text-xs text-gray-500 flex-wrap">
                   {template.type === 'organization' && (
                     <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
                       Organization
@@ -108,6 +123,16 @@ export default function TemplateGrid({
                       Platform
                     </span>
                   )}
+                  
+                  {/* Category Badges */}
+                  {templateCategories.map((categoryName, index) => (
+                    <span 
+                      key={index}
+                      className="px-2 py-1 bg-orange-100 text-orange-700 rounded"
+                    >
+                      {categoryName}
+                    </span>
+                  ))}
                   
                   {template.usageCount > 0 && (
                     <span className="text-gray-400">
