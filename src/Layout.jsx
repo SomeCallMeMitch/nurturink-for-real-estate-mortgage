@@ -1,6 +1,6 @@
-
 import React from "react";
 import MainLayout from "./components/layout/MainLayout";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function Layout({ children, currentPageName }) {
   // Pages that should use MainLayout
@@ -10,7 +10,7 @@ export default function Layout({ children, currentPageName }) {
     "CreateContent",
     "Templates",
     "EditTemplate",
-    "TemplatePreview", // Added this page
+    "TemplatePreview",
     "Analytics",
     "Clients",
     "Settings",
@@ -56,6 +56,9 @@ export default function Layout({ children, currentPageName }) {
       ) : (
         children
       )}
+      
+      {/* Global Toaster for all pages */}
+      <Toaster />
     </>
   );
 }

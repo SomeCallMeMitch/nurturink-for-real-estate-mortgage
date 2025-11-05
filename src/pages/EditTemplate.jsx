@@ -99,10 +99,25 @@ export default function EditTemplate() {
     loadData();
   }, [templateId, duplicateId]);
 
-  // Track unsaved changes
+  // Track unsaved changes - IMPROVED LOGIC
   useEffect(() => {
     if (!initialTemplate) return;
     
+    // For duplicates, always mark as having changes (even if not modified yet)
+    // This ensures warning shows when clicking Back before saving
+    if (isDuplicate) {
+      setHasUnsavedChanges(true);
+      return;
+    }
+    
+    // For new templates, check if user has entered any content
+    if (isNew) {
+      const hasContent = template.name.trim() !== '' || template.content.trim() !== '';
+      setHasUnsavedChanges(hasContent);
+      return;
+    }
+    
+    // For existing templates, check if anything changed
     const hasChanges = 
       template.name !== initialTemplate.name ||
       template.content !== initialTemplate.content ||
@@ -112,7 +127,7 @@ export default function EditTemplate() {
       template.isDefault !== initialTemplate.isDefault;
     
     setHasUnsavedChanges(hasChanges);
-  }, [template, initialTemplate]);
+  }, [template, initialTemplate, isDuplicate, isNew]);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -194,7 +209,7 @@ export default function EditTemplate() {
           };
           setTemplate(duplicatedTemplate);
           setInitialTemplate(duplicatedTemplate);
-          setHasUnsavedChanges(true); // Mark as having changes since it's a new duplicate
+          // setHasUnsavedChanges(true); // Mark as having changes since it's a new duplicate - now handled by useEffect
         } else {
           alert('Template to duplicate not found');
           navigate(createPageUrl('Templates'));
@@ -250,6 +265,14 @@ export default function EditTemplate() {
   };
 
   const handleBackClick = () => {
+    // Special handling for duplicates - always show warning
+    if (isDuplicate) {
+      setPendingNavigation(createPageUrl('Templates'));
+      setShowUnsavedDialog(true);
+      return;
+    }
+    
+    // For new or edited templates, check if there are unsaved changes
     if (hasUnsavedChanges) {
       setPendingNavigation(createPageUrl('Templates'));
       setShowUnsavedDialog(true);
@@ -259,6 +282,14 @@ export default function EditTemplate() {
   };
 
   const handleCancelClick = () => {
+    // Special handling for duplicates - always show warning
+    if (isDuplicate) {
+      setPendingNavigation(createPageUrl('Templates'));
+      setShowUnsavedDialog(true);
+      return;
+    }
+    
+    // For new or edited templates, check if there are unsaved changes
     if (hasUnsavedChanges) {
       setPendingNavigation(createPageUrl('Templates'));
       setShowUnsavedDialog(true);
@@ -668,21 +699,25 @@ export default function EditTemplate() {
       <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogTitle>
+              {isDuplicate ? 'Discard Duplicate?' : 'Unsaved Changes'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {isDuplicate 
-                ? "You have unsaved changes. The duplicate template will not be created unless you save it. Are you sure you want to leave without saving?"
-                : "You have unsaved changes. Are you sure you want to leave without saving?"
+                ? "The duplicate template has not been saved yet. If you leave now, no copy will be created. Are you sure you want to cancel this duplicate?"
+                : isNew
+                ? "You have unsaved changes to this new template. If you leave now, your work will be lost. Are you sure you want to leave without saving?"
+                : "You have unsaved changes to this template. If you leave now, your changes will be lost. Are you sure you want to leave without saving?"
               }
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Continue Editing</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDiscardChanges}
               className="bg-red-600 hover:bg-red-700"
             >
-              Leave Without Saving
+              {isDuplicate ? 'Discard Duplicate' : 'Discard Changes'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
