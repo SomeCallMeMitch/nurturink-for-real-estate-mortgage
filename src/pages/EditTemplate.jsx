@@ -427,7 +427,8 @@ export default function EditTemplate() {
                         placeholder="e.g., Thank You - Post Project"
                         className="flex-1"
                       />
-                      {!isNew && (
+                      {/* Show star for existing templates OR disabled star for new/duplicate */}
+                      {!isNew ? (
                         <button
                           onClick={handleFavoriteToggle}
                           className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
@@ -440,6 +441,21 @@ export default function EditTemplate() {
                             }`}
                           />
                         </button>
+                      ) : (
+                        <div className="relative group">
+                          <button
+                            disabled
+                            className="p-2 rounded transition-colors flex-shrink-0 cursor-not-allowed opacity-40"
+                          >
+                            <Star className="w-5 h-5 text-yellow-400" />
+                          </button>
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 pointer-events-none">
+                            <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                              Save template first to add to favorites
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
