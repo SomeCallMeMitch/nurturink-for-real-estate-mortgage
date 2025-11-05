@@ -144,7 +144,7 @@ export default function TemplatesPage() {
                     <p className="mt-1 text-gray-600">Browse, create, and manage your message templates.</p>
                 </div>
                 <Button
-                    onClick={() => navigate(createPageUrl('TemplatePreview?id=new'))}
+                    onClick={() => navigate(createPageUrl('EditTemplate?id=new'))}
                     className="bg-indigo-600 hover:bg-indigo-700"
                 >
                     <Plus className="w-4 h-4 mr-2" />

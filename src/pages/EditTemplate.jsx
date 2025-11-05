@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -202,105 +201,110 @@ export default function EditTemplate() {
               <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
             </div>
 
-            {/* Categories - ALWAYS SHOW WITH HELPFUL MESSAGE */}
-            <div>
-              <Label>Categories (Select Multiple)</Label>
-              {categories.length === 0 ? (
-                <div className="mt-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800 font-medium mb-2">
-                    ⚠️ No categories available yet
-                  </p>
-                  <p className="text-sm text-yellow-700">
-                    Categories help organize your templates. To create categories:
-                  </p>
-                  <ul className="text-sm text-yellow-700 mt-2 ml-4 list-disc">
-                    <li>Go to <strong>Home</strong> page</li>
-                    <li>Click <strong>"Seed Categories"</strong> to create platform-wide categories</li>
-                    <li>Or contact your administrator to create custom categories</li>
-                  </ul>
-                </div>
-              ) : (
-                <>
-                  <p className="text-sm text-gray-500 mb-2">
-                    Select all categories that apply to this template
-                  </p>
-                  <div className="mt-2 space-y-2">
-                    {categories.map(category => (
-                      <div key={category.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`category-${category.id}`}
-                          checked={template.templateCategoryIds.includes(category.id)}
-                          onCheckedChange={() => handleCategoryToggle(category.id)}
-                        />
-                        <label
-                          htmlFor={`category-${category.id}`}
-                          className="text-sm font-medium cursor-pointer"
-                        >
-                          {category.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  {template.templateCategoryIds.length > 0 && (
-                    <p className="text-sm text-indigo-600 mt-2">
-                      {template.templateCategoryIds.length} {template.templateCategoryIds.length === 1 ? 'category' : 'categories'} selected
+            {/* Categories & Settings Grid - TWO COLUMNS */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* Left Column: Categories */}
+              <div>
+                <Label>Categories (Select Multiple)</Label>
+                {categories.length === 0 ? (
+                  <div className="mt-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800 font-medium mb-2">
+                      ⚠️ No categories available yet
                     </p>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* Template Type */}
-            <div>
-              <Label htmlFor="type">Template Visibility</Label>
-              <Select
-                value={template.type}
-                onValueChange={(value) => setTemplate({ ...template, type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="personal">Personal (Only You)</SelectItem>
-                  <SelectItem value="organization">Organization (All Team Members)</SelectItem>
-                  {user?.appRole === 'super_admin' && (
-                    <SelectItem value="platform">Platform (All Users)</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Status */}
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={template.status}
-                onValueChange={(value) => setTemplate({ ...template, status: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="private">Private</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Is Default (Super Admin Only) */}
-            {user?.appRole === 'super_admin' && (
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isDefault"
-                  checked={template.isDefault}
-                  onCheckedChange={(checked) => setTemplate({ ...template, isDefault: checked })}
-                />
-                <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
-                  Mark as Platform Default Template
-                </label>
+                    <p className="text-sm text-yellow-700">
+                      Categories help organize your templates. To create categories:
+                    </p>
+                    <ul className="text-sm text-yellow-700 mt-2 ml-4 list-disc">
+                      <li>Go to <strong>Home</strong> page</li>
+                      <li>Click <strong>"Seed Categories"</strong></li>
+                    </ul>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-gray-500 mb-2">
+                      Select all categories that apply to this template
+                    </p>
+                    <div className="mt-2 space-y-2">
+                      {categories.map(category => (
+                        <div key={category.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`category-${category.id}`}
+                            checked={template.templateCategoryIds.includes(category.id)}
+                            onCheckedChange={() => handleCategoryToggle(category.id)}
+                          />
+                          <label
+                            htmlFor={`category-${category.id}`}
+                            className="text-sm font-medium cursor-pointer"
+                          >
+                            {category.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    {template.templateCategoryIds.length > 0 && (
+                      <p className="text-sm text-indigo-600 mt-2">
+                        {template.templateCategoryIds.length} {template.templateCategoryIds.length === 1 ? 'category' : 'categories'} selected
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
-            )}
+
+              {/* Right Column: Visibility, Status, Default */}
+              <div className="space-y-4">
+                {/* Template Visibility (Type) */}
+                <div>
+                  <Label htmlFor="type">Template Visibility</Label>
+                  <Select
+                    value={template.type}
+                    onValueChange={(value) => setTemplate({ ...template, type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">Personal (Only You)</SelectItem>
+                      <SelectItem value="organization">Organization (All Team Members)</SelectItem>
+                      {user?.appRole === 'super_admin' && (
+                        <SelectItem value="platform">Platform (All Users)</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={template.status}
+                    onValueChange={(value) => setTemplate({ ...template, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Mark as Platform Default (Super Admin Only) */}
+                {user?.appRole === 'super_admin' && (
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Checkbox
+                      id="isDefault"
+                      checked={template.isDefault}
+                      onCheckedChange={(checked) => setTemplate({ ...template, isDefault: checked })}
+                    />
+                    <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
+                      Mark as Platform Default Template
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4">
