@@ -54,10 +54,14 @@ export default function TemplateGrid({
         </h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.map((template) => {
+          {templates.map((template, index) => {
             const isFavorite = userFavorites.includes(template.id);
             const canEdit = template.createdByUserId === user?.id || user?.appRole === 'super_admin';
             const isHovered = hoveredTemplate === template.id;
+            
+            // Determine if this card is in the third column (rightmost)
+            // In lg breakpoint (3 columns): index % 3 === 2 means third column
+            const isThirdColumn = index % 3 === 2;
             
             // Get category names for this template
             const templateCategories = (template.templateCategoryIds || [])
@@ -209,13 +213,19 @@ export default function TemplateGrid({
                   </CardContent>
                 </Card>
 
-                {/* Hover Tooltip - Positioned Absolutely */}
+                {/* Hover Tooltip - Positioned based on column */}
                 {isHovered && (
-                  <div className="absolute left-full ml-2 top-0 z-50 pointer-events-none animate-in fade-in-0 slide-in-from-left-2 duration-200">
-                    <div className="bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 max-w-md">
+                  <div 
+                    className={`absolute top-0 z-50 pointer-events-none animate-in fade-in-0 duration-200 ${
+                      isThirdColumn 
+                        ? 'right-full mr-2 slide-in-from-right-2' 
+                        : 'left-full ml-2 slide-in-from-left-2'
+                    }`}
+                  >
+                    <div className="bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 w-[520px]">
                       <div className="space-y-2">
                         <p className="font-semibold text-sm">{template.name}</p>
-                        <p className="text-sm whitespace-pre-wrap max-h-64 overflow-y-auto">
+                        <p className="text-sm whitespace-pre-wrap max-h-80 overflow-y-auto">
                           {template.content}
                         </p>
                       </div>
