@@ -29,7 +29,7 @@ export default function EditTemplate() {
     name: '',
     content: '',
     templateCategoryIds: [],
-    status: 'approved',  // Changed from 'private' to 'approved'
+    status: 'approved',
     isDefault: false,
     type: 'organization'
   });
@@ -42,15 +42,29 @@ export default function EditTemplate() {
     try {
       setLoading(true);
       const currentUser = await base44.auth.me();
+      console.log('✅ EditTemplate - User loaded:', currentUser.email);
+      console.log('👤 EditTemplate - User orgId:', currentUser.orgId);
       setUser(currentUser);
 
       // Load categories
+      console.log('📡 EditTemplate - Loading categories with filter:', {
+        $or: [
+          { orgId: currentUser.orgId },
+          { orgId: null }
+        ]
+      });
+      
       const categoryList = await base44.entities.TemplateCategory.filter({
         $or: [
           { orgId: currentUser.orgId },
           { orgId: null }
         ]
       });
+      
+      console.log('✅ EditTemplate - Categories loaded from API:', categoryList);
+      console.log('📊 EditTemplate - Category count:', categoryList.length);
+      console.log('📋 EditTemplate - Category details:', categoryList.map(c => ({ id: c.id, name: c.name, orgId: c.orgId })));
+      
       setCategories(categoryList);
 
       // Load template if editing
@@ -64,7 +78,7 @@ export default function EditTemplate() {
         }
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
+      console.error('❌ EditTemplate - Failed to load data:', error);
       alert('Failed to load template data');
     } finally {
       setLoading(false);
@@ -108,7 +122,6 @@ export default function EditTemplate() {
     }));
   };
 
-  // Handle placeholder insertion
   const handlePlaceholderSelect = (placeholder) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -124,7 +137,6 @@ export default function EditTemplate() {
     
     setTemplate({ ...template, content: newContent });
     
-    // Set cursor position after placeholder
     setTimeout(() => {
       textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
       textarea.focus();
@@ -138,6 +150,9 @@ export default function EditTemplate() {
       </div>
     );
   }
+
+  console.log('🎨 EditTemplate - Rendering with categories state:', categories);
+  console.log('🎨 EditTemplate - Categories length:', categories.length);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -196,37 +211,53 @@ export default function EditTemplate() {
               <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
             </div>
 
-            {/* Categories */}
-            {categories.length > 0 && (
-              <div>
-                <Label>Categories (Select Multiple)</Label>
-                <p className="text-sm text-gray-500 mb-2">
-                  Select all categories that apply to this template
-                </p>
-                <div className="mt-2 space-y-2">
-                  {categories.map(category => (
-                    <div key={category.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`category-${category.id}`}
-                        checked={template.templateCategoryIds.includes(category.id)}
-                        onCheckedChange={() => handleCategoryToggle(category.id)}
-                      />
-                      <label
-                        htmlFor={`category-${category.id}`}
-                        className="text-sm font-medium cursor-pointer"
-                      >
-                        {category.name}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                {template.templateCategoryIds.length > 0 && (
-                  <p className="text-sm text-indigo-600 mt-2">
-                    {template.templateCategoryIds.length} {template.templateCategoryIds.length === 1 ? 'category' : 'categories'} selected
+            {/* Categories - ALWAYS SHOW WITH HELPFUL MESSAGE */}
+            <div>
+              <Label>Categories (Select Multiple)</Label>
+              {categories.length === 0 ? (
+                <div className="mt-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800 font-medium mb-2">
+                    ⚠️ No categories available yet
                   </p>
-                )}
-              </div>
-            )}
+                  <p className="text-sm text-yellow-700">
+                    Categories help organize your templates. To create categories:
+                  </p>
+                  <ul className="text-sm text-yellow-700 mt-2 ml-4 list-disc">
+                    <li>Go to <strong>Home</strong> page</li>
+                    <li>Click <strong>"Seed Categories"</strong> to create platform-wide categories</li>
+                    <li>Or contact your administrator to create custom categories</li>
+                  </ul>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-500 mb-2">
+                    Select all categories that apply to this template
+                  </p>
+                  <div className="mt-2 space-y-2">
+                    {categories.map(category => (
+                      <div key={category.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`category-${category.id}`}
+                          checked={template.templateCategoryIds.includes(category.id)}
+                          onCheckedChange={() => handleCategoryToggle(category.id)}
+                        />
+                        <label
+                          htmlFor={`category-${category.id}`}
+                          className="text-sm font-medium cursor-pointer"
+                        >
+                          {category.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  {template.templateCategoryIds.length > 0 && (
+                    <p className="text-sm text-indigo-600 mt-2">
+                      {template.templateCategoryIds.length} {template.templateCategoryIds.length === 1 ? 'category' : 'categories'} selected
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
 
             {/* Template Type */}
             <div>
