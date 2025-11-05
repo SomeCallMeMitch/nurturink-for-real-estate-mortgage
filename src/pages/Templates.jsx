@@ -7,9 +7,11 @@ import TemplateGrid from '@/components/templates/TemplateGrid';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
+    const { toast } = useToast();
     const [allTemplates, setAllTemplates] = useState([]);
     const [allCategories, setAllCategories] = useState([]);
     const [user, setUser] = useState(null);
@@ -17,7 +19,7 @@ export default function TemplatesPage() {
     const [error, setError] = useState(null);
     const [filters, setFilters] = useState({ 
       search: '', 
-      viewMode: 'all', // favorites, my, org, all
+      viewMode: 'all',
       categoryId: null 
     });
 
@@ -94,13 +96,89 @@ export default function TemplatesPage() {
                 ...prev,
                 favoriteTemplateIds: newFavoriteTemplateIds
             }));
+
+            toast({
+                title: isFavorited ? "Removed from favorites" : "Added to favorites",
+                description: isFavorited 
+                    ? "Template removed from your favorites" 
+                    : "Template added to your favorites",
+            });
         } catch (error) {
             console.error("Failed to update favorite status:", error);
+            toast({
+                title: "Error",
+                description: "Failed to update favorite status. Please try again.",
+                variant: "destructive"
+            });
         }
     };
-    
-    const handleTemplateDeleted = (deletedTemplateId) => {
-        setAllTemplates(prev => prev.filter(t => t.id !== deletedTemplateId));
+
+    const handleDuplicateTemplate = async (template) => {
+        if (!user) return;
+
+        try {
+            // Create new template with copied data
+            const newTemplateData = {
+                name: `${template.name} (Copy)`,
+                content: template.content,
+                templateCategoryIds: template.templateCategoryIds || [],
+                status: 'draft',
+                isDefault: false,
+                type: 'personal',
+                createdByUserId: user.id,
+                orgId: user.orgId
+            };
+
+            const newTemplate = await base44.entities.Template.create(newTemplateData);
+
+            toast({
+                title: "Template duplicated",
+                description: "Opening editor for your new template...",
+            });
+
+            // Navigate to edit page for the new template
+            navigate(createPageUrl(`EditTemplate?id=${newTemplate.id}`));
+
+        } catch (error) {
+            console.error("Failed to duplicate template:", error);
+            toast({
+                title: "Error",
+                description: "Failed to duplicate template. Please try again.",
+                variant: "destructive"
+            });
+        }
+    };
+
+    const handleDeleteTemplate = async (templateId) => {
+        try {
+            await base44.entities.Template.delete(templateId);
+
+            // Remove from local state
+            setAllTemplates(prev => prev.filter(t => t.id !== templateId));
+
+            // Remove from user favorites if it was favorited
+            if (user?.favoriteTemplateIds?.includes(templateId)) {
+                const newFavorites = user.favoriteTemplateIds.filter(id => id !== templateId);
+                await base44.auth.updateMe({ favoriteTemplateIds: newFavorites });
+                setUser(prev => ({
+                    ...prev,
+                    favoriteTemplateIds: newFavorites
+                }));
+            }
+
+            toast({
+                title: "Template deleted",
+                description: "The template has been permanently deleted.",
+            });
+
+        } catch (error) {
+            console.error("Failed to delete template:", error);
+            toast({
+                title: "Error",
+                description: "Failed to delete template. Please try again.",
+                variant: "destructive"
+            });
+        }
     };
 
     // Apply all filters
@@ -182,7 +260,8 @@ export default function TemplatesPage() {
                     categories={allCategories}
                     user={user}
                     onFavoriteToggle={handleFavoriteToggle}
-                    onTemplateDeleted={handleTemplateDeleted}
+                    onDuplicateTemplate={handleDuplicateTemplate}
+                    onDeleteTemplate={handleDeleteTemplate}
                     emptyMessage="No templates match your filters. Try adjusting your search or filters."
                 />
             )}

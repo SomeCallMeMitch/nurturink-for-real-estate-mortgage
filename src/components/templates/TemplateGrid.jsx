@@ -10,18 +10,31 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function TemplateGrid({ 
   title, 
   templates, 
   categories = [],
   user, 
-  onFavoriteToggle, 
-  onTemplateDeleted,
+  onFavoriteToggle,
+  onDuplicateTemplate,
+  onDeleteTemplate,
   emptyMessage 
 }) {
   const navigate = useNavigate();
   const [hoveredTemplate, setHoveredTemplate] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState(null);
 
   // Create a map for quick category lookup
   const categoryMap = React.useMemo(() => {
@@ -31,6 +44,24 @@ export default function TemplateGrid({
     });
     return map;
   }, [categories]);
+
+  const handleDeleteClick = (template) => {
+    setTemplateToDelete(template);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (templateToDelete) {
+      onDeleteTemplate(templateToDelete.id);
+      setDeleteDialogOpen(false);
+      setTemplateToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setTemplateToDelete(null);
+  };
 
   if (!templates || templates.length === 0) {
     return (
@@ -60,7 +91,6 @@ export default function TemplateGrid({
             const isHovered = hoveredTemplate === template.id;
             
             // Determine if this card is in the third column (rightmost)
-            // In lg breakpoint (3 columns): index % 3 === 2 means third column
             const isThirdColumn = index % 3 === 2;
             
             // Get category names for this template
@@ -134,8 +164,7 @@ export default function TemplateGrid({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Placeholder - will implement in Phase 2
-                              console.log('Duplicate template:', template.id);
+                              onDuplicateTemplate(template);
                             }}
                             className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                           >
@@ -154,8 +183,7 @@ export default function TemplateGrid({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // Placeholder - will implement in Phase 2
-                                console.log('Delete template:', template.id);
+                                handleDeleteClick(template);
                               }}
                               className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                             >
@@ -195,9 +223,9 @@ export default function TemplateGrid({
                       )}
                       
                       {/* Category Badges */}
-                      {templateCategories.map((categoryName, index) => (
+                      {templateCategories.map((categoryName, idx) => (
                         <span 
-                          key={index}
+                          key={idx}
                           className="px-2 py-1 bg-orange-100 text-orange-700 rounded"
                         >
                           {categoryName}
@@ -236,6 +264,27 @@ export default function TemplateGrid({
             );
           })}
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Template?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{templateToDelete?.name}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </TooltipProvider>
   );
