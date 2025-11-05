@@ -21,6 +21,7 @@ export default function EditTemplate() {
 
   const [user, setUser] = useState(null);
   const [categories, setCategories] = useState([]);
+  const [noteStyleProfiles, setNoteStyleProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   
@@ -32,6 +33,10 @@ export default function EditTemplate() {
     isDefault: false,
     type: 'organization'
   });
+
+  const [selectedNoteStyleProfileId, setSelectedNoteStyleProfileId] = useState(null);
+  const [includeGreeting, setIncludeGreeting] = useState(true);
+  const [includeSignature, setIncludeSignature] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -56,6 +61,21 @@ export default function EditTemplate() {
       console.log('📋 EditTemplate - Category details:', categoryList.map(c => ({ id: c.id, name: c.name, orgId: c.orgId })));
       
       setCategories(categoryList);
+
+      // Load note style profiles
+      console.log('📡 EditTemplate - Loading note style profiles...');
+      const profileList = await base44.entities.NoteStyleProfile.filter({
+        orgId: currentUser.orgId
+      });
+      console.log('✅ EditTemplate - Note style profiles loaded:', profileList.length);
+      setNoteStyleProfiles(profileList);
+      
+      // Auto-select default profile
+      if (profileList.length > 0) {
+        const defaultProfile = profileList.find(p => p.isDefault) || profileList[0];
+        setSelectedNoteStyleProfileId(defaultProfile.id);
+        console.log('✅ EditTemplate - Auto-selected note style profile:', defaultProfile.name);
+      }
 
       // Load template if editing
       if (!isNew) {
@@ -180,6 +200,26 @@ export default function EditTemplate() {
               />
             </div>
 
+            {/* Writing Style Selector */}
+            <div>
+              <Label htmlFor="writing-style">Writing Style</Label>
+              <Select
+                value={selectedNoteStyleProfileId || ''}
+                onValueChange={setSelectedNoteStyleProfileId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select style..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {noteStyleProfiles.map(profile => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Template Content */}
             <div>
               <Label htmlFor="content">Message Content *</Label>
@@ -196,9 +236,33 @@ export default function EditTemplate() {
               </p>
             </div>
 
-            {/* Placeholder Button */}
-            <div>
+            {/* Placeholder Button & Preview Options - INLINE */}
+            <div className="flex items-center gap-6">
               <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
+              
+              <div className="flex items-center gap-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeGreeting"
+                    checked={includeGreeting}
+                    onCheckedChange={setIncludeGreeting}
+                  />
+                  <label htmlFor="includeGreeting" className="text-sm font-medium cursor-pointer whitespace-nowrap">
+                    Include Greeting
+                  </label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="includeSignature"
+                    checked={includeSignature}
+                    onCheckedChange={setIncludeSignature}
+                  />
+                  <label htmlFor="includeSignature" className="text-sm font-medium cursor-pointer whitespace-nowrap">
+                    Include Signature
+                  </label>
+                </div>
+              </div>
             </div>
 
             {/* Categories & Settings Grid - TWO COLUMNS */}
