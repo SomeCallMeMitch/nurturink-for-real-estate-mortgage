@@ -46,6 +46,7 @@ export default function SuperAdminLayout({ children }) {
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, path: 'SuperAdminDashboard' },
+    { id: 'card-management', label: 'Card Designs', icon: LayoutGrid, path: 'SuperAdminCardManagement' },
     { id: 'preview-layout', label: 'Preview Layout', icon: Layout, path: 'AdminCardLayout' },
     { id: 'content-layout', label: 'Content Layout', icon: Layout, path: 'AdminCreateContentLayout' },
     { id: 'envelope-layout', label: 'Envelope Layout', icon: Mail, path: 'AdminEnvelopeLayout' },
@@ -78,7 +79,7 @@ export default function SuperAdminLayout({ children }) {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-73px)]">
+        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(10vh-73px)]">
           <nav className="p-4">
             <div className="space-y-1">
               {menuItems.map((item) => { // Changed navItems to menuItems
