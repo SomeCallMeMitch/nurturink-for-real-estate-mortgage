@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +17,8 @@ import {
   Upload,
   X,
   Image as ImageIcon,
-  Palette
+  Palette,
+  Star
 } from 'lucide-react';
 import {
   Dialog,
@@ -61,7 +61,8 @@ export default function SuperAdminCardManagement() {
     cardDesignCategoryIds: [],
     type: 'platform',
     printReadyFrontUrl: '',
-    printReadyBackUrl: ''
+    printReadyBackUrl: '',
+    isDefault: false
   });
   const [uploadingInside, setUploadingInside] = useState(false);
   const [uploadingOutside, setUploadingOutside] = useState(false);
@@ -102,7 +103,7 @@ export default function SuperAdminCardManagement() {
         title: 'Error',
         description: 'Failed to load card data',
         variant: 'destructive',
-        duration: 5000
+        duration: 3000
       });
     } finally {
       setLoading(false);
@@ -119,7 +120,8 @@ export default function SuperAdminCardManagement() {
       cardDesignCategoryIds: [],
       type: 'platform',
       printReadyFrontUrl: '',
-      printReadyBackUrl: ''
+      printReadyBackUrl: '',
+      isDefault: false
     });
     setDesignFormOpen(true);
   };
@@ -128,12 +130,13 @@ export default function SuperAdminCardManagement() {
     setEditingDesign(design);
     setDesignForm({
       name: design.name,
-      insideImageUrl: design.insideImageUrl || design.imageUrl || '', // Fallback to imageUrl for existing designs
+      insideImageUrl: design.insideImageUrl || design.imageUrl || '',
       outsideImageUrl: design.outsideImageUrl || '',
       cardDesignCategoryIds: design.cardDesignCategoryIds || [],
       type: design.type,
       printReadyFrontUrl: design.printReadyFrontUrl || '',
-      printReadyBackUrl: design.printReadyBackUrl || ''
+      printReadyBackUrl: design.printReadyBackUrl || '',
+      isDefault: design.isDefault || false
     });
     setDesignFormOpen(true);
   };
@@ -155,7 +158,7 @@ export default function SuperAdminCardManagement() {
         title: 'Upload failed',
         description: 'Failed to upload inside image',
         variant: 'destructive',
-        duration: 5000
+        duration: 3000
       });
     } finally {
       setUploadingInside(false);
@@ -179,7 +182,7 @@ export default function SuperAdminCardManagement() {
         title: 'Upload failed',
         description: 'Failed to upload outside image',
         variant: 'destructive',
-        duration: 5000
+        duration: 3000
       });
     } finally {
       setUploadingOutside(false);
@@ -192,12 +195,20 @@ export default function SuperAdminCardManagement() {
         title: 'Validation error',
         description: 'Name, inside image, and outside image are required',
         variant: 'destructive',
-        duration: 5000
+        duration: 3000
       });
       return;
     }
 
     try {
+      // If setting this as default, unset all other defaults first
+      if (designForm.isDefault && !editingDesign?.isDefault) {
+        const defaultDesigns = designs.filter(d => d.isDefault);
+        for (const d of defaultDesigns) {
+          await base44.entities.CardDesign.update(d.id, { isDefault: false });
+        }
+      }
+
       if (editingDesign) {
         await base44.entities.CardDesign.update(editingDesign.id, designForm);
         toast({
@@ -224,7 +235,7 @@ export default function SuperAdminCardManagement() {
         title: 'Error',
         description: 'Failed to save card design',
         variant: 'destructive',
-        duration: 5000
+        duration: 3000
       });
     }
   };
@@ -258,7 +269,7 @@ export default function SuperAdminCardManagement() {
         title: 'Validation error',
         description: 'Category name is required',
         variant: 'destructive',
-        duration: 5000
+        duration: 3000
       });
       return;
     }
@@ -296,7 +307,7 @@ export default function SuperAdminCardManagement() {
         title: 'Error',
         description: 'Failed to save card category',
         variant: 'destructive',
-        duration: 5000
+        duration: 3000
       });
     }
   };
@@ -338,7 +349,7 @@ export default function SuperAdminCardManagement() {
         title: 'Error',
         description: 'Failed to delete item',
         variant: 'destructive',
-        duration: 5000
+        duration: 3000
       });
     }
   };
@@ -427,11 +438,11 @@ export default function SuperAdminCardManagement() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {designs.map((design) => (
                   <Card key={design.id} className="overflow-hidden">
-                    {/* Show both inside and outside images */}
-                    <div className="grid grid-cols-2 gap-px bg-gray-100 border-b border-gray-200">
-                      <div className="aspect-[3/4] relative">
+                    {/* Smaller images - reduced from aspect-[3/4] to controlled height */}
+                    <div className="grid grid-cols-2 gap-px bg-gray-100 border-b border-gray-200" style={{ height: '200px' }}>
+                      <div className="relative overflow-hidden">
                         <img
-                          src={design.outsideImageUrl || design.imageUrl} // Fallback for old designs
+                          src={design.outsideImageUrl || design.imageUrl}
                           alt={`${design.name} - Outside`}
                           className="w-full h-full object-cover"
                         />
@@ -439,9 +450,9 @@ export default function SuperAdminCardManagement() {
                           Outside
                         </div>
                       </div>
-                      <div className="aspect-[3/4] relative">
+                      <div className="relative overflow-hidden">
                         <img
-                          src={design.insideImageUrl || design.imageUrl} // Fallback for old designs
+                          src={design.insideImageUrl || design.imageUrl}
                           alt={`${design.name} - Inside`}
                           className="w-full h-full object-cover"
                         />
@@ -451,7 +462,12 @@ export default function SuperAdminCardManagement() {
                       </div>
                     </div>
                     <CardContent className="pt-4">
-                      <h3 className="font-semibold text-gray-900 mb-2">{design.name}</h3>
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900 flex-1">{design.name}</h3>
+                        {design.isDefault && (
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0 ml-2" />
+                        )}
+                      </div>
                       
                       {/* Categories */}
                       {design.cardDesignCategoryIds && design.cardDesignCategoryIds.length > 0 && (
@@ -561,9 +577,9 @@ export default function SuperAdminCardManagement() {
           </div>
         )}
 
-        {/* Design Form Dialog */}
+        {/* Design Form Dialog - REORGANIZED LAYOUT */}
         <Dialog open={designFormOpen} onOpenChange={setDesignFormOpen}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingDesign ? 'Edit Card Design' : 'New Card Design'}
@@ -590,10 +606,10 @@ export default function SuperAdminCardManagement() {
                 {/* Inside Image Upload */}
                 <div>
                   <Label className="text-base font-semibold mb-3 block">Inside Image *</Label>
-                  <p className="text-sm text-gray-600 mb-3">Upload the inside view of the card (688x1000px recommended)</p>
+                  <p className="text-sm text-gray-600 mb-3">Upload the inside view (688x1000px)</p>
                   
                   {designForm.insideImageUrl ? (
-                    <div className="relative w-full aspect-[3/4] border-2 border-gray-300 rounded-lg overflow-hidden">
+                    <div className="relative w-full border-2 border-gray-300 rounded-lg overflow-hidden" style={{ height: '240px' }}>
                       <img
                         src={designForm.insideImageUrl}
                         alt="Inside Preview"
@@ -610,12 +626,13 @@ export default function SuperAdminCardManagement() {
                       </div>
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors aspect-[3/4] flex flex-col justify-center items-center">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors flex flex-col justify-center items-center" style={{ height: '240px' }}>
                       <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                       <p className="text-sm text-gray-600 mb-3 font-medium">Inside View</p>
                       <label className="cursor-pointer">
                         <span className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-sm font-medium">
-                          {uploadingInside ? <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" /> : ''}Choose File
+                          {uploadingInside ? <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" /> : null}
+                          {uploadingInside ? 'Uploading...' : 'Choose File'}
                         </span>
                         <input
                           type="file"
@@ -635,10 +652,10 @@ export default function SuperAdminCardManagement() {
                 {/* Outside Image Upload */}
                 <div>
                   <Label className="text-base font-semibold mb-3 block">Outside Image *</Label>
-                  <p className="text-sm text-gray-600 mb-3">Upload the front/cover view of the card (688x1000px recommended)</p>
+                  <p className="text-sm text-gray-600 mb-3">Upload the cover view (688x1000px)</p>
                   
                   {designForm.outsideImageUrl ? (
-                    <div className="relative w-full aspect-[3/4] border-2 border-gray-300 rounded-lg overflow-hidden">
+                    <div className="relative w-full border-2 border-gray-300 rounded-lg overflow-hidden" style={{ height: '240px' }}>
                       <img
                         src={designForm.outsideImageUrl}
                         alt="Outside Preview"
@@ -655,12 +672,13 @@ export default function SuperAdminCardManagement() {
                       </div>
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors aspect-[3/4] flex flex-col justify-center items-center">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors flex flex-col justify-center items-center" style={{ height: '240px' }}>
                       <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                       <p className="text-sm text-gray-600 mb-3 font-medium">Outside View</p>
                       <label className="cursor-pointer">
                         <span className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-sm font-medium">
-                          {uploadingOutside ? <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" /> : ''}Choose File
+                          {uploadingOutside ? <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" /> : null}
+                          {uploadingOutside ? 'Uploading...' : 'Choose File'}
                         </span>
                         <input
                           type="file"
@@ -678,53 +696,69 @@ export default function SuperAdminCardManagement() {
                 </div>
               </div>
 
-              {/* Categories */}
-              <div>
-                <Label>Categories</Label>
-                <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
-                  {categories.length === 0 ? (
-                    <p className="text-sm text-gray-500">No categories available. Create categories in the Categories tab first.</p>
-                  ) : (
-                    categories.map((category) => (
-                      <div key={category.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`cat-${category.id}`}
-                          checked={designForm.cardDesignCategoryIds.includes(category.id)}
-                          onCheckedChange={() => handleCategoryToggle(category.id)}
-                        />
-                        <label htmlFor={`cat-${category.id}`} className="text-sm cursor-pointer">
-                          {category.name}
-                        </label>
-                      </div>
-                    ))
-                  )}
+              {/* NEW LAYOUT: Categories and Print-Ready URLs side by side */}
+              <div className="grid grid-cols-2 gap-6">
+                {/* Categories Column */}
+                <div>
+                  <Label>Categories</Label>
+                  <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                    {categories.length === 0 ? (
+                      <p className="text-sm text-gray-500">No categories available.</p>
+                    ) : (
+                      categories.map((category) => (
+                        <div key={category.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`cat-${category.id}`}
+                            checked={designForm.cardDesignCategoryIds.includes(category.id)}
+                            onCheckedChange={() => handleCategoryToggle(category.id)}
+                          />
+                          <label htmlFor={`cat-${category.id}`} className="text-sm cursor-pointer">
+                            {category.name}
+                          </label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* Print-Ready URLs Column (stacked vertically) */}
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="front-url">Print-Ready Front URL</Label>
+                    <Input
+                      id="front-url"
+                      value={designForm.printReadyFrontUrl}
+                      onChange={(e) => setDesignForm({ ...designForm, printReadyFrontUrl: e.target.value })}
+                      placeholder="https://example.com/high-res-front.pdf"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="back-url">Print-Ready Back URL</Label>
+                    <Input
+                      id="back-url"
+                      value={designForm.printReadyBackUrl}
+                      onChange={(e) => setDesignForm({ ...designForm, printReadyBackUrl: e.target.value })}
+                      placeholder="https://example.com/high-res-back.pdf"
+                    />
+                  </div>
+
+                  {/* Default Design Checkbox */}
+                  <div className="flex items-center space-x-2 pt-2">
+                    <Checkbox
+                      id="isDefault"
+                      checked={designForm.isDefault}
+                      onCheckedChange={(checked) => setDesignForm({ ...designForm, isDefault: checked })}
+                    />
+                    <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer flex items-center gap-2">
+                      <Star className="w-4 h-4" />
+                      Set as default design
+                    </label>
+                  </div>
                 </div>
               </div>
 
-              {/* Print-Ready URLs */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="front-url">Print-Ready Front URL (Optional)</Label>
-                  <Input
-                    id="front-url"
-                    value={designForm.printReadyFrontUrl}
-                    onChange={(e) => setDesignForm({ ...designForm, printReadyFrontUrl: e.target.value })}
-                    placeholder="https://example.com/high-res-front.pdf"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="back-url">Print-Ready Back URL (Optional)</Label>
-                  <Input
-                    id="back-url"
-                    value={designForm.printReadyBackUrl}
-                    onChange={(e) => setDesignForm({ ...designForm, printReadyBackUrl: e.target.value })}
-                    placeholder="https://example.com/high-res-back.pdf"
-                  />
-                </div>
-              </div>
-
-              {/* Actions */}
+              {/* Actions - Now visible */}
               <div className="flex gap-3 pt-4 border-t">
                 <Button onClick={handleSaveDesign} className="bg-indigo-600 hover:bg-indigo-700">
                   {editingDesign ? 'Update Design' : 'Create Design'}
