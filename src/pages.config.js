@@ -17,6 +17,7 @@ import AdminCreateContentLayout from './pages/AdminCreateContentLayout';
 import SettingsOrganization from './pages/SettingsOrganization';
 import TemplatePreview from './pages/TemplatePreview';
 import SuperAdminCardManagement from './pages/SuperAdminCardManagement';
+import SelectDesign from './pages/SelectDesign';
 import Layout from './Layout.jsx';
 
 
@@ -40,6 +41,7 @@ export const PAGES = {
     "SettingsOrganization": SettingsOrganization,
     "TemplatePreview": TemplatePreview,
     "SuperAdminCardManagement": SuperAdminCardManagement,
+    "SelectDesign": SelectDesign,
 }
 
 export const pagesConfig = {

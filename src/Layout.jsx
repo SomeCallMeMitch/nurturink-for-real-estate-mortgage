@@ -9,6 +9,7 @@ export default function Layout({ children, currentPageName }) {
     "Home",
     "FindClients", 
     "CreateContent",
+    "SelectDesign", // Added "SelectDesign"
     "Templates",
     "EditTemplate",
     "TemplatePreview",
