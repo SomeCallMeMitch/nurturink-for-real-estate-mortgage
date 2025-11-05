@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function TemplatesPage() {
     const navigate = useNavigate();
@@ -102,13 +103,15 @@ export default function TemplatesPage() {
                 description: isFavorited 
                     ? "Template removed from your favorites" 
                     : "Template added to your favorites",
+                duration: 3000,
             });
         } catch (error) {
             console.error("Failed to update favorite status:", error);
             toast({
                 title: "Error",
                 description: "Failed to update favorite status. Please try again.",
-                variant: "destructive"
+                variant: "destructive",
+                duration: 5000,
             });
         }
     };
@@ -116,37 +119,9 @@ export default function TemplatesPage() {
     const handleDuplicateTemplate = async (template) => {
         if (!user) return;
 
-        try {
-            // Create new template with copied data
-            const newTemplateData = {
-                name: `${template.name} (Copy)`,
-                content: template.content,
-                templateCategoryIds: template.templateCategoryIds || [],
-                status: 'draft',
-                isDefault: false,
-                type: 'personal',
-                createdByUserId: user.id,
-                orgId: user.orgId
-            };
-
-            const newTemplate = await base44.entities.Template.create(newTemplateData);
-
-            toast({
-                title: "Template duplicated",
-                description: "Opening editor for your new template...",
-            });
-
-            // Navigate to edit page for the new template
-            navigate(createPageUrl(`EditTemplate?id=${newTemplate.id}`));
-
-        } catch (error) {
-            console.error("Failed to duplicate template:", error);
-            toast({
-                title: "Error",
-                description: "Failed to duplicate template. Please try again.",
-                variant: "destructive"
-            });
-        }
+        // Navigate to EditTemplate with duplicate parameter
+        // Template data will be loaded there and user must save to create
+        navigate(createPageUrl(`EditTemplate?id=new&duplicate=${template.id}`));
     };
 
     const handleDeleteTemplate = async (templateId) => {
@@ -169,6 +144,8 @@ export default function TemplatesPage() {
             toast({
                 title: "Template deleted",
                 description: "The template has been permanently deleted.",
+                duration: 3000,
+                className: "bg-green-600 text-white border-green-700",
             });
 
         } catch (error) {
@@ -176,7 +153,8 @@ export default function TemplatesPage() {
             toast({
                 title: "Error",
                 description: "Failed to delete template. Please try again.",
-                variant: "destructive"
+                variant: "destructive",
+                duration: 5000,
             });
         }
     };
@@ -215,56 +193,59 @@ export default function TemplatesPage() {
     }, [allTemplates, filters, user]);
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Content Library</h1>
-                    <p className="mt-1 text-gray-600">Browse, create, and manage your message templates.</p>
-                </div>
-                <Button
-                    onClick={() => navigate(createPageUrl('EditTemplate?id=new'))}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                >
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Template
-                </Button>
-            </div>
-            
-            <TemplateFilterControls 
-                filters={filters}
-                setFilters={setFilters}
-                categories={allCategories}
-            />
-
-            {isLoading && (
-                <div className="space-y-4">
-                    <Skeleton className="h-10 w-1/3" />
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <Skeleton className="h-48 w-full" />
-                        <Skeleton className="h-48 w-full" />
-                        <Skeleton className="h-48 w-full" />
+        <>
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Content Library</h1>
+                        <p className="mt-1 text-gray-600">Browse, create, and manage your message templates.</p>
                     </div>
+                    <Button
+                        onClick={() => navigate(createPageUrl('EditTemplate?id=new'))}
+                        className="bg-indigo-600 hover:bg-indigo-700"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        New Template
+                    </Button>
                 </div>
-            )}
-
-            {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-                    {error}
-                </div>
-            )}
-
-            {!isLoading && !error && (
-                <TemplateGrid
-                    title={`Templates (${filteredTemplates.length})`}
-                    templates={filteredTemplates}
+                
+                <TemplateFilterControls 
+                    filters={filters}
+                    setFilters={setFilters}
                     categories={allCategories}
-                    user={user}
-                    onFavoriteToggle={handleFavoriteToggle}
-                    onDuplicateTemplate={handleDuplicateTemplate}
-                    onDeleteTemplate={handleDeleteTemplate}
-                    emptyMessage="No templates match your filters. Try adjusting your search or filters."
                 />
-            )}
-        </div>
+
+                {isLoading && (
+                    <div className="space-y-4">
+                        <Skeleton className="h-10 w-1/3" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <Skeleton className="h-48 w-full" />
+                            <Skeleton className="h-48 w-full" />
+                            <Skeleton className="h-48 w-full" />
+                        </div>
+                    </div>
+                )}
+
+                {error && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+                        {error}
+                    </div>
+                )}
+
+                {!isLoading && !error && (
+                    <TemplateGrid
+                        title={`Templates (${filteredTemplates.length})`}
+                        templates={filteredTemplates}
+                        categories={allCategories}
+                        user={user}
+                        onFavoriteToggle={handleFavoriteToggle}
+                        onDuplicateTemplate={handleDuplicateTemplate}
+                        onDeleteTemplate={handleDeleteTemplate}
+                        emptyMessage="No templates match your filters. Try adjusting your search or filters."
+                    />
+                )}
+            </div>
+            <Toaster />
+        </>
     );
 }

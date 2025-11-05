@@ -63,6 +63,27 @@ export default function TemplateGrid({
     setTemplateToDelete(null);
   };
 
+  // Permission check helper
+  const canUserEditTemplate = (template) => {
+    if (!user) return false;
+    
+    // Platform templates cannot be edited
+    if (template.type === 'platform') return false;
+    
+    // User can edit their own templates
+    if (template.createdByUserId === user.id) return true;
+    
+    // Organization templates can only be edited by owner or admin
+    if (template.type === 'organization') {
+      return user.appRole === 'organization_owner' || user.appRole === 'super_admin';
+    }
+    
+    // Super admin can edit anything except platform templates
+    if (user.appRole === 'super_admin') return true;
+    
+    return false;
+  };
+
   if (!templates || templates.length === 0) {
     return (
       <div>
@@ -87,7 +108,7 @@ export default function TemplateGrid({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {templates.map((template, index) => {
             const isFavorite = userFavorites.includes(template.id);
-            const canEdit = template.createdByUserId === user?.id || user?.appRole === 'super_admin';
+            const canEdit = canUserEditTemplate(template);
             const isHovered = hoveredTemplate === template.id;
             
             // Determine if this card is in the third column (rightmost)
