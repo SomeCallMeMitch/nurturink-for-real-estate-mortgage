@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertTriangle, Star } from 'lucide-react';
 import PlaceholderModal from '@/components/mailing/PlaceholderModal';
 import CardPreview from '@/components/preview/CardPreview';
 
@@ -61,14 +63,24 @@ export default function TemplatePreview() {
   const [organization, setOrganization] = useState(null);
   const [noteStyleProfiles, setNoteStyleProfiles] = useState([]);
   const [instanceSettings, setInstanceSettings] = useState(null);
-  const [template, setTemplate] = useState(null);
+  const [categories, setCategories] = useState([]);
+  
+  // Template data state
+  const [template, setTemplate] = useState({
+    name: '',
+    content: '',
+    templateCategoryIds: [],
+    type: 'organization',
+    status: 'approved',
+    isDefault: false
+  });
   
   // UI state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
   
-  // Editable state
-  const [messageContent, setMessageContent] = useState('');
+  // Preview-specific state
   const [selectedNoteStyleProfileId, setSelectedNoteStyleProfileId] = useState(null);
   const [includeGreeting, setIncludeGreeting] = useState(true);
   const [includeSignature, setIncludeSignature] = useState(true);
@@ -97,6 +109,13 @@ export default function TemplatePreview() {
           setOrganization(orgList[0]);
         }
       }
+      
+      // Load categories via backend function
+      console.log('📡 Loading template categories...');
+      const categoryResponse = await base44.functions.invoke('getTemplateCategories');
+      const categoryList = categoryResponse.data;
+      console.log('✅ Categories loaded:', categoryList.length);
+      setCategories(categoryList);
       
       // Load note style profiles
       console.log('📡 Loading note style profiles...');
@@ -131,14 +150,31 @@ export default function TemplatePreview() {
         if (templates.length > 0) {
           const loadedTemplate = templates[0];
           console.log('✅ Template loaded:', loadedTemplate.name);
-          setTemplate(loadedTemplate);
-          setMessageContent(loadedTemplate.content || '');
+          setTemplate({
+            name: loadedTemplate.name || '',
+            content: loadedTemplate.content || '',
+            templateCategoryIds: loadedTemplate.templateCategoryIds || [],
+            type: loadedTemplate.type || 'organization',
+            status: loadedTemplate.status || 'approved',
+            isDefault: loadedTemplate.isDefault || false
+          });
+          
+          // Check if template is favorited
+          const favoriteIds = currentUser.favoriteTemplateIds || [];
+          setIsFavorite(favoriteIds.includes(templateId));
         } else {
           throw new Error('Template not found');
         }
       } else {
         console.log('📝 Creating new template');
-        setMessageContent('');
+        setTemplate({
+          name: '',
+          content: '',
+          templateCategoryIds: [],
+          type: 'organization',
+          status: 'approved',
+          isDefault: false
+        });
       }
       
       console.log('✅ All data loaded successfully');
@@ -150,6 +186,41 @@ export default function TemplatePreview() {
     }
   };
 
+  // Handle category toggle
+  const handleCategoryToggle = (categoryId) => {
+    setTemplate(prev => ({
+      ...prev,
+      templateCategoryIds: prev.templateCategoryIds.includes(categoryId)
+        ? prev.templateCategoryIds.filter(id => id !== categoryId)
+        : [...prev.templateCategoryIds, categoryId]
+    }));
+  };
+
+  // Handle favorite toggle
+  const handleFavoriteToggle = async () => {
+    if (!user || isNew) return;
+    
+    try {
+      const currentFavorites = user.favoriteTemplateIds || [];
+      const newFavorites = isFavorite
+        ? currentFavorites.filter(id => id !== templateId)
+        : [...currentFavorites, templateId];
+      
+      await base44.auth.updateMe({ favoriteTemplateIds: newFavorites });
+      
+      setIsFavorite(!isFavorite);
+      setUser(prev => ({
+        ...prev,
+        favoriteTemplateIds: newFavorites
+      }));
+      
+      console.log('✅ Favorite status updated:', !isFavorite);
+    } catch (error) {
+      console.error('❌ Failed to update favorite status:', error);
+      alert('Failed to update favorite status. Please try again.');
+    }
+  };
+
   // Handle placeholder insertion
   const handlePlaceholderSelect = (placeholder) => {
     const textarea = textareaRef.current;
@@ -157,13 +228,14 @@ export default function TemplatePreview() {
     
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
+    const currentContent = template.content;
     
     const newContent = 
-      messageContent.slice(0, start) + 
+      currentContent.slice(0, start) + 
       placeholder + 
-      messageContent.slice(end);
+      currentContent.slice(end);
     
-    setMessageContent(newContent);
+    setTemplate(prev => ({ ...prev, content: newContent }));
     
     // Set cursor position after placeholder
     setTimeout(() => {
@@ -228,12 +300,33 @@ export default function TemplatePreview() {
             Back to Templates
           </Button>
           
-          <h1 className="text-3xl font-bold text-gray-900">
-            Template Preview (Development)
-          </h1>
-          <p className="text-gray-600 mt-1">
-            Testing the live preview feature for templates
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Template Preview (Development)
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Testing the live preview feature for templates
+              </p>
+            </div>
+            
+            {/* Favorite Star - Only show if editing existing template */}
+            {!isNew && (
+              <button
+                onClick={handleFavoriteToggle}
+                className="p-3 rounded-full hover:bg-gray-100 transition-colors"
+                title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <Star
+                  className={`w-8 h-8 ${
+                    isFavorite 
+                      ? 'fill-yellow-400 text-yellow-400' 
+                      : 'text-gray-400 hover:text-yellow-400'
+                  }`}
+                />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Two-Column Layout */}
@@ -243,16 +336,25 @@ export default function TemplatePreview() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  {isNew ? 'New Template' : template?.name || 'Template'}
+                  {isNew ? 'New Template' : 'Edit Template'}
                 </CardTitle>
               </CardHeader>
               
               <CardContent className="space-y-6">
+                {/* Template Name */}
+                <div>
+                  <Label htmlFor="name">Template Name *</Label>
+                  <Input
+                    id="name"
+                    value={template.name}
+                    onChange={(e) => setTemplate(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., Thank You - Post Project"
+                  />
+                </div>
+
                 {/* Writing Style Selector */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Writing Style
-                  </label>
+                  <Label htmlFor="writing-style">Writing Style</Label>
                   <Select
                     value={selectedNoteStyleProfileId || ''}
                     onValueChange={setSelectedNoteStyleProfileId}
@@ -272,43 +374,150 @@ export default function TemplatePreview() {
 
                 {/* Message Editor */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Message Content
-                  </label>
+                  <Label htmlFor="content">Message Content *</Label>
                   <Textarea
                     ref={textareaRef}
-                    value={messageContent}
-                    onChange={(e) => setMessageContent(e.target.value)}
+                    id="content"
+                    value={template.content}
+                    onChange={(e) => setTemplate(prev => ({ ...prev, content: e.target.value }))}
                     placeholder="Type your message here..."
-                    className="min-h-[300px] text-sm"
+                    className="min-h-[200px] text-sm"
                   />
+                  <p className="text-sm text-gray-500 mt-2">
+                    Click the "Placeholders" button below to insert dynamic fields
+                  </p>
                 </div>
 
                 {/* Placeholder Button */}
-                <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
+                <div>
+                  <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
+                </div>
 
-                {/* Include Options */}
-                <div className="flex items-center gap-6 pt-4 border-t">
+                {/* Categories */}
+                <div>
+                  <Label>Categories (Select Multiple)</Label>
+                  {categories.length === 0 ? (
+                    <div className="mt-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800 font-medium mb-2">
+                        ⚠️ No categories available yet
+                      </p>
+                      <p className="text-sm text-yellow-700">
+                        Categories help organize your templates. To create categories:
+                      </p>
+                      <ul className="text-sm text-yellow-700 mt-2 ml-4 list-disc">
+                        <li>Go to <strong>Home</strong> page</li>
+                        <li>Click <strong>"Seed Categories"</strong> to create platform-wide categories</li>
+                        <li>Or contact your administrator to create custom categories</li>
+                      </ul>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-500 mb-2">
+                        Select all categories that apply to this template
+                      </p>
+                      <div className="mt-2 space-y-2">
+                        {categories.map(category => (
+                          <div key={category.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`category-${category.id}`}
+                              checked={template.templateCategoryIds.includes(category.id)}
+                              onCheckedChange={() => handleCategoryToggle(category.id)}
+                            />
+                            <label
+                              htmlFor={`category-${category.id}`}
+                              className="text-sm font-medium cursor-pointer"
+                            >
+                              {category.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                      {template.templateCategoryIds.length > 0 && (
+                        <p className="text-sm text-indigo-600 mt-2">
+                          {template.templateCategoryIds.length} {template.templateCategoryIds.length === 1 ? 'category' : 'categories'} selected
+                        </p>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                {/* Template Visibility (Type) */}
+                <div>
+                  <Label htmlFor="type">Template Visibility</Label>
+                  <Select
+                    value={template.type}
+                    onValueChange={(value) => setTemplate(prev => ({ ...prev, type: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="personal">Personal (Only You)</SelectItem>
+                      <SelectItem value="organization">Organization (All Team Members)</SelectItem>
+                      {user?.appRole === 'super_admin' && (
+                        <SelectItem value="platform">Platform (All Users)</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status */}
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={template.status}
+                    onValueChange={(value) => setTemplate(prev => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="private">Private</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Mark as Platform Default (Super Admin Only) */}
+                {user?.appRole === 'super_admin' && (
                   <div className="flex items-center space-x-2">
                     <Checkbox
-                      id="includeGreeting"
-                      checked={includeGreeting}
-                      onCheckedChange={setIncludeGreeting}
+                      id="isDefault"
+                      checked={template.isDefault}
+                      onCheckedChange={(checked) => setTemplate(prev => ({ ...prev, isDefault: checked }))}
                     />
-                    <label htmlFor="includeGreeting" className="text-sm font-medium">
-                      Include Greeting
+                    <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
+                      Mark as Platform Default Template
                     </label>
                   </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="includeSignature"
-                      checked={includeSignature}
-                      onCheckedChange={setIncludeSignature}
-                    />
-                    <label htmlFor="includeSignature" className="text-sm font-medium">
-                      Include Signature
-                    </label>
+                )}
+
+                {/* Include Options for Preview */}
+                <div className="pt-4 border-t">
+                  <Label className="mb-3 block">Preview Options</Label>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="includeGreeting"
+                        checked={includeGreeting}
+                        onCheckedChange={setIncludeGreeting}
+                      />
+                      <label htmlFor="includeGreeting" className="text-sm font-medium cursor-pointer">
+                        Include Greeting
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="includeSignature"
+                        checked={includeSignature}
+                        onCheckedChange={setIncludeSignature}
+                      />
+                      <label htmlFor="includeSignature" className="text-sm font-medium cursor-pointer">
+                        Include Signature
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -319,7 +528,7 @@ export default function TemplatePreview() {
                     <li>• Preview uses sample client data: {SAMPLE_CLIENT.fullName}</li>
                     <li>• Changes update live on the right side</li>
                     <li>• This is a development/testing page</li>
-                    <li>• Final version will be integrated into EditTemplate</li>
+                    <li>• All template settings (categories, visibility, status) are editable here</li>
                   </ul>
                 </div>
               </CardContent>
@@ -338,7 +547,7 @@ export default function TemplatePreview() {
                   {instanceSettings && (
                     <div className="w-full max-w-[440px]">
                       <CardPreview
-                        message={messageContent}
+                        message={template.content}
                         client={SAMPLE_CLIENT}
                         user={user}
                         organization={organization}
