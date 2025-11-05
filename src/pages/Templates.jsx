@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+import { createPageUrl } => '@/utils';
 import TemplateFilterControls from '@/components/templates/TemplateFilterControls';
 import TemplateGrid from '@/components/templates/TemplateGrid';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -145,7 +145,7 @@ export default function TemplatesPage() {
                     <p className="mt-1 text-gray-600">Browse, create, and manage your message templates.</p>
                 </div>
                 <Button
-                    onClick={() => navigate(createPageUrl('EditTemplate?id=new'))}
+                    onClick={() => navigate(createPageUrl('TemplatePreview?id=new'))}
                     className="bg-indigo-600 hover:bg-indigo-700"
                 >
                     <Plus className="w-4 h-4 mr-2" />
