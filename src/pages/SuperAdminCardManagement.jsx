@@ -18,7 +18,8 @@ import {
   X,
   Image as ImageIcon,
   Palette,
-  Star
+  Star,
+  CheckCircle
 } from 'lucide-react';
 import {
   Dialog,
@@ -50,6 +51,8 @@ export default function SuperAdminCardManagement() {
   const [designs, setDesigns] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [favoriteIds, setFavoriteIds] = useState([]);
   
   // Design form state
   const [designFormOpen, setDesignFormOpen] = useState(false);
@@ -90,6 +93,10 @@ export default function SuperAdminCardManagement() {
     try {
       setLoading(true);
       
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      setFavoriteIds(currentUser.favoriteCardDesignIds || []);
+      
       const [designList, categoryList] = await Promise.all([
         base44.entities.CardDesign.filter({ type: 'platform' }),
         base44.entities.CardDesignCategory.filter({ orgId: null })
@@ -107,6 +114,38 @@ export default function SuperAdminCardManagement() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Toggle favorite
+  const handleToggleFavorite = async (e, designId) => {
+    e.stopPropagation();
+    
+    const newFavorites = favoriteIds.includes(designId)
+      ? favoriteIds.filter(id => id !== designId)
+      : [...favoriteIds, designId];
+    
+    setFavoriteIds(newFavorites);
+    
+    try {
+      await base44.auth.updateMe({
+        favoriteCardDesignIds: newFavorites
+      });
+      toast({
+        title: favoriteIds.includes(designId) ? 'Removed from favorites' : 'Added to favorites',
+        description: 'Favorites updated successfully',
+        duration: 2000,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+    } catch (error) {
+      console.error('Failed to update favorites:', error);
+      setFavoriteIds(favoriteIds);
+      toast({
+        title: 'Error',
+        description: 'Failed to update favorites',
+        variant: 'destructive',
+        duration: 3000
+      });
     }
   };
 
@@ -436,75 +475,97 @@ export default function SuperAdminCardManagement() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {designs.map((design) => (
-                  <Card key={design.id} className="overflow-hidden">
-                    {/* Smaller images - reduced from aspect-[3/4] to controlled height */}
-                    <div className="grid grid-cols-2 gap-px bg-gray-100 border-b border-gray-200" style={{ height: '200px' }}>
-                      <div className="relative overflow-hidden">
-                        <img
-                          src={design.outsideImageUrl || design.imageUrl}
-                          alt={`${design.name} - Outside`}
-                          className="w-full h-full object-cover"
+                {designs.map((design) => {
+                  const isFavorite = favoriteIds.includes(design.id);
+                  
+                  return (
+                    <Card key={design.id} className="overflow-hidden relative">
+                      {/* Favorite Star Button - Top Right */}
+                      <button
+                        onClick={(e) => handleToggleFavorite(e, design.id)}
+                        className="absolute top-2 right-2 z-10 p-2 bg-white/90 rounded-full shadow-md hover:bg-white transition-colors"
+                      >
+                        <Star
+                          className={`w-5 h-5 ${
+                            isFavorite 
+                              ? 'fill-yellow-400 text-yellow-400' 
+                              : 'text-gray-400 hover:text-yellow-400'
+                          }`}
                         />
-                        <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
-                          Outside
-                        </div>
-                      </div>
-                      <div className="relative overflow-hidden">
-                        <img
-                          src={design.insideImageUrl || design.imageUrl}
-                          alt={`${design.name} - Inside`}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
-                          Inside
-                        </div>
-                      </div>
-                    </div>
-                    <CardContent className="pt-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-gray-900 flex-1">{design.name}</h3>
-                        {design.isDefault && (
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400 flex-shrink-0 ml-2" />
-                        )}
-                      </div>
-                      
-                      {/* Categories */}
-                      {design.cardDesignCategoryIds && design.cardDesignCategoryIds.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-3">
-                          {design.cardDesignCategoryIds.map((catId) => {
-                            const cat = categories.find(c => c.id === catId);
-                            return cat ? (
-                              <span key={catId} className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded">
-                                {cat.name}
-                              </span>
-                            ) : null;
-                          })}
-                        </div>
-                      )}
+                      </button>
 
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditDesign(design)}
-                          className="flex-1"
-                        >
-                          <Pencil className="w-3 h-3 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDeleteClick(design, 'design')}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash className="w-3 h-3" />
-                        </Button>
+                      {/* Images */}
+                      <div className="grid grid-cols-2 gap-px bg-gray-100 border-b border-gray-200" style={{ height: '200px' }}>
+                        <div className="relative overflow-hidden">
+                          <img
+                            src={design.outsideImageUrl || design.imageUrl}
+                            alt={`${design.name} - Outside`}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                            Outside
+                          </div>
+                        </div>
+                        <div className="relative overflow-hidden">
+                          <img
+                            src={design.insideImageUrl || design.imageUrl}
+                            alt={`${design.name} - Inside`}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
+                            Inside
+                          </div>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+
+                      <CardContent className="pt-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-semibold text-gray-900 flex-1">{design.name}</h3>
+                          {design.isDefault && (
+                            <div className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-0.5 rounded text-xs font-medium">
+                              <CheckCircle className="w-3 h-3" />
+                              Default
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Categories */}
+                        {design.cardDesignCategoryIds && design.cardDesignCategoryIds.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-3">
+                            {design.cardDesignCategoryIds.map((catId) => {
+                              const cat = categories.find(c => c.id === catId);
+                              return cat ? (
+                                <span key={catId} className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded">
+                                  {cat.name}
+                                </span>
+                              ) : null;
+                            })}
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEditDesign(design)}
+                            className="flex-1"
+                          >
+                            <Pencil className="w-3 h-3 mr-1" />
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteClick(design, 'design')}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -577,9 +638,9 @@ export default function SuperAdminCardManagement() {
           </div>
         )}
 
-        {/* Design Form Dialog - REORGANIZED LAYOUT */}
+        {/* REDESIGNED Design Form Dialog - Optimized for 412x600 images */}
         <Dialog open={designFormOpen} onOpenChange={setDesignFormOpen}>
-          <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-[900px] max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingDesign ? 'Edit Card Design' : 'New Card Design'}
@@ -597,111 +658,108 @@ export default function SuperAdminCardManagement() {
                   id="design-name"
                   value={designForm.name}
                   onChange={(e) => setDesignForm({ ...designForm, name: e.target.value })}
-                  placeholder="e.g., Thank You - Elegant Blue"
+                  placeholder="e.g., Thank You - White"
                 />
               </div>
 
-              {/* Image Uploads - Side by Side */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Inside Image Upload */}
-                <div>
-                  <Label className="text-base font-semibold mb-3 block">Inside Image *</Label>
-                  <p className="text-sm text-gray-600 mb-3">Upload the inside view (688x1000px)</p>
-                  
-                  {designForm.insideImageUrl ? (
-                    <div className="relative w-full border-2 border-gray-300 rounded-lg overflow-hidden" style={{ height: '240px' }}>
-                      <img
-                        src={designForm.insideImageUrl}
-                        alt="Inside Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={() => setDesignForm({ ...designForm, insideImageUrl: '' })}
-                        className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                        Inside
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors flex flex-col justify-center items-center" style={{ height: '240px' }}>
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-sm text-gray-600 mb-3 font-medium">Inside View</p>
-                      <label className="cursor-pointer">
-                        <span className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-sm font-medium">
-                          {uploadingInside ? <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" /> : null}
-                          {uploadingInside ? 'Uploading...' : 'Choose File'}
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleInsideImageUpload(file);
-                          }}
-                          disabled={uploadingInside}
+              {/* Image Uploads - Side by Side, Respecting Vertical Ratio */}
+              <div>
+                <Label className="text-base font-semibold mb-3 block">Card Images *</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Inside Image */}
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Inside Image (688x1000px)</p>
+                    {designForm.insideImageUrl ? (
+                      <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden" style={{ aspectRatio: '412/600' }}>
+                        <img
+                          src={designForm.insideImageUrl}
+                          alt="Inside"
+                          className="w-full h-full object-cover"
                         />
-                      </label>
-                    </div>
-                  )}
-                </div>
+                        <button
+                          onClick={() => setDesignForm({ ...designForm, insideImageUrl: '' })}
+                          className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          Inside
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors flex flex-col justify-center items-center" style={{ aspectRatio: '412/600' }}>
+                        <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600 mb-2 font-medium">Inside View</p>
+                        <label className="cursor-pointer">
+                          <span className="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-sm">
+                            {uploadingInside ? <><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Uploading...</> : 'Choose File'}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleInsideImageUpload(file);
+                            }}
+                            disabled={uploadingInside}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
 
-                {/* Outside Image Upload */}
-                <div>
-                  <Label className="text-base font-semibold mb-3 block">Outside Image *</Label>
-                  <p className="text-sm text-gray-600 mb-3">Upload the cover view (688x1000px)</p>
-                  
-                  {designForm.outsideImageUrl ? (
-                    <div className="relative w-full border-2 border-gray-300 rounded-lg overflow-hidden" style={{ height: '240px' }}>
-                      <img
-                        src={designForm.outsideImageUrl}
-                        alt="Outside Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        onClick={() => setDesignForm({ ...designForm, outsideImageUrl: '' })}
-                        className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                      <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                        Outside
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors flex flex-col justify-center items-center" style={{ height: '240px' }}>
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-sm text-gray-600 mb-3 font-medium">Outside View</p>
-                      <label className="cursor-pointer">
-                        <span className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-sm font-medium">
-                          {uploadingOutside ? <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" /> : null}
-                          {uploadingOutside ? 'Uploading...' : 'Choose File'}
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleOutsideImageUpload(file);
-                          }}
-                          disabled={uploadingOutside}
+                  {/* Outside Image */}
+                  <div>
+                    <p className="text-sm text-gray-600 mb-2">Outside Image (688x1000px)</p>
+                    {designForm.outsideImageUrl ? (
+                      <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden" style={{ aspectRatio: '412/600' }}>
+                        <img
+                          src={designForm.outsideImageUrl}
+                          alt="Outside"
+                          className="w-full h-full object-cover"
                         />
-                      </label>
-                    </div>
-                  )}
+                        <button
+                          onClick={() => setDesignForm({ ...designForm, outsideImageUrl: '' })}
+                          className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          Outside
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors flex flex-col justify-center items-center" style={{ aspectRatio: '412/600' }}>
+                        <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600 mb-2 font-medium">Outside View</p>
+                        <label className="cursor-pointer">
+                          <span className="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-sm">
+                            {uploadingOutside ? <><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Uploading...</> : 'Choose File'}
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleOutsideImageUpload(file);
+                            }}
+                            disabled={uploadingOutside}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* NEW LAYOUT: Categories and Print-Ready URLs side by side */}
-              <div className="grid grid-cols-2 gap-6">
-                {/* Categories Column */}
+              {/* Bottom Section: Categories and Settings */}
+              <div className="grid grid-cols-2 gap-6 pt-4 border-t">
+                {/* Left: Categories */}
                 <div>
-                  <Label>Categories</Label>
-                  <div className="mt-2 space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                  <Label className="mb-2 block">Categories</Label>
+                  <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
                     {categories.length === 0 ? (
                       <p className="text-sm text-gray-500">No categories available.</p>
                     ) : (
@@ -721,25 +779,27 @@ export default function SuperAdminCardManagement() {
                   </div>
                 </div>
 
-                {/* Print-Ready URLs Column (stacked vertically) */}
+                {/* Right: Print-Ready URLs and Checkboxes */}
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="front-url">Print-Ready Front URL</Label>
+                    <Label htmlFor="front-url" className="text-sm">Print-Ready Front URL</Label>
                     <Input
                       id="front-url"
                       value={designForm.printReadyFrontUrl}
                       onChange={(e) => setDesignForm({ ...designForm, printReadyFrontUrl: e.target.value })}
-                      placeholder="https://example.com/high-res-front.pdf"
+                      placeholder="https://example.com/front.pdf"
+                      className="mt-1"
                     />
                   </div>
 
                   <div>
-                    <Label htmlFor="back-url">Print-Ready Back URL</Label>
+                    <Label htmlFor="back-url" className="text-sm">Print-Ready Back URL</Label>
                     <Input
                       id="back-url"
                       value={designForm.printReadyBackUrl}
                       onChange={(e) => setDesignForm({ ...designForm, printReadyBackUrl: e.target.value })}
-                      placeholder="https://example.com/high-res-back.pdf"
+                      placeholder="https://example.com/back.pdf"
+                      className="mt-1"
                     />
                   </div>
 
@@ -750,15 +810,14 @@ export default function SuperAdminCardManagement() {
                       checked={designForm.isDefault}
                       onCheckedChange={(checked) => setDesignForm({ ...designForm, isDefault: checked })}
                     />
-                    <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer flex items-center gap-2">
-                      <Star className="w-4 h-4" />
+                    <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
                       Set as default design
                     </label>
                   </div>
                 </div>
               </div>
 
-              {/* Actions - Now visible */}
+              {/* Actions */}
               <div className="flex gap-3 pt-4 border-t">
                 <Button onClick={handleSaveDesign} className="bg-indigo-600 hover:bg-indigo-700">
                   {editingDesign ? 'Update Design' : 'Create Design'}
