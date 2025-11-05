@@ -1,3 +1,4 @@
+
 import React from "react";
 import MainLayout from "./components/layout/MainLayout";
 import { Toaster } from "@/components/ui/toaster";
@@ -22,7 +23,8 @@ export default function Layout({ children, currentPageName }) {
     "SettingsAddresses",
     "SettingsPhones",
     "SettingsUrls",
-    "SettingsTeam"
+    "SettingsTeam",
+    "SuperAdminCardManagement"
   ];
   
   // Check if current page should use MainLayout

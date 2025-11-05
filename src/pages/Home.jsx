@@ -300,6 +300,32 @@ export default function Home() {
               </CardContent>
             )}
           </Card>
+
+          {/* NEW: Card Design Management (Super Admin Only) */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-orange-100 rounded-lg">
+                    <Database className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <CardTitle>Card Design Management</CardTitle>
+                    <CardDescription>
+                      Manage platform-wide card designs and categories (Super Admin only)
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => navigate(createPageUrl('SuperAdminCardManagement'))}
+                  variant="outline"
+                  className="border-orange-600 text-orange-600 hover:bg-orange-50"
+                >
+                  Manage Cards
+                </Button>
+              </div>
+            </CardHeader>
+          </Card>
         </div>
 
         {/* Info Box */}
@@ -321,14 +347,18 @@ export default function Home() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">4.</span>
-                <span>Click "Send a Card" to start the workflow</span>
+                <span>Click "Manage Cards" to create card designs and categories (super admin)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">5.</span>
-                <span>Select clients and compose your message</span>
+                <span>Click "Send a Card" to start the workflow</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">6.</span>
+                <span>Select clients and compose your message</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-semibold text-indigo-600">7.</span>
                 <span>Choose a design and send your notecards!</span>
               </li>
             </ol>
