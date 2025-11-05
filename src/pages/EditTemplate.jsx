@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Save, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, AlertTriangle, Star } from 'lucide-react';
 import PlaceholderModal from '@/components/mailing/PlaceholderModal';
 import CardPreview from '@/components/preview/CardPreview';
 import {
@@ -305,6 +305,32 @@ export default function EditTemplate() {
     }, 0);
   };
 
+  // Handle favorite toggle
+  const handleFavoriteToggle = async () => {
+    if (!user || isNew) return;
+
+    try {
+      const currentFavorites = user.favoriteTemplateIds || [];
+      const isFavorited = currentFavorites.includes(templateId);
+      
+      const newFavoriteTemplateIds = isFavorited
+        ? currentFavorites.filter(id => id !== templateId)
+        : [...currentFavorites, templateId];
+
+      await base44.auth.updateMe({ favoriteTemplateIds: newFavoriteTemplateIds });
+      
+      setUser(prev => ({
+        ...prev,
+        favoriteTemplateIds: newFavoriteTemplateIds
+      }));
+    } catch (error) {
+      console.error("Failed to update favorite status:", error);
+    }
+  };
+
+  // Check if current template is favorited
+  const isFavorited = !isNew && user?.favoriteTemplateIds?.includes(templateId);
+
   // Get selected note style profile
   const selectedNoteStyleProfile = noteStyleProfiles.find(p => p.id === selectedNoteStyleProfileId);
 
@@ -359,35 +385,79 @@ export default function EditTemplate() {
             <div className="col-span-7">
               <Card>
                 <CardContent className="pt-6 space-y-6">
-                  {/* Template Name */}
+                  {/* Template Name with Favorite Star */}
                   <div>
                     <Label htmlFor="name">Template Name *</Label>
-                    <Input
-                      id="name"
-                      value={template.name}
-                      onChange={(e) => setTemplate({ ...template, name: e.target.value })}
-                      placeholder="e.g., Thank You - Post Project"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="name"
+                        value={template.name}
+                        onChange={(e) => setTemplate({ ...template, name: e.target.value })}
+                        placeholder="e.g., Thank You - Post Project"
+                        className="flex-1"
+                      />
+                      {!isNew && (
+                        <button
+                          onClick={handleFavoriteToggle}
+                          className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                        >
+                          <Star
+                            className={`w-5 h-5 ${
+                              isFavorited 
+                                ? 'fill-yellow-400 text-yellow-400' 
+                                : 'text-yellow-400'
+                            }`}
+                          />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Writing Style Selector */}
+                  {/* Writing Style with Include Greeting and Signature on same row */}
                   <div>
                     <Label htmlFor="writing-style">Writing Style</Label>
-                    <Select
-                      value={selectedNoteStyleProfileId || ''}
-                      onValueChange={setSelectedNoteStyleProfileId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select style..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {noteStyleProfiles.map(profile => (
-                          <SelectItem key={profile.id} value={profile.id}>
-                            {profile.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-4">
+                      <Select
+                        value={selectedNoteStyleProfileId || ''}
+                        onValueChange={setSelectedNoteStyleProfileId}
+                        className="flex-1"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select style..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {noteStyleProfiles.map(profile => (
+                            <SelectItem key={profile.id} value={profile.id}>
+                              {profile.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="includeGreeting"
+                            checked={includeGreeting}
+                            onCheckedChange={setIncludeGreeting}
+                          />
+                          <label htmlFor="includeGreeting" className="text-sm font-medium cursor-pointer whitespace-nowrap">
+                            Include Greeting
+                          </label>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="includeSignature"
+                            checked={includeSignature}
+                            onCheckedChange={setIncludeSignature}
+                          />
+                          <label htmlFor="includeSignature" className="text-sm font-medium cursor-pointer whitespace-nowrap">
+                            Include Signature
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Template Content */}
@@ -406,34 +476,8 @@ export default function EditTemplate() {
                     </p>
                   </div>
 
-                  {/* Placeholder Button & Preview Options - INLINE */}
-                  <div className="flex items-center gap-6">
-                    <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="includeGreeting"
-                          checked={includeGreeting}
-                          onCheckedChange={setIncludeGreeting}
-                        />
-                        <label htmlFor="includeGreeting" className="text-sm font-medium cursor-pointer whitespace-nowrap">
-                          Include Greeting
-                        </label>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="includeSignature"
-                          checked={includeSignature}
-                          onCheckedChange={setIncludeSignature}
-                        />
-                        <label htmlFor="includeSignature" className="text-sm font-medium cursor-pointer whitespace-nowrap">
-                          Include Signature
-                        </label>
-                      </div>
-                    </div>
-                  </div>
+                  {/* Placeholder Button */}
+                  <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
 
                   {/* Categories & Settings Grid - TWO COLUMNS */}
                   <div className="grid grid-cols-2 gap-6">

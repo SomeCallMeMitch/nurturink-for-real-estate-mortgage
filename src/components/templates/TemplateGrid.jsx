@@ -135,7 +135,7 @@ export default function TemplateGrid({
                     </div>
                     
                     <div className="flex gap-1">
-                      {/* Favorite Button */}
+                      {/* Favorite Button - YELLOW */}
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
@@ -149,7 +149,7 @@ export default function TemplateGrid({
                               className={`w-4 h-4 ${
                                 isFavorite 
                                   ? 'fill-yellow-400 text-yellow-400' 
-                                  : 'text-gray-400 hover:text-yellow-400'
+                                  : 'text-yellow-400'
                               }`}
                             />
                           </button>
@@ -159,7 +159,7 @@ export default function TemplateGrid({
                         </TooltipContent>
                       </Tooltip>
 
-                      {/* Edit Button (only if user can edit) */}
+                      {/* Edit Button - INDIGO (only if user can edit) */}
                       {canEdit && (
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -170,7 +170,7 @@ export default function TemplateGrid({
                               }}
                               className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                             >
-                              <Pencil className="w-4 h-4 text-gray-400 hover:text-indigo-600" />
+                              <Pencil className="w-4 h-4 text-indigo-600" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -179,7 +179,7 @@ export default function TemplateGrid({
                         </Tooltip>
                       )}
 
-                      {/* Duplicate Button (always visible) */}
+                      {/* Duplicate Button - BLUE (always visible) */}
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
@@ -189,7 +189,7 @@ export default function TemplateGrid({
                             }}
                             className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                           >
-                            <Copy className="w-4 h-4 text-gray-400 hover:text-blue-600" />
+                            <Copy className="w-4 h-4 text-blue-600" />
                           </button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -197,7 +197,7 @@ export default function TemplateGrid({
                         </TooltipContent>
                       </Tooltip>
 
-                      {/* Delete Button (only if user can edit) */}
+                      {/* Delete Button - RED (only if user can edit) */}
                       {canEdit && (
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -208,7 +208,7 @@ export default function TemplateGrid({
                               }}
                               className="p-1.5 hover:bg-gray-100 rounded transition-colors"
                             >
-                              <Trash className="w-4 h-4 text-gray-400 hover:text-red-600" />
+                              <Trash className="w-4 h-4 text-red-600" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent>
