@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -10,9 +11,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import PlaceholderModal from '@/components/mailing/PlaceholderModal';
 
 export default function EditTemplate() {
   const navigate = useNavigate();
+  const textareaRef = useRef(null);
   const urlParams = new URLSearchParams(window.location.search);
   const templateId = urlParams.get('id');
   const isNew = templateId === 'new';
@@ -105,6 +108,29 @@ export default function EditTemplate() {
     }));
   };
 
+  // Handle placeholder insertion
+  const handlePlaceholderSelect = (placeholder) => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentContent = template.content;
+    
+    const newContent = 
+      currentContent.slice(0, start) + 
+      placeholder + 
+      currentContent.slice(end);
+    
+    setTemplate({ ...template, content: newContent });
+    
+    // Set cursor position after placeholder
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
+      textarea.focus();
+    }, 0);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -153,6 +179,7 @@ export default function EditTemplate() {
             <div>
               <Label htmlFor="content">Message Content *</Label>
               <Textarea
+                ref={textareaRef}
                 id="content"
                 value={template.content}
                 onChange={(e) => setTemplate({ ...template, content: e.target.value })}
@@ -160,14 +187,22 @@ export default function EditTemplate() {
                 className="min-h-[200px]"
               />
               <p className="text-sm text-gray-500 mt-2">
-                Use placeholders like {'{{firstName}}'} and {'{{companyName}}'} for personalization
+                Click the "Placeholders" button below to insert dynamic fields
               </p>
+            </div>
+
+            {/* Placeholder Button */}
+            <div>
+              <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
             </div>
 
             {/* Categories */}
             {categories.length > 0 && (
               <div>
-                <Label>Categories (Optional)</Label>
+                <Label>Categories (Select Multiple)</Label>
+                <p className="text-sm text-gray-500 mb-2">
+                  Select all categories that apply to this template
+                </p>
                 <div className="mt-2 space-y-2">
                   {categories.map(category => (
                     <div key={category.id} className="flex items-center space-x-2">
@@ -185,6 +220,11 @@ export default function EditTemplate() {
                     </div>
                   ))}
                 </div>
+                {template.templateCategoryIds.length > 0 && (
+                  <p className="text-sm text-indigo-600 mt-2">
+                    {template.templateCategoryIds.length} {template.templateCategoryIds.length === 1 ? 'category' : 'categories'} selected
+                  </p>
+                )}
               </div>
             )}
 
