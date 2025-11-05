@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { replacePlaceholders, composeCompleteMessage } from '@/utils/placeholderUtils';
+import { replacePlaceholders, composeCompleteMessage } from '@/components/utils/placeholderUtils';
 
 // Utility function for font mapping
 const getFontClass = (fontName) => {
