@@ -36,15 +36,52 @@ export default function TemplateFilterControls({ filters, setFilters, categories
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
-      {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-        <Input
-          placeholder="Search templates..."
-          value={filters.search}
-          onChange={handleSearchChange}
-          className="pl-9"
-        />
+      {/* Search Bar and Category Dropdown - Side by Side */}
+      <div className="flex items-center gap-3">
+        {/* Search Bar */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Input
+            placeholder="Search templates..."
+            value={filters.search}
+            onChange={handleSearchChange}
+            className="pl-9"
+          />
+        </div>
+
+        {/* Category Filter */}
+        {categories.length > 0 && (
+          <div className="w-64">
+            <Select
+              value={filters.categoryId || 'all'}
+              onValueChange={handleCategoryChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map(category => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Clear Filters Button */}
+        {hasActiveFilters && (
+          <Button
+            variant="ghost"
+            onClick={clearFilters}
+            className="gap-2 flex-shrink-0"
+          >
+            <X className="w-4 h-4" />
+            Clear
+          </Button>
+        )}
       </div>
 
       {/* View Mode Tabs */}
@@ -68,41 +105,6 @@ export default function TemplateFilterControls({ filters, setFilters, categories
             </button>
           );
         })}
-      </div>
-
-      {/* Category Filter & Clear Button */}
-      <div className="flex items-center gap-3">
-        {categories.length > 0 && (
-          <div className="flex-1">
-            <Select
-              value={filters.categoryId || 'all'}
-              onValueChange={handleCategoryChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            onClick={clearFilters}
-            className="gap-2"
-          >
-            <X className="w-4 h-4" />
-            Clear Filters
-          </Button>
-        )}
       </div>
 
       {/* Active Filter Summary */}
