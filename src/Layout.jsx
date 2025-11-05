@@ -10,6 +10,7 @@ export default function Layout({ children, currentPageName }) {
     "CreateContent",
     "Templates",
     "EditTemplate",
+    "TemplatePreview", // Added this page
     "Analytics",
     "Clients",
     "Settings",

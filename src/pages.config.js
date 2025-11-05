@@ -15,6 +15,7 @@ import SettingsUrls from './pages/SettingsUrls';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import AdminCreateContentLayout from './pages/AdminCreateContentLayout';
 import SettingsOrganization from './pages/SettingsOrganization';
+import TemplatePreview from './pages/TemplatePreview';
 import Layout from './Layout.jsx';
 
 
@@ -36,6 +37,7 @@ export const PAGES = {
     "SuperAdminDashboard": SuperAdminDashboard,
     "AdminCreateContentLayout": AdminCreateContentLayout,
     "SettingsOrganization": SettingsOrganization,
+    "TemplatePreview": TemplatePreview,
 }
 
 export const pagesConfig = {
