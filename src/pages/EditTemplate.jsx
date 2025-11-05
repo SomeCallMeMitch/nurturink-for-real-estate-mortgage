@@ -46,22 +46,13 @@ export default function EditTemplate() {
       console.log('👤 EditTemplate - User orgId:', currentUser.orgId);
       setUser(currentUser);
 
-      // Load categories
-      console.log('📡 EditTemplate - Loading categories with filter:', {
-        $or: [
-          { orgId: currentUser.orgId },
-          { orgId: null }
-        ]
-      });
+      // Load categories via backend function
+      console.log('📡 EditTemplate - Calling getTemplateCategories backend function...');
       
-      const categoryList = await base44.entities.TemplateCategory.filter({
-        $or: [
-          { orgId: currentUser.orgId },
-          { orgId: null }
-        ]
-      });
+      const categoryResponse = await base44.functions.invoke('getTemplateCategories');
+      const categoryList = categoryResponse.data;
       
-      console.log('✅ EditTemplate - Categories loaded from API:', categoryList);
+      console.log('✅ EditTemplate - Categories loaded from backend:', categoryList);
       console.log('📊 EditTemplate - Category count:', categoryList.length);
       console.log('📋 EditTemplate - Category details:', categoryList.map(c => ({ id: c.id, name: c.name, orgId: c.orgId })));
       

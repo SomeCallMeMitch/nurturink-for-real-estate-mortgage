@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +29,7 @@ export default function TemplatesPage() {
             const currentUser = await base44.auth.me();
             setUser(currentUser);
 
-            const [personal, organization, platform, categories] = await Promise.all([
+            const [personal, organization, platform, categoryResponse] = await Promise.all([
                 // Personal templates
                 base44.entities.Template.filter({ 
                     createdByUserId: currentUser.id, 
@@ -49,8 +50,8 @@ export default function TemplatesPage() {
                     status: 'approved' 
                 }),
                 
-                // Load categories
-                base44.entities.TemplateCategory.list()
+                // Load categories via backend function
+                base44.functions.invoke('getTemplateCategories')
             ]);
 
             // Combine all templates into single array
@@ -64,7 +65,7 @@ export default function TemplatesPage() {
             });
 
             setAllTemplates(combined);
-            setAllCategories(categories);
+            setAllCategories(categoryResponse.data);
         } catch (err) {
             console.error("Failed to fetch templates:", err);
             setError("Could not load templates. Please try again.");
