@@ -389,9 +389,33 @@ export default function TemplatePreview() {
                   </p>
                 </div>
 
-                {/* Placeholder Button */}
-                <div>
+                {/* Placeholder Button & Preview Options - INLINE */}
+                <div className="flex items-center gap-6">
                   <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="includeGreeting"
+                        checked={includeGreeting}
+                        onCheckedChange={setIncludeGreeting}
+                      />
+                      <label htmlFor="includeGreeting" className="text-sm font-medium cursor-pointer whitespace-nowrap">
+                        Include Greeting
+                      </label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="includeSignature"
+                        checked={includeSignature}
+                        onCheckedChange={setIncludeSignature}
+                      />
+                      <label htmlFor="includeSignature" className="text-sm font-medium cursor-pointer whitespace-nowrap">
+                        Include Signature
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Categories & Settings Grid - TWO COLUMNS */}
@@ -496,34 +520,6 @@ export default function TemplatePreview() {
                         </label>
                       </div>
                     )}
-                  </div>
-                </div>
-
-                {/* Include Options for Preview */}
-                <div className="pt-4 border-t">
-                  <Label className="mb-3 block">Preview Options</Label>
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="includeGreeting"
-                        checked={includeGreeting}
-                        onCheckedChange={setIncludeGreeting}
-                      />
-                      <label htmlFor="includeGreeting" className="text-sm font-medium cursor-pointer">
-                        Include Greeting
-                      </label>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="includeSignature"
-                        checked={includeSignature}
-                        onCheckedChange={setIncludeSignature}
-                      />
-                      <label htmlFor="includeSignature" className="text-sm font-medium cursor-pointer">
-                        Include Signature
-                      </label>
-                    </div>
                   </div>
                 </div>
 
