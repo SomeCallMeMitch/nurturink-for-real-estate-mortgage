@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
@@ -309,7 +310,7 @@ export default function AdminEnvelopeLayout() {
                     </div>
                   </div>
                   
-                  {/* Right Column: Return Address & Recipient Address */}
+                  {/* Right Column: Return Address, Recipient Address, Preview Dimensions */}
                   <div className="space-y-4">
                     <h3 className="font-semibold text-gray-900 text-sm">Return Address</h3>
                     
@@ -361,70 +362,44 @@ export default function AdminEnvelopeLayout() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Preview Dimensions */}
+                    <div className="pt-3 border-t">
+                      <h3 className="font-semibold text-gray-900 text-sm mb-3">Preview Dimensions</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor="preview-width" className="text-xs">Width (px)</Label>
+                          <Input
+                            id="preview-width"
+                            type="number"
+                            min="100"
+                            max="2000"
+                            value={localSettings?.envelopePreviewWidth || 500}
+                            onChange={(e) => updateSetting('envelopePreviewWidth', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="preview-height" className="text-xs">Height (px)</Label>
+                          <Input
+                            id="preview-height"
+                            type="number"
+                            min="100"
+                            max="2000"
+                            value={localSettings?.envelopePreviewHeight || 300}
+                            onChange={(e) => updateSetting('envelopePreviewHeight', parseInt(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">Valid range: 100-2000 pixels</p>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            
-            {/* Return Address Text Template */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Return Address Text Template</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div>
-                  <Label htmlFor="return-text">Return Address Text</Label>
-                  <Textarea
-                    id="return-text"
-                    rows={4}
-                    value={localSettings?.returnAddressText || ''}
-                    onChange={(e) => updateSetting('returnAddressText', e.target.value)}
-                    placeholder="{{org.name}}\n{{org.street}}\n{{org.city}}, {{org.state}} {{org.zipCode}}"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Use placeholders: {'{{org.name}}'}, {'{{org.street}}'}, {'{{org.city}}'}, {'{{org.state}}'}, {'{{org.zipCode}}'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Preview Dimensions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Preview Dimensions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="preview-width">Width (px)</Label>
-                    <Input
-                      id="preview-width"
-                      type="number"
-                      min="100"
-                      max="2000"
-                      value={localSettings?.envelopePreviewWidth || 500}
-                      onChange={(e) => updateSetting('envelopePreviewWidth', parseInt(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="preview-height">Height (px)</Label>
-                    <Input
-                      id="preview-height"
-                      type="number"
-                      min="100"
-                      max="2000"
-                      value={localSettings?.envelopePreviewHeight || 300}
-                      onChange={(e) => updateSetting('envelopePreviewHeight', parseInt(e.target.value))}
-                    />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Valid range: 100-2000 pixels</p>
               </CardContent>
             </Card>
           </div>
           
-          {/* Right Column: Live Preview */}
-          <div>
+          {/* Right Column: Live Preview + Return Address Text Template */}
+          <div className="space-y-6">
             <Card className="sticky top-6">
               <CardHeader>
                 <CardTitle>Live Preview</CardTitle>
@@ -452,6 +427,28 @@ export default function AdminEnvelopeLayout() {
                     <p><strong>User:</strong> {SAMPLE_USER.full_name}</p>
                     <p><strong>Organization:</strong> {SAMPLE_ORG.name}</p>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Return Address Text Template */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Return Address Text Template</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <Label htmlFor="return-text">Return Address Text</Label>
+                  <Textarea
+                    id="return-text"
+                    rows={4}
+                    value={localSettings?.returnAddressText || ''}
+                    onChange={(e) => updateSetting('returnAddressText', e.target.value)}
+                    placeholder="{{org.name}}\n{{org.street}}\n{{org.city}}, {{org.state}} {{org.zipCode}}"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Use placeholders: {'{{org.name}}'}, {'{{org.street}}'}, {'{{org.city}}'}, {'{{org.state}}'}, {'{{org.zipCode}}'}
+                  </p>
                 </div>
               </CardContent>
             </Card>
