@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import SettingsLayout from "@/components/settings/SettingsLayout";
@@ -92,12 +93,6 @@ export default function SettingsUrls() {
       return;
     }
 
-    // Basic URL validation
-    if (!formData.url.match(/^https?:\/\/.+/)) {
-      alert('Please enter a valid URL starting with http:// or https://');
-      return;
-    }
-
     try {
       setSaving(true);
 
@@ -181,7 +176,7 @@ export default function SettingsUrls() {
                 Websites & URLs
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                Manage website links to include in your card signatures
+                Manage website URLs to include in your card signatures as placeholders
               </p>
             </div>
             <Button onClick={handleNew} className="bg-indigo-600 hover:bg-indigo-700">
@@ -210,15 +205,7 @@ export default function SettingsUrls() {
                     )}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium text-gray-900">{url.label}</h3>
-                      <a 
-                        href={url.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1 truncate"
-                      >
-                        <span className="truncate">{url.url}</span>
-                        <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                      </a>
+                      <p className="text-sm text-gray-600 truncate">{url.url}</p>
                     </div>
                   </div>
                   <div className="flex gap-2 ml-4">
@@ -247,7 +234,7 @@ export default function SettingsUrls() {
             <DialogHeader>
               <DialogTitle>{editingUrl ? 'Edit URL' : 'Add URL'}</DialogTitle>
               <DialogDescription>
-                Add a website or URL to include in your card signatures
+                Add a website or URL to include in your card signatures as a placeholder
               </DialogDescription>
             </DialogHeader>
             
@@ -271,14 +258,14 @@ export default function SettingsUrls() {
                 </Label>
                 <Input
                   id="url"
-                  type="url"
+                  type="text"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                  placeholder="https://www.example.com"
+                  placeholder="www.example.com"
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Must start with http:// or https://
+                  This will be written on your cards, not used as a clickable link
                 </p>
               </div>
 
