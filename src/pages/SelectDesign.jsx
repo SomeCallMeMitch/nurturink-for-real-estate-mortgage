@@ -60,15 +60,19 @@ export default function SelectDesign() {
     try {
       setLoading(true);
       
+      console.log('🚀 SelectDesign: Starting data load...');
+      
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setFavoriteIds(currentUser.favoriteCardDesignIds || []);
+      console.log('✅ User loaded:', currentUser.email);
       
       // Load organization
       if (currentUser.orgId) {
         const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
         if (orgList && orgList.length > 0) {
           setOrganization(orgList[0]);
+          console.log('✅ Organization loaded:', orgList[0].name);
         }
       }
       
@@ -79,17 +83,29 @@ export default function SelectDesign() {
       }
       
       const batchData = batch[0];
+      console.log('✅ Mailing batch loaded:', {
+        id: batchData.id,
+        globalMessage: batchData.globalMessage,
+        globalMessageLength: batchData.globalMessage?.length || 0,
+        contentOverrides: batchData.contentOverrides,
+        selectedNoteStyleProfileId: batchData.selectedNoteStyleProfileId,
+        includeGreeting: batchData.includeGreeting,
+        includeSignature: batchData.includeSignature
+      });
+      
       setMailingBatch(batchData);
       
       // Load clients
       const clientList = await base44.entities.Client.filter({
         id: { $in: batchData.selectedClientIds }
       });
+      console.log('✅ Clients loaded:', clientList.length);
       setClients(clientList);
       
       // Load card designs (platform only for now)
       const designList = await base44.entities.CardDesign.filter({ type: 'platform' });
       setDesigns(designList);
+      console.log('✅ Card designs loaded:', designList.length);
       
       // Auto-select default design if none is selected yet
       if (!batchData.selectedCardDesignId && designList.length > 0) {
@@ -122,15 +138,23 @@ export default function SelectDesign() {
         });
         if (profiles.length > 0) {
           setNoteStyleProfile(profiles[0]);
+          console.log('✅ Note style profile loaded:', profiles[0].name, {
+            defaultGreeting: profiles[0].defaultGreeting,
+            signatureText: profiles[0].signatureText,
+            handwritingFont: profiles[0].handwritingFont
+          });
         }
+      } else {
+        console.log('⚠️ No note style profile selected in batch');
       }
       
       // Load instance settings
       try {
         const settingsResponse = await base44.functions.invoke('getInstanceSettings');
         setInstanceSettings(settingsResponse.data);
+        console.log('✅ Instance settings loaded');
       } catch (settingsError) {
-        console.error('Failed to load instance settings:', settingsError);
+        console.error('⚠️ Failed to load instance settings, using fallback:', settingsError);
         // Use fallback settings
         setInstanceSettings({
           cardPreviewSettings: {
@@ -154,9 +178,10 @@ export default function SelectDesign() {
         });
       }
       
+      console.log('✅ All data loaded successfully');
       setLoading(false);
     } catch (err) {
-      console.error('Failed to load data:', err);
+      console.error('❌ Failed to load data:', err);
       setError(err.message || 'Failed to load data');
       setLoading(false);
     }
@@ -203,20 +228,41 @@ export default function SelectDesign() {
 
   // Memoize current client - updates when recipient changes
   const getCurrentClient = useMemo(() => {
-    if (editMode === 'individual' && selectedRecipientId) {
-      return clients.find(c => c.id === selectedRecipientId) || clients[0] || {};
-    }
-    return clients[0] || {};
+    const client = editMode === 'individual' && selectedRecipientId
+      ? clients.find(c => c.id === selectedRecipientId)
+      : clients[0];
+    
+    console.log('🔍 getCurrentClient:', {
+      editMode,
+      selectedRecipientId,
+      clientName: client?.fullName,
+      clientFirstName: client?.firstName
+    });
+    
+    return client || {};
   }, [editMode, selectedRecipientId, clients]);
 
   // Memoize current message - updates when recipient or batch changes
   const getCurrentMessage = useMemo(() => {
-    if (!mailingBatch) return '';
-    
-    if (editMode === 'individual' && selectedRecipientId) {
-      return mailingBatch.contentOverrides?.[selectedRecipientId] || mailingBatch.globalMessage || '';
+    if (!mailingBatch) {
+      console.log('🔍 getCurrentMessage: No mailing batch yet');
+      return '';
     }
-    return mailingBatch.globalMessage || '';
+    
+    const message = editMode === 'individual' && selectedRecipientId
+      ? mailingBatch.contentOverrides?.[selectedRecipientId] || mailingBatch.globalMessage || ''
+      : mailingBatch.globalMessage || '';
+    
+    console.log('🔍 getCurrentMessage:', {
+      editMode,
+      selectedRecipientId,
+      hasContentOverride: !!(mailingBatch.contentOverrides?.[selectedRecipientId]),
+      globalMessage: mailingBatch.globalMessage,
+      messageLength: message.length,
+      message: message.substring(0, 100) + (message.length > 100 ? '...' : '')
+    });
+    
+    return message;
   }, [mailingBatch, editMode, selectedRecipientId]);
 
   // Handle design selection
@@ -348,6 +394,18 @@ export default function SelectDesign() {
       </div>
     );
   }
+
+  console.log('🎨 Rendering SelectDesign with:', {
+    selectedDesign: selectedDesign?.name,
+    currentMessage: getCurrentMessage,
+    currentMessageLength: getCurrentMessage.length,
+    currentClient: getCurrentClient?.fullName,
+    noteStyleProfile: noteStyleProfile?.name,
+    includeGreeting: mailingBatch?.includeGreeting,
+    includeSignature: mailingBatch?.includeSignature,
+    user: user?.full_name,
+    organization: organization?.name
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
