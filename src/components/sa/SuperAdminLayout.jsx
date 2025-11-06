@@ -1,9 +1,8 @@
-
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Settings, LayoutGrid, Mail, Shield, Home, Layout } from "lucide-react"; // Added Home and Layout
+import { Settings, LayoutGrid, Mail, Shield, Home, Layout, DollarSign } from "lucide-react";
 
 export default function SuperAdminLayout({ children }) {
   const [user, setUser] = useState(null);
@@ -18,9 +17,12 @@ export default function SuperAdminLayout({ children }) {
     try {
       const currentUser = await base44.auth.me();
       
-      // Check if user is super admin
-      if (currentUser.appRole !== 'super_admin') {
-        // Redirect to home if not super admin
+      // Check if user is super admin OR organization owner
+      const isSuperAdmin = currentUser.appRole === 'super_admin';
+      const isOrgOwner = currentUser.appRole === 'organization_owner';
+      
+      if (!isSuperAdmin && !isOrgOwner) {
+        // Redirect to home if neither role
         window.location.href = createPageUrl('Home');
         return;
       }
@@ -44,13 +46,29 @@ export default function SuperAdminLayout({ children }) {
     );
   }
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home, path: 'SuperAdminDashboard' },
-    { id: 'card-management', label: 'Card Designs', icon: LayoutGrid, path: 'SuperAdminCardManagement' },
-    { id: 'preview-layout', label: 'Preview Layout', icon: Layout, path: 'AdminCardLayout' },
-    { id: 'content-layout', label: 'Content Layout', icon: Layout, path: 'AdminCreateContentLayout' },
-    { id: 'envelope-layout', label: 'Envelope Layout', icon: Mail, path: 'AdminEnvelopeLayout' },
-  ];
+  // Determine which menu items to show based on role
+  const isSuperAdmin = user?.appRole === 'super_admin';
+  const isOrgOwner = user?.appRole === 'organization_owner';
+
+  // Build menu items based on role
+  const menuItems = [];
+  
+  if (isSuperAdmin) {
+    // Super admin sees all menu items
+    menuItems.push(
+      { id: 'dashboard', label: 'Dashboard', icon: Home, path: 'SuperAdminDashboard' },
+      { id: 'card-management', label: 'Card Designs', icon: LayoutGrid, path: 'SuperAdminCardManagement' },
+      { id: 'pricing', label: 'Pricing Tiers', icon: DollarSign, path: 'AdminPricing' },
+      { id: 'preview-layout', label: 'Preview Layout', icon: Layout, path: 'AdminCardLayout' },
+      { id: 'content-layout', label: 'Content Layout', icon: Layout, path: 'AdminCreateContentLayout' },
+      { id: 'envelope-layout', label: 'Envelope Layout', icon: Mail, path: 'AdminEnvelopeLayout' }
+    );
+  } else if (isOrgOwner) {
+    // Organization owner only sees pricing management
+    menuItems.push(
+      { id: 'pricing', label: 'Pricing Tiers', icon: DollarSign, path: 'AdminPricing' }
+    );
+  }
 
   const currentPath = location.pathname;
 
@@ -62,7 +80,9 @@ export default function SuperAdminLayout({ children }) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Shield className="w-6 h-6 text-indigo-600" />
-              <h1 className="text-xl font-bold text-gray-900">Super Admin</h1>
+              <h1 className="text-xl font-bold text-gray-900">
+                {isSuperAdmin ? 'Super Admin' : 'Admin Settings'}
+              </h1>
             </div>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">{user?.full_name}</span>
@@ -79,17 +99,17 @@ export default function SuperAdminLayout({ children }) {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(10vh-73px)]">
+        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-73px)]">
           <nav className="p-4">
             <div className="space-y-1">
-              {menuItems.map((item) => { // Changed navItems to menuItems
+              {menuItems.map((item) => {
                 const Icon = item.icon;
-                const itemUrl = createPageUrl(item.path); // Changed item.pageName to item.path
+                const itemUrl = createPageUrl(item.path);
                 const isActive = currentPath === itemUrl;
                 
                 return (
                   <Link
-                    key={item.id} // Changed item.pageName to item.id
+                    key={item.id}
                     to={itemUrl}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                       isActive
