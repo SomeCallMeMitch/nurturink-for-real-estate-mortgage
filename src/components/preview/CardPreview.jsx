@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 
 // Utility function for font mapping
@@ -14,7 +13,7 @@ const getFontClass = (fontName) => {
 
 // Replace placeholders in text with actual values
 // Supports {{client.firstName}}, {{me.fullName}}, {{org.name}} format
-const replacePlaceholders = (text, client, user, organization, noteStyleProfile) => {
+const replacePlaceholders = (text, client, user, organization) => {
   if (!text) return '';
   
   let result = text;
@@ -65,21 +64,21 @@ const replacePlaceholders = (text, client, user, organization, noteStyleProfile)
 };
 
 // Compose complete message with greeting, body, and signature
-const composeCompleteMessage = (greeting, message, signature, client, user, organization, noteStyleProfile) => {
+const composeCompleteMessage = (greeting, message, signature, client, user, organization) => {
   const parts = [];
   
   if (greeting) {
-    const processedGreeting = replacePlaceholders(greeting, client, user, organization, noteStyleProfile);
+    const processedGreeting = replacePlaceholders(greeting, client, user, organization);
     if (processedGreeting) parts.push(processedGreeting);
   }
   
   if (message) {
-    const processedMessage = replacePlaceholders(message, client, user, organization, noteStyleProfile);
+    const processedMessage = replacePlaceholders(message, client, user, organization);
     if (processedMessage) parts.push(processedMessage);
   }
   
   if (signature) {
-    const processedSignature = replacePlaceholders(signature, client, user, organization, noteStyleProfile);
+    const processedSignature = replacePlaceholders(signature, client, user, organization);
     if (processedSignature) parts.push(processedSignature);
   }
   
@@ -167,9 +166,7 @@ const CardPreview = ({
   previewSettings,
   includeGreeting = true,
   includeSignature = true,
-  leaveUnknownInPreview = false,
-  randomIndentEnabled = true, 
-  showLineCounter = false
+  randomIndentEnabled = true
 }) => {
 
   const composedMessage = useMemo(() => 
@@ -179,8 +176,7 @@ const CardPreview = ({
       includeSignature ? (noteStyleProfile?.signatureText || '') : '',
       client,
       user,
-      organization,
-      noteStyleProfile
+      organization
     ),
     [message, client, user, organization, noteStyleProfile, includeGreeting, includeSignature]
   );
@@ -225,8 +221,7 @@ const CardPreview = ({
       noteStyleProfile.signatureText,
       client,
       user,
-      organization,
-      noteStyleProfile
+      organization
     );
     
     const sigLines = messageToLines(rawSignature, {
@@ -324,7 +319,7 @@ const CardPreview = ({
     );
   };
 
-  // FIXED: Use insideImageUrl for the card preview (where the message goes)
+  // Use insideImageUrl for the card preview (where the message goes)
   // Fall back to legacy imageUrl if insideImageUrl is not set
   const designImageUrl = selectedDesign?.insideImageUrl || selectedDesign?.imageUrl;
 
