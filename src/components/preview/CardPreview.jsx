@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 
 // Utility function for font mapping
@@ -11,14 +12,24 @@ const getFontClass = (fontName) => {
   return fontMap[fontName] || 'font-caveat';
 };
 
-// Replace placeholders in text with actual values
-// Supports {{client.firstName}}, {{me.fullName}}, {{org.name}} format
+// ENHANCED: Replace placeholders with comprehensive debugging
 const replacePlaceholders = (text, client, user, organization) => {
   if (!text) return '';
   
+  // Debug: Log what we're working with
+  console.log('🔍 replacePlaceholders called:', {
+    textSample: text.substring(0, 100),
+    hasClient: !!client,
+    hasUser: !!user,
+    hasOrg: !!organization,
+    clientData: client ? { firstName: client.firstName, lastName: client.lastName, fullName: client.fullName } : null,
+    userData: user ? { full_name: user.full_name, firstName: user.firstName, email: user.email } : null,
+    orgData: organization ? { name: organization.name } : null
+  });
+  
   let result = text;
   
-  // Client placeholders - using actual Client entity property names
+  // Client placeholders
   if (client) {
     result = result.replace(/\{\{client\.firstName\}\}/g, client.firstName || '');
     result = result.replace(/\{\{client\.lastName\}\}/g, client.lastName || '');
@@ -37,7 +48,7 @@ const replacePlaceholders = (text, client, user, organization) => {
     result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
   }
   
-  // User/Me placeholders - using actual User entity property names
+  // User/Me placeholders
   if (user) {
     result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
     result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
@@ -52,13 +63,20 @@ const replacePlaceholders = (text, client, user, organization) => {
     result = result.replace(/\{\{me\.zipCode\}\}/g, user.zipCode || '');
   }
   
-  // Organization placeholders - using actual Organization entity property names
+  // Organization placeholders
   if (organization) {
     result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
     result = result.replace(/\{\{org\.website\}\}/g, organization.website || '');
     result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
     result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
   }
+  
+  // Debug: Log the result
+  console.log('✅ replacePlaceholders result:', {
+    original: text.substring(0, 100),
+    replaced: result.substring(0, 100),
+    changed: text !== result
+  });
   
   return result;
 };
@@ -169,17 +187,32 @@ const CardPreview = ({
   randomIndentEnabled = true
 }) => {
 
-  const composedMessage = useMemo(() => 
-    composeCompleteMessage(
+  // Debug: Log props on every render
+  console.log('🎨 CardPreview render:', {
+    messageSample: message?.substring(0, 50),
+    clientName: client?.fullName || 'NO CLIENT',
+    userName: user?.full_name || 'NO USER',
+    orgName: organization?.name || 'NO ORG',
+    profileName: noteStyleProfile?.name || 'NO PROFILE'
+  });
+
+  const composedMessage = useMemo(() => {
+    const result = composeCompleteMessage(
       includeGreeting ? (noteStyleProfile?.defaultGreeting || '') : '',
       message,
       includeSignature ? (noteStyleProfile?.signatureText || '') : '',
       client,
       user,
       organization
-    ),
-    [message, client, user, organization, noteStyleProfile, includeGreeting, includeSignature]
-  );
+    );
+    
+    console.log('📝 composedMessage:', {
+      length: result.length,
+      sample: result.substring(0, 100)
+    });
+    
+    return result;
+  }, [message, client, user, organization, noteStyleProfile, includeGreeting, includeSignature]);
 
   const { fontSize, lineHeight, baseTextWidth, maxIndent } = previewSettings;
 
