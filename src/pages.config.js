@@ -19,6 +19,7 @@ import TemplatePreview from './pages/TemplatePreview';
 import SuperAdminCardManagement from './pages/SuperAdminCardManagement';
 import SelectDesign from './pages/SelectDesign';
 import ReviewAndSend from './pages/ReviewAndSend';
+import MailingConfirmation from './pages/MailingConfirmation';
 import Layout from './Layout.jsx';
 
 
@@ -44,6 +45,7 @@ export const PAGES = {
     "SuperAdminCardManagement": SuperAdminCardManagement,
     "SelectDesign": SelectDesign,
     "ReviewAndSend": ReviewAndSend,
+    "MailingConfirmation": MailingConfirmation,
 }
 
 export const pagesConfig = {

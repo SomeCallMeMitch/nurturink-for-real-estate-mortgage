@@ -1,4 +1,3 @@
-
 import React from "react";
 import MainLayout from "./components/layout/MainLayout";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,8 +8,9 @@ export default function Layout({ children, currentPageName }) {
     "Home",
     "FindClients", 
     "CreateContent",
-    "SelectDesign", // Added "SelectDesign"
-    "ReviewAndSend", // Added ReviewAndSend
+    "SelectDesign",
+    "ReviewAndSend",
+    "MailingConfirmation", // Added MailingConfirmation
     "Templates",
     "EditTemplate",
     "TemplatePreview",
