@@ -232,85 +232,146 @@ export default function AdminEnvelopeLayout() {
               </CardContent>
             </Card>
             
-            {/* Typography Settings */}
+            {/* Typography & Address Settings - TWO COLUMNS */}
             <Card>
               <CardHeader>
-                <CardTitle>Typography</CardTitle>
+                <CardTitle>Typography & Address Settings</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="font-family">Font Family</Label>
-                  <Select
-                    value={localSettings?.envelopeFontFamily || 'Caveat'}
-                    onValueChange={(value) => updateSetting('envelopeFontFamily', value)}
-                  >
-                    <SelectTrigger id="font-family">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Caveat">Caveat</SelectItem>
-                      <SelectItem value="Kalam">Kalam</SelectItem>
-                      <SelectItem value="Patrick Hand">Patrick Hand</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="font-size">Font Size (px)</Label>
-                  <Input
-                    id="font-size"
-                    type="number"
-                    min="8"
-                    max="72"
-                    value={localSettings?.envelopeFontSize || 18}
-                    onChange={(e) => updateSetting('envelopeFontSize', parseInt(e.target.value))}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Valid range: 8-72 pixels</p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="line-height">Line Height</Label>
-                  <Input
-                    id="line-height"
-                    type="number"
-                    min="0.5"
-                    max="3"
-                    step="0.1"
-                    value={localSettings?.envelopeLineHeight || 1.2}
-                    onChange={(e) => updateSetting('envelopeLineHeight', parseFloat(e.target.value))}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Valid range: 0.5-3.0</p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="text-color">Text Color</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="text-color"
-                      type="text"
-                      placeholder="#000000"
-                      value={localSettings?.envelopeTextColor || '#000000'}
-                      onChange={(e) => updateSetting('envelopeTextColor', e.target.value)}
-                      className="flex-1"
-                    />
-                    <input
-                      type="color"
-                      value={localSettings?.envelopeTextColor || '#000000'}
-                      onChange={(e) => updateSetting('envelopeTextColor', e.target.value)}
-                      className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
-                    />
+              <CardContent>
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Left Column: Typography */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-gray-900 text-sm">Typography</h3>
+                    
+                    <div>
+                      <Label htmlFor="font-family">Font Family</Label>
+                      <Select
+                        value={localSettings?.envelopeFontFamily || 'Caveat'}
+                        onValueChange={(value) => updateSetting('envelopeFontFamily', value)}
+                      >
+                        <SelectTrigger id="font-family">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Caveat">Caveat</SelectItem>
+                          <SelectItem value="Kalam">Kalam</SelectItem>
+                          <SelectItem value="Patrick Hand">Patrick Hand</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="font-size">Font Size (px)</Label>
+                      <Input
+                        id="font-size"
+                        type="number"
+                        min="8"
+                        max="72"
+                        value={localSettings?.envelopeFontSize || 18}
+                        onChange={(e) => updateSetting('envelopeFontSize', parseInt(e.target.value))}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Valid range: 8-72 pixels</p>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="line-height">Line Height</Label>
+                      <Input
+                        id="line-height"
+                        type="number"
+                        min="0.5"
+                        max="3"
+                        step="0.1"
+                        value={localSettings?.envelopeLineHeight || 1.2}
+                        onChange={(e) => updateSetting('envelopeLineHeight', parseFloat(e.target.value))}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Valid range: 0.5-3.0</p>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="text-color">Text Color</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="text-color"
+                          type="text"
+                          placeholder="#000000"
+                          value={localSettings?.envelopeTextColor || '#000000'}
+                          onChange={(e) => updateSetting('envelopeTextColor', e.target.value)}
+                          className="flex-1"
+                        />
+                        <input
+                          type="color"
+                          value={localSettings?.envelopeTextColor || '#000000'}
+                          onChange={(e) => updateSetting('envelopeTextColor', e.target.value)}
+                          className="w-12 h-10 rounded border border-gray-300 cursor-pointer"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Hex color code</p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">Hex color code (e.g., #000000)</p>
+                  
+                  {/* Right Column: Return Address & Recipient Address */}
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-gray-900 text-sm">Return Address</h3>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="return-left" className="text-xs">Left Offset (px)</Label>
+                        <Input
+                          id="return-left"
+                          type="number"
+                          min="0"
+                          value={localSettings?.returnAddressLeftOffset || 20}
+                          onChange={(e) => updateSetting('returnAddressLeftOffset', parseInt(e.target.value))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="return-top" className="text-xs">Top Offset (px)</Label>
+                        <Input
+                          id="return-top"
+                          type="number"
+                          min="0"
+                          value={localSettings?.returnAddressTopOffset || 20}
+                          onChange={(e) => updateSetting('returnAddressTopOffset', parseInt(e.target.value))}
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="pt-3 border-t">
+                      <h3 className="font-semibold text-gray-900 text-sm mb-3">Recipient Address</h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label htmlFor="recipient-left" className="text-xs">Left Offset (px)</Label>
+                          <Input
+                            id="recipient-left"
+                            type="number"
+                            min="0"
+                            value={localSettings?.recipientAddressLeftOffset || 250}
+                            onChange={(e) => updateSetting('recipientAddressLeftOffset', parseInt(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="recipient-top" className="text-xs">Top Offset (px)</Label>
+                          <Input
+                            id="recipient-top"
+                            type="number"
+                            min="0"
+                            value={localSettings?.recipientAddressTopOffset || 150}
+                            onChange={(e) => updateSetting('recipientAddressTopOffset', parseInt(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
             
-            {/* Return Address */}
+            {/* Return Address Text Template */}
             <Card>
               <CardHeader>
-                <CardTitle>Return Address</CardTitle>
+                <CardTitle>Return Address Text Template</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent>
                 <div>
                   <Label htmlFor="return-text">Return Address Text</Label>
                   <Textarea
@@ -323,60 +384,6 @@ export default function AdminEnvelopeLayout() {
                   <p className="text-xs text-gray-500 mt-1">
                     Use placeholders: {'{{org.name}}'}, {'{{org.street}}'}, {'{{org.city}}'}, {'{{org.state}}'}, {'{{org.zipCode}}'}
                   </p>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="return-left">Left Offset (px)</Label>
-                    <Input
-                      id="return-left"
-                      type="number"
-                      min="0"
-                      value={localSettings?.returnAddressLeftOffset || 20}
-                      onChange={(e) => updateSetting('returnAddressLeftOffset', parseInt(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="return-top">Top Offset (px)</Label>
-                    <Input
-                      id="return-top"
-                      type="number"
-                      min="0"
-                      value={localSettings?.returnAddressTopOffset || 20}
-                      onChange={(e) => updateSetting('returnAddressTopOffset', parseInt(e.target.value))}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Recipient Address */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recipient Address</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="recipient-left">Left Offset (px)</Label>
-                    <Input
-                      id="recipient-left"
-                      type="number"
-                      min="0"
-                      value={localSettings?.recipientAddressLeftOffset || 250}
-                      onChange={(e) => updateSetting('recipientAddressLeftOffset', parseInt(e.target.value))}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="recipient-top">Top Offset (px)</Label>
-                    <Input
-                      id="recipient-top"
-                      type="number"
-                      min="0"
-                      value={localSettings?.recipientAddressTopOffset || 150}
-                      onChange={(e) => updateSetting('recipientAddressTopOffset', parseInt(e.target.value))}
-                    />
-                  </div>
                 </div>
               </CardContent>
             </Card>
