@@ -81,10 +81,6 @@ export default function SelectDesign() {
       const batchData = batch[0];
       setMailingBatch(batchData);
       
-      // Initialize local state
-      setLocalSelectedDesignId(batchData.selectedCardDesignId);
-      setLocalDesignOverrides(batchData.cardDesignOverrides || {});
-      
       // Load clients
       const clientList = await base44.entities.Client.filter({
         id: { $in: batchData.selectedClientIds }
@@ -94,6 +90,26 @@ export default function SelectDesign() {
       // Load card designs (platform only for now)
       const designList = await base44.entities.CardDesign.filter({ type: 'platform' });
       setDesigns(designList);
+      
+      // Auto-select default design if none is selected yet
+      if (!batchData.selectedCardDesignId && designList.length > 0) {
+        const defaultDesign = designList.find(d => d.isDefault) || designList[0];
+        
+        // Set local state
+        setLocalSelectedDesignId(defaultDesign.id);
+        setLocalDesignOverrides(batchData.cardDesignOverrides || {});
+        
+        // Immediately save to database
+        await base44.entities.MailingBatch.update(mailingBatchId, {
+          selectedCardDesignId: defaultDesign.id
+        });
+        
+        console.log('✅ Auto-selected default card design:', defaultDesign.name);
+      } else {
+        // Initialize local state from existing batch data
+        setLocalSelectedDesignId(batchData.selectedCardDesignId);
+        setLocalDesignOverrides(batchData.cardDesignOverrides || {});
+      }
       
       // Load categories
       const categoryList = await base44.entities.CardDesignCategory.filter({ orgId: null });
@@ -185,7 +201,7 @@ export default function SelectDesign() {
     }
   };
 
-  // UPDATED: Memoize current client - updates when recipient changes
+  // Memoize current client - updates when recipient changes
   const getCurrentClient = useMemo(() => {
     if (editMode === 'individual' && selectedRecipientId) {
       return clients.find(c => c.id === selectedRecipientId) || clients[0] || {};
@@ -193,7 +209,7 @@ export default function SelectDesign() {
     return clients[0] || {};
   }, [editMode, selectedRecipientId, clients]);
 
-  // UPDATED: Memoize current message - updates when recipient or batch changes
+  // Memoize current message - updates when recipient or batch changes
   const getCurrentMessage = useMemo(() => {
     if (!mailingBatch) return '';
     
@@ -543,7 +559,7 @@ export default function SelectDesign() {
             </Card>
           </div>
 
-          {/* Right Column: Preview - UPDATED */}
+          {/* Right Column: Preview */}
           <div className="col-span-4">
             <Card className="sticky top-6">
               <CardContent className="pt-6">
