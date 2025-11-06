@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { 
   Loader2, 
   CreditCard, 
@@ -12,8 +12,22 @@ import {
   Star,
   Clock,
   Users,
-  AlertCircle
+  AlertCircle,
+  Download,
+  Search,
+  Filter,
+  TrendingUp,
+  TrendingDown,
+  RefreshCw,
+  Receipt
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function Credits() {
@@ -31,6 +45,12 @@ export default function Credits() {
   const [error, setError] = useState(null);
   const [purchasingTierId, setPurchasingTierId] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState(null);
+  
+  // Transaction filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date-desc');
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -50,7 +70,6 @@ export default function Credits() {
       });
       
       // Clean URL after showing toast
-      // We need to keep the 'page' param if it exists, or just clear other params
       const newSearchParams = new URLSearchParams();
       if (urlParams.has('page')) {
           newSearchParams.set('page', urlParams.get('page'));
@@ -128,7 +147,7 @@ export default function Credits() {
         setPricingTiers(platformTiers.sort((a, b) => a.sortOrder - b.sortOrder));
       }
       
-      // Load transaction history
+      // Load transaction history - get more for filtering
       const transactionQuery = currentUser.orgId 
         ? { orgId: currentUser.orgId }
         : { userId: currentUser.id };
@@ -136,7 +155,7 @@ export default function Credits() {
       const transactionList = await base44.entities.Transaction.filter(
         transactionQuery,
         '-created_date',
-        10
+        100 // Load more for filtering
       );
       setTransactions(transactionList);
       
@@ -156,6 +175,66 @@ export default function Credits() {
     return user?.creditBalance || 0;
   }, [user, organization]);
 
+  // Calculate transaction statistics
+  const transactionStats = useMemo(() => {
+    const purchases = transactions.filter(t => 
+      t.type === 'purchase_user' || t.type === 'purchase_org'
+    );
+    const usages = transactions.filter(t => t.type === 'deduction');
+    
+    return {
+      totalPurchased: purchases.reduce((sum, t) => sum + t.amount, 0),
+      totalSpent: Math.abs(usages.reduce((sum, t) => sum + t.amount, 0)),
+      purchaseCount: purchases.length,
+      usageCount: usages.length
+    };
+  }, [transactions]);
+
+  // Filter and sort transactions
+  const filteredTransactions = useMemo(() => {
+    let filtered = [...transactions];
+    
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(t => 
+        t.description.toLowerCase().includes(query) ||
+        t.type.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply type filter
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(t => t.type === typeFilter);
+    }
+    
+    // Apply sorting
+    switch (sortBy) {
+      case 'date-asc':
+        filtered.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+        break;
+      case 'date-desc':
+        filtered.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+        break;
+      case 'amount-asc':
+        filtered.sort((a, b) => a.amount - b.amount);
+        break;
+      case 'amount-desc':
+        filtered.sort((a, b) => b.amount - a.amount);
+        break;
+      default:
+        break;
+    }
+    
+    return filtered;
+  }, [transactions, searchQuery, typeFilter, sortBy]);
+
+  // Get unique transaction types for filter
+  const transactionTypes = useMemo(() => {
+    const types = new Set(transactions.map(t => t.type));
+    return Array.from(types);
+  }, [transactions]);
+
   // Format price for display
   const formatPrice = (priceInCents) => {
     return `$${(priceInCents / 100).toFixed(2)}`;
@@ -163,7 +242,7 @@ export default function Credits() {
 
   // Calculate price per note
   const getPricePerNote = (priceInCents, creditAmount) => {
-    if (creditAmount === 0) return '$0.00'; // Avoid division by zero
+    if (creditAmount === 0) return '$0.00';
     return `$${(priceInCents / 100 / creditAmount).toFixed(2)}`;
   };
 
@@ -204,6 +283,69 @@ export default function Credits() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Get transaction type label
+  const getTransactionTypeLabel = (type) => {
+    const labels = {
+      'purchase_user': 'Purchase (Individual)',
+      'purchase_org': 'Purchase (Organization)',
+      'deduction': 'Note Sent',
+      'refund_user': 'Refund (Individual)',
+      'refund_org': 'Refund (Organization)',
+      'allocation_in': 'Credit Allocation',
+      'allocation_out': 'Credit Deallocation',
+      'voucher': 'Voucher Applied'
+    };
+    return labels[type] || type;
+  };
+
+  // Get transaction icon
+  const getTransactionIcon = (type) => {
+    if (type.includes('purchase') || type === 'allocation_in' || type === 'voucher') {
+      return <TrendingUp className="w-5 h-5 text-green-600" />;
+    } else {
+      return <TrendingDown className="w-5 h-5 text-red-600" />;
+    }
+  };
+
+  // Handle export
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      
+      const response = await base44.functions.invoke('exportTransactionHistory', {
+        format: 'csv'
+      });
+      
+      // Create blob and download
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+      
+      toast({
+        title: 'Export Successful',
+        description: 'Transaction history exported to CSV',
+        duration: 3000,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export transaction history',
+        variant: 'destructive',
+        duration: 3000
+      });
+    } finally {
+      setExporting(false);
+    }
   };
 
   // Loading state
@@ -247,23 +389,61 @@ export default function Credits() {
           </p>
         </div>
 
-        {/* Current Balance Card */}
-        <Card className="mb-8 bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-0 shadow-xl">
-          <CardContent className="py-8">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <h2 className="text-xl font-semibold mb-2 text-indigo-100">Current Balance</h2>
-                <div className="flex items-baseline gap-3">
-                  <span className="text-5xl font-bold">{currentBalance}</span>
-                  <span className="text-2xl text-indigo-100">Notes remaining</span>
+        {/* Current Balance and Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          {/* Current Balance Card */}
+          <Card className="md:col-span-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-0 shadow-xl">
+            <CardContent className="py-8">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h2 className="text-xl font-semibold mb-2 text-indigo-100">Current Balance</h2>
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-5xl font-bold">{currentBalance}</span>
+                    <span className="text-2xl text-indigo-100">Notes remaining</span>
+                  </div>
+                </div>
+                <div className="bg-white/20 p-6 rounded-xl backdrop-blur-sm">
+                  <CreditCard className="w-16 h-16" />
                 </div>
               </div>
-              <div className="bg-white/20 p-6 rounded-xl backdrop-blur-sm">
-                <CreditCard className="w-16 h-16" />
+            </CardContent>
+          </Card>
+
+          {/* Stats Cards */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Total Purchased</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    +{transactionStats.totalPurchased}
+                  </p>
+                </div>
+                <TrendingUp className="w-8 h-8 text-green-500" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <p className="text-xs text-gray-500 mt-2">
+                {transactionStats.purchaseCount} {transactionStats.purchaseCount === 1 ? 'purchase' : 'purchases'}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">Total Spent</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    -{transactionStats.totalSpent}
+                  </p>
+                </div>
+                <TrendingDown className="w-8 h-8 text-red-500" />
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                {transactionStats.usageCount} {transactionStats.usageCount === 1 ? 'note' : 'notes'} sent
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Pricing Tiers Section */}
         <div className="mb-12">
@@ -365,36 +545,155 @@ export default function Credits() {
         {/* Credit History Section */}
         <Card className="mb-8">
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-gray-600" />
-              <CardTitle>Credit History</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-gray-600" />
+                <CardTitle>Credit History</CardTitle>
+                <span className="text-sm text-gray-500">
+                  ({filteredTransactions.length} {filteredTransactions.length === 1 ? 'transaction' : 'transactions'})
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => loadData()}
+                  disabled={loading}
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleExport}
+                  disabled={exporting || transactions.length === 0}
+                >
+                  {exporting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Exporting...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Export CSV
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </CardHeader>
+          
           <CardContent>
-            {transactions.length === 0 ? (
+            {/* Filters */}
+            {transactions.length > 0 && (
+              <div className="flex flex-wrap gap-4 mb-6 pb-6 border-b">
+                {/* Search */}
+                <div className="flex-1 min-w-[200px]">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Search transactions..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Type Filter */}
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filter by type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    {transactionTypes.map(type => (
+                      <SelectItem key={type} value={type}>
+                        {getTransactionTypeLabel(type)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Sort */}
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="date-desc">Date (Newest First)</SelectItem>
+                    <SelectItem value="date-asc">Date (Oldest First)</SelectItem>
+                    <SelectItem value="amount-desc">Amount (Highest First)</SelectItem>
+                    <SelectItem value="amount-asc">Amount (Lowest First)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Transaction List */}
+            {filteredTransactions.length === 0 ? (
               <div className="text-center py-8">
-                <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">No credit history yet</p>
-                <p className="text-sm text-gray-400 mt-1">
-                  Your purchases and usage will appear here
-                </p>
+                {transactions.length === 0 ? (
+                  <>
+                    <Clock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">No credit history yet</p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Your purchases and usage will appear here
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500">No transactions match your filters</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSearchQuery('');
+                        setTypeFilter('all');
+                      }}
+                      className="mt-3"
+                    >
+                      Clear Filters
+                    </Button>
+                  </>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
-                {transactions.map((transaction) => (
+                {filteredTransactions.map((transaction) => (
                   <div 
                     key={transaction.id}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">
-                        {transaction.description}
-                      </div>
-                      <div className="text-sm text-gray-500 mt-1">
-                        {formatTransactionDate(transaction.createdAt)}
+                    <div className="flex items-start gap-3 flex-1">
+                      {getTransactionIcon(transaction.type)}
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-1">
+                          <div className="font-medium text-gray-900">
+                            {transaction.description}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatTransactionDate(transaction.created_date)}
+                          </span>
+                          <span className="px-2 py-0.5 bg-gray-200 text-gray-700 rounded text-xs font-medium">
+                            {getTransactionTypeLabel(transaction.type)}
+                          </span>
+                          {transaction.stripePaymentId && (
+                            <span className="flex items-center gap-1 text-xs">
+                              <Receipt className="w-3 h-3" />
+                              {transaction.stripePaymentId.substring(0, 20)}...
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right ml-4">
                       <div className={`text-lg font-semibold ${
                         transaction.amount > 0 
                           ? 'text-green-600' 
