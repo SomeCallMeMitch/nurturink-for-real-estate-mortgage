@@ -2,22 +2,24 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { 
-  Home, 
-  Send,        // Changed from Mail for "Send a Note"
-  Settings, 
-  LogOut, 
-  FileText, 
-  Shield, 
-  ChevronDown, // New icon for dropdown
-  ChevronUp    // New icon for dropdown
+import {
+  Home,
+  Mail,        // Changed from Send to Mail for "Send a Card"
+  Settings,
+  LogOut,
+  FileText,
+  Shield,
+  Users,       // New icon for Clients
+  DollarSign,  // New icon for Credits
+  BarChart3    // New icon for Analytics
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function LeftSidebar() {
   const location = useLocation();
   const [user, setUser] = useState(null); // State to hold user data
-  const [openSettings, setOpenSettings] = useState(false); // State to manage settings submenu visibility
+  // The state `openSettings` and its related `useEffect` are removed
+  // because the 'Settings' menu item no longer has sub-items and is not collapsible.
 
   // Effect to load user data when the component mounts
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function LeftSidebar() {
         } else if (base44.auth.currentUser) { // Fallback if it's a direct property
             currentUser = base44.auth.currentUser;
         }
-        
+
         // Mock user data for local development if no real user is found
         if (!currentUser) {
             console.warn("No user found from base44.auth. Using mock user for development purposes.");
@@ -42,6 +44,7 @@ export default function LeftSidebar() {
                 appRole: 'organization_owner', // Example: this user has this app role
                 // Uncomment the line below to test 'super_admin' role:
                 // appRole: 'super_admin',
+                // appRole: 'sales_rep',
             };
         }
       } catch (error) {
@@ -65,145 +68,119 @@ export default function LeftSidebar() {
     // Optionally redirect user to login page or clear local state
     setUser(null);
   };
-  
-  // Updated menu items with nested sub-items for Settings
+
+  // Updated menu items with roles and flat structure (no nested sub-items)
   const menuItems = [
-    { id: 'home', label: 'Home', icon: Home, page: 'Home' },
-    { id: 'send-note', label: 'Send a Note', icon: Send, page: 'FindClients' },
-    { id: 'templates', label: 'Templates', icon: FileText, page: 'Templates' },
-    { 
-      id: 'settings', 
-      label: 'Settings', 
+    {
+      id: 'home',
+      label: 'Home',
+      icon: Home,
+      path: 'Home',
+      roles: ['sales_rep', 'organization_owner', 'super_admin']
+    },
+    {
+      id: 'send-card',
+      label: 'Send a Card',
+      icon: Mail,
+      path: 'FindClients',
+      roles: ['sales_rep', 'organization_owner']
+    },
+    {
+      id: 'clients',
+      label: 'Clients',
+      icon: Users,
+      path: 'AdminClients',
+      roles: ['sales_rep', 'organization_owner']
+    },
+    {
+      id: 'templates',
+      label: 'Templates',
+      icon: FileText,
+      path: 'Templates',
+      roles: ['sales_rep', 'organization_owner']
+    },
+    {
+      id: 'credits',
+      label: 'Credits',
+      icon: DollarSign,
+      path: 'Credits',
+      roles: ['sales_rep', 'organization_owner']
+    },
+    {
+      id: 'analytics',
+      label: 'Analytics',
+      icon: BarChart3,
+      path: 'Analytics',
+      roles: ['sales_rep', 'organization_owner']
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
       icon: Settings,
-      subItems: [
-        { id: 'profile', label: 'Profile', page: 'SettingsProfile' },
-        { 
-          id: 'organization', 
-          label: 'Organization', 
-          page: 'SettingsOrganization',
-          // Show for org owners AND super admins. 'user' state is required here.
-          visible: user?.isOrgOwner || user?.appRole === 'organization_owner' || user?.appRole === 'super_admin'
-        },
-        { id: 'writing-style', label: 'Writing Style', page: 'SettingsWritingStyle' },
-        { id: 'addresses', label: 'Addresses', page: 'SettingsAddresses' },
-        { id: 'phone-numbers', label: 'Phone Numbers', page: 'SettingsPhones' },
-        { id: 'websites-urls', label: 'Websites & URLs', page: 'SettingsUrls' }
-      ]
+      path: 'SettingsProfile',
+      roles: ['sales_rep', 'organization_owner', 'super_admin']
     }
   ];
 
   const superAdminPageUrl = createPageUrl('SuperAdminDashboard');
 
-  // Helper function to check if a menu item (or sub-item) is active
+  // Helper function to check if a menu item is active
   const isMenuItemActive = (pageName) => {
     const pageUrl = createPageUrl(pageName);
     // Checks for exact match or startsWith for nested routes, avoiding '/' for root if not exact
-    return location.pathname === pageUrl || 
+    return location.pathname === pageUrl ||
            (pageUrl !== "/" && location.pathname.startsWith(pageUrl));
   };
 
-  // Effect to automatically open the Settings submenu if any of its sub-items are active
-  useEffect(() => {
-    const settingsItem = menuItems.find(item => item.id === 'settings');
-    if (settingsItem && settingsItem.subItems) {
-      const anySubItemActive = settingsItem.subItems.some(subItem => 
-        (subItem.visible === undefined || subItem.visible) && isMenuItemActive(subItem.page)
-      );
-      if (anySubItemActive) {
-        setOpenSettings(true);
-      }
-    }
-  }, [location.pathname, user, menuItems]); // Re-run if path, user, or menuItems (due to user) changes
+  // The useEffect for `openSettings` is removed as 'Settings' is no longer a dropdown.
+
+  // Filter menu items based on the user's role
+  const visibleMenuItems = user ? menuItems.filter(item =>
+    item.roles && item.roles.includes(user.appRole)
+  ) : []; // If user is null (e.g., still loading), show no items.
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-indigo-600">RoofScribe</h1>
       </div>
-      
+
       <nav className="flex-1 p-4 space-y-2">
-        {menuItems.map((item) => {
-          if (item.subItems) {
-            // Render a collapsible section for items with subItems (e.g., "Settings")
-            const Icon = item.icon;
-            const hasActiveSubItem = item.subItems.some(subItem => 
-              (subItem.visible === undefined || subItem.visible) && isMenuItemActive(subItem.page)
-            );
-            
-            return (
-              <div key={item.id}>
-                <button
-                  onClick={() => setOpenSettings(!openSettings)}
-                  className={`flex items-center justify-between w-full px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors ${
-                    openSettings || hasActiveSubItem ? "bg-indigo-50 text-indigo-600 font-semibold" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </div>
-                  {openSettings ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-                {openSettings && (
-                  <div className="ml-6 mt-1 space-y-1"> {/* Indent sub-items */}
-                    {item.subItems.map((subItem) => {
-                      // Only render sub-item if its 'visible' condition is true or not specified
-                      if (subItem.visible === false) return null;
+        {visibleMenuItems.map((item) => {
+          // All menu items are now top-level links
+          const Icon = item.icon;
+          const isActive = isMenuItemActive(item.path); // Use item.path as defined in menuItems
 
-                      const subItemPageUrl = createPageUrl(subItem.page);
-                      const isSubActive = isMenuItemActive(subItem.page);
-
-                      return (
-                        <Link
-                          key={subItem.id}
-                          to={subItemPageUrl}
-                          className={`flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors ${
-                            isSubActive ? "bg-indigo-50 text-indigo-600 font-semibold" : ""
-                          }`}
-                        >
-                          <span className="text-sm">{subItem.label}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          } else {
-            // Render regular top-level menu item
-            const Icon = item.icon;
-            const isActive = isMenuItemActive(item.page);
-            
-            return (
-              <Link
-                key={item.id}
-                to={createPageUrl(item.page)}
-                className={`flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors ${
-                  isActive ? "bg-indigo-50 text-indigo-600 font-semibold" : ""
-                }`}
-              >
-                <Icon className="w-5 h-5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          }
+          return (
+            <Link
+              key={item.id}
+              to={createPageUrl(item.path)} // Use item.path to create the URL
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors ${
+                isActive ? "bg-indigo-50 text-indigo-600 font-semibold" : ""
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+              <span>{item.label}</span>
+            </Link>
+          );
         })}
 
-        {/* Super Admin Link - This section was part of the original code and kept as per instructions.
-            It's not part of the 'menuItems' array. */}
-        <div className="pt-4 mt-4 border-t border-gray-200">
-          <Link
-            to={superAdminPageUrl}
-            className={`flex items-center gap-3 px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors ${
-              location.pathname === superAdminPageUrl ? "bg-purple-50 text-purple-700 font-semibold" : ""
-            }`}
-          >
-            <Shield className="w-5 h-5" />
-            <span>Super Admin</span>
-          </Link>
-        </div>
+        {/* Super Admin Link - Conditionally rendered only for 'super_admin' role */}
+        {user && user.appRole === 'super_admin' && (
+          <div className="pt-4 mt-4 border-t border-gray-200">
+            <Link
+              to={superAdminPageUrl}
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors ${
+                location.pathname === superAdminPageUrl ? "bg-purple-50 text-purple-700 font-semibold" : ""
+              }`}
+            >
+              <Shield className="w-5 h-5" />
+              <span>Super Admin</span>
+            </Link>
+          </div>
+        )}
       </nav>
-      
+
       <div className="p-4 border-t border-gray-200">
         <button
           onClick={handleLogout}

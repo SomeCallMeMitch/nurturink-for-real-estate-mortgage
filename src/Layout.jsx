@@ -28,7 +28,8 @@ export default function Layout({ children, currentPageName }) {
     "SettingsUrls",
     "SettingsTeam",
     "SuperAdminCardManagement",
-    "AdminPricing" // Added AdminPricing
+    "AdminPricing", // Added AdminPricing
+    "Credits" // Added Credits page
   ];
   
   // Check if current page should use MainLayout
