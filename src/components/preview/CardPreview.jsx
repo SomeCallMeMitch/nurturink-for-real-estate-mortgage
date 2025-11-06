@@ -12,20 +12,10 @@ const getFontClass = (fontName) => {
   return fontMap[fontName] || 'font-caveat';
 };
 
-// ENHANCED: Replace placeholders with comprehensive debugging
+// Replace placeholders in text with actual values
+// Supports {{client.firstName}}, {{me.fullName}}, {{org.name}} format
 const replacePlaceholders = (text, client, user, organization) => {
   if (!text) return '';
-  
-  // Debug: Log what we're working with
-  console.log('🔍 replacePlaceholders called:', {
-    textSample: text.substring(0, 100),
-    hasClient: !!client,
-    hasUser: !!user,
-    hasOrg: !!organization,
-    clientData: client ? { firstName: client.firstName, lastName: client.lastName, fullName: client.fullName } : null,
-    userData: user ? { full_name: user.full_name, firstName: user.firstName, email: user.email } : null,
-    orgData: organization ? { name: organization.name } : null
-  });
   
   let result = text;
   
@@ -70,13 +60,6 @@ const replacePlaceholders = (text, client, user, organization) => {
     result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
     result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
   }
-  
-  // Debug: Log the result
-  console.log('✅ replacePlaceholders result:', {
-    original: text.substring(0, 100),
-    replaced: result.substring(0, 100),
-    changed: text !== result
-  });
   
   return result;
 };
@@ -187,32 +170,17 @@ const CardPreview = ({
   randomIndentEnabled = true
 }) => {
 
-  // Debug: Log props on every render
-  console.log('🎨 CardPreview render:', {
-    messageSample: message?.substring(0, 50),
-    clientName: client?.fullName || 'NO CLIENT',
-    userName: user?.full_name || 'NO USER',
-    orgName: organization?.name || 'NO ORG',
-    profileName: noteStyleProfile?.name || 'NO PROFILE'
-  });
-
-  const composedMessage = useMemo(() => {
-    const result = composeCompleteMessage(
+  const composedMessage = useMemo(() => 
+    composeCompleteMessage(
       includeGreeting ? (noteStyleProfile?.defaultGreeting || '') : '',
       message,
       includeSignature ? (noteStyleProfile?.signatureText || '') : '',
       client,
       user,
       organization
-    );
-    
-    console.log('📝 composedMessage:', {
-      length: result.length,
-      sample: result.substring(0, 100)
-    });
-    
-    return result;
-  }, [message, client, user, organization, noteStyleProfile, includeGreeting, includeSignature]);
+    ),
+    [message, client, user, organization, noteStyleProfile, includeGreeting, includeSignature]
+  );
 
   const { fontSize, lineHeight, baseTextWidth, maxIndent } = previewSettings;
 
