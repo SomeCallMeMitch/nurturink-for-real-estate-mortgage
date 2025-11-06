@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -17,59 +16,59 @@ import { base44 } from "@/api/base44Client";
 
 export default function LeftSidebar() {
   const location = useLocation();
-  const [user, setUser] = useState(null); // State to hold user data
-  // The state `openSettings` and its related `useEffect` are removed
-  // because the 'Settings' menu item no longer has sub-items and is not collapsible.
+  const [user, setUser] = useState(null);
 
   // Effect to load user data when the component mounts
   useEffect(() => {
     const fetchUser = async () => {
       let currentUser = null;
       try {
-        // Attempt to get the current user from base44 client.
-        // Assuming base44.auth.getCurrentUser() is an async function or a direct property.
-        if (typeof base44.auth.getCurrentUser === 'function') {
-            currentUser = await base44.auth.getCurrentUser();
-        } else if (base44.auth.currentUser) { // Fallback if it's a direct property
-            currentUser = base44.auth.currentUser;
-        }
+        console.log('🔍 [LeftSidebar] Fetching user data...');
+        
+        // Attempt to get the current user from base44 client
+        currentUser = await base44.auth.me();
+        
+        console.log('✅ [LeftSidebar] User fetched successfully:', currentUser);
+        console.log('👤 [LeftSidebar] User appRole:', currentUser?.appRole);
+        console.log('🔐 [LeftSidebar] User full object:', JSON.stringify(currentUser, null, 2));
 
         // Mock user data for local development if no real user is found
         if (!currentUser) {
-            console.warn("No user found from base44.auth. Using mock user for development purposes.");
+            console.warn("⚠️ [LeftSidebar] No user found from base44.auth.me(). Using mock user for development purposes.");
             currentUser = {
                 id: 'mock-user-123',
                 email: 'test@example.com',
-                isOrgOwner: true, // Example: this user is an org owner
-                appRole: 'organization_owner', // Example: this user has this app role
+                isOrgOwner: true,
+                appRole: 'organization_owner',
                 // Uncomment the line below to test 'super_admin' role:
                 // appRole: 'super_admin',
-                // appRole: 'sales_rep',
             };
+            console.log('🧪 [LeftSidebar] Using mock user:', currentUser);
         }
       } catch (error) {
-        console.error("Failed to fetch current user:", error);
+        console.error("❌ [LeftSidebar] Failed to fetch current user:", error);
         // Set a default user or null on error
         currentUser = {
             id: 'error-user',
             email: 'error@example.com',
             isOrgOwner: false,
-            appRole: 'user', // Default role
+            appRole: 'user',
         };
+        console.log('⚠️ [LeftSidebar] Using error fallback user:', currentUser);
       } finally {
         setUser(currentUser);
+        console.log('📝 [LeftSidebar] Final user state set to:', currentUser);
       }
     };
     fetchUser();
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
   const handleLogout = async () => {
     await base44.auth.logout();
-    // Optionally redirect user to login page or clear local state
     setUser(null);
   };
 
-  // Updated menu items with roles and flat structure (no nested sub-items)
+  // Updated menu items with roles and flat structure
   const menuItems = [
     {
       id: 'home',
@@ -127,17 +126,21 @@ export default function LeftSidebar() {
   // Helper function to check if a menu item is active
   const isMenuItemActive = (pageName) => {
     const pageUrl = createPageUrl(pageName);
-    // Checks for exact match or startsWith for nested routes, avoiding '/' for root if not exact
     return location.pathname === pageUrl ||
            (pageUrl !== "/" && location.pathname.startsWith(pageUrl));
   };
 
-  // The useEffect for `openSettings` is removed as 'Settings' is no longer a dropdown.
-
   // Filter menu items based on the user's role
   const visibleMenuItems = user ? menuItems.filter(item =>
     item.roles && item.roles.includes(user.appRole)
-  ) : []; // If user is null (e.g., still loading), show no items.
+  ) : [];
+
+  console.log('🎯 [LeftSidebar] Visible menu items count:', visibleMenuItems.length);
+  console.log('🔍 [LeftSidebar] Checking super admin condition:');
+  console.log('   - user exists:', !!user);
+  console.log('   - user.appRole:', user?.appRole);
+  console.log('   - appRole === "super_admin":', user?.appRole === 'super_admin');
+  console.log('   - Should show super admin link:', !!(user && user.appRole === 'super_admin'));
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
@@ -147,14 +150,13 @@ export default function LeftSidebar() {
 
       <nav className="flex-1 p-4 space-y-2">
         {visibleMenuItems.map((item) => {
-          // All menu items are now top-level links
           const Icon = item.icon;
-          const isActive = isMenuItemActive(item.path); // Use item.path as defined in menuItems
+          const isActive = isMenuItemActive(item.path);
 
           return (
             <Link
               key={item.id}
-              to={createPageUrl(item.path)} // Use item.path to create the URL
+              to={createPageUrl(item.path)}
               className={`flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors ${
                 isActive ? "bg-indigo-50 text-indigo-600 font-semibold" : ""
               }`}
@@ -177,6 +179,14 @@ export default function LeftSidebar() {
               <Shield className="w-5 h-5" />
               <span>Super Admin</span>
             </Link>
+          </div>
+        )}
+        
+        {user && user.appRole !== 'super_admin' && (
+          <div className="pt-4 mt-4 border-t border-gray-200">
+            <div className="px-4 py-2 text-xs text-gray-400">
+              ℹ️ Super Admin link hidden (appRole: {user.appRole})
+            </div>
           </div>
         )}
       </nav>
