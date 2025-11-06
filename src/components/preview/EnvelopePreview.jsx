@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 
 /**
@@ -8,6 +9,7 @@ import React, { useMemo } from 'react';
  * @param {Object} client - Sample client object for recipient address
  * @param {Object} user - Current user object for return address placeholders
  * @param {Object} organization - Organization object for return address placeholders
+ * @param {string} returnAddressMode - Determines which return address to display ('company', 'rep', 'none')
  */
 
 // Helper function to replace placeholders in text with actual values
@@ -106,14 +108,36 @@ export default function EnvelopePreview({
   envelopeSettings, 
   client, 
   user, 
-  organization 
+  organization,
+  returnAddressMode = 'company' // NEW: Add returnAddressMode prop
 }) {
-  // Memoize processed return address
+  // Memoize processed return address based on mode
   const returnAddressText = useMemo(() => {
+    // If mode is 'none', return empty string
+    if (returnAddressMode === 'none') {
+      return '';
+    }
+    
+    // If mode is 'rep', format user's address
+    if (returnAddressMode === 'rep') {
+      if (!user?.street && !user?.address2) return ''; // Only show if user has a street address
+      
+      const lines = [];
+      if (user.full_name) lines.push(user.full_name);
+      if (user.street) lines.push(user.street);
+      if (user.address2) lines.push(user.address2);
+      
+      const cityStateZip = [user.city, user.state, user.zipCode].filter(Boolean).join(' ');
+      if (cityStateZip) lines.push(cityStateZip);
+      
+      return lines.join('\n');
+    }
+    
+    // Default to 'company' mode - use template with placeholders
     const rawText = envelopeSettings?.returnAddressText || 
       '{{org.name}}\n{{org.street}}\n{{org.city}}, {{org.state}} {{org.zipCode}}';
     return replacePlaceholders(rawText, client, user, organization);
-  }, [envelopeSettings?.returnAddressText, client, user, organization]);
+  }, [returnAddressMode, envelopeSettings?.returnAddressText, client, user, organization]);
 
   // Memoize formatted recipient address
   const recipientAddressText = useMemo(() => {
@@ -166,20 +190,22 @@ export default function EnvelopePreview({
           </div>
         )}
 
-        {/* Return Address Block */}
-        <div
-          className={`absolute ${fontClass} whitespace-pre-line`}
-          style={{
-            left: `${returnAddressLeftOffset}px`,
-            top: `${returnAddressTopOffset}px`,
-            fontSize: `${envelopeFontSize}px`,
-            lineHeight: envelopeLineHeight,
-            color: envelopeTextColor,
-            maxWidth: '200px'
-          }}
-        >
-          {returnAddressText || 'Return Address'}
-        </div>
+        {/* Return Address Block - Only show if returnAddressText is not empty */}
+        {returnAddressText && (
+          <div
+            className={`absolute ${fontClass} whitespace-pre-line`}
+            style={{
+              left: `${returnAddressLeftOffset}px`,
+              top: `${returnAddressTopOffset}px`,
+              fontSize: `${envelopeFontSize}px`,
+              lineHeight: envelopeLineHeight,
+              color: envelopeTextColor,
+              maxWidth: '200px'
+            }}
+          >
+            {returnAddressText}
+          </div>
+        )}
 
         {/* Recipient Address Block */}
         <div

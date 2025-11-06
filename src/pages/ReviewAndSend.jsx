@@ -1,11 +1,22 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input"; // New import
+import { Label } from "@/components/ui/label";   // New import
 import { Loader2, ArrowRight, AlertTriangle, AlertCircle, Send } from "lucide-react";
 import { debounce } from "lodash";
+import { useToast } from "@/components/ui/use-toast"; // New import
+import { // New imports
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import EditModeSelector from "@/components/mailing/EditModeSelector";
@@ -73,6 +84,7 @@ const formatRepAddress = (user) => {
 
 export default function ReviewAndSend() {
   const navigate = useNavigate();
+  const { toast } = useToast(); // Initialize useToast
   
   // Get mailingBatchId from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -96,6 +108,18 @@ export default function ReviewAndSend() {
   // Local state for return address configuration
   const [localReturnAddressModeGlobal, setLocalReturnAddressModeGlobal] = useState('company');
   const [localReturnAddressModeOverrides, setLocalReturnAddressModeOverrides] = useState({});
+
+  // Add dialog state for editing addresses
+  const [companyAddressDialogOpen, setCompanyAddressDialogOpen] = useState(false);
+  const [repAddressDialogOpen, setRepAddressDialogOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState({
+    street: '',
+    address2: '',
+    city: '',
+    state: '',
+    zipCode: ''
+  });
+  const [savingAddress, setSavingAddress] = useState(false);
 
   // Load all data on mount
   useEffect(() => {
@@ -232,7 +256,8 @@ export default function ReviewAndSend() {
     if (editMode === 'individual' && selectedRecipientId) {
       return clients.find(c => c.id === selectedRecipientId);
     }
-    return clients[0] || {};
+    // Default to the first client or an empty object if no clients
+    return clients[0] || {}; 
   }, [editMode, selectedRecipientId, clients]);
 
   // Prepare recipients for EditModeSelector
@@ -262,6 +287,114 @@ export default function ReviewAndSend() {
       return hasRepAddress ? formatRepAddress(user) : null;
     } else {
       return 'No return address';
+    }
+  };
+
+  // Handle opening company address dialog
+  const handleOpenCompanyAddressDialog = () => {
+    if (organization?.companyReturnAddress) {
+      setEditingAddress({
+        street: organization.companyReturnAddress.street || '',
+        address2: organization.companyReturnAddress.address2 || '',
+        city: organization.companyReturnAddress.city || '',
+        state: organization.companyReturnAddress.state || '',
+        zipCode: organization.companyReturnAddress.zip || ''
+      });
+    } else {
+      setEditingAddress({
+        street: '',
+        address2: '',
+        city: '',
+        state: '',
+        zipCode: ''
+      });
+    }
+    setCompanyAddressDialogOpen(true);
+  };
+
+  // Handle opening rep address dialog
+  const handleOpenRepAddressDialog = () => {
+    setEditingAddress({
+      street: user?.street || '',
+      address2: user?.address2 || '',
+      city: user?.city || '',
+      state: user?.state || '',
+      zipCode: user?.zipCode || ''
+    });
+    setRepAddressDialogOpen(true);
+  };
+
+  // Handle saving company address
+  const handleSaveCompanyAddress = async () => {
+    try {
+      setSavingAddress(true);
+      
+      await base44.entities.Organization.update(organization.id, {
+        companyReturnAddress: {
+          street: editingAddress.street,
+          address2: editingAddress.address2,
+          city: editingAddress.city,
+          state: editingAddress.state,
+          zip: editingAddress.zipCode
+        }
+      });
+      
+      // Reload data to refresh organization
+      await loadData();
+      
+      setCompanyAddressDialogOpen(false);
+      
+      toast({
+        title: 'Company address saved',
+        description: 'Company return address updated successfully',
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Failed to save company address:', error);
+      toast({
+        title: 'Save failed',
+        description: 'Failed to save company address',
+        variant: 'destructive',
+        duration: 3000
+      });
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  // Handle saving rep address
+  const handleSaveRepAddress = async () => {
+    try {
+      setSavingAddress(true);
+      
+      await base44.auth.updateMe({
+        street: editingAddress.street,
+        address2: editingAddress.address2,
+        city: editingAddress.city,
+        state: editingAddress.state,
+        zipCode: editingAddress.zipCode
+      });
+      
+      // Reload data to refresh user
+      await loadData();
+      
+      setRepAddressDialogOpen(false);
+      
+      toast({
+        title: 'Your address saved',
+        description: 'Your return address updated successfully',
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Failed to save rep address:', error);
+      toast({
+        title: 'Save failed',
+        description: 'Failed to save your address',
+        variant: 'destructive',
+        duration: 3000
+      });
+    } finally {
+      setSavingAddress(false);
     }
   };
 
@@ -332,7 +465,7 @@ export default function ReviewAndSend() {
                   {clients.map((client, index) => {
                     const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
                     const effectiveMode = getEffectiveReturnAddressMode(client.id);
-                    const hasOverride = localReturnAddressModeOverrides[client.id];
+                    // const hasOverride = localReturnAddressModeOverrides[client.id]; // Not used in current display
                     
                     return (
                       <button
@@ -417,7 +550,19 @@ export default function ReviewAndSend() {
                     ) : (
                       <div className="flex items-start gap-2 text-sm text-red-600">
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span>No company address set. <button className="underline font-medium">Add in Settings</button> or choose Rep/None</span>
+                        <span>
+                          No company address set.{' '}
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent parent button's onClick from firing
+                              handleOpenCompanyAddressDialog();
+                            }}
+                            className="underline font-medium hover:text-red-700"
+                          >
+                            Add in Settings
+                          </button>
+                          {' '}or choose Rep/None
+                        </span>
                       </div>
                     )}
                   </button>
@@ -449,7 +594,19 @@ export default function ReviewAndSend() {
                     ) : (
                       <div className="flex items-start gap-2 text-sm text-red-600">
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span>{user?.full_name || 'You'} don't have a return address on file. <button className="underline font-medium">Add Address</button> or choose Company/None</span>
+                        <span>
+                          {user?.full_name || 'You'} don't have a return address on file.{' '}
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent parent button's onClick from firing
+                              handleOpenRepAddressDialog();
+                            }}
+                            className="underline font-medium hover:text-red-700"
+                          >
+                            Add Address
+                          </button>
+                          {' '}or choose Company/None
+                        </span>
                       </div>
                     )}
                   </button>
@@ -495,6 +652,7 @@ export default function ReviewAndSend() {
                       client={getCurrentClient}
                       user={user}
                       organization={organization}
+                      returnAddressMode={getCurrentReturnAddressMode()} // Pass the mode
                     />
                   ) : (
                     <div className="text-center py-12 text-gray-500">
@@ -535,6 +693,180 @@ export default function ReviewAndSend() {
           </Button>
         </div>
       </div>
+
+      {/* Company Address Dialog */}
+      <Dialog open={companyAddressDialogOpen} onOpenChange={setCompanyAddressDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Company Return Address</DialogTitle>
+            <DialogDescription>
+              This address will be used when "Company" is selected as the return address
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="company-street">Street Address *</Label>
+              <Input
+                id="company-street"
+                value={editingAddress.street}
+                onChange={(e) => setEditingAddress({ ...editingAddress, street: e.target.value })}
+                placeholder="123 Business Ave"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="company-address2">Address Line 2</Label>
+              <Input
+                id="company-address2"
+                value={editingAddress.address2}
+                onChange={(e) => setEditingAddress({ ...editingAddress, address2: e.target.value })}
+                placeholder="Suite 100"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="company-city">City *</Label>
+                <Input
+                  id="company-city"
+                  value={editingAddress.city}
+                  onChange={(e) => setEditingAddress({ ...editingAddress, city: e.target.value })}
+                  placeholder="Denver"
+                />
+              </div>
+              <div>
+                <Label htmlFor="company-state">State *</Label>
+                <Input
+                  id="company-state"
+                  value={editingAddress.state}
+                  onChange={(e) => setEditingAddress({ ...editingAddress, state: e.target.value })}
+                  placeholder="CO"
+                  maxLength={2}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="company-zip">ZIP Code *</Label>
+              <Input
+                id="company-zip"
+                value={editingAddress.zipCode}
+                onChange={(e) => setEditingAddress({ ...editingAddress, zipCode: e.target.value })}
+                placeholder="80202"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button 
+                onClick={handleSaveCompanyAddress}
+                disabled={savingAddress || !editingAddress.street || !editingAddress.city || !editingAddress.state || !editingAddress.zipCode}
+                className="bg-indigo-600 hover:bg-indigo-700"
+              >
+                {savingAddress ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</>
+                ) : (
+                  'Save Address'
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setCompanyAddressDialogOpen(false)}
+                disabled={savingAddress}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rep Address Dialog */}
+      <Dialog open={repAddressDialogOpen} onOpenChange={setRepAddressDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Your Return Address</DialogTitle>
+            <DialogDescription>
+              This address will be used when "Rep" is selected as the return address
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="rep-street">Street Address *</Label>
+              <Input
+                id="rep-street"
+                value={editingAddress.street}
+                onChange={(e) => setEditingAddress({ ...editingAddress, street: e.target.value })}
+                placeholder="123 Main Street"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="rep-address2">Address Line 2</Label>
+              <Input
+                id="rep-address2"
+                value={editingAddress.address2}
+                onChange={(e) => setEditingAddress({ ...editingAddress, address2: e.target.value })}
+                placeholder="Apt 4B"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="rep-city">City *</Label>
+                <Input
+                  id="rep-city"
+                  value={editingAddress.city}
+                  onChange={(e) => setEditingAddress({ ...editingAddress, city: e.target.value })}
+                  placeholder="Denver"
+                />
+              </div>
+              <div>
+                <Label htmlFor="rep-state">State *</Label>
+                <Input
+                  id="rep-state"
+                  value={editingAddress.state}
+                  onChange={(e) => setEditingAddress({ ...editingAddress, state: e.target.value })}
+                  placeholder="CO"
+                  maxLength={2}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="rep-zip">ZIP Code *</Label>
+              <Input
+                id="rep-zip"
+                value={editingAddress.zipCode}
+                onChange={(e) => setEditingAddress({ ...editingAddress, zipCode: e.target.value })}
+                placeholder="80202"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button 
+                onClick={handleSaveRepAddress}
+                disabled={savingAddress || !editingAddress.street || !editingAddress.city || !editingAddress.state || !editingAddress.zipCode}
+                className="bg-indigo-600 hover:bg-indigo-700"
+              >
+                {savingAddress ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</>
+                ) : (
+                  'Save Address'
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setRepAddressDialogOpen(false)}
+                disabled={savingAddress}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
