@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -29,9 +30,51 @@ export default function Credits() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [purchasingTierId, setPurchasingTierId] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState(null);
 
   useEffect(() => {
     loadData();
+    
+    // Check for payment status in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const payment = urlParams.get('payment');
+    const sessionId = urlParams.get('session_id');
+    
+    if (payment === 'success' && sessionId) {
+      setPaymentStatus('success');
+      toast({
+        title: 'Payment Successful! 🎉',
+        description: 'Your credits have been added to your account.',
+        duration: 5000,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
+      // Clean URL after showing toast
+      // We need to keep the 'page' param if it exists, or just clear other params
+      const newSearchParams = new URLSearchParams();
+      if (urlParams.has('page')) {
+          newSearchParams.set('page', urlParams.get('page'));
+      }
+      window.history.replaceState({}, '', window.location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''));
+      
+      // Reload data to show updated balance
+      setTimeout(() => loadData(), 500);
+    } else if (payment === 'cancelled') {
+      setPaymentStatus('cancelled');
+      toast({
+        title: 'Payment Cancelled',
+        description: 'Your payment was cancelled. No charges were made.',
+        duration: 4000,
+        className: 'bg-yellow-50 border-yellow-200 text-yellow-900'
+      });
+      
+      // Clean URL
+      const newSearchParams = new URLSearchParams();
+      if (urlParams.has('page')) {
+          newSearchParams.set('page', urlParams.get('page'));
+      }
+      window.history.replaceState({}, '', window.location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''));
+    }
   }, []);
 
   const loadData = async () => {
@@ -120,29 +163,33 @@ export default function Credits() {
 
   // Calculate price per note
   const getPricePerNote = (priceInCents, creditAmount) => {
+    if (creditAmount === 0) return '$0.00'; // Avoid division by zero
     return `$${(priceInCents / 100 / creditAmount).toFixed(2)}`;
   };
 
-  // Handle purchase button click
+  // Handle purchase button click with Stripe checkout
   const handlePurchase = async (tier) => {
     setPurchasingTierId(tier.id);
     
     try {
-      toast({
-        title: 'Coming Soon',
-        description: `Payment integration for "${tier.name}" will be available soon. This will purchase ${tier.creditAmount} notes for ${formatPrice(tier.priceInCents)}.`,
-        duration: 5000,
-        className: 'bg-blue-50 border-blue-200 text-blue-900'
+      const response = await base44.functions.invoke('createCheckoutSession', {
+        pricingTierId: tier.id
       });
+      
+      if (response.data.success && response.data.checkoutUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.checkoutUrl;
+      } else {
+        throw new Error('Failed to create checkout session');
+      }
     } catch (error) {
       console.error('Purchase error:', error);
       toast({
         title: 'Error',
-        description: 'Failed to initiate purchase',
+        description: error.response?.data?.error || 'Failed to initiate purchase. Please try again.',
         variant: 'destructive',
-        duration: 3000
+        duration: 4000
       });
-    } finally {
       setPurchasingTierId(null);
     }
   };
