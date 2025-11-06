@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -184,6 +185,24 @@ export default function SelectDesign() {
     }
   };
 
+  // UPDATED: Memoize current client - updates when recipient changes
+  const getCurrentClient = useMemo(() => {
+    if (editMode === 'individual' && selectedRecipientId) {
+      return clients.find(c => c.id === selectedRecipientId) || clients[0] || {};
+    }
+    return clients[0] || {};
+  }, [editMode, selectedRecipientId, clients]);
+
+  // UPDATED: Memoize current message - updates when recipient or batch changes
+  const getCurrentMessage = useMemo(() => {
+    if (!mailingBatch) return '';
+    
+    if (editMode === 'individual' && selectedRecipientId) {
+      return mailingBatch.contentOverrides?.[selectedRecipientId] || mailingBatch.globalMessage || '';
+    }
+    return mailingBatch.globalMessage || '';
+  }, [mailingBatch, editMode, selectedRecipientId]);
+
   // Handle design selection
   const handleDesignSelect = (designId) => {
     if (editMode === 'bulk') {
@@ -243,24 +262,6 @@ export default function SelectDesign() {
     
     return filtered;
   }, [designs, activeTab, selectedCategoryId, searchQuery, favoriteIds]);
-
-  // Get current client
-  const getCurrentClient = () => {
-    if (editMode === 'individual' && selectedRecipientId) {
-      return clients.find(c => c.id === selectedRecipientId);
-    }
-    return clients[0] || {};
-  };
-
-  // Get current message
-  const getCurrentMessage = () => {
-    if (!mailingBatch) return '';
-    
-    if (editMode === 'individual' && selectedRecipientId) {
-      return mailingBatch.contentOverrides?.[selectedRecipientId] || mailingBatch.globalMessage || '';
-    }
-    return mailingBatch.globalMessage || '';
-  };
 
   // Get selected design object
   const selectedDesign = useMemo(() => {
@@ -542,20 +543,20 @@ export default function SelectDesign() {
             </Card>
           </div>
 
-          {/* Right Column: Preview */}
+          {/* Right Column: Preview - UPDATED */}
           <div className="col-span-4">
             <Card className="sticky top-6">
               <CardContent className="pt-6">
                 <h3 className="font-semibold text-gray-900 mb-4">
-                  Preview for {getCurrentClient().fullName || 'Client'}
+                  Preview for {getCurrentClient.fullName || 'Client'}
                 </h3>
                 
                 <div className="flex justify-center">
                   {instanceSettings && selectedDesign ? (
                     <div className="w-full max-w-[440px]">
                       <CardPreview
-                        message={getCurrentMessage()}
-                        client={getCurrentClient()}
+                        message={getCurrentMessage}
+                        client={getCurrentClient}
                         user={user}
                         organization={organization}
                         noteStyleProfile={noteStyleProfile}
