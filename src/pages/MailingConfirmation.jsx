@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -123,17 +124,62 @@ export default function MailingConfirmation() {
     return modeMap[mode] || mode;
   };
 
-  // Handle download placeholders
-  const handleDownloadCSV = () => {
-    alert('CSV download functionality coming soon!');
+  // Handle download placeholders - UPDATED
+  const handleDownloadCSV = async () => {
+    try {
+      const response = await base44.functions.invoke('exportMailingBatchCSV', {
+        mailingBatchId: mailingBatchId
+      });
+      
+      // Create blob from response data
+      const blob = new Blob([response.data], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mailing-batch-${mailingBatchId.slice(0, 8)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error('Failed to download CSV:', error);
+      alert('Failed to download CSV. Please try again.');
+    }
   };
 
-  const handleDownloadPDF = () => {
-    alert('PDF download functionality coming soon!');
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await base44.functions.invoke('exportMailingBatchPDF', {
+        mailingBatchId: mailingBatchId
+      });
+      
+      // Create blob from response data
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `mailing-batch-${mailingBatchId.slice(0, 8)}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      a.remove();
+    } catch (error) {
+      console.error('Failed to download PDF:', error);
+      alert('Failed to download PDF. Please try again.');
+    }
   };
 
-  const handleEmailSummary = () => {
-    alert('Email summary functionality coming soon!');
+  const handleEmailSummary = async () => {
+    try {
+      const response = await base44.functions.invoke('emailMailingSummary', {
+        mailingBatchId: mailingBatchId
+      });
+      
+      alert(`Email summary sent to ${user?.email || 'your inbox'}`);
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      alert('Failed to send email summary. Please try again.');
+    }
   };
 
   if (loading) {
