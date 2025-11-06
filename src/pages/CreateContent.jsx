@@ -130,7 +130,7 @@ export default function CreateContent() {
   const [noteStyleProfiles, setNoteStyleProfiles] = useState([]);
   const [instanceSettings, setInstanceSettings] = useState(null);
   const [user, setUser] = useState(null);
-  const [organization, setOrganization] = useState(null); // ADDED
+  const [organization, setOrganization] = useState(null); 
   
   // UI state
   const [loading, setLoading] = useState(true);
@@ -281,7 +281,7 @@ export default function CreateContent() {
         setInstanceSettings(FALLBACK_SETTINGS);
       }
       
-      console.log('📡 Step 8: Loading column width settings...'); // Changed from 7 to 8
+      console.log('📡 Step 8: Loading column width settings...'); 
       try {
         const layoutResponse = await base44.functions.invoke('getCreateContentLayoutSettings');
         console.log('✅ Column width settings loaded:', layoutResponse);
@@ -320,7 +320,7 @@ export default function CreateContent() {
   }), [localGlobalMessage, localContentOverrides, localIncludeGreeting, localIncludeSignature, localSelectedNoteStyleProfileId]);
 
   // Setup autosave
-  const { isSaving, lastSaved } = useAutosave(
+  const { isSaving, lastSaved, saveNow } = useAutosave(
     autosaveData,
     saveChanges,
     500,
@@ -412,9 +412,22 @@ export default function CreateContent() {
     [clients]
   );
 
-  // Handle continue
-  const handleContinue = () => {
-    navigate(createPageUrl(`SelectDesign?mailingBatchId=${mailingBatchId}`));
+  // UPDATED: Handle continue - save before navigating
+  const handleContinue = async () => {
+    try {
+      // Save any pending changes before navigating
+      console.log('💾 Saving changes before navigation...');
+      await saveNow();
+      console.log('✅ Changes saved successfully');
+      
+      // Navigate to next step
+      navigate(createPageUrl(`SelectDesign?mailingBatchId=${mailingBatchId}`));
+    } catch (err) {
+      console.error('❌ Failed to save before navigation:', err);
+      // Display a user-friendly error message
+      setError('Failed to save your changes. Please try again.');
+      setErrorDetails(err.message || 'Unknown error during save before navigation');
+    }
   };
 
   if (loading) {
@@ -644,7 +657,7 @@ export default function CreateContent() {
                         message={getCurrentMessage()}
                         client={getCurrentClient()}
                         user={user}
-                        organization={organization} // ADDED
+                        organization={organization} 
                         noteStyleProfile={selectedNoteStyleProfile}
                         selectedDesign={null}
                         previewSettings={instanceSettings.cardPreviewSettings}
