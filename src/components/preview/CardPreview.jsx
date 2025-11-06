@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react';
-import { replacePlaceholders, composeCompleteMessage } from '@/utils/placeholderUtils';
 
 // Utility function for font mapping
 const getFontClass = (fontName) => {
@@ -10,6 +9,57 @@ const getFontClass = (fontName) => {
     'Dancing Script': 'font-dancing-script'
   };
   return fontMap[fontName] || 'font-caveat';
+};
+
+// Replace placeholders in text with actual values
+const replacePlaceholders = (text, client, user, organization, noteStyleProfile) => {
+  if (!text) return '';
+  
+  let result = text;
+  
+  // Client placeholders
+  if (client) {
+    result = result.replace(/\{client\.first_name\}/g, client.first_name || '');
+    result = result.replace(/\{client\.last_name\}/g, client.last_name || '');
+    result = result.replace(/\{client\.full_name\}/g, client.full_name || `${client.first_name || ''} ${client.last_name || ''}`.trim());
+    result = result.replace(/\{client\.company\}/g, client.company || '');
+  }
+  
+  // User placeholders
+  if (user) {
+    result = result.replace(/\{user\.first_name\}/g, user.first_name || user.full_name?.split(' ')[0] || '');
+    result = result.replace(/\{user\.last_name\}/g, user.last_name || user.full_name?.split(' ').slice(1).join(' ') || '');
+    result = result.replace(/\{user\.full_name\}/g, user.full_name || '');
+  }
+  
+  // Organization placeholders
+  if (organization) {
+    result = result.replace(/\{organization\.name\}/g, organization.name || '');
+  }
+  
+  return result;
+};
+
+// Compose complete message with greeting, body, and signature
+const composeCompleteMessage = (greeting, message, signature, client, user, organization, noteStyleProfile) => {
+  const parts = [];
+  
+  if (greeting) {
+    const processedGreeting = replacePlaceholders(greeting, client, user, organization, noteStyleProfile);
+    if (processedGreeting) parts.push(processedGreeting);
+  }
+  
+  if (message) {
+    const processedMessage = replacePlaceholders(message, client, user, organization, noteStyleProfile);
+    if (processedMessage) parts.push(processedMessage);
+  }
+  
+  if (signature) {
+    const processedSignature = replacePlaceholders(signature, client, user, organization, noteStyleProfile);
+    if (processedSignature) parts.push(processedSignature);
+  }
+  
+  return parts.join('\n\n');
 };
 
 // Message line breaking logic
