@@ -15,6 +15,8 @@ export default function Home() {
   const [templateSeedResult, setTemplateSeedResult] = useState(null);
   const [seedingCategories, setSeedingCategories] = useState(false);
   const [categorySeedResult, setCategorySeedResult] = useState(null);
+  const [seedingPricing, setSeedingPricing] = useState(false);
+  const [pricingSeedResult, setPricingSeedResult] = useState(null);
 
   const handleSeedData = async () => {
     try {
@@ -90,6 +92,31 @@ export default function Home() {
       });
     } finally {
       setSeedingTemplates(false);
+    }
+  };
+
+  const handleSeedPricingTiers = async () => {
+    try {
+      setSeedingPricing(true);
+      setPricingSeedResult(null);
+      
+      const response = await base44.functions.invoke('seedPricingTiers');
+      
+      setPricingSeedResult({
+        success: response.data.success,
+        message: response.data.message,
+        tierCount: response.data.tierCount,
+        scope: response.data.scope
+      });
+      
+    } catch (error) {
+      console.error('Failed to seed pricing tiers:', error);
+      setPricingSeedResult({
+        success: false,
+        message: error.response?.data?.error || 'Failed to seed pricing tiers'
+      });
+    } finally {
+      setSeedingPricing(false);
     }
   };
 
@@ -301,7 +328,64 @@ export default function Home() {
             )}
           </Card>
 
-          {/* NEW: Card Design Management (Super Admin Only) */}
+          {/* NEW: Seed Pricing Tiers */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-emerald-100 rounded-lg">
+                    <Database className="w-6 h-6 text-emerald-600" />
+                  </div>
+                  <div>
+                    <CardTitle>Pricing Tiers</CardTitle>
+                    <CardDescription>
+                      Create default pricing tiers (Super Admin or Org Owner)
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleSeedPricingTiers}
+                  variant="outline"
+                  disabled={seedingPricing}
+                  className="border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+                >
+                  {seedingPricing ? 'Creating...' : 'Seed Pricing'}
+                </Button>
+              </div>
+            </CardHeader>
+
+            {pricingSeedResult && (
+              <CardContent>
+                <div className={`flex items-start gap-3 p-4 rounded-lg ${
+                  pricingSeedResult.success 
+                    ? 'bg-green-50 border border-green-200' 
+                    : 'bg-yellow-50 border border-yellow-200'
+                }`}>
+                  {pricingSeedResult.success ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p className={`font-medium ${
+                      pricingSeedResult.success ? 'text-green-900' : 'text-yellow-900'
+                    }`}>
+                      {pricingSeedResult.message}
+                    </p>
+                    {pricingSeedResult.success && (
+                      <p className="text-sm text-green-700 mt-1">
+                        {pricingSeedResult.scope === 'platform' 
+                          ? 'Platform-wide pricing tiers are ready!' 
+                          : 'Organization pricing tiers are ready!'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+
+          {/* Card Design Management (Super Admin Only) */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -347,18 +431,22 @@ export default function Home() {
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">4.</span>
-                <span>Click "Manage Cards" to create card designs and categories (super admin)</span>
+                <span>Click "Seed Pricing" to create default pricing tiers (super admin or org owner)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">5.</span>
-                <span>Click "Send a Card" to start the workflow</span>
+                <span>Click "Manage Cards" to create card designs and categories (super admin)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">6.</span>
-                <span>Select clients and compose your message</span>
+                <span>Click "Send a Card" to start the workflow</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">7.</span>
+                <span>Select clients and compose your message</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-semibold text-indigo-600">8.</span>
                 <span>Choose a design and send your notecards!</span>
               </li>
             </ol>
