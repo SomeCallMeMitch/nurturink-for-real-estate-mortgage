@@ -1,25 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
-import { requireSuperAdmin } from '../utils/requireSuperAdmin.js';
 
 // Default settings to initialize if no record exists
 const DEFAULT_SETTINGS = {
   cardPreviewSettings: {
-    fontSize: 18,
-    lineHeight: 1.1,
-    baseTextWidth: 355,
-    baseMarginLeft: 48,
+    fontSize: 22,
+    lineHeight: 1,
+    baseTextWidth: 360,
+    baseMarginLeft: 40,
     shortCardMaxLines: 13,
     maxPreviewLines: 19,
-    topHalfPaddingTop: 125,
+    topHalfPaddingTop: 345,
+    longCardTopPadding: 110,
     gapAboveFold: 14,
     gapBelowFold: 14,
-    shortBelowFold: 14,
     maxIndent: 16,
     indentAmplitude: 6,
     indentNoise: 2,
     indentFrequency: 0.35,
-    shiftRight: 0,
-    rightPadding: 12,
     frameWidth: 412,
     frameHeight: 600
   },
@@ -27,7 +24,19 @@ const DEFAULT_SETTINGS = {
     recipientAddressTop: 180,
     recipientAddressLeft: 200,
     returnAddressTop: 20,
-    returnAddressLeft: 20
+    returnAddressLeft: 20,
+    envelopeImageUrl: "",
+    envelopeFontFamily: "Caveat",
+    envelopeFontSize: 18,
+    envelopeLineHeight: 1.2,
+    envelopeTextColor: "#000000",
+    returnAddressText: "{{org.name}}\n{{org.street}}\n{{org.city}}, {{org.state}} {{org.zipCode}}",
+    returnAddressLeftOffset: 20,
+    returnAddressTopOffset: 20,
+    recipientAddressLeftOffset: 250,
+    recipientAddressTopOffset: 150,
+    envelopePreviewWidth: 500,
+    envelopePreviewHeight: 300
   }
 };
 
@@ -35,8 +44,16 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verify super admin access
-    await requireSuperAdmin(base44);
+    // Verify user is authenticated and is super admin
+    const user = await base44.auth.me();
+    
+    if (!user) {
+      return Response.json({ error: 'Unauthorized: Authentication required' }, { status: 401 });
+    }
+    
+    if (user.appRole !== 'super_admin') {
+      return Response.json({ error: 'Unauthorized: Super admin access required' }, { status: 403 });
+    }
     
     // Query for existing settings (singleton pattern)
     const settings = await base44.asServiceRole.entities.InstanceSettings.list();
@@ -52,11 +69,6 @@ Deno.serve(async (req) => {
     
   } catch (error) {
     console.error('Error in getInstanceSettings:', error);
-    
-    if (error.message.includes('Unauthorized')) {
-      return Response.json({ error: error.message }, { status: 403 });
-    }
-    
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
