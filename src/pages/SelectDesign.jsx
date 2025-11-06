@@ -40,6 +40,7 @@ export default function SelectDesign() {
   const [selectedRecipientId, setSelectedRecipientId] = useState(null);
   const [favoriteIds, setFavoriteIds] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [hoveredDesignId, setHoveredDesignId] = useState(null);
   
   // Local state for design selection
   const [localSelectedDesignId, setLocalSelectedDesignId] = useState(null);
@@ -472,11 +473,15 @@ export default function SelectDesign() {
                       {filteredDesigns.map(design => {
                         const isSelected = design.id === getCurrentDesignId();
                         const isFavorite = favoriteIds.includes(design.id);
+                        const isHovered = hoveredDesignId === design.id;
+                        const displayImageUrl = isHovered ? design.insideImageUrl : design.outsideImageUrl;
                         
                         return (
                           <div
                             key={design.id}
                             onClick={() => handleDesignSelect(design.id)}
+                            onMouseEnter={() => setHoveredDesignId(design.id)}
+                            onMouseLeave={() => setHoveredDesignId(null)}
                             className={`relative cursor-pointer rounded-lg border-2 transition-all hover:shadow-lg ${
                               isSelected 
                                 ? 'border-orange-500 shadow-lg' 
@@ -504,27 +509,17 @@ export default function SelectDesign() {
                               />
                             </button>
                             
-                            {/* Design Images */}
-                            <div className="grid grid-cols-2 gap-px bg-gray-100 rounded-t-lg overflow-hidden" style={{ height: '180px' }}>
-                              <div className="relative">
-                                <img
-                                  src={design.outsideImageUrl || design.imageUrl}
-                                  alt={`${design.name} - Outside`}
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
-                                  Outside
-                                </div>
-                              </div>
-                              <div className="relative">
-                                <img
-                                  src={design.insideImageUrl || design.imageUrl}
-                                  alt={`${design.name} - Inside`}
-                                  className="w-full h-full object-cover"
-                                />
-                                <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-1.5 py-0.5 rounded">
-                                  Inside
-                                </div>
+                            {/* Single Design Image with Hover Effect */}
+                            <div className="relative rounded-t-lg overflow-hidden bg-gray-100" style={{ aspectRatio: '412/600' }}>
+                              <img
+                                src={displayImageUrl || design.imageUrl}
+                                alt={design.name}
+                                className="w-full h-full object-cover transition-opacity duration-300"
+                              />
+                              
+                              {/* Inside/Outside Label */}
+                              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-medium">
+                                {isHovered ? 'Inside' : 'Outside'}
                               </div>
                             </div>
                             

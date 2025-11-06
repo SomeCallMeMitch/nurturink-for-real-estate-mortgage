@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { replacePlaceholders, composeCompleteMessage } from '@/components/utils/placeholderUtils';
+import { replacePlaceholders, composeCompleteMessage } from '@/utils/placeholderUtils';
 
 // Utility function for font mapping
 const getFontClass = (fontName) => {
@@ -260,9 +260,9 @@ const CardPreview = ({
           height: `${frameHeight}px`
         }}
       >
-        {selectedDesign?.imageUrl && (
+        {selectedDesign?.outsideImageUrl && (
           <img
-            src={selectedDesign.imageUrl}
+            src={selectedDesign.outsideImageUrl}
             alt="Card design"
             className="absolute inset-0 w-full h-full object-cover"
           />
