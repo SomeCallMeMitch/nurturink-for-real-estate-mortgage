@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 
 // Utility function for font mapping
@@ -12,29 +13,52 @@ const getFontClass = (fontName) => {
 };
 
 // Replace placeholders in text with actual values
+// Supports {{client.firstName}}, {{me.fullName}}, {{org.name}} format
 const replacePlaceholders = (text, client, user, organization, noteStyleProfile) => {
   if (!text) return '';
   
   let result = text;
   
-  // Client placeholders
+  // Client placeholders - using actual Client entity property names
   if (client) {
-    result = result.replace(/\{client\.first_name\}/g, client.first_name || '');
-    result = result.replace(/\{client\.last_name\}/g, client.last_name || '');
-    result = result.replace(/\{client\.full_name\}/g, client.full_name || `${client.first_name || ''} ${client.last_name || ''}`.trim());
-    result = result.replace(/\{client\.company\}/g, client.company || '');
+    result = result.replace(/\{\{client\.firstName\}\}/g, client.firstName || '');
+    result = result.replace(/\{\{client\.lastName\}\}/g, client.lastName || '');
+    result = result.replace(/\{\{client\.fullName\}\}/g, client.fullName || '');
+    result = result.replace(/\{\{client\.initials\}\}/g, 
+      client.firstName && client.lastName 
+        ? `${client.firstName[0]}${client.lastName[0]}` 
+        : ''
+    );
+    result = result.replace(/\{\{client\.email\}\}/g, client.email || '');
+    result = result.replace(/\{\{client\.phone\}\}/g, client.phone || '');
+    result = result.replace(/\{\{client\.street\}\}/g, client.street || '');
+    result = result.replace(/\{\{client\.city\}\}/g, client.city || '');
+    result = result.replace(/\{\{client\.state\}\}/g, client.state || '');
+    result = result.replace(/\{\{client\.zipCode\}\}/g, client.zipCode || '');
+    result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
   }
   
-  // User placeholders
+  // User/Me placeholders - using actual User entity property names
   if (user) {
-    result = result.replace(/\{user\.first_name\}/g, user.first_name || user.full_name?.split(' ')[0] || '');
-    result = result.replace(/\{user\.last_name\}/g, user.last_name || user.full_name?.split(' ').slice(1).join(' ') || '');
-    result = result.replace(/\{user\.full_name\}/g, user.full_name || '');
+    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
+    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
+    result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
+    result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
+    result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
+    result = result.replace(/\{\{me\.title\}\}/g, user.title || '');
+    result = result.replace(/\{\{me\.companyName\}\}/g, user.companyName || '');
+    result = result.replace(/\{\{me\.street\}\}/g, user.street || '');
+    result = result.replace(/\{\{me\.city\}\}/g, user.city || '');
+    result = result.replace(/\{\{me\.state\}\}/g, user.state || '');
+    result = result.replace(/\{\{me\.zipCode\}\}/g, user.zipCode || '');
   }
   
-  // Organization placeholders
+  // Organization placeholders - using actual Organization entity property names
   if (organization) {
-    result = result.replace(/\{organization\.name\}/g, organization.name || '');
+    result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
+    result = result.replace(/\{\{org\.website\}\}/g, organization.website || '');
+    result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
+    result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
   }
   
   return result;
@@ -300,8 +324,9 @@ const CardPreview = ({
     );
   };
 
-  // Get the design image URL with fallback to legacy imageUrl field
-  const designImageUrl = selectedDesign?.outsideImageUrl || selectedDesign?.imageUrl;
+  // FIXED: Use insideImageUrl for the card preview (where the message goes)
+  // Fall back to legacy imageUrl if insideImageUrl is not set
+  const designImageUrl = selectedDesign?.insideImageUrl || selectedDesign?.imageUrl;
 
   return (
     <div className="flex flex-col items-center">
@@ -312,11 +337,11 @@ const CardPreview = ({
           height: `${frameHeight}px`
         }}
       >
-        {/* Card Design Background Image with Fallback */}
+        {/* Card Design Background Image - INSIDE view */}
         {designImageUrl ? (
           <img
             src={designImageUrl}
-            alt="Card design"
+            alt="Card design inside"
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : selectedDesign ? (
@@ -325,7 +350,7 @@ const CardPreview = ({
               <svg className="w-16 h-16 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <p className="text-sm">No design image available</p>
+              <p className="text-sm">No inside design image</p>
             </div>
           </div>
         ) : null}
