@@ -56,7 +56,13 @@ const formatCompanyAddress = (organization) => {
   const addr = organization.companyReturnAddress;
   const lines = [];
   
-  if (organization.name) lines.push(organization.name);
+  // Add company name first if it exists
+  if (addr.companyName) {
+    lines.push(addr.companyName);
+  } else if (organization.name) {
+    lines.push(organization.name);
+  }
+  
   if (addr.street) lines.push(addr.street);
   if (addr.address2) lines.push(addr.address2);
   
@@ -72,7 +78,13 @@ const formatRepAddress = (user) => {
   
   const lines = [];
   
-  if (user.full_name) lines.push(user.full_name);
+  // Add name first if it exists
+  if (user.returnAddressName) {
+    lines.push(user.returnAddressName);
+  } else if (user.full_name) {
+    lines.push(user.full_name);
+  }
+  
   if (user.street) lines.push(user.street);
   if (user.address2) lines.push(user.address2);
   
@@ -113,6 +125,8 @@ export default function ReviewAndSend() {
   const [companyAddressDialogOpen, setCompanyAddressDialogOpen] = useState(false);
   const [repAddressDialogOpen, setRepAddressDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState({
+    companyName: '', // New field
+    returnAddressName: '', // New field
     street: '',
     address2: '',
     city: '',
@@ -301,9 +315,15 @@ export default function ReviewAndSend() {
   };
 
   // Handle opening company address dialog
-  const handleOpenCompanyAddressDialog = () => {
+  const handleOpenCompanyAddressDialog = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     if (organization?.companyReturnAddress) {
       setEditingAddress({
+        companyName: organization.companyReturnAddress.companyName || organization.name || '',
         street: organization.companyReturnAddress.street || '',
         address2: organization.companyReturnAddress.address2 || '',
         city: organization.companyReturnAddress.city || '',
@@ -312,6 +332,7 @@ export default function ReviewAndSend() {
       });
     } else {
       setEditingAddress({
+        companyName: organization?.name || '',
         street: '',
         address2: '',
         city: '',
@@ -323,8 +344,14 @@ export default function ReviewAndSend() {
   };
 
   // Handle opening rep address dialog
-  const handleOpenRepAddressDialog = () => {
+  const handleOpenRepAddressDialog = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     setEditingAddress({
+      returnAddressName: user?.returnAddressName || user?.full_name || '',
       street: user?.street || '',
       address2: user?.address2 || '',
       city: user?.city || '',
@@ -341,6 +368,7 @@ export default function ReviewAndSend() {
       
       await base44.entities.Organization.update(organization.id, {
         companyReturnAddress: {
+          companyName: editingAddress.companyName || organization.name,
           street: editingAddress.street,
           address2: editingAddress.address2,
           city: editingAddress.city,
@@ -378,6 +406,7 @@ export default function ReviewAndSend() {
       setSavingAddress(true);
       
       await base44.auth.updateMe({
+        returnAddressName: editingAddress.returnAddressName,
         street: editingAddress.street,
         address2: editingAddress.address2,
         city: editingAddress.city,
@@ -537,6 +566,7 @@ export default function ReviewAndSend() {
                   <button
                     onClick={() => handleReturnAddressModeSelect('company')}
                     disabled={!hasCompanyAddress}
+                    type="button"
                     className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                       getCurrentReturnAddressMode() === 'company'
                         ? 'border-orange-500 bg-orange-50'
@@ -560,19 +590,17 @@ export default function ReviewAndSend() {
                     ) : (
                       <div className="flex items-start gap-2 text-sm text-red-600">
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span>
+                        <div>
                           No company address set.{' '}
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent parent button's onClick from firing
-                              handleOpenCompanyAddressDialog();
-                            }}
+                          <a
+                            href="#"
+                            onClick={handleOpenCompanyAddressDialog}
                             className="underline font-medium hover:text-red-700"
                           >
                             Add in Settings
-                          </button>
+                          </a>
                           {' '}or choose Rep/None
-                        </span>
+                        </div>
                       </div>
                     )}
                   </button>
@@ -581,6 +609,7 @@ export default function ReviewAndSend() {
                   <button
                     onClick={() => handleReturnAddressModeSelect('rep')}
                     disabled={!hasRepAddress}
+                    type="button"
                     className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                       getCurrentReturnAddressMode() === 'rep'
                         ? 'border-orange-500 bg-orange-50'
@@ -604,19 +633,17 @@ export default function ReviewAndSend() {
                     ) : (
                       <div className="flex items-start gap-2 text-sm text-red-600">
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <span>
+                        <div>
                           {user?.full_name || 'You'} don't have a return address on file.{' '}
-                          <button 
-                            onClick={(e) => {
-                              e.stopPropagation(); // Prevent parent button's onClick from firing
-                              handleOpenRepAddressDialog();
-                            }}
+                          <a
+                            href="#"
+                            onClick={handleOpenRepAddressDialog}
                             className="underline font-medium hover:text-red-700"
                           >
                             Add Address
-                          </button>
+                          </a>
                           {' '}or choose Company/None
-                        </span>
+                        </div>
                       </div>
                     )}
                   </button>
@@ -624,6 +651,7 @@ export default function ReviewAndSend() {
                   {/* None Option */}
                   <button
                     onClick={() => handleReturnAddressModeSelect('none')}
+                    type="button"
                     className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
                       getCurrentReturnAddressMode() === 'none'
                         ? 'border-orange-500 bg-orange-50'
@@ -706,7 +734,7 @@ export default function ReviewAndSend() {
 
       {/* Company Address Dialog */}
       <Dialog open={companyAddressDialogOpen} onOpenChange={setCompanyAddressDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Company Return Address</DialogTitle>
             <DialogDescription>
@@ -716,9 +744,19 @@ export default function ReviewAndSend() {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="company-street">Street Address *</Label>
+              <Label htmlFor="company-name-edit">Company Name</Label>
               <Input
-                id="company-street"
+                id="company-name-edit"
+                value={editingAddress.companyName || ''}
+                onChange={(e) => setEditingAddress({ ...editingAddress, companyName: e.target.value })}
+                placeholder="Acme Corporation"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="company-street-edit">Street Address *</Label>
+              <Input
+                id="company-street-edit"
                 value={editingAddress.street}
                 onChange={(e) => setEditingAddress({ ...editingAddress, street: e.target.value })}
                 placeholder="123 Business Ave"
@@ -726,9 +764,9 @@ export default function ReviewAndSend() {
             </div>
 
             <div>
-              <Label htmlFor="company-address2">Address Line 2</Label>
+              <Label htmlFor="company-address2-edit">Address Line 2</Label>
               <Input
-                id="company-address2"
+                id="company-address2-edit"
                 value={editingAddress.address2}
                 onChange={(e) => setEditingAddress({ ...editingAddress, address2: e.target.value })}
                 placeholder="Suite 100"
@@ -737,18 +775,18 @@ export default function ReviewAndSend() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="company-city">City *</Label>
+                <Label htmlFor="company-city-edit">City *</Label>
                 <Input
-                  id="company-city"
+                  id="company-city-edit"
                   value={editingAddress.city}
                   onChange={(e) => setEditingAddress({ ...editingAddress, city: e.target.value })}
                   placeholder="Denver"
                 />
               </div>
               <div>
-                <Label htmlFor="company-state">State *</Label>
+                <Label htmlFor="company-state-edit">State *</Label>
                 <Input
-                  id="company-state"
+                  id="company-state-edit"
                   value={editingAddress.state}
                   onChange={(e) => setEditingAddress({ ...editingAddress, state: e.target.value })}
                   placeholder="CO"
@@ -758,9 +796,9 @@ export default function ReviewAndSend() {
             </div>
 
             <div>
-              <Label htmlFor="company-zip">ZIP Code *</Label>
+              <Label htmlFor="company-zip-edit">ZIP Code *</Label>
               <Input
-                id="company-zip"
+                id="company-zip-edit"
                 value={editingAddress.zipCode}
                 onChange={(e) => setEditingAddress({ ...editingAddress, zipCode: e.target.value })}
                 placeholder="80202"
@@ -793,7 +831,7 @@ export default function ReviewAndSend() {
 
       {/* Rep Address Dialog */}
       <Dialog open={repAddressDialogOpen} onOpenChange={setRepAddressDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Your Return Address</DialogTitle>
             <DialogDescription>
@@ -803,9 +841,19 @@ export default function ReviewAndSend() {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="rep-street">Street Address *</Label>
+              <Label htmlFor="rep-name-edit">Name *</Label>
               <Input
-                id="rep-street"
+                id="rep-name-edit"
+                value={editingAddress.returnAddressName || ''}
+                onChange={(e) => setEditingAddress({ ...editingAddress, returnAddressName: e.target.value })}
+                placeholder="John Smith"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="rep-street-edit">Street Address *</Label>
+              <Input
+                id="rep-street-edit"
                 value={editingAddress.street}
                 onChange={(e) => setEditingAddress({ ...editingAddress, street: e.target.value })}
                 placeholder="123 Main Street"
@@ -813,9 +861,9 @@ export default function ReviewAndSend() {
             </div>
 
             <div>
-              <Label htmlFor="rep-address2">Address Line 2</Label>
+              <Label htmlFor="rep-address2-edit">Address Line 2</Label>
               <Input
-                id="rep-address2"
+                id="rep-address2-edit"
                 value={editingAddress.address2}
                 onChange={(e) => setEditingAddress({ ...editingAddress, address2: e.target.value })}
                 placeholder="Apt 4B"
@@ -824,18 +872,18 @@ export default function ReviewAndSend() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="rep-city">City *</Label>
+                <Label htmlFor="rep-city-edit">City *</Label>
                 <Input
-                  id="rep-city"
+                  id="rep-city-edit"
                   value={editingAddress.city}
                   onChange={(e) => setEditingAddress({ ...editingAddress, city: e.target.value })}
                   placeholder="Denver"
                 />
               </div>
               <div>
-                <Label htmlFor="rep-state">State *</Label>
+                <Label htmlFor="rep-state-edit">State *</Label>
                 <Input
-                  id="rep-state"
+                  id="rep-state-edit"
                   value={editingAddress.state}
                   onChange={(e) => setEditingAddress({ ...editingAddress, state: e.target.value })}
                   placeholder="CO"
@@ -845,9 +893,9 @@ export default function ReviewAndSend() {
             </div>
 
             <div>
-              <Label htmlFor="rep-zip">ZIP Code *</Label>
+              <Label htmlFor="rep-zip-edit">ZIP Code *</Label>
               <Input
-                id="rep-zip"
+                id="rep-zip-edit"
                 value={editingAddress.zipCode}
                 onChange={(e) => setEditingAddress({ ...editingAddress, zipCode: e.target.value })}
                 placeholder="80202"

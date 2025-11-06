@@ -120,10 +120,17 @@ export default function EnvelopePreview({
     
     // If mode is 'rep', format user's address
     if (returnAddressMode === 'rep') {
-      if (!user?.street && !user?.address2) return ''; // Only show if user has a street address
+      if (!user?.street) return ''; // Changed condition to only check for street
       
       const lines = [];
-      if (user.full_name) lines.push(user.full_name);
+      
+      // Add name first
+      if (user.returnAddressName) {
+        lines.push(user.returnAddressName);
+      } else if (user.full_name) {
+        lines.push(user.full_name);
+      }
+      
       if (user.street) lines.push(user.street);
       if (user.address2) lines.push(user.address2);
       
@@ -133,11 +140,31 @@ export default function EnvelopePreview({
       return lines.join('\n');
     }
     
-    // Default to 'company' mode - use template with placeholders
-    const rawText = envelopeSettings?.returnAddressText || 
-      '{{org.name}}\n{{org.street}}\n{{org.city}}, {{org.state}} {{org.zipCode}}';
-    return replacePlaceholders(rawText, client, user, organization);
-  }, [returnAddressMode, envelopeSettings?.returnAddressText, client, user, organization]);
+    // If mode is 'company', format organization's companyReturnAddress
+    if (returnAddressMode === 'company') {
+      if (!organization?.companyReturnAddress?.street) return '';
+      
+      const addr = organization.companyReturnAddress;
+      const lines = [];
+      
+      // Add company name first
+      if (addr.companyName) {
+        lines.push(addr.companyName);
+      } else if (organization.name) {
+        lines.push(organization.name);
+      }
+      
+      if (addr.street) lines.push(addr.street);
+      if (addr.address2) lines.push(addr.address2);
+      
+      const cityStateZip = [addr.city, addr.state, addr.zip].filter(Boolean).join(' ');
+      if (cityStateZip) lines.push(cityStateZip);
+      
+      return lines.join('\n');
+    }
+    
+    return ''; // Fallback for any other mode or if no conditions met
+  }, [returnAddressMode, client, user, organization]);
 
   // Memoize formatted recipient address
   const recipientAddressText = useMemo(() => {

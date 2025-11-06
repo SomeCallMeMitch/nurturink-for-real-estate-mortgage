@@ -1,94 +1,146 @@
-import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
-import SettingsLayout from "@/components/settings/SettingsLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Loader2, Save, MapPin } from "lucide-react";
+import React, { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import SettingsLayout from '@/components/settings/SettingsLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Save, Loader2, CheckCircle } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function SettingsAddresses() {
+  const { toast } = useToast();
   const [user, setUser] = useState(null);
+  const [organization, setOrganization] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-
-  const [returnAddressPreference, setReturnAddressPreference] = useState('company');
   
+  // Local form state
+  const [returnAddressPreference, setReturnAddressPreference] = useState('company');
   const [personalAddress, setPersonalAddress] = useState({
+    returnAddressName: '',
     street: '',
     address2: '',
     city: '',
     state: '',
     zipCode: ''
   });
-
   const [companyAddress, setCompanyAddress] = useState({
-    orgStreet: '',
-    orgAddress2: '',
-    orgCity: '',
-    orgState: '',
-    orgZipCode: ''
+    companyName: '',
+    street: '',
+    address2: '',
+    city: '',
+    state: '',
+    zip: ''
   });
 
   useEffect(() => {
-    loadUser();
+    loadData();
   }, []);
 
-  const loadUser = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      setReturnAddressPreference(currentUser.returnAddressPreference || 'company');
+      // Load organization if user has one
+      if (currentUser.orgId) {
+        const orgs = await base44.entities.Organization.filter({ id: currentUser.orgId });
+        if (orgs.length > 0) {
+          setOrganization(orgs[0]);
+          
+          // Initialize company address from organization
+          if (orgs[0].companyReturnAddress) {
+            setCompanyAddress({
+              companyName: orgs[0].companyReturnAddress.companyName || orgs[0].name || '',
+              street: orgs[0].companyReturnAddress.street || '',
+              address2: orgs[0].companyReturnAddress.address2 || '',
+              city: orgs[0].companyReturnAddress.city || '',
+              state: orgs[0].companyReturnAddress.state || '',
+              zip: orgs[0].companyReturnAddress.zip || ''
+            });
+          } else {
+            // Default to org name if no address set
+            setCompanyAddress(prev => ({
+              ...prev,
+              companyName: orgs[0].name || ''
+            }));
+          }
+        }
+      }
       
+      // Initialize personal address from user
       setPersonalAddress({
+        returnAddressName: currentUser.returnAddressName || currentUser.full_name || '',
         street: currentUser.street || '',
         address2: currentUser.address2 || '',
         city: currentUser.city || '',
         state: currentUser.state || '',
         zipCode: currentUser.zipCode || ''
       });
-
-      setCompanyAddress({
-        orgStreet: currentUser.orgStreet || '',
-        orgAddress2: currentUser.orgAddress2 || '',
-        orgCity: currentUser.orgCity || '',
-        orgState: currentUser.orgState || '',
-        orgZipCode: currentUser.orgZipCode || ''
-      });
+      
+      setReturnAddressPreference(currentUser.returnAddressPreference || 'company');
+      
     } catch (error) {
-      console.error('Failed to load user:', error);
+      console.error('Failed to load data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load address settings',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-
+  const handleSave = async () => {
     try {
       setSaving(true);
-      setSuccessMessage('');
-
-      await base44.auth.updateMe({
-        returnAddressPreference,
-        ...personalAddress,
-        ...companyAddress
-      });
-
-      setSuccessMessage('Address settings saved successfully!');
       
-      await loadUser();
-
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
+      // Update user's personal address and preference
+      await base44.auth.updateMe({
+        returnAddressName: personalAddress.returnAddressName,
+        street: personalAddress.street,
+        address2: personalAddress.address2,
+        city: personalAddress.city,
+        state: personalAddress.state,
+        zipCode: personalAddress.zipCode,
+        returnAddressPreference: returnAddressPreference
+      });
+      
+      // Update organization's company address if user has permission
+      if (organization && (user.isOrgOwner || user.appRole === 'organization_owner' || user.appRole === 'super_admin')) {
+        await base44.entities.Organization.update(organization.id, {
+          companyReturnAddress: {
+            companyName: companyAddress.companyName,
+            street: companyAddress.street,
+            address2: companyAddress.address2,
+            city: companyAddress.city,
+            state: companyAddress.state,
+            zip: companyAddress.zip
+          }
+        });
+      }
+      
+      toast({
+        title: 'Addresses saved',
+        description: 'Your return address settings have been updated',
+        duration: 3000
+      });
+      
+      // Reload data
+      await loadData();
+      
     } catch (error) {
-      console.error('Failed to update addresses:', error);
-      alert('Failed to save addresses. Please try again.');
+      console.error('Failed to save addresses:', error);
+      toast({
+        title: 'Save failed',
+        description: error.message || 'Failed to save address settings',
+        variant: 'destructive',
+        duration: 3000
+      });
     } finally {
       setSaving(false);
     }
@@ -106,37 +158,32 @@ export default function SettingsAddresses() {
 
   return (
     <SettingsLayout>
-      <form onSubmit={handleSave} className="space-y-6">
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Addresses</h1>
+          <p className="text-gray-600 mt-1">Manage your account preferences and information</p>
+        </div>
+
         {/* Return Address Preference */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="w-5 h-5" />
-              Return Address Preference
-            </CardTitle>
-            <p className="text-sm text-gray-600 mt-1">
-              Choose which address to use on envelopes
-            </p>
+            <CardTitle>Return Address Preference</CardTitle>
+            <CardDescription>Choose which address to use on envelopes</CardDescription>
           </CardHeader>
           <CardContent>
             <RadioGroup value={returnAddressPreference} onValueChange={setReturnAddressPreference}>
               <div className="flex items-center space-x-2 mb-3">
                 <RadioGroupItem value="personal" id="personal" />
-                <label htmlFor="personal" className="text-sm font-medium cursor-pointer">
-                  Use my Personal Return Address
-                </label>
+                <Label htmlFor="personal" className="cursor-pointer">Use my Personal Return Address</Label>
               </div>
               <div className="flex items-center space-x-2 mb-3">
                 <RadioGroupItem value="company" id="company" />
-                <label htmlFor="company" className="text-sm font-medium cursor-pointer">
-                  Use the Company Return Address
-                </label>
+                <Label htmlFor="company" className="cursor-pointer">Use the Company Return Address</Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="none" id="none" />
-                <label htmlFor="none" className="text-sm font-medium cursor-pointer">
-                  Do not include a return address
-                </label>
+                <Label htmlFor="none" className="cursor-pointer">Do not include a return address</Label>
               </div>
             </RadioGroup>
           </CardContent>
@@ -146,17 +193,23 @@ export default function SettingsAddresses() {
         <Card>
           <CardHeader>
             <CardTitle>Personal Return Address</CardTitle>
-            <p className="text-sm text-gray-600 mt-1">
-              Your personal address for envelope return addresses
-            </p>
+            <CardDescription>Your personal address for envelope return addresses</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="street">
-                Street Address <span className="text-red-600">*</span>
-              </Label>
+              <Label htmlFor="personal-name">Name *</Label>
               <Input
-                id="street"
+                id="personal-name"
+                value={personalAddress.returnAddressName}
+                onChange={(e) => setPersonalAddress({ ...personalAddress, returnAddressName: e.target.value })}
+                placeholder="John Smith"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="personal-street">Street Address *</Label>
+              <Input
+                id="personal-street"
                 value={personalAddress.street}
                 onChange={(e) => setPersonalAddress({ ...personalAddress, street: e.target.value })}
                 placeholder="123 Main Street"
@@ -164,50 +217,44 @@ export default function SettingsAddresses() {
             </div>
 
             <div>
-              <Label htmlFor="address2">Address Line 2</Label>
+              <Label htmlFor="personal-address2">Address Line 2</Label>
               <Input
-                id="address2"
+                id="personal-address2"
                 value={personalAddress.address2}
                 onChange={(e) => setPersonalAddress({ ...personalAddress, address2: e.target.value })}
-                placeholder="Apt, Suite, Unit, etc."
+                placeholder="Apt 4B, Suite 100, etc."
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2">
-                <Label htmlFor="city">
-                  City <span className="text-red-600">*</span>
-                </Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="personal-city">City *</Label>
                 <Input
-                  id="city"
+                  id="personal-city"
                   value={personalAddress.city}
                   onChange={(e) => setPersonalAddress({ ...personalAddress, city: e.target.value })}
-                  placeholder="Denver"
+                  placeholder="San Francisco"
                 />
               </div>
               <div>
-                <Label htmlFor="state">
-                  State <span className="text-red-600">*</span>
-                </Label>
+                <Label htmlFor="personal-state">State *</Label>
                 <Input
-                  id="state"
+                  id="personal-state"
                   value={personalAddress.state}
-                  onChange={(e) => setPersonalAddress({ ...personalAddress, state: e.target.value.toUpperCase() })}
-                  placeholder="CO"
+                  onChange={(e) => setPersonalAddress({ ...personalAddress, state: e.target.value })}
+                  placeholder="CA"
                   maxLength={2}
                 />
               </div>
             </div>
 
-            <div className="w-1/3">
-              <Label htmlFor="zipCode">
-                ZIP Code <span className="text-red-600">*</span>
-              </Label>
+            <div>
+              <Label htmlFor="personal-zip">ZIP Code *</Label>
               <Input
-                id="zipCode"
+                id="personal-zip"
                 value={personalAddress.zipCode}
                 onChange={(e) => setPersonalAddress({ ...personalAddress, zipCode: e.target.value })}
-                placeholder="80202"
+                placeholder="94102"
               />
             </div>
           </CardContent>
@@ -217,83 +264,80 @@ export default function SettingsAddresses() {
         <Card>
           <CardHeader>
             <CardTitle>Company Return Address</CardTitle>
-            <p className="text-sm text-gray-600 mt-1">
-              Company address shared by your organization
-            </p>
+            <CardDescription>Company address shared by your organization</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="orgStreet">
-                Street Address <span className="text-red-600">*</span>
-              </Label>
+              <Label htmlFor="company-name">Company Name</Label>
               <Input
-                id="orgStreet"
-                value={companyAddress.orgStreet}
-                onChange={(e) => setCompanyAddress({ ...companyAddress, orgStreet: e.target.value })}
-                placeholder="456 Business Blvd"
+                id="company-name"
+                value={companyAddress.companyName}
+                onChange={(e) => setCompanyAddress({ ...companyAddress, companyName: e.target.value })}
+                placeholder="Acme Corporation"
               />
             </div>
 
             <div>
-              <Label htmlFor="orgAddress2">Address Line 2</Label>
+              <Label htmlFor="company-street">Street Address *</Label>
               <Input
-                id="orgAddress2"
-                value={companyAddress.orgAddress2}
-                onChange={(e) => setCompanyAddress({ ...companyAddress, orgAddress2: e.target.value })}
-                placeholder="Suite 100"
+                id="company-street"
+                value={companyAddress.street}
+                onChange={(e) => setCompanyAddress({ ...companyAddress, street: e.target.value })}
+                placeholder="456 Business Ave"
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <div className="col-span-2">
-                <Label htmlFor="orgCity">
-                  City <span className="text-red-600">*</span>
-                </Label>
+            <div>
+              <Label htmlFor="company-address2">Address Line 2</Label>
+              <Input
+                id="company-address2"
+                value={companyAddress.address2}
+                onChange={(e) => setCompanyAddress({ ...companyAddress, address2: e.target.value })}
+                placeholder="Suite 200, Floor 3, etc."
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="company-city">City *</Label>
                 <Input
-                  id="orgCity"
-                  value={companyAddress.orgCity}
-                  onChange={(e) => setCompanyAddress({ ...companyAddress, orgCity: e.target.value })}
+                  id="company-city"
+                  value={companyAddress.city}
+                  onChange={(e) => setCompanyAddress({ ...companyAddress, city: e.target.value })}
                   placeholder="Denver"
                 />
               </div>
               <div>
-                <Label htmlFor="orgState">
-                  State <span className="text-red-600">*</span>
-                </Label>
+                <Label htmlFor="company-state">State *</Label>
                 <Input
-                  id="orgState"
-                  value={companyAddress.orgState}
-                  onChange={(e) => setCompanyAddress({ ...companyAddress, orgState: e.target.value.toUpperCase() })}
+                  id="company-state"
+                  value={companyAddress.state}
+                  onChange={(e) => setCompanyAddress({ ...companyAddress, state: e.target.value })}
                   placeholder="CO"
                   maxLength={2}
                 />
               </div>
             </div>
 
-            <div className="w-1/3">
-              <Label htmlFor="orgZipCode">
-                ZIP Code <span className="text-red-600">*</span>
-              </Label>
+            <div>
+              <Label htmlFor="company-zip">ZIP Code *</Label>
               <Input
-                id="orgZipCode"
-                value={companyAddress.orgZipCode}
-                onChange={(e) => setCompanyAddress({ ...companyAddress, orgZipCode: e.target.value })}
+                id="company-zip"
+                value={companyAddress.zip}
+                onChange={(e) => setCompanyAddress({ ...companyAddress, zip: e.target.value })}
                 placeholder="80202"
               />
             </div>
           </CardContent>
         </Card>
 
-        {/* Success Message */}
-        {successMessage && (
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
-            {successMessage}
-          </div>
-        )}
-
-        {/* Action Buttons */}
+        {/* Save Button */}
         <div className="flex justify-end">
-          <Button type="submit" disabled={saving} className="bg-indigo-600 hover:bg-indigo-700">
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
             {saving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -307,7 +351,7 @@ export default function SettingsAddresses() {
             )}
           </Button>
         </div>
-      </form>
+      </div>
     </SettingsLayout>
   );
 }
