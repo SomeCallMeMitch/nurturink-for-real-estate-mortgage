@@ -396,6 +396,34 @@ export default function AdminEnvelopeLayout() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* NEW: Default Return Address Mode Setting */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Default Return Address Mode</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div>
+                  <Label htmlFor="default-return-mode">Default Mode for New Mailings</Label>
+                  <Select
+                    value={localSettings?.defaultReturnAddressMode || 'company'}
+                    onValueChange={(value) => updateSetting('defaultReturnAddressMode', value)}
+                  >
+                    <SelectTrigger id="default-return-mode">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="company">Company</SelectItem>
+                      <SelectItem value="rep">Rep</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    This will be the default return address mode when users create new mailings
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
           
           {/* Right Column: Live Preview + Return Address Text Template */}

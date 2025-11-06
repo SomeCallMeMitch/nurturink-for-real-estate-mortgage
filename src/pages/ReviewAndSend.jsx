@@ -5,12 +5,12 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // New import
-import { Label } from "@/components/ui/label";   // New import
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Loader2, ArrowRight, AlertTriangle, AlertCircle, Send } from "lucide-react";
 import { debounce } from "lodash";
-import { useToast } from "@/components/ui/use-toast"; // New import
-import { // New imports
+import { useToast } from "@/components/ui/use-toast";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -84,7 +84,7 @@ const formatRepAddress = (user) => {
 
 export default function ReviewAndSend() {
   const navigate = useNavigate();
-  const { toast } = useToast(); // Initialize useToast
+  const { toast } = useToast();
   
   // Get mailingBatchId from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -147,6 +147,16 @@ export default function ReviewAndSend() {
         }
       }
       
+      // Load instance settings FIRST to get default
+      let defaultReturnMode = 'company'; // fallback
+      try {
+        const settingsResponse = await base44.functions.invoke('getInstanceSettings');
+        setInstanceSettings(settingsResponse.data);
+        defaultReturnMode = settingsResponse.data?.envelopeLayoutSettings?.defaultReturnAddressMode || 'company';
+      } catch (settingsError) {
+        console.error('Failed to load instance settings:', settingsError);
+      }
+      
       // Load mailing batch
       const batch = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
       if (!batch || batch.length === 0) {
@@ -156,9 +166,17 @@ export default function ReviewAndSend() {
       const batchData = batch[0];
       setMailingBatch(batchData);
       
-      // Initialize local state from batch
-      setLocalReturnAddressModeGlobal(batchData.returnAddressModeGlobal || 'company');
+      // Initialize local state from batch, using default if not set
+      const initialMode = batchData.returnAddressModeGlobal || defaultReturnMode;
+      setLocalReturnAddressModeGlobal(initialMode);
       setLocalReturnAddressModeOverrides(batchData.returnAddressModeOverrides || {});
+      
+      // If batch doesn't have a mode set, save the default
+      if (!batchData.returnAddressModeGlobal) {
+        await base44.entities.MailingBatch.update(mailingBatchId, {
+          returnAddressModeGlobal: initialMode
+        });
+      }
       
       // Load clients
       const clientList = await base44.entities.Client.filter({
@@ -174,14 +192,6 @@ export default function ReviewAndSend() {
         if (profiles.length > 0) {
           setNoteStyleProfile(profiles[0]);
         }
-      }
-      
-      // Load instance settings for envelope preview
-      try {
-        const settingsResponse = await base44.functions.invoke('getInstanceSettings');
-        setInstanceSettings(settingsResponse.data);
-      } catch (settingsError) {
-        console.error('Failed to load instance settings:', settingsError);
       }
       
       setLoading(false);

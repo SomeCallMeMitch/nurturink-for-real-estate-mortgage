@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
 // Default settings to initialize if no record exists
@@ -24,7 +25,20 @@ const DEFAULT_SETTINGS = {
     recipientAddressTop: 180,
     recipientAddressLeft: 200,
     returnAddressTop: 20,
-    returnAddressLeft: 20
+    returnAddressLeft: 20,
+    envelopeImageUrl: "",
+    envelopeFontFamily: "Caveat",
+    envelopeFontSize: 18,
+    envelopeLineHeight: 1.2,
+    envelopeTextColor: "#000000",
+    returnAddressText: "{{org.name}}\n{{org.street}}\n{{org.city}}, {{org.state}} {{org.zipCode}}",
+    returnAddressLeftOffset: 20,
+    returnAddressTopOffset: 20,
+    recipientAddressLeftOffset: 250,
+    recipientAddressTopOffset: 150,
+    envelopePreviewWidth: 500,
+    envelopePreviewHeight: 300,
+    defaultReturnAddressMode: "company"
   }
 };
 
