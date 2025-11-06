@@ -504,12 +504,12 @@ export default function ReviewAndSend() {
                   {clients.map((client, index) => {
                     const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
                     const effectiveMode = getEffectiveReturnAddressMode(client.id);
-                    // const hasOverride = localReturnAddressModeOverrides[client.id]; // Not used in current display
                     
                     return (
                       <button
                         key={client.id}
                         onClick={() => handleRecipientClick(client.id)}
+                        type="button"
                         className={`w-full text-left px-3 py-2.5 rounded transition-all ${
                           isEditing
                             ? 'bg-[#fff8f8] border-l-4 border-l-[#d32f2f] font-semibold'
@@ -560,95 +560,107 @@ export default function ReviewAndSend() {
                   onModeChange={handleModeChange}
                 />
                 
-                {/* Return Address Options - Card Style */}
+                {/* Return Address Options - Card Style with CONDITIONAL RENDERING */}
                 <div className="space-y-3">
-                  {/* Company Option */}
-                  <button
-                    onClick={() => handleReturnAddressModeSelect('company')}
-                    disabled={!hasCompanyAddress}
-                    type="button"
-                    className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                      getCurrentReturnAddressMode() === 'company'
-                        ? 'border-orange-500 bg-orange-50'
-                        : hasCompanyAddress
-                        ? 'border-gray-200 hover:border-gray-300 bg-white'
-                        : 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900">Company</h3>
-                      {getCurrentReturnAddressMode() === 'company' && (
-                        <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        </div>
-                      )}
-                    </div>
-                    {hasCompanyAddress ? (
+                  {/* Company Option - CONDITIONAL RENDERING */}
+                  {hasCompanyAddress ? (
+                    // When address EXISTS - clickable button
+                    <button
+                      onClick={() => handleReturnAddressModeSelect('company')}
+                      type="button"
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        getCurrentReturnAddressMode() === 'company'
+                          ? 'border-orange-500 bg-orange-50'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900">Company</h3>
+                        {getCurrentReturnAddressMode() === 'company' && (
+                          <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          </div>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-600 whitespace-pre-line">
                         {getAddressPreview('company')}
                       </p>
-                    ) : (
+                    </button>
+                  ) : (
+                    // When NO address - non-clickable div with working link
+                    <div className={`w-full p-4 rounded-lg border-2 border-gray-200 bg-gray-50 ${
+                      getCurrentReturnAddressMode() === 'company' ? 'border-orange-500 bg-orange-50' : ''
+                    }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-500">Company</h3>
+                      </div>
                       <div className="flex items-start gap-2 text-sm text-red-600">
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <div>
                           No company address set.{' '}
-                          <a
-                            href="#"
+                          <button
                             onClick={handleOpenCompanyAddressDialog}
-                            className="underline font-medium hover:text-red-700"
+                            type="button"
+                            className="underline font-medium hover:text-red-700 cursor-pointer bg-transparent border-none p-0"
                           >
                             Add in Settings
-                          </a>
+                          </button>
                           {' '}or choose Rep/None
                         </div>
                       </div>
-                    )}
-                  </button>
-
-                  {/* Rep Option */}
-                  <button
-                    onClick={() => handleReturnAddressModeSelect('rep')}
-                    disabled={!hasRepAddress}
-                    type="button"
-                    className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                      getCurrentReturnAddressMode() === 'rep'
-                        ? 'border-orange-500 bg-orange-50'
-                        : hasRepAddress
-                        ? 'border-gray-200 hover:border-gray-300 bg-white'
-                        : 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900">Rep</h3>
-                      {getCurrentReturnAddressMode() === 'rep' && (
-                        <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        </div>
-                      )}
                     </div>
-                    {hasRepAddress ? (
+                  )}
+
+                  {/* Rep Option - CONDITIONAL RENDERING */}
+                  {hasRepAddress ? (
+                    // When address EXISTS - clickable button
+                    <button
+                      onClick={() => handleReturnAddressModeSelect('rep')}
+                      type="button"
+                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                        getCurrentReturnAddressMode() === 'rep'
+                          ? 'border-orange-500 bg-orange-50'
+                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900">Rep</h3>
+                        {getCurrentReturnAddressMode() === 'rep' && (
+                          <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full" />
+                          </div>
+                        )}
+                      </div>
                       <p className="text-sm text-gray-600 whitespace-pre-line">
                         {getAddressPreview('rep')}
                       </p>
-                    ) : (
+                    </button>
+                  ) : (
+                    // When NO address - non-clickable div with working link
+                    <div className={`w-full p-4 rounded-lg border-2 border-gray-200 bg-gray-50 ${
+                      getCurrentReturnAddressMode() === 'rep' ? 'border-orange-500 bg-orange-50' : ''
+                    }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-500">Rep</h3>
+                      </div>
                       <div className="flex items-start gap-2 text-sm text-red-600">
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <div>
                           {user?.full_name || 'You'} don't have a return address on file.{' '}
-                          <a
-                            href="#"
+                          <button
                             onClick={handleOpenRepAddressDialog}
-                            className="underline font-medium hover:text-red-700"
+                            type="button"
+                            className="underline font-medium hover:text-red-700 cursor-pointer bg-transparent border-none p-0"
                           >
                             Add Address
-                          </a>
+                          </button>
                           {' '}or choose Company/None
                         </div>
                       </div>
-                    )}
-                  </button>
+                    </div>
+                  )}
 
-                  {/* None Option */}
+                  {/* None Option - Always clickable */}
                   <button
                     onClick={() => handleReturnAddressModeSelect('none')}
                     type="button"
