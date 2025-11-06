@@ -3,14 +3,14 @@ import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   Home,
-  Mail,        // Changed from Send to Mail for "Send a Card"
+  Mail,
   Settings,
   LogOut,
   FileText,
   Shield,
-  Users,       // New icon for Clients
-  DollarSign,  // New icon for Credits
-  BarChart3    // New icon for Analytics
+  Users,
+  DollarSign,
+  BarChart3
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -18,23 +18,14 @@ export default function LeftSidebar() {
   const location = useLocation();
   const [user, setUser] = useState(null);
 
-  // Effect to load user data when the component mounts
   useEffect(() => {
     const fetchUser = async () => {
       let currentUser = null;
       try {
-        console.log('🔍 [LeftSidebar] Fetching user data...');
-        
-        // Attempt to get the current user from base44 client
         currentUser = await base44.auth.me();
-        
-        console.log('✅ [LeftSidebar] User fetched successfully:', currentUser);
-        console.log('👤 [LeftSidebar] User appRole:', currentUser?.appRole);
-        console.log('🔐 [LeftSidebar] User full object:', JSON.stringify(currentUser, null, 2));
 
         // Mock user data for local development if no real user is found
         if (!currentUser) {
-            console.warn("⚠️ [LeftSidebar] No user found from base44.auth.me(). Using mock user for development purposes.");
             currentUser = {
                 id: 'mock-user-123',
                 email: 'test@example.com',
@@ -43,10 +34,9 @@ export default function LeftSidebar() {
                 // Uncomment the line below to test 'super_admin' role:
                 // appRole: 'super_admin',
             };
-            console.log('🧪 [LeftSidebar] Using mock user:', currentUser);
         }
       } catch (error) {
-        console.error("❌ [LeftSidebar] Failed to fetch current user:", error);
+        console.error("Failed to fetch current user:", error);
         // Set a default user or null on error
         currentUser = {
             id: 'error-user',
@@ -54,10 +44,8 @@ export default function LeftSidebar() {
             isOrgOwner: false,
             appRole: 'user',
         };
-        console.log('⚠️ [LeftSidebar] Using error fallback user:', currentUser);
       } finally {
         setUser(currentUser);
-        console.log('📝 [LeftSidebar] Final user state set to:', currentUser);
       }
     };
     fetchUser();
@@ -68,7 +56,7 @@ export default function LeftSidebar() {
     setUser(null);
   };
 
-  // Updated menu items with roles and flat structure
+  // Menu items - super_admin has access to ALL items
   const menuItems = [
     {
       id: 'home',
@@ -82,35 +70,35 @@ export default function LeftSidebar() {
       label: 'Send a Card',
       icon: Mail,
       path: 'FindClients',
-      roles: ['sales_rep', 'organization_owner']
+      roles: ['sales_rep', 'organization_owner', 'super_admin']
     },
     {
       id: 'clients',
       label: 'Clients',
       icon: Users,
       path: 'AdminClients',
-      roles: ['sales_rep', 'organization_owner']
+      roles: ['sales_rep', 'organization_owner', 'super_admin']
     },
     {
       id: 'templates',
       label: 'Templates',
       icon: FileText,
       path: 'Templates',
-      roles: ['sales_rep', 'organization_owner']
+      roles: ['sales_rep', 'organization_owner', 'super_admin']
     },
     {
       id: 'credits',
       label: 'Credits',
       icon: DollarSign,
       path: 'Credits',
-      roles: ['sales_rep', 'organization_owner']
+      roles: ['sales_rep', 'organization_owner', 'super_admin']
     },
     {
       id: 'analytics',
       label: 'Analytics',
       icon: BarChart3,
       path: 'Analytics',
-      roles: ['sales_rep', 'organization_owner']
+      roles: ['sales_rep', 'organization_owner', 'super_admin']
     },
     {
       id: 'settings',
@@ -134,13 +122,6 @@ export default function LeftSidebar() {
   const visibleMenuItems = user ? menuItems.filter(item =>
     item.roles && item.roles.includes(user.appRole)
   ) : [];
-
-  console.log('🎯 [LeftSidebar] Visible menu items count:', visibleMenuItems.length);
-  console.log('🔍 [LeftSidebar] Checking super admin condition:');
-  console.log('   - user exists:', !!user);
-  console.log('   - user.appRole:', user?.appRole);
-  console.log('   - appRole === "super_admin":', user?.appRole === 'super_admin');
-  console.log('   - Should show super admin link:', !!(user && user.appRole === 'super_admin'));
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
@@ -179,14 +160,6 @@ export default function LeftSidebar() {
               <Shield className="w-5 h-5" />
               <span>Super Admin</span>
             </Link>
-          </div>
-        )}
-        
-        {user && user.appRole !== 'super_admin' && (
-          <div className="pt-4 mt-4 border-t border-gray-200">
-            <div className="px-4 py-2 text-xs text-gray-400">
-              ℹ️ Super Admin link hidden (appRole: {user.appRole})
-            </div>
           </div>
         )}
       </nav>
