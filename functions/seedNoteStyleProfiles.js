@@ -3,17 +3,17 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 const sampleProfiles = [
   {
     name: "Professional",
-    defaultGreeting: "Dear {{firstName}},",
-    signatureText: "Sincerely,\n{{rep_full_name}}\n{{rep_company_name}}\n{{rep_phone}}",
+    defaultGreeting: "Dear {{client.firstName}},",
+    signatureText: "Sincerely,\n{{me.fullName}}\n{{me.companyName}}\n{{me.phone}}",
     includeSignatureByDefault: true,
     handwritingFont: "Caveat",
-    isDefault: false,
+    isDefault: true,  // First one is default
     isOrgWide: false
   },
   {
     name: "Casual & Friendly",
-    defaultGreeting: "Hi {{firstName}}!",
-    signatureText: "Best,\n{{rep_full_name}}\n{{rep_company_name}}",
+    defaultGreeting: "Hi {{client.firstName}}!",
+    signatureText: "Best,\n{{me.fullName}}\n{{me.companyName}}",
     includeSignatureByDefault: true,
     handwritingFont: "Caveat",
     isDefault: false,
@@ -21,8 +21,8 @@ const sampleProfiles = [
   },
   {
     name: "Follow-up Thank You",
-    defaultGreeting: "Hello {{firstName}},",
-    signatureText: "Thank you,\n{{rep_full_name}}\n{{rep_company_name}}",
+    defaultGreeting: "Hello {{client.firstName}},",
+    signatureText: "Thank you,\n{{me.fullName}}\n{{me.companyName}}",
     includeSignatureByDefault: true,
     handwritingFont: "Caveat",
     isDefault: false,
@@ -30,8 +30,8 @@ const sampleProfiles = [
   },
   {
     name: "Simple & Direct",
-    defaultGreeting: "{{firstName}},",
-    signatureText: "Regards,\n{{rep_full_name}}",
+    defaultGreeting: "{{client.firstName}},",
+    signatureText: "Regards,\n{{me.fullName}}",
     includeSignatureByDefault: true,
     handwritingFont: "Caveat",
     isDefault: false,
@@ -39,8 +39,8 @@ const sampleProfiles = [
   },
   {
     name: "Warm Personal Touch",
-    defaultGreeting: "Hey {{firstName}},",
-    signatureText: "All the best,\n{{rep_full_name}}\n{{rep_phone}}",
+    defaultGreeting: "Hey {{client.firstName}},",
+    signatureText: "All the best,\n{{me.fullName}}\n{{me.phone}}",
     includeSignatureByDefault: true,
     handwritingFont: "Patrick Hand",
     isDefault: false,
