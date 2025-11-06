@@ -67,8 +67,7 @@ export default function AdminEnvelopeLayout() {
       toast({
         title: 'Error',
         description: 'Failed to load envelope settings',
-        variant: 'destructive',
-        duration: 3000
+        variant: 'destructive'
       });
     } finally {
       setLoading(false);
@@ -88,8 +87,7 @@ export default function AdminEnvelopeLayout() {
         toast({
           title: 'Settings saved',
           description: 'Envelope layout settings updated successfully',
-          duration: 2000,
-          className: 'bg-green-50 border-green-200 text-green-900'
+          duration: 2000
         });
       } catch (error) {
         console.error('Failed to save settings:', error);
@@ -102,8 +100,7 @@ export default function AdminEnvelopeLayout() {
         toast({
           title: 'Save failed',
           description: errorMessage,
-          variant: 'destructive',
-          duration: 5000
+          variant: 'destructive'
         });
       }
     }, 1000),
@@ -127,16 +124,14 @@ export default function AdminEnvelopeLayout() {
       toast({
         title: 'Image uploaded',
         description: 'Envelope template image uploaded successfully',
-        duration: 2000,
-        className: 'bg-green-50 border-green-200 text-green-900'
+        duration: 2000
       });
     } catch (error) {
       console.error('Failed to upload image:', error);
       toast({
         title: 'Upload failed',
         description: 'Failed to upload envelope image',
-        variant: 'destructive',
-        duration: 3000
+        variant: 'destructive'
       });
     } finally {
       setUploadingImage(false);
@@ -191,11 +186,12 @@ export default function AdminEnvelopeLayout() {
               <CardContent className="space-y-4">
                 {localSettings?.envelopeImageUrl ? (
                   <div className="space-y-3">
-                    <div className="relative rounded-lg overflow-hidden border border-gray-200">
+                    <div className="relative rounded-lg overflow-hidden border border-gray-200" style={{ maxHeight: '200px' }}>
                       <img
                         src={localSettings.envelopeImageUrl}
                         alt="Envelope template"
-                        className="w-full h-auto"
+                        className="w-full h-full object-contain"
+                        style={{ maxHeight: '200px' }}
                       />
                     </div>
                     <Button
