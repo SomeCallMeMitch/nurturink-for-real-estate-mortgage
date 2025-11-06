@@ -439,9 +439,54 @@ export default function ReviewAndSend() {
 
   // Handle send
   const handleSend = async () => {
-    // TODO: Implement actual sending logic
-    // For now, just navigate to confirmation or home
-    alert('Sending functionality coming soon!');
+    try {
+      setSaving(true);
+      
+      // Validate that we have necessary data
+      if (!noteStyleProfile) { // Using noteStyleProfile to check if a design is selected
+        toast({
+          title: 'Missing card design',
+          description: 'Please select a card design before sending',
+          variant: 'destructive',
+          duration: 3000
+        });
+        setSaving(false);
+        return;
+      }
+      
+      // Call backend function to process the mailing batch
+      console.log('🚀 Processing mailing batch:', mailingBatchId);
+      const response = await base44.functions.invoke('processMailingBatch', {
+        mailingBatchId: mailingBatchId
+      });
+      
+      console.log('✅ Batch processed successfully:', response.data);
+      
+      // Check for partial success (some failures)
+      if (response.data.partialSuccess) {
+        toast({
+          title: 'Partially sent',
+          description: `${response.data.processedCount} of ${response.data.totalClients} notes sent successfully`,
+          variant: 'warning',
+          duration: 5000
+        });
+      }
+      
+      // Navigate to confirmation page
+      navigate(createPageUrl(`MailingConfirmation?mailingBatchId=${mailingBatchId}`));
+      
+    } catch (error) {
+      console.error('❌ Failed to send notes:', error);
+      
+      toast({
+        title: 'Failed to send',
+        description: error.response?.data?.error || error.message || 'Failed to send notes. Please try again.',
+        variant: 'destructive',
+        duration: 5000
+      });
+      
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -737,9 +782,13 @@ export default function ReviewAndSend() {
           <Button
             onClick={handleSend}
             className="bg-orange-500 hover:bg-orange-600 gap-2 text-lg px-8 py-6"
+            disabled={saving}
           >
-            <Send className="w-5 h-5" />
-            Send Notes
+            {saving ? (
+              <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Sending...</>
+            ) : (
+              <><Send className="w-5 h-5" />Send Notes</>
+            )}
           </Button>
         </div>
       </div>
