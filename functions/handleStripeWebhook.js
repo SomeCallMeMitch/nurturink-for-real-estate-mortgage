@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createServiceClient } from 'npm:@base44/sdk@0.7.1';
 import Stripe from 'npm:stripe@14.11.0';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
@@ -9,8 +9,6 @@ const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    
     // Get the raw body as text for signature validation
     const body = await req.text();
     const signature = req.headers.get('stripe-signature');
@@ -19,7 +17,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing stripe-signature header' }, { status: 400 });
     }
     
-    // Verify webhook signature
+    // CRITICAL: Verify webhook signature BEFORE any other operations
     let event;
     try {
       event = await stripe.webhooks.constructEventAsync(
@@ -33,6 +31,11 @@ Deno.serve(async (req) => {
     }
     
     console.log('📨 Webhook event type:', event.type);
+    
+    // Initialize Base44 client in service role mode (no user authentication required)
+    const base44 = createServiceClient({
+      appId: Deno.env.get("BASE44_APP_ID")
+    });
     
     // Handle different event types
     if (event.type === 'checkout.session.completed') {
@@ -66,8 +69,8 @@ Deno.serve(async (req) => {
       const credits = parseInt(creditAmount);
       const isOrgPurchase = purchaseType === 'organization';
       
-      // Load user
-      const users = await base44.asServiceRole.entities.User.filter({ id: userId });
+      // Load user using service role
+      const users = await base44.entities.User.filter({ id: userId });
       if (!users || users.length === 0) {
         console.error('❌ User not found:', userId);
         return Response.json({ error: 'User not found' }, { status: 404 });
@@ -77,14 +80,14 @@ Deno.serve(async (req) => {
       // Load organization if org purchase
       let organization = null;
       if (isOrgPurchase && orgId) {
-        const orgs = await base44.asServiceRole.entities.Organization.filter({ id: orgId });
+        const orgs = await base44.entities.Organization.filter({ id: orgId });
         if (orgs && orgs.length > 0) {
           organization = orgs[0];
         }
       }
       
       // Load pricing tier for details
-      const tiers = await base44.asServiceRole.entities.PricingTier.filter({ 
+      const tiers = await base44.entities.PricingTier.filter({ 
         id: pricingTierId 
       });
       const tier = tiers && tiers.length > 0 ? tiers[0] : null;
@@ -97,7 +100,7 @@ Deno.serve(async (req) => {
         
         try {
           // Fetch coupon from database
-          const coupons = await base44.asServiceRole.entities.Coupon.filter({ 
+          const coupons = await base44.entities.Coupon.filter({ 
             code: couponCode.trim().toUpperCase() 
           });
           
@@ -107,7 +110,7 @@ Deno.serve(async (req) => {
             // Increment coupon usage count
             const newUsedCount = (couponUsed.usedCount || 0) + 1;
             
-            await base44.asServiceRole.entities.Coupon.update(couponUsed.id, {
+            await base44.entities.Coupon.update(couponUsed.id, {
               usedCount: newUsedCount
             });
             
@@ -130,7 +133,7 @@ Deno.serve(async (req) => {
         const newBalance = (organization.creditBalance || 0) + credits;
         
         // Update organization credit balance
-        await base44.asServiceRole.entities.Organization.update(organization.id, {
+        await base44.entities.Organization.update(organization.id, {
           creditBalance: newBalance
         });
         
@@ -142,7 +145,7 @@ Deno.serve(async (req) => {
         }
         
         // Create transaction record with coupon info
-        await base44.asServiceRole.entities.Transaction.create({
+        await base44.entities.Transaction.create({
           orgId: organization.id,
           userId: user.id,
           type: 'purchase_org',
@@ -176,7 +179,7 @@ Deno.serve(async (req) => {
         const newBalance = (user.creditBalance || 0) + credits;
         
         // Update user credit balance
-        await base44.asServiceRole.entities.User.update(user.id, {
+        await base44.entities.User.update(user.id, {
           creditBalance: newBalance
         });
         
@@ -188,7 +191,7 @@ Deno.serve(async (req) => {
         }
         
         // Create transaction record with coupon info
-        await base44.asServiceRole.entities.Transaction.create({
+        await base44.entities.Transaction.create({
           orgId: user.orgId || '',
           userId: user.id,
           type: 'purchase_user',
