@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Database, ArrowRight, CheckCircle2, AlertCircle } from "lucide-react";
+import { Mail, Database, ArrowRight, CheckCircle2, AlertCircle, DollarSign } from "lucide-react";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -17,6 +17,8 @@ export default function Home() {
   const [categorySeedResult, setCategorySeedResult] = useState(null);
   const [seedingPricing, setSeedingPricing] = useState(false);
   const [pricingSeedResult, setPricingSeedResult] = useState(null);
+  const [seedingCredits, setSeedingCredits] = useState(false);
+  const [creditsSeedResult, setCreditsSeedResult] = useState(null);
 
   const handleSeedData = async () => {
     try {
@@ -120,6 +122,34 @@ export default function Home() {
     }
   };
 
+  const handleSeedCredits = async () => {
+    try {
+      setSeedingCredits(true);
+      setCreditsSeedResult(null);
+      
+      const response = await base44.functions.invoke('seedUserCredits', {
+        creditAmount: 20
+      });
+      
+      setCreditsSeedResult({
+        success: response.data.success,
+        message: response.data.message,
+        previousBalance: response.data.previousBalance,
+        newBalance: response.data.newBalance,
+        creditsAdded: response.data.creditsAdded
+      });
+      
+    } catch (error) {
+      console.error('Failed to seed credits:', error);
+      setCreditsSeedResult({
+        success: false,
+        message: error.response?.data?.error || 'Failed to seed credits'
+      });
+    } finally {
+      setSeedingCredits(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
       <div className="max-w-4xl mx-auto p-8 pt-20">
@@ -160,6 +190,61 @@ export default function Home() {
                 </Button>
               </div>
             </CardHeader>
+          </Card>
+
+          {/* NEW: Seed Test Credits */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <DollarSign className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <CardTitle>Test Credits</CardTitle>
+                    <CardDescription>
+                      Add 20 test credits to your account (Testing Feature)
+                    </CardDescription>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleSeedCredits}
+                  variant="outline"
+                  disabled={seedingCredits}
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                >
+                  {seedingCredits ? 'Adding...' : 'Add 20 Credits'}
+                </Button>
+              </div>
+            </CardHeader>
+
+            {creditsSeedResult && (
+              <CardContent>
+                <div className={`flex items-start gap-3 p-4 rounded-lg ${
+                  creditsSeedResult.success 
+                    ? 'bg-green-50 border border-green-200' 
+                    : 'bg-yellow-50 border border-yellow-200'
+                }`}>
+                  {creditsSeedResult.success ? (
+                    <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  )}
+                  <div className="flex-1">
+                    <p className={`font-medium ${
+                      creditsSeedResult.success ? 'text-green-900' : 'text-yellow-900'
+                    }`}>
+                      {creditsSeedResult.message}
+                    </p>
+                    {creditsSeedResult.success && (
+                      <p className="text-sm text-green-700 mt-1">
+                        Balance: {creditsSeedResult.previousBalance} → {creditsSeedResult.newBalance} credits
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            )}
           </Card>
 
           {/* Seed Test Data */}
@@ -328,7 +413,7 @@ export default function Home() {
             )}
           </Card>
 
-          {/* NEW: Seed Pricing Tiers */}
+          {/* Seed Pricing Tiers */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -419,34 +504,38 @@ export default function Home() {
             <ol className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">1.</span>
-                <span>Click "Seed Test Data" to create 10 sample clients (first time only)</span>
+                <span>Click "Add 20 Credits" to get test credits for your account</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">2.</span>
-                <span>Click "Seed Categories" to create template categories (super admin, first time only)</span>
+                <span>Click "Seed Test Data" to create 10 sample clients (first time only)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">3.</span>
-                <span>Click "Seed Templates" to create sample templates and note style profiles (first time only)</span>
+                <span>Click "Seed Categories" to create template categories (super admin, first time only)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">4.</span>
-                <span>Click "Seed Pricing" to create default pricing tiers (super admin or org owner)</span>
+                <span>Click "Seed Templates" to create sample templates and note style profiles (first time only)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">5.</span>
-                <span>Click "Manage Cards" to create card designs and categories (super admin)</span>
+                <span>Click "Seed Pricing" to create default pricing tiers (super admin or org owner)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">6.</span>
-                <span>Click "Send a Card" to start the workflow</span>
+                <span>Click "Manage Cards" to create card designs and categories (super admin)</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">7.</span>
-                <span>Select clients and compose your message</span>
+                <span>Click "Send a Card" to start the workflow</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">8.</span>
+                <span>Select clients and compose your message</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="font-semibold text-indigo-600">9.</span>
                 <span>Choose a design and send your notecards!</span>
               </li>
             </ol>
