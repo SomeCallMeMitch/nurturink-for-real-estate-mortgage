@@ -32,10 +32,19 @@ export default function SettingsOrganization() {
       setError('');
       
       const currentUser = await base44.auth.me();
+      console.log('🔍 SettingsOrganization - Current user:', currentUser);
+      console.log('🔍 SettingsOrganization - appRole:', currentUser.appRole);
+      console.log('🔍 SettingsOrganization - isOrgOwner:', currentUser.isOrgOwner);
+      
       setUser(currentUser);
       
-      // Check if user is organization owner
-      if (currentUser.appRole !== 'organization_owner') {
+      // Check if user is organization owner (check both appRole and isOrgOwner flag)
+      const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
+      
+      console.log('🔍 SettingsOrganization - isOrgOwner check result:', isOrgOwner);
+      
+      if (!isOrgOwner) {
+        console.error('❌ SettingsOrganization - Access denied: User is not an organization owner');
         setError('Only organization owners can manage organization settings.');
         setLoading(false);
         return;
@@ -43,18 +52,24 @@ export default function SettingsOrganization() {
       
       // Check if user has an organization
       if (!currentUser.orgId) {
+        console.error('❌ SettingsOrganization - User does not have orgId');
         setError('You are not associated with an organization.');
         setLoading(false);
         return;
       }
+      
+      console.log('🔍 SettingsOrganization - Loading organization:', currentUser.orgId);
       
       // Load organization data
       const orgList = await base44.entities.Organization.filter({ 
         id: currentUser.orgId 
       });
       
+      console.log('🔍 SettingsOrganization - Organization query result:', orgList);
+      
       if (orgList && orgList.length > 0) {
         const org = orgList[0];
+        console.log('✅ SettingsOrganization - Organization loaded:', org);
         setOrganization(org);
         setFormData({
           name: org.name || '',
@@ -63,10 +78,11 @@ export default function SettingsOrganization() {
           phone: org.phone || ''
         });
       } else {
+        console.error('❌ SettingsOrganization - Organization not found');
         setError('Organization not found.');
       }
     } catch (err) {
-      console.error('Failed to load organization:', err);
+      console.error('❌ SettingsOrganization - Failed to load organization:', err);
       setError('Failed to load organization data. Please try again.');
     } finally {
       setLoading(false);
@@ -86,12 +102,16 @@ export default function SettingsOrganization() {
       setSuccessMessage('');
       setError('');
 
+      console.log('💾 SettingsOrganization - Saving organization:', organization.id, formData);
+
       await base44.entities.Organization.update(organization.id, {
         name: formData.name,
         website: formData.website,
         email: formData.email,
         phone: formData.phone
       });
+
+      console.log('✅ SettingsOrganization - Organization updated successfully');
 
       setSuccessMessage('Organization settings updated successfully!');
       
@@ -103,7 +123,7 @@ export default function SettingsOrganization() {
         setSuccessMessage('');
       }, 3000);
     } catch (err) {
-      console.error('Failed to update organization:', err);
+      console.error('❌ SettingsOrganization - Failed to update organization:', err);
       setError('Failed to update organization settings. Please try again.');
     } finally {
       setSaving(false);
@@ -133,6 +153,12 @@ export default function SettingsOrganization() {
                 <p className="text-sm text-red-700 mt-1">
                   Contact your organization owner if you need to update organization settings.
                 </p>
+                <div className="mt-3 text-xs text-red-600">
+                  <p>Debug info:</p>
+                  <p>appRole: {user?.appRole || 'not set'}</p>
+                  <p>isOrgOwner: {user?.isOrgOwner ? 'true' : 'false'}</p>
+                  <p>orgId: {user?.orgId || 'not set'}</p>
+                </div>
               </div>
             </div>
           </CardContent>
