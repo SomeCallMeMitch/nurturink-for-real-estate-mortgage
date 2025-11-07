@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -5,6 +6,7 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label'; // Added Label import
 import { 
   Loader2, 
   CreditCard, 
@@ -19,7 +21,8 @@ import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
-  Receipt
+  Receipt,
+  CheckCircle // Added CheckCircle import for coupon banner
 } from 'lucide-react';
 import {
   Select,
@@ -51,6 +54,11 @@ export default function Credits() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date-desc');
   const [exporting, setExporting] = useState(false);
+
+  // COUPON STATE
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -243,7 +251,95 @@ export default function Credits() {
   // Calculate price per note
   const getPricePerNote = (priceInCents, creditAmount) => {
     if (creditAmount === 0) return '$0.00';
-    return `$${(priceInCents / 100 / creditAmount).toFixed(2)}`;
+    // Ensure priceInCents is not negative before division
+    const actualPrice = Math.max(0, priceInCents); 
+    return `$${(actualPrice / 100 / creditAmount).toFixed(2)}`;
+  };
+
+  // COUPON VALIDATION HANDLER
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast({
+        title: 'Coupon code required',
+        description: 'Please enter a coupon code',
+        variant: 'destructive',
+        duration: 3000
+      });
+      return;
+    }
+
+    // Validate against first available tier (or most popular)
+    const referenceTier = pricingTiers.find(t => t.isMostPopular) || pricingTiers[0];
+    
+    if (!referenceTier) {
+      toast({
+        title: 'No pricing tiers available',
+        description: 'Cannot validate coupon without pricing tiers',
+        variant: 'destructive',
+        duration: 3000
+      });
+      return;
+    }
+
+    try {
+      setValidatingCoupon(true);
+      
+      const response = await base44.functions.invoke('validateCouponForTier', {
+        pricingTierId: referenceTier.id,
+        couponCode: couponCode.trim()
+      });
+
+      if (response.data.valid) {
+        setAppliedCoupon(response.data);
+        toast({
+          title: `Coupon Applied! 🎉`,
+          description: `${response.data.coupon.description}`,
+          duration: 5000,
+          className: 'bg-green-50 border-green-200 text-green-900'
+        });
+      }
+    } catch (err) {
+      console.error('Coupon validation error:', err);
+      setAppliedCoupon(null);
+      toast({
+        title: 'Invalid Coupon',
+        description: err.response?.data?.error || 'This coupon code is not valid',
+        variant: 'destructive',
+        duration: 4000
+      });
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  // REMOVE COUPON HANDLER
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setAppliedCoupon(null);
+    toast({
+      title: 'Coupon removed',
+      description: 'Coupon has been removed from your purchase',
+      duration: 2000
+    });
+  };
+
+  // Calculate discounted price for a tier
+  const calculateDiscountedPrice = (tier) => {
+    if (!appliedCoupon || !appliedCoupon.pricing) return tier.priceInCents;
+
+    // For simplicity, apply the same discount percentage to all tiers
+    // In a more sophisticated implementation, you'd call validateCouponForTier for each tier
+    // Assuming appliedCoupon.pricing.discountApplied is the discount amount for the reference tier
+    // and appliedCoupon.pricing.originalPrice is the original price of the reference tier.
+    // We calculate a discount ratio and apply it to the current tier.
+    const discountRatio = appliedCoupon.pricing.discountApplied / appliedCoupon.pricing.originalPrice;
+    
+    // Calculate the actual discount for THIS tier
+    const discountAmountForThisTier = Math.round(tier.priceInCents * discountRatio);
+    
+    const finalPrice = tier.priceInCents - discountAmountForThisTier;
+    
+    return finalPrice > 0 ? finalPrice : 0;
   };
 
   // Handle purchase button click with Stripe checkout
@@ -252,7 +348,8 @@ export default function Credits() {
     
     try {
       const response = await base44.functions.invoke('createCheckoutSession', {
-        pricingTierId: tier.id
+        pricingTierId: tier.id,
+        couponCode: appliedCoupon ? appliedCoupon.coupon.code : null // Pass coupon code if applied
       });
       
       if (response.data.success && response.data.checkoutUrl) {
@@ -339,7 +436,7 @@ export default function Credits() {
       console.error('Export error:', error);
       toast({
         title: 'Export Failed',
-        description: 'Failed to export transaction history',
+        description: error.response?.data?.error || 'Failed to export transaction history',
         variant: 'destructive',
         duration: 3000
       });
@@ -451,6 +548,94 @@ export default function Credits() {
             Choose Your Credit Package
           </h2>
 
+          {/* COUPON INPUT SECTION */}
+          <Card className="mb-8 bg-white border-2 border-indigo-200">
+            <CardContent className="py-6">
+              <div className="max-w-2xl mx-auto">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <Label htmlFor="coupon-code" className="text-sm font-semibold text-gray-700 mb-2 block">
+                      Have a coupon code?
+                    </Label>
+                    <div className="flex gap-3">
+                      <Input
+                        id="coupon-code"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="Enter coupon code (e.g., SAVE20)"
+                        className="uppercase font-mono text-base"
+                        disabled={validatingCoupon || !!appliedCoupon}
+                      />
+                      {appliedCoupon ? (
+                        <Button
+                          onClick={handleRemoveCoupon}
+                          variant="outline"
+                          className="border-red-300 text-red-600 hover:bg-red-50"
+                        >
+                          Remove
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={handleApplyCoupon}
+                          disabled={validatingCoupon || !couponCode.trim()}
+                          className="bg-indigo-600 hover:bg-indigo-700"
+                        >
+                          {validatingCoupon ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Validating...
+                            </>
+                          ) : (
+                            'Apply Coupon'
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Coupon Applied Banner */}
+                {appliedCoupon && (
+                  <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-green-900 mb-1">
+                          Coupon Applied: {appliedCoupon.coupon.code}
+                        </h3>
+                        <p className="text-sm text-green-700 mb-2">
+                          {appliedCoupon.coupon.description}
+                        </p>
+                        <div className="flex items-center gap-6 text-sm">
+                          <div>
+                            <span className="text-green-600">Discount:</span>{' '}
+                            <strong className="text-green-900">
+                              {formatPrice(appliedCoupon.pricing.discountApplied)} 
+                              ({appliedCoupon.pricing.discountPercentage}% off)
+                            </strong>
+                          </div>
+                          <div>
+                            <span className="text-green-600">Reference Price:</span>{' '}
+                            <strong className="text-green-900">
+                              <span className="line-through text-gray-400">
+                                {formatPrice(appliedCoupon.pricing.originalPrice)}
+                              </span>
+                              {' → '}
+                              {formatPrice(appliedCoupon.pricing.finalPrice)}
+                            </strong>
+                          </div>
+                        </div>
+                        <p className="text-xs text-green-600 mt-2">
+                          * Based on {appliedCoupon.pricing.tierName}. Discount will be applied at checkout.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
           {pricingTiers.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
@@ -465,6 +650,8 @@ export default function Credits() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {pricingTiers.map((tier) => {
                 const isPurchasing = purchasingTierId === tier.id;
+                const discountedPrice = calculateDiscountedPrice(tier);
+                const hasDiscount = appliedCoupon && discountedPrice < tier.priceInCents;
                 
                 return (
                   <Card 
@@ -485,19 +672,52 @@ export default function Credits() {
                       </div>
                     )}
 
+                    {/* Discount Badge */}
+                    {hasDiscount && (
+                      <div className="absolute -top-4 right-4 z-10">
+                        <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                          {appliedCoupon.pricing.discountPercentage}% OFF
+                        </div>
+                      </div>
+                    )}
+
                     <CardHeader className={tier.isMostPopular ? 'pt-8' : ''}>
                       <CardTitle className="text-center">
                         <div className="text-2xl font-bold text-gray-900 mb-2">
                           {tier.name}
                         </div>
-                        <div className="text-4xl font-extrabold text-indigo-600 mb-1">
-                          {formatPrice(tier.priceInCents)}
-                        </div>
+                        {hasDiscount ? (
+                          <div>
+                            <div className="text-2xl line-through text-gray-400 mb-1">
+                              {formatPrice(tier.priceInCents)}
+                            </div>
+                            <div className="text-4xl font-extrabold text-green-600 mb-1">
+                              {formatPrice(discountedPrice)}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-4xl font-extrabold text-indigo-600 mb-1">
+                            {formatPrice(tier.priceInCents)}
+                          </div>
+                        )}
                         <div className="text-base text-gray-600 font-normal">
                           for {tier.creditAmount} {tier.creditAmount === 1 ? 'note' : 'notes'}
                         </div>
                         <div className="text-sm text-gray-500 mt-1">
-                          {getPricePerNote(tier.priceInCents, tier.creditAmount)} per note
+                          {hasDiscount ? (
+                            <>
+                              <span className="line-through text-gray-400">
+                                {getPricePerNote(tier.priceInCents, tier.creditAmount)}
+                              </span>
+                              {' → '}
+                              <span className="text-green-600 font-semibold">
+                                {getPricePerNote(discountedPrice, tier.creditAmount)}
+                              </span>
+                              {' per note'}
+                            </>
+                          ) : (
+                            `${getPricePerNote(tier.priceInCents, tier.creditAmount)} per note`
+                          )}
                         </div>
                       </CardTitle>
                     </CardHeader>
