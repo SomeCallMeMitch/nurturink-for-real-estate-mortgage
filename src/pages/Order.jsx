@@ -15,12 +15,15 @@ import {
   Tag,
   Package,
   AlertCircle,
-  Users
+  Users,
+  Zap
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function OrderPage() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // State
   const [pkg, setPkg] = useState(null);
@@ -30,6 +33,7 @@ export default function OrderPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
   const [allocateNow, setAllocateNow] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(false);
 
   // Load user, organization, and package data
   useEffect(() => {
@@ -100,7 +104,7 @@ export default function OrderPage() {
     return Math.round((pkg.discountAmount / pkg.originalPrice) * 100);
   }, [pkg]);
 
-  // Handle checkout
+  // Handle real Stripe checkout
   const handleCheckout = async () => {
     if (!pkg || !user) {
       setError("Missing order details or user information.");
@@ -125,7 +129,8 @@ export default function OrderPage() {
     try {
       const response = await base44.functions.invoke('createCheckoutSession', {
         pricingTierId: pkg.pricingTierId,
-        couponCode: pkg.couponCode || undefined
+        couponCode: pkg.couponCode || undefined,
+        simulateSuccess: false
       });
 
       const url = response?.data?.checkoutUrl;
@@ -144,6 +149,74 @@ export default function OrderPage() {
         "An unexpected error occurred. Please try again."
       );
       setIsProcessing(false);
+    }
+  };
+
+  // NEW: Handle simulated purchase (for testing)
+  const handleSimulatePurchase = async () => {
+    if (!pkg || !user) {
+      setError("Missing order details or user information.");
+      return;
+    }
+    
+    if (!pkg.pricingTierId) {
+      setError("Selected package is missing pricing tier ID.");
+      return;
+    }
+
+    setIsSimulating(true);
+    setError(null);
+    
+    // Store allocation preference in localStorage for success page
+    if (isCompanyPurchase && allocateNow) {
+      localStorage.setItem('allocateAfterPurchase', 'true');
+    } else {
+      localStorage.removeItem('allocateAfterPurchase');
+    }
+    
+    try {
+      console.log('🎭 Simulating purchase for testing...');
+      
+      const response = await base44.functions.invoke('createCheckoutSession', {
+        pricingTierId: pkg.pricingTierId,
+        couponCode: pkg.couponCode || undefined,
+        simulateSuccess: true
+      });
+
+      console.log('✅ Simulation response:', response.data);
+      
+      if (response.data.success && response.data.redirectToSuccess) {
+        // Show success toast
+        toast({
+          title: 'Purchase Simulated! 🎉',
+          description: `Successfully added ${response.data.creditsAdded} credits`,
+          duration: 2000,
+          className: 'bg-green-50 border-green-200 text-green-900'
+        });
+        
+        // Navigate to success page with fake session ID
+        setTimeout(() => {
+          navigate(createPageUrl(`PaymentSuccess?session_id=${response.data.sessionId}`));
+        }, 500);
+      } else {
+        throw new Error("Simulation did not return expected response.");
+      }
+    } catch (err) {
+      console.error("Simulation error:", err);
+      setError(
+        err?.response?.data?.error ||
+        err?.message ||
+        "Failed to simulate purchase. Please try again."
+      );
+      
+      toast({
+        title: 'Simulation Failed',
+        description: err?.response?.data?.error || 'Failed to simulate purchase',
+        variant: 'destructive',
+        duration: 4000
+      });
+      
+      setIsSimulating(false);
     }
   };
 
@@ -379,28 +452,55 @@ export default function OrderPage() {
               </div>
             </div>
 
-            {/* Checkout Button */}
-            <Button
-              onClick={handleCheckout}
-              disabled={isProcessing}
-              className="w-full h-14 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 gap-2"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Redirecting to Stripe...
-                </>
-              ) : (
-                <>
-                  <CreditCard className="w-5 h-5" />
-                  Proceed to Secure Payment
-                </>
-              )}
-            </Button>
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {/* Real Stripe Checkout Button */}
+              <Button
+                onClick={handleCheckout}
+                disabled={isProcessing || isSimulating}
+                className="w-full h-14 text-lg font-semibold bg-indigo-600 hover:bg-indigo-700 gap-2"
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Redirecting to Stripe...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-5 h-5" />
+                    Proceed to Secure Payment
+                  </>
+                )}
+              </Button>
+
+              {/* NEW: Simulate Purchase Button (Testing Only) */}
+              <Button
+                onClick={handleSimulatePurchase}
+                disabled={isProcessing || isSimulating}
+                variant="outline"
+                className="w-full h-14 text-lg font-semibold border-2 border-emerald-500 text-emerald-700 hover:bg-emerald-50 gap-2"
+              >
+                {isSimulating ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Simulating Purchase...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5" />
+                    Simulate Purchase (Testing)
+                  </>
+                )}
+              </Button>
+              
+              <p className="text-xs text-center text-gray-500">
+                ⚠️ Use "Simulate Purchase" for testing the complete flow without real payment
+              </p>
+            </div>
 
             {/* Purchase Info */}
             <p className="text-xs text-center text-gray-500">
-              By clicking "Proceed to Secure Payment", you agree to our Terms of Service and 
+              By proceeding, you agree to our Terms of Service and 
               confirm that you have read our Privacy Policy.
             </p>
           </CardContent>

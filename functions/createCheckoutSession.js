@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 import Stripe from 'npm:stripe@14.11.0';
 
@@ -17,7 +18,15 @@ Deno.serve(async (req) => {
     
     // Parse request body
     const body = await req.json();
-    const { pricingTierId, couponCode } = body;
+    const { pricingTierId, couponCode, simulateSuccess } = body;
+    
+    console.log('\n========================================');
+    console.log(simulateSuccess ? '🎭 SIMULATING PURCHASE' : '💳 CREATING CHECKOUT SESSION');
+    console.log('========================================');
+    console.log('User:', user.email);
+    console.log('Pricing Tier ID:', pricingTierId);
+    console.log('Coupon Code:', couponCode || 'None');
+    console.log('Simulate Success:', simulateSuccess || false);
     
     // Validate input
     if (!pricingTierId) {
@@ -178,7 +187,7 @@ Deno.serve(async (req) => {
           
           if (targetTiers && targetTiers.length > 0) {
             targetTier = targetTiers[0];
-            console.log(`🎯 Target tier: ${targetTier.name} (${targetTier.creditAmount} credits)`);
+            console.log(`🎯 Target tier: ${targetTier.name} (${targetTiers[0].creditAmount} credits)`);
           }
         }
         
@@ -259,8 +268,6 @@ Deno.serve(async (req) => {
       console.log(`   Final: $${(finalPriceInCents / 100).toFixed(2)}`);
     }
     
-    // ==================== CONTINUE WITH STRIPE CHECKOUT ====================
-    
     // Load organization if user belongs to one
     let organization = null;
     if (user.orgId) {
@@ -272,17 +279,172 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Determine who is purchasing (user or organization)
-    const isOrgPurchase = user.appRole === 'organization_owner' && organization;
+    // Determine who is purchasing (check both appRole and isOrgOwner flag)
+    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    const isOrgPurchase = isOrgOwner && organization;
+    
+    console.log('Purchase Type:', isOrgPurchase ? 'Organization' : 'User');
+    
+    // ==================== SIMULATE SUCCESS MODE ====================
+    if (simulateSuccess) {
+      console.log('🎭 SIMULATION MODE ACTIVATED');
+      console.log('Bypassing Stripe, processing payment directly...');
+      
+      // Generate a unique fake session ID
+      const fakeSessionId = `sim_${Date.now()}_${user.id.substring(0, 8)}`;
+      console.log('Generated fake session ID:', fakeSessionId);
+      
+      const credits = tier.creditAmount;
+      
+      // Process credit addition based on purchase type
+      if (isOrgPurchase && organization) {
+        // Organization purchase
+        console.log('💼 Processing organization purchase...');
+        
+        const currentBalance = organization.creditBalance || 0;
+        const newBalance = currentBalance + credits;
+        
+        console.log(`Organization balance: ${currentBalance} → ${newBalance}`);
+        
+        // Update organization credit balance
+        await base44.asServiceRole.entities.Organization.update(organization.id, {
+          creditBalance: newBalance
+        });
+        
+        console.log('✅ Organization balance updated');
+        
+        // Build transaction description
+        let description = `Purchased ${tier.name} - ${credits} notes`;
+        if (validatedCoupon) {
+          description += ` (${validatedCoupon.code}: -$${(discountApplied / 100).toFixed(2)})`;
+        }
+        description += ' [SIMULATED]';
+        
+        // Create transaction record
+        const transaction = await base44.asServiceRole.entities.Transaction.create({
+          orgId: organization.id,
+          userId: user.id,
+          type: 'purchase_org',
+          amount: credits,
+          balanceAfter: newBalance,
+          balanceType: 'organization',
+          description: description,
+          metadata: {
+            stripeSessionId: fakeSessionId,
+            simulated: true,
+            amountPaid: finalPriceInCents,
+            currency: 'usd',
+            originalPrice: tier.priceInCents,
+            discountApplied: discountApplied,
+            finalPrice: finalPriceInCents,
+            pricingTierName: tier.name
+          },
+          relatedPricingTierId: pricingTierId,
+          stripePaymentId: `sim_pi_${Date.now()}`,
+          couponCode: validatedCoupon ? validatedCoupon.code : null
+        });
+        
+        console.log('✅ Transaction record created:', transaction.id);
+        
+        // Increment coupon usage if applicable
+        if (validatedCoupon) {
+          const newUsedCount = (validatedCoupon.usedCount || 0) + 1;
+          await base44.asServiceRole.entities.Coupon.update(validatedCoupon.id, {
+            usedCount: newUsedCount
+          });
+          console.log(`✅ Coupon ${validatedCoupon.code} usage incremented to ${newUsedCount}`);
+        }
+        
+        console.log(`✅ Simulated organization purchase complete: ${credits} credits added`);
+        
+      } else {
+        // Individual user purchase
+        console.log('👤 Processing user purchase...');
+        
+        const currentBalance = user.creditBalance || 0;
+        const newBalance = currentBalance + credits;
+        
+        console.log(`User balance: ${currentBalance} → ${newBalance}`);
+        
+        // Update user credit balance
+        await base44.asServiceRole.entities.User.update(user.id, {
+          creditBalance: newBalance
+        });
+        
+        console.log('✅ User balance updated');
+        
+        // Build transaction description
+        let description = `Purchased ${tier.name} - ${credits} notes`;
+        if (validatedCoupon) {
+          description += ` (${validatedCoupon.code}: -$${(discountApplied / 100).toFixed(2)})`;
+        }
+        description += ' [SIMULATED]';
+        
+        // Create transaction record
+        const transaction = await base44.asServiceRole.entities.Transaction.create({
+          orgId: user.orgId || '',
+          userId: user.id,
+          type: 'purchase_user',
+          amount: credits,
+          balanceAfter: newBalance,
+          balanceType: 'user',
+          description: description,
+          metadata: {
+            stripeSessionId: fakeSessionId,
+            simulated: true,
+            amountPaid: finalPriceInCents,
+            currency: 'usd',
+            originalPrice: tier.priceInCents,
+            discountApplied: discountApplied,
+            finalPrice: finalPriceInCents,
+            pricingTierName: tier.name
+          },
+          relatedPricingTierId: pricingTierId,
+          stripePaymentId: `sim_pi_${Date.now()}`,
+          couponCode: validatedCoupon ? validatedCoupon.code : null
+        });
+        
+        console.log('✅ Transaction record created:', transaction.id);
+        
+        // Increment coupon usage if applicable
+        if (validatedCoupon) {
+          const newUsedCount = (validatedCoupon.usedCount || 0) + 1;
+          await base44.asServiceRole.entities.Coupon.update(validatedCoupon.id, {
+            usedCount: newUsedCount
+          });
+          console.log(`✅ Coupon ${validatedCoupon.code} usage incremented to ${newUsedCount}`);
+        }
+        
+        console.log(`✅ Simulated user purchase complete: ${credits} credits added`);
+      }
+      
+      console.log('========================================');
+      console.log('✅ SIMULATION COMPLETE');
+      console.log('========================================\n');
+      
+      // Return success with redirect instruction
+      return Response.json({
+        success: true,
+        simulated: true,
+        sessionId: fakeSessionId,
+        redirectToSuccess: true,
+        originalPrice: tier.priceInCents,
+        discountApplied: discountApplied,
+        finalPrice: finalPriceInCents,
+        couponApplied: validatedCoupon ? validatedCoupon.code : null,
+        creditsAdded: tier.creditAmount
+      });
+    } else {
+    // ==================== REAL STRIPE CHECKOUT ====================
+    
+    console.log('💳 Creating real Stripe checkout session...');
     
     // Get or create Stripe customer
     let stripeCustomerId;
     
     if (isOrgPurchase && organization.stripeCustomerId) {
-      // Use existing organization Stripe customer
       stripeCustomerId = organization.stripeCustomerId;
     } else if (isOrgPurchase) {
-      // Create new Stripe customer for organization
       const customer = await stripe.customers.create({
         email: user.email,
         name: organization.name,
@@ -294,12 +456,10 @@ Deno.serve(async (req) => {
       });
       stripeCustomerId = customer.id;
       
-      // Save Stripe customer ID to organization
       await base44.asServiceRole.entities.Organization.update(organization.id, {
         stripeCustomerId: customer.id
       });
     } else {
-      // Individual user purchase - create or retrieve customer
       const customer = await stripe.customers.create({
         email: user.email,
         name: user.full_name,
@@ -363,6 +523,7 @@ Deno.serve(async (req) => {
     
     console.log('✅ Stripe checkout session created:', session.id);
     console.log('💳 Final amount:', `$${(finalPriceInCents / 100).toFixed(2)}`);
+    console.log('========================================\n');
     
     return Response.json({
       success: true,
@@ -373,9 +534,10 @@ Deno.serve(async (req) => {
       finalPrice: finalPriceInCents,
       couponApplied: validatedCoupon ? validatedCoupon.code : null
     });
+  }
     
   } catch (error) {
-    console.error('❌ Error creating checkout session:', error);
+    console.error('❌ Error in checkout process:', error);
     return Response.json(
       { 
         error: error.message || 'Failed to create checkout session',
