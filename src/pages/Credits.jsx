@@ -16,12 +16,13 @@ import {
   AlertCircle,
   Download,
   Search,
-  Filter,
+  RefreshCw,
   TrendingUp,
   TrendingDown,
-  RefreshCw,
   Receipt,
-  CheckCircle
+  CheckCircle,
+  Building2,
+  User as UserIcon
 } from 'lucide-react';
 import {
   Select,
@@ -41,6 +42,7 @@ export default function Credits() {
   const [organization, setOrganization] = useState(null);
   const [pricingTiers, setPricingTiers] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [companyPoolStats, setCompanyPoolStats] = useState(null);
   
   // UI state
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,7 @@ export default function Credits() {
   const [sortBy, setSortBy] = useState('date-desc');
   const [exporting, setExporting] = useState(false);
 
-  // COUPON STATE
+  // Coupon state
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
@@ -66,10 +68,8 @@ export default function Credits() {
     const sessionId = urlParams.get('session_id');
     
     if (payment === 'success') {
-      // Redirect to PaymentSuccess page
       navigate(createPageUrl(`PaymentSuccess?session_id=${sessionId || ''}`));
     } else if (payment === 'cancelled') {
-      // Redirect to PaymentCancel page
       navigate(createPageUrl('PaymentCancel'));
     }
   }, [navigate]);
@@ -95,19 +95,26 @@ export default function Credits() {
         }
       }
       
+      // Load company pool stats if user is org owner
+      if (currentUser.appRole === 'organization_owner' && currentUser.orgId) {
+        try {
+          const statsResponse = await base44.functions.invoke('getCompanyPoolStats');
+          setCompanyPoolStats(statsResponse.data);
+        } catch (err) {
+          console.error('Failed to load company pool stats:', err);
+        }
+      }
+      
       // Determine which pricing tiers to load
       if (currentUser.orgId) {
-        // User belongs to organization - check for org-specific tiers first
         const orgTiers = await base44.entities.PricingTier.filter({
           orgId: currentUser.orgId,
           isActive: true
         });
         
         if (orgTiers.length > 0) {
-          // Use organization-specific tiers
           setPricingTiers(orgTiers.sort((a, b) => a.sortOrder - b.sortOrder));
         } else {
-          // Fallback to platform-wide tiers
           const platformTiers = await base44.entities.PricingTier.filter({
             orgId: null,
             isActive: true
@@ -115,7 +122,6 @@ export default function Credits() {
           setPricingTiers(platformTiers.sort((a, b) => a.sortOrder - b.sortOrder));
         }
       } else {
-        // Solo user - load platform-wide tiers
         const platformTiers = await base44.entities.PricingTier.filter({
           orgId: null,
           isActive: true
@@ -143,13 +149,12 @@ export default function Credits() {
     }
   };
 
-  // Get current credit balance
-  const currentBalance = useMemo(() => {
-    if (organization && user?.appRole === 'organization_owner') {
-      return organization.creditBalance || 0;
-    }
-    return user?.creditBalance || 0;
-  }, [user, organization]);
+  // Determine if this is individual or company view
+  const isCompanyView = user?.appRole === 'organization_owner' && organization;
+
+  // Get current balance for display
+  const personalBalance = user?.creditBalance || 0;
+  const companyBalance = organization?.creditBalance || 0;
 
   // Calculate transaction statistics
   const transactionStats = useMemo(() => {
@@ -170,7 +175,6 @@ export default function Credits() {
   const filteredTransactions = useMemo(() => {
     let filtered = [...transactions];
     
-    // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(t => 
@@ -179,12 +183,10 @@ export default function Credits() {
       );
     }
     
-    // Apply type filter
     if (typeFilter !== 'all') {
       filtered = filtered.filter(t => t.type === typeFilter);
     }
     
-    // Apply sorting
     switch (sortBy) {
       case 'date-asc':
         filtered.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
@@ -205,25 +207,21 @@ export default function Credits() {
     return filtered;
   }, [transactions, searchQuery, typeFilter, sortBy]);
 
-  // Get unique transaction types for filter
   const transactionTypes = useMemo(() => {
     const types = new Set(transactions.map(t => t.type));
     return Array.from(types);
   }, [transactions]);
 
-  // Format price for display
   const formatPrice = (priceInCents) => {
     return `$${(priceInCents / 100).toFixed(2)}`;
   };
 
-  // Calculate price per note
   const getPricePerNote = (priceInCents, creditAmount) => {
     if (creditAmount === 0) return '$0.00';
     const actualPrice = Math.max(0, priceInCents); 
     return `$${(actualPrice / 100 / creditAmount).toFixed(2)}`;
   };
 
-  // COUPON VALIDATION HANDLER
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) {
       toast({
@@ -278,7 +276,6 @@ export default function Credits() {
     }
   };
 
-  // REMOVE COUPON HANDLER
   const handleRemoveCoupon = () => {
     setCouponCode('');
     setAppliedCoupon(null);
@@ -289,7 +286,6 @@ export default function Credits() {
     });
   };
 
-  // Calculate discounted price for a tier
   const calculateDiscountedPrice = (tier) => {
     if (!appliedCoupon || !appliedCoupon.pricing) return tier.priceInCents;
 
@@ -300,12 +296,10 @@ export default function Credits() {
     return finalPrice > 0 ? finalPrice : 0;
   };
 
-  // Handle purchase button click - Navigate to Order page
   const handlePurchase = (tier) => {
     const discountedPrice = calculateDiscountedPrice(tier);
     const hasDiscount = appliedCoupon && discountedPrice < tier.priceInCents;
     
-    // Store package details in localStorage
     const packageData = {
       pricingTierId: tier.id,
       title: tier.name,
@@ -317,12 +311,9 @@ export default function Credits() {
     };
     
     localStorage.setItem('selectedPackage', JSON.stringify(packageData));
-    
-    // Navigate to Order page
     navigate(createPageUrl('Order'));
   };
 
-  // Format transaction date
   const formatTransactionDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -334,7 +325,6 @@ export default function Credits() {
     });
   };
 
-  // Get transaction type label
   const getTransactionTypeLabel = (type) => {
     const labels = {
       'purchase_user': 'Purchase (Individual)',
@@ -349,7 +339,6 @@ export default function Credits() {
     return labels[type] || type;
   };
 
-  // Get transaction icon
   const getTransactionIcon = (type) => {
     if (type.includes('purchase') || type === 'allocation_in' || type === 'voucher') {
       return <TrendingUp className="w-5 h-5 text-green-600" />;
@@ -358,7 +347,6 @@ export default function Credits() {
     }
   };
 
-  // Handle export
   const handleExport = async () => {
     try {
       setExporting(true);
@@ -396,7 +384,6 @@ export default function Credits() {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -408,7 +395,6 @@ export default function Credits() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
@@ -433,65 +419,134 @@ export default function Credits() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Credit Management</h1>
           <p className="text-lg text-gray-600">
-            Purchase credits to send authentic handwritten notes.
+            Purchase credits to send authentic handwritten notes
           </p>
         </div>
 
-        {/* Current Balance and Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          {/* Current Balance Card */}
-          <Card className="md:col-span-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white border-0 shadow-xl">
-            <CardContent className="py-8">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h2 className="text-xl font-semibold mb-2 text-indigo-100">Current Balance</h2>
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-5xl font-bold">{currentBalance}</span>
-                    <span className="text-2xl text-indigo-100">Notes remaining</span>
+        {/* Balance Display - Different for Individual vs Company */}
+        {isCompanyView ? (
+          // Company Admin View
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            {/* Company Pool */}
+            <Card className="md:col-span-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0 shadow-xl">
+              <CardContent className="py-8">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Building2 className="w-5 h-5" />
+                      <h2 className="text-xl font-semibold text-orange-100">Company Credit Pool</h2>
+                    </div>
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-5xl font-bold">{companyBalance}</span>
+                      <span className="text-2xl text-orange-100">Credits Available</span>
+                    </div>
+                    {companyPoolStats && (
+                      <div className="mt-4 grid grid-cols-3 gap-4 pt-4 border-t border-orange-400">
+                        <div>
+                          <p className="text-sm text-orange-100">Team Size</p>
+                          <p className="text-2xl font-bold">{companyPoolStats.teamSize}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-orange-100">Used This Month</p>
+                          <p className="text-2xl font-bold">{companyPoolStats.creditsUsedThisMonth}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-orange-100">Avg per User</p>
+                          <p className="text-2xl font-bold">{companyPoolStats.avgCreditsPerUser}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div className="bg-white/20 p-6 rounded-xl backdrop-blur-sm">
+                    <CreditCard className="w-16 h-16" />
                   </div>
                 </div>
-                <div className="bg-white/20 p-6 rounded-xl backdrop-blur-sm">
-                  <CreditCard className="w-16 h-16" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
-          {/* Stats Cards */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Purchased</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    +{transactionStats.totalPurchased}
-                  </p>
+            {/* Personal Balance */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <UserIcon className="w-4 h-4 text-gray-600" />
+                      <p className="text-sm text-gray-600">Your Personal Balance</p>
+                    </div>
+                    <p className="text-3xl font-bold text-indigo-600">{personalBalance}</p>
+                  </div>
                 </div>
-                <TrendingUp className="w-8 h-8 text-green-500" />
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                {transactionStats.purchaseCount} {transactionStats.purchaseCount === 1 ? 'purchase' : 'purchases'}
-              </p>
-            </CardContent>
-          </Card>
+                <p className="text-xs text-gray-500 mt-2">
+                  For personal use only
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          // Individual User View
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <Card className="md:col-span-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0 shadow-xl">
+              <CardContent className="py-8">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold mb-2 text-blue-100">Your Personal Balance</h2>
+                    <div className="flex items-baseline gap-3">
+                      <span className="text-5xl font-bold">{personalBalance}</span>
+                      <span className="text-2xl text-blue-100">Notes remaining</span>
+                    </div>
+                    {organization && companyBalance > 0 && (
+                      <div className="mt-4 pt-4 border-t border-blue-400">
+                        <p className="text-sm text-blue-100 mb-1">Company Pool Available</p>
+                        <p className="text-3xl font-bold">{companyBalance} credits</p>
+                        <p className="text-xs text-blue-100 mt-2">
+                          💡 You'll use company credits first, then your personal credits
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="bg-white/20 p-6 rounded-xl backdrop-blur-sm">
+                    <CreditCard className="w-16 h-16" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Spent</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    -{transactionStats.totalSpent}
-                  </p>
+            {/* Stats Cards */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Total Purchased</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      +{transactionStats.totalPurchased}
+                    </p>
+                  </div>
+                  <TrendingUp className="w-8 h-8 text-green-500" />
                 </div>
-                <TrendingDown className="w-8 h-8 text-red-500" />
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                {transactionStats.usageCount} {transactionStats.usageCount === 1 ? 'note' : 'notes'} sent
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {transactionStats.purchaseCount} {transactionStats.purchaseCount === 1 ? 'purchase' : 'purchases'}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Total Spent</p>
+                    <p className="text-2xl font-bold text-red-600">
+                      -{transactionStats.totalSpent}
+                    </p>
+                  </div>
+                  <TrendingDown className="w-8 h-8 text-red-500" />
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {transactionStats.usageCount} {transactionStats.usageCount === 1 ? 'note' : 'notes'} sent
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Pricing Tiers Section */}
         <div className="mb-12">
@@ -499,7 +554,7 @@ export default function Credits() {
             Choose Your Credit Package
           </h2>
 
-          {/* COUPON INPUT SECTION */}
+          {/* Coupon Section */}
           <Card className="mb-8 bg-white border-2 border-indigo-200">
             <CardContent className="py-6">
               <div className="max-w-2xl mx-auto">
@@ -545,7 +600,6 @@ export default function Credits() {
                   </div>
                 </div>
 
-                {/* Coupon Applied Banner */}
                 {appliedCoupon && (
                   <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
                     <div className="flex items-start gap-3">
@@ -565,16 +619,6 @@ export default function Credits() {
                               ({appliedCoupon.pricing.discountPercentage}% off)
                             </strong>
                           </div>
-                          <div>
-                            <span className="text-green-600">Reference Price:</span>{' '}
-                            <strong className="text-green-900">
-                              <span className="line-through text-gray-400">
-                                {formatPrice(appliedCoupon.pricing.originalPrice)}
-                              </span>
-                              {' → '}
-                              {formatPrice(appliedCoupon.pricing.finalPrice)}
-                            </strong>
-                          </div>
                         </div>
                         <p className="text-xs text-green-600 mt-2">
                           * Based on {appliedCoupon.pricing.tierName}. Discount will be applied at checkout.
@@ -587,6 +631,7 @@ export default function Credits() {
             </CardContent>
           </Card>
 
+          {/* Pricing Tier Cards */}
           {pricingTiers.length === 0 ? (
             <Card>
               <CardContent className="py-12 text-center">
@@ -612,7 +657,6 @@ export default function Credits() {
                         : 'border border-gray-200'
                     }`}
                   >
-                    {/* Most Popular Badge */}
                     {tier.isMostPopular && (
                       <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                         <div className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center gap-1 shadow-lg">
@@ -622,7 +666,6 @@ export default function Credits() {
                       </div>
                     )}
 
-                    {/* Discount Badge */}
                     {hasDiscount && (
                       <div className="absolute -top-4 right-4 z-10">
                         <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
@@ -673,7 +716,6 @@ export default function Credits() {
                     </CardHeader>
 
                     <CardContent>
-                      {/* Highlights */}
                       {tier.highlights && tier.highlights.length > 0 && (
                         <div className="mb-6 space-y-3">
                           {tier.highlights.map((highlight, idx) => (
@@ -685,7 +727,6 @@ export default function Credits() {
                         </div>
                       )}
 
-                      {/* Purchase Button */}
                       <Button
                         onClick={() => handlePurchase(tier)}
                         className={`w-full ${
@@ -748,10 +789,8 @@ export default function Credits() {
           </CardHeader>
           
           <CardContent>
-            {/* Filters */}
             {transactions.length > 0 && (
               <div className="flex flex-wrap gap-4 mb-6 pb-6 border-b">
-                {/* Search */}
                 <div className="flex-1 min-w-[200px]">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -764,7 +803,6 @@ export default function Credits() {
                   </div>
                 </div>
 
-                {/* Type Filter */}
                 <Select value={typeFilter} onValueChange={setTypeFilter}>
                   <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder="Filter by type" />
@@ -779,7 +817,6 @@ export default function Credits() {
                   </SelectContent>
                 </Select>
 
-                {/* Sort */}
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Sort by" />
@@ -794,7 +831,6 @@ export default function Credits() {
               </div>
             )}
 
-            {/* Transaction List */}
             {filteredTransactions.length === 0 ? (
               <div className="text-center py-8">
                 {transactions.length === 0 ? (
@@ -874,16 +910,21 @@ export default function Credits() {
           </CardContent>
         </Card>
 
-        {/* Organization Credits Info (if applicable) */}
+        {/* Info Card for Organization Users */}
         {user?.orgId && organization && (
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="py-4">
               <div className="flex items-start gap-3">
                 <Users className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">Organization Credits</h3>
+                  <h3 className="font-semibold text-blue-900 mb-1">
+                    {isCompanyView ? 'Organization Credit Pool' : 'Credit Usage Priority'}
+                  </h3>
                   <p className="text-sm text-blue-700">
-                    These credits are shared across your entire team. All team members can use credits from this pool.
+                    {isCompanyView 
+                      ? 'These credits are shared across your entire team. Purchase credits to allocate to team members or keep in the company pool.'
+                      : 'When sending notes, company pool credits will be used first. Once depleted, your personal credits will be used.'
+                    }
                   </p>
                 </div>
               </div>
