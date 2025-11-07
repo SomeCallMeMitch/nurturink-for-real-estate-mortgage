@@ -23,6 +23,9 @@ import MailingConfirmation from './pages/MailingConfirmation';
 import AdminPricing from './pages/AdminPricing';
 import Credits from './pages/Credits';
 import AdminCoupons from './pages/AdminCoupons';
+import Order from './pages/Order';
+import PaymentCancel from './pages/PaymentCancel';
+import PaymentSuccess from './pages/PaymentSuccess';
 import Layout from './Layout.jsx';
 
 
@@ -52,6 +55,9 @@ export const PAGES = {
     "AdminPricing": AdminPricing,
     "Credits": Credits,
     "AdminCoupons": AdminCoupons,
+    "Order": Order,
+    "PaymentCancel": PaymentCancel,
+    "PaymentSuccess": PaymentSuccess,
 }
 
 export const pagesConfig = {

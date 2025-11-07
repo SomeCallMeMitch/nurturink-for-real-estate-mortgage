@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -46,9 +45,6 @@ export default function Credits() {
   // UI state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [purchasingTierId, setPurchasingTierId] = useState(null);
-  const [paymentStatus, setPaymentStatus] = useState(null);
-  const [processingPayment, setProcessingPayment] = useState(false);
   
   // Transaction filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,195 +65,14 @@ export default function Credits() {
     const payment = urlParams.get('payment');
     const sessionId = urlParams.get('session_id');
     
-    if (payment === 'success' && sessionId) {
-      // Process payment success
-      handlePaymentSuccess(sessionId);
+    if (payment === 'success') {
+      // Redirect to PaymentSuccess page
+      navigate(createPageUrl(`PaymentSuccess?session_id=${sessionId || ''}`));
     } else if (payment === 'cancelled') {
-      setPaymentStatus('cancelled');
-      toast({
-        title: 'Payment Cancelled',
-        description: 'Your payment was cancelled. No charges were made.',
-        duration: 4000,
-        className: 'bg-yellow-50 border-yellow-200 text-yellow-900'
-      });
-      
-      // Clean URL
-      cleanUrl();
+      // Redirect to PaymentCancel page
+      navigate(createPageUrl('PaymentCancel'));
     }
-  }, []);
-
-  const cleanUrl = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const newSearchParams = new URLSearchParams();
-    if (urlParams.has('page')) {
-      newSearchParams.set('page', urlParams.get('page'));
-    }
-    window.history.replaceState({}, '', window.location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''));
-  };
-
-  /**
-   * Handle successful payment by fetching session data and updating credits
-   * This follows Base44's security model where the frontend (with user session)
-   * performs the credit update, not an external webhook
-   */
-  const handlePaymentSuccess = async (sessionId) => {
-    try {
-      setProcessingPayment(true);
-      console.log('💳 Processing payment success for session:', sessionId);
-      
-      // Step 1: Fetch and validate session from Stripe via our backend
-      const sessionResponse = await base44.functions.invoke('fetchStripeSession', {
-        sessionId: sessionId
-      });
-      
-      if (!sessionResponse.data.success) {
-        throw new Error('Failed to validate payment session');
-      }
-      
-      const { session } = sessionResponse.data;
-      console.log('✅ Session validated:', session);
-      
-      // Extract metadata
-      const {
-        userId,
-        orgId,
-        pricingTierId,
-        creditAmount,
-        purchaseType,
-        couponCode,
-        originalPrice,
-        discountApplied,
-        finalPrice
-      } = session.metadata;
-      
-      const credits = parseInt(creditAmount);
-      const isOrgPurchase = purchaseType === 'organization';
-      
-      // Step 2: Load current user data to get fresh balance
-      const currentUser = await base44.auth.me();
-      
-      // Step 3: Update credit balance based on purchase type
-      let newBalance;
-      let balanceType;
-      
-      if (isOrgPurchase && orgId) {
-        // Organization purchase - update organization balance
-        const orgs = await base44.entities.Organization.filter({ id: orgId });
-        if (!orgs || orgs.length === 0) {
-          throw new Error('Organization not found');
-        }
-        
-        const org = orgs[0];
-        newBalance = (org.creditBalance || 0) + credits;
-        balanceType = 'organization';
-        
-        // Update organization credit balance
-        await base44.entities.Organization.update(orgId, {
-          creditBalance: newBalance
-        });
-        
-        console.log(`✅ Updated organization balance: ${org.creditBalance} → ${newBalance}`);
-      } else {
-        // Individual user purchase - update user balance
-        newBalance = (currentUser.creditBalance || 0) + credits;
-        balanceType = 'user';
-        
-        // Update user credit balance
-        await base44.auth.updateMe({
-          creditBalance: newBalance
-        });
-        
-        console.log(`✅ Updated user balance: ${currentUser.creditBalance} → ${newBalance}`);
-      }
-      
-      // Step 4: Load pricing tier for transaction description
-      const tiers = await base44.entities.PricingTier.filter({ id: pricingTierId });
-      const tier = tiers && tiers.length > 0 ? tiers[0] : null;
-      
-      // Step 5: Build transaction description
-      let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes`;
-      if (couponCode) {
-        const discountAmount = discountApplied ? parseInt(discountApplied) : 0;
-        description += ` (${couponCode}: -$${(discountAmount / 100).toFixed(2)})`;
-      }
-      
-      // Step 6: Create transaction record
-      await base44.entities.Transaction.create({
-        orgId: orgId || currentUser.orgId || '',
-        userId: currentUser.id,
-        type: isOrgPurchase ? 'purchase_org' : 'purchase_user',
-        amount: credits,
-        balanceAfter: newBalance,
-        balanceType: balanceType,
-        description: description,
-        metadata: {
-          stripeSessionId: session.id,
-          stripePaymentIntent: session.paymentIntent,
-          amountPaid: session.amountTotal,
-          currency: session.currency,
-          originalPrice: originalPrice ? parseInt(originalPrice) : null,
-          discountApplied: discountApplied ? parseInt(discountApplied) : 0,
-          finalPrice: finalPrice ? parseInt(finalPrice) : session.amountTotal,
-          pricingTierName: tier?.name || null
-        },
-        relatedPricingTierId: pricingTierId,
-        stripePaymentId: session.paymentIntent,
-        couponCode: couponCode || null
-      });
-      
-      console.log('✅ Transaction record created');
-      
-      // Step 7: Increment coupon usage count if coupon was used
-      if (couponCode) {
-        try {
-          const coupons = await base44.entities.Coupon.filter({ 
-            code: couponCode.trim().toUpperCase() 
-          });
-          
-          if (coupons && coupons.length > 0) {
-            const coupon = coupons[0];
-            await base44.entities.Coupon.update(coupon.id, {
-              usedCount: (coupon.usedCount || 0) + 1
-            });
-            console.log(`✅ Incremented coupon usage for ${couponCode}`);
-          }
-        } catch (couponError) {
-          console.error('⚠️ Failed to update coupon usage:', couponError);
-          // Don't fail the entire flow if coupon update fails
-        }
-      }
-      
-      // Step 8: Show success message
-      setPaymentStatus('success');
-      toast({
-        title: `Payment Successful! 🎉`,
-        description: `${credits} credits have been added to your account.${couponCode ? ` Coupon ${couponCode} applied!` : ''}`,
-        duration: 5000,
-        className: 'bg-green-50 border-green-200 text-green-900'
-      });
-      
-      // Clean URL
-      cleanUrl();
-      
-      // Reload data to show updated balance
-      await loadData();
-      
-    } catch (error) {
-      console.error('❌ Failed to process payment:', error);
-      setPaymentStatus('error');
-      toast({
-        title: 'Payment Processing Error',
-        description: error.response?.data?.error || error.message || 'Failed to add credits to your account. Please contact support.',
-        variant: 'destructive',
-        duration: 8000
-      });
-      
-      // Clean URL even on error
-      cleanUrl();
-    } finally {
-      setProcessingPayment(false);
-    }
-  };
+  }, [navigate]);
 
   const loadData = async () => {
     try {
@@ -281,8 +96,6 @@ export default function Credits() {
       }
       
       // Determine which pricing tiers to load
-      let tierQuery = { isActive: true };
-      
       if (currentUser.orgId) {
         // User belongs to organization - check for org-specific tiers first
         const orgTiers = await base44.entities.PricingTier.filter({
@@ -310,7 +123,7 @@ export default function Credits() {
         setPricingTiers(platformTiers.sort((a, b) => a.sortOrder - b.sortOrder));
       }
       
-      // Load transaction history - get more for filtering
+      // Load transaction history
       const transactionQuery = currentUser.orgId 
         ? { orgId: currentUser.orgId }
         : { userId: currentUser.id };
@@ -318,7 +131,7 @@ export default function Credits() {
       const transactionList = await base44.entities.Transaction.filter(
         transactionQuery,
         '-created_date',
-        100 // Load more for filtering
+        100
       );
       setTransactions(transactionList);
       
@@ -487,31 +300,26 @@ export default function Credits() {
     return finalPrice > 0 ? finalPrice : 0;
   };
 
-  // Handle purchase button click with Stripe checkout
-  const handlePurchase = async (tier) => {
-    setPurchasingTierId(tier.id);
+  // Handle purchase button click - Navigate to Order page
+  const handlePurchase = (tier) => {
+    const discountedPrice = calculateDiscountedPrice(tier);
+    const hasDiscount = appliedCoupon && discountedPrice < tier.priceInCents;
     
-    try {
-      const response = await base44.functions.invoke('createCheckoutSession', {
-        pricingTierId: tier.id,
-        couponCode: appliedCoupon ? appliedCoupon.coupon.code : null
-      });
-      
-      if (response.data.success && response.data.checkoutUrl) {
-        window.location.href = response.data.checkoutUrl;
-      } else {
-        throw new Error('Failed to create checkout session');
-      }
-    } catch (error) {
-      console.error('Purchase error:', error);
-      toast({
-        title: 'Error',
-        description: error.response?.data?.error || 'Failed to initiate purchase. Please try again.',
-        variant: 'destructive',
-        duration: 4000
-      });
-      setPurchasingTierId(null);
-    }
+    // Store package details in localStorage
+    const packageData = {
+      pricingTierId: tier.id,
+      title: tier.name,
+      credits: tier.creditAmount,
+      price: discountedPrice,
+      originalPrice: tier.priceInCents,
+      couponCode: hasDiscount ? appliedCoupon.coupon.code : null,
+      discountAmount: hasDiscount ? (tier.priceInCents - discountedPrice) : 0
+    };
+    
+    localStorage.setItem('selectedPackage', JSON.stringify(packageData));
+    
+    // Navigate to Order page
+    navigate(createPageUrl('Order'));
   };
 
   // Format transaction date
@@ -589,19 +397,12 @@ export default function Credits() {
   };
 
   // Loading state
-  if (loading || processingPayment) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-indigo-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">
-            {processingPayment ? 'Processing your payment...' : 'Loading credit information...'}
-          </p>
-          {processingPayment && (
-            <p className="text-sm text-gray-500 mt-2">
-              Please wait while we add credits to your account
-            </p>
-          )}
+          <p className="text-gray-600">Loading credit information...</p>
         </div>
       </div>
     );
@@ -632,7 +433,7 @@ export default function Credits() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-3">Credit Management</h1>
           <p className="text-lg text-gray-600">
-            Purchase credits for yourself or your team. Credits are shared and can be used to send authentic handwritten notes.
+            Purchase credits to send authentic handwritten notes.
           </p>
         </div>
 
@@ -799,7 +600,6 @@ export default function Credits() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {pricingTiers.map((tier) => {
-                const isPurchasing = purchasingTierId === tier.id;
                 const discountedPrice = calculateDiscountedPrice(tier);
                 const hasDiscount = appliedCoupon && discountedPrice < tier.priceInCents;
                 
@@ -888,21 +688,13 @@ export default function Credits() {
                       {/* Purchase Button */}
                       <Button
                         onClick={() => handlePurchase(tier)}
-                        disabled={isPurchasing}
                         className={`w-full ${
                           tier.isMostPopular 
                             ? 'bg-orange-600 hover:bg-orange-700' 
                             : 'bg-indigo-600 hover:bg-indigo-700'
                         }`}
                       >
-                        {isPurchasing ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          'Purchase Credits'
-                        )}
+                        Purchase Credits
                       </Button>
                     </CardContent>
                   </Card>
