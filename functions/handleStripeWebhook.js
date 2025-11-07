@@ -28,18 +28,18 @@ Deno.serve(async (req) => {
         webhookSecret
       );
     } catch (err) {
-      console.error('Webhook signature verification failed:', err.message);
+      console.error('❌ Webhook signature verification failed:', err.message);
       return Response.json({ error: 'Invalid signature' }, { status: 400 });
     }
     
-    console.log('Webhook event type:', event.type);
+    console.log('📨 Webhook event type:', event.type);
     
     // Handle different event types
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object;
       
-      console.log('Processing checkout session:', session.id);
-      console.log('Session metadata:', session.metadata);
+      console.log('💳 Processing checkout session:', session.id);
+      console.log('📦 Session metadata:', session.metadata);
       
       // Extract metadata
       const {
@@ -47,12 +47,16 @@ Deno.serve(async (req) => {
         orgId,
         pricingTierId,
         creditAmount,
-        purchaseType
+        purchaseType,
+        couponCode,
+        originalPrice,
+        discountApplied,
+        finalPrice
       } = session.metadata;
       
-      // Validate metadata
+      // Validate required metadata
       if (!userId || !pricingTierId || !creditAmount) {
-        console.error('Missing required metadata in webhook');
+        console.error('❌ Missing required metadata in webhook');
         return Response.json({ 
           error: 'Missing metadata',
           received: session.metadata 
@@ -65,7 +69,7 @@ Deno.serve(async (req) => {
       // Load user
       const users = await base44.asServiceRole.entities.User.filter({ id: userId });
       if (!users || users.length === 0) {
-        console.error('User not found:', userId);
+        console.error('❌ User not found:', userId);
         return Response.json({ error: 'User not found' }, { status: 404 });
       }
       const user = users[0];
@@ -85,6 +89,41 @@ Deno.serve(async (req) => {
       });
       const tier = tiers && tiers.length > 0 ? tiers[0] : null;
       
+      // ==================== COUPON PROCESSING ====================
+      let couponUsed = null;
+      
+      if (couponCode && couponCode.trim()) {
+        console.log('🎟️ Processing coupon:', couponCode);
+        
+        try {
+          // Fetch coupon from database
+          const coupons = await base44.asServiceRole.entities.Coupon.filter({ 
+            code: couponCode.trim().toUpperCase() 
+          });
+          
+          if (coupons && coupons.length > 0) {
+            couponUsed = coupons[0];
+            
+            // Increment coupon usage count
+            const newUsedCount = (couponUsed.usedCount || 0) + 1;
+            
+            await base44.asServiceRole.entities.Coupon.update(couponUsed.id, {
+              usedCount: newUsedCount
+            });
+            
+            console.log(`✅ Coupon ${couponCode} usage incremented to ${newUsedCount}`);
+          } else {
+            console.warn(`⚠️ Coupon ${couponCode} not found in database (may have been deleted)`);
+          }
+        } catch (couponError) {
+          console.error('❌ Error processing coupon:', couponError);
+          // Don't fail the entire webhook if coupon processing fails
+          // The payment was successful, so we should still credit the account
+        }
+      }
+      
+      // ==================== CREDIT BALANCE UPDATE ====================
+      
       // Calculate new balance and create transaction
       if (isOrgPurchase && organization) {
         // Organization purchase
@@ -95,7 +134,14 @@ Deno.serve(async (req) => {
           creditBalance: newBalance
         });
         
-        // Create transaction record
+        // Build transaction description
+        let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes`;
+        if (couponUsed) {
+          const discountAmount = discountApplied ? parseInt(discountApplied) : 0;
+          description += ` (${couponUsed.code}: -$${(discountAmount / 100).toFixed(2)})`;
+        }
+        
+        // Create transaction record with coupon info
         await base44.asServiceRole.entities.Transaction.create({
           orgId: organization.id,
           userId: user.id,
@@ -103,19 +149,27 @@ Deno.serve(async (req) => {
           amount: credits,
           balanceAfter: newBalance,
           balanceType: 'organization',
-          description: `Purchased ${tier?.name || 'credits'} - ${credits} notes`,
+          description: description,
           metadata: {
             stripeSessionId: session.id,
             stripePaymentIntent: session.payment_intent,
             amountPaid: session.amount_total,
-            currency: session.currency
+            currency: session.currency,
+            originalPrice: originalPrice ? parseInt(originalPrice) : null,
+            discountApplied: discountApplied ? parseInt(discountApplied) : 0,
+            finalPrice: finalPrice ? parseInt(finalPrice) : session.amount_total,
+            pricingTierName: tier?.name || null
           },
           relatedPricingTierId: pricingTierId,
           stripePaymentId: session.payment_intent,
-          couponCode: null // TODO: Add coupon support in future
+          couponCode: couponUsed ? couponUsed.code : null
         });
         
         console.log(`✅ Organization purchase complete: ${credits} credits added to ${organization.name}`);
+        
+        if (couponUsed) {
+          console.log(`🎉 Coupon ${couponUsed.code} applied successfully`);
+        }
         
       } else {
         // Individual user purchase
@@ -126,7 +180,14 @@ Deno.serve(async (req) => {
           creditBalance: newBalance
         });
         
-        // Create transaction record
+        // Build transaction description
+        let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes`;
+        if (couponUsed) {
+          const discountAmount = discountApplied ? parseInt(discountApplied) : 0;
+          description += ` (${couponUsed.code}: -$${(discountAmount / 100).toFixed(2)})`;
+        }
+        
+        // Create transaction record with coupon info
         await base44.asServiceRole.entities.Transaction.create({
           orgId: user.orgId || '',
           userId: user.id,
@@ -134,19 +195,27 @@ Deno.serve(async (req) => {
           amount: credits,
           balanceAfter: newBalance,
           balanceType: 'user',
-          description: `Purchased ${tier?.name || 'credits'} - ${credits} notes`,
+          description: description,
           metadata: {
             stripeSessionId: session.id,
             stripePaymentIntent: session.payment_intent,
             amountPaid: session.amount_total,
-            currency: session.currency
+            currency: session.currency,
+            originalPrice: originalPrice ? parseInt(originalPrice) : null,
+            discountApplied: discountApplied ? parseInt(discountApplied) : 0,
+            finalPrice: finalPrice ? parseInt(finalPrice) : session.amount_total,
+            pricingTierName: tier?.name || null
           },
           relatedPricingTierId: pricingTierId,
           stripePaymentId: session.payment_intent,
-          couponCode: null // TODO: Add coupon support in future
+          couponCode: couponUsed ? couponUsed.code : null
         });
         
         console.log(`✅ User purchase complete: ${credits} credits added to ${user.email}`);
+        
+        if (couponUsed) {
+          console.log(`🎉 Coupon ${couponUsed.code} applied successfully`);
+        }
       }
       
       // TODO: Send confirmation email
@@ -154,7 +223,8 @@ Deno.serve(async (req) => {
       return Response.json({ 
         success: true,
         message: 'Payment processed successfully',
-        creditsAdded: credits
+        creditsAdded: credits,
+        couponApplied: couponUsed ? couponUsed.code : null
       });
     }
     
@@ -163,7 +233,7 @@ Deno.serve(async (req) => {
     return Response.json({ received: true });
     
   } catch (error) {
-    console.error('Error processing webhook:', error);
+    console.error('❌ Error processing webhook:', error);
     return Response.json(
       { 
         error: error.message || 'Webhook processing failed',
