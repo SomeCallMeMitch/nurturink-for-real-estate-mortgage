@@ -22,6 +22,7 @@ import ReviewAndSend from './pages/ReviewAndSend';
 import MailingConfirmation from './pages/MailingConfirmation';
 import AdminPricing from './pages/AdminPricing';
 import Credits from './pages/Credits';
+import AdminCoupons from './pages/AdminCoupons';
 import Layout from './Layout.jsx';
 
 
@@ -50,6 +51,7 @@ export const PAGES = {
     "MailingConfirmation": MailingConfirmation,
     "AdminPricing": AdminPricing,
     "Credits": Credits,
+    "AdminCoupons": AdminCoupons,
 }
 
 export const pagesConfig = {

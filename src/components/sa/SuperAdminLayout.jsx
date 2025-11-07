@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Settings, LayoutGrid, Mail, Shield, Home, Layout, DollarSign } from "lucide-react";
+import { Settings, LayoutGrid, Mail, Shield, Home, Layout, DollarSign, Tag } from "lucide-react"; // Added Tag icon
 
 export default function SuperAdminLayout({ children }) {
   const [user, setUser] = useState(null);
@@ -59,6 +60,7 @@ export default function SuperAdminLayout({ children }) {
       { id: 'dashboard', label: 'Dashboard', icon: Home, path: 'SuperAdminDashboard' },
       { id: 'card-management', label: 'Card Designs', icon: LayoutGrid, path: 'SuperAdminCardManagement' },
       { id: 'pricing', label: 'Pricing Tiers', icon: DollarSign, path: 'AdminPricing' },
+      { id: 'coupons', label: 'Coupons', icon: Tag, path: 'AdminCoupons' }, // Added new menu item for Coupons
       { id: 'preview-layout', label: 'Preview Layout', icon: Layout, path: 'AdminCardLayout' },
       { id: 'content-layout', label: 'Content Layout', icon: Layout, path: 'AdminCreateContentLayout' },
       { id: 'envelope-layout', label: 'Envelope Layout', icon: Mail, path: 'AdminEnvelopeLayout' }

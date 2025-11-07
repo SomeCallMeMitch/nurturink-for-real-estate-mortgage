@@ -5,7 +5,7 @@ import { createPageUrl } from '@/utils';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Layout, Mail, ArrowRight, Loader2, ImageIcon } from 'lucide-react';
+import { Layout, Mail, ArrowRight, Loader2, ImageIcon, DollarSign, Tag } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
@@ -51,6 +51,22 @@ export default function SuperAdminDashboard() {
       icon: ImageIcon,
       path: 'SuperAdminCardManagement',
       color: 'orange'
+    },
+    {
+      id: 'pricing-tiers',
+      title: 'Pricing Tiers',
+      description: 'Configure credit packages and pricing options for the platform',
+      icon: DollarSign,
+      path: 'AdminPricing',
+      color: 'emerald'
+    },
+    {
+      id: 'coupons',
+      title: 'Coupons',
+      description: 'Create and manage promotional discount codes and vouchers',
+      icon: Tag,
+      path: 'AdminCoupons',
+      color: 'pink'
     },
     {
       id: 'preview-layout',
@@ -110,6 +126,18 @@ export default function SuperAdminDashboard() {
                 hover: 'hover:border-orange-400',
                 button: 'bg-orange-600 hover:bg-orange-700'
               },
+              emerald: {
+                bg: 'bg-emerald-100',
+                text: 'text-emerald-600',
+                hover: 'hover:border-emerald-400',
+                button: 'bg-emerald-600 hover:bg-emerald-700'
+              },
+              pink: {
+                bg: 'bg-pink-100',
+                text: 'text-pink-600',
+                hover: 'hover:border-pink-400',
+                button: 'bg-pink-600 hover:bg-pink-700'
+              },
               indigo: {
                 bg: 'bg-indigo-100',
                 text: 'text-indigo-600',
@@ -162,6 +190,8 @@ export default function SuperAdminDashboard() {
           <h3 className="font-semibold text-blue-900 mb-2">💡 About Super Admin Settings</h3>
           <ul className="space-y-2 text-sm text-blue-800">
             <li>• <strong>Card Designs:</strong> Upload and organize card designs with categories for users to choose from</li>
+            <li>• <strong>Pricing Tiers:</strong> Set up credit packages with pricing and feature highlights</li>
+            <li>• <strong>Coupons:</strong> Create promotional codes for discounts and special offers</li>
             <li>• <strong>Preview Layout:</strong> Controls how handwritten text appears on cards (spacing, indentation, font sizes)</li>
             <li>• <strong>Content Layout:</strong> Adjusts the column widths in the content editor for optimal workflow</li>
             <li>• <strong>Envelope Layout:</strong> Positions addresses correctly on physical envelopes</li>

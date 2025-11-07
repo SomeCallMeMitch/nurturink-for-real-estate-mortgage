@@ -1,4 +1,3 @@
-
 import React from "react";
 import MainLayout from "./components/layout/MainLayout";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,7 +10,7 @@ export default function Layout({ children, currentPageName }) {
     "CreateContent",
     "SelectDesign",
     "ReviewAndSend",
-    "MailingConfirmation", // Added MailingConfirmation
+    "MailingConfirmation",
     "Templates",
     "EditTemplate",
     "TemplatePreview",
@@ -28,8 +27,9 @@ export default function Layout({ children, currentPageName }) {
     "SettingsUrls",
     "SettingsTeam",
     "SuperAdminCardManagement",
-    "AdminPricing", // Added AdminPricing
-    "Credits" // Added Credits page
+    "AdminPricing",
+    "AdminCoupons", // Added AdminCoupons
+    "Credits"
   ];
   
   // Check if current page should use MainLayout
