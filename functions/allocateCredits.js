@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
 /**
@@ -14,8 +15,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Verify user is organization owner
-    if (user.appRole !== 'organization_owner') {
+    // Verify user is organization owner (check both appRole and isOrgOwner flag)
+    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    
+    if (!isOrgOwner) {
       return Response.json(
         { error: 'Only organization owners can allocate credits' },
         { status: 403 }

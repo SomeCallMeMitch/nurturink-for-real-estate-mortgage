@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -113,9 +114,10 @@ export default function PaymentSuccessPage() {
     setRefreshing(false);
   };
 
-  // Determine if this was a company purchase
+  // Determine if this was a company purchase (check both appRole and isOrgOwner flag)
   const isCompanyPurchase = useMemo(() => {
-    return user?.appRole === 'organization_owner' && organization && transaction?.type === 'purchase_org';
+    const isOrgOwner = user?.appRole === 'organization_owner' || user?.isOrgOwner === true;
+    return isOrgOwner && organization && transaction?.type === 'purchase_org';
   }, [user, organization, transaction]);
 
   // Get current credit balance

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -82,9 +83,10 @@ export default function OrderPage() {
     }
   };
 
-  // Determine if this is a company purchase
+  // Determine if this is a company purchase (check both appRole and isOrgOwner flag)
   const isCompanyPurchase = useMemo(() => {
-    return user?.appRole === 'organization_owner' && organization;
+    const isOrgOwner = user?.appRole === 'organization_owner' || user?.isOrgOwner === true;
+    return isOrgOwner && organization;
   }, [user, organization]);
 
   // Format price helper

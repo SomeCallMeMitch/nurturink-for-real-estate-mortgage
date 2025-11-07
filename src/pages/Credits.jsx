@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -95,8 +96,10 @@ export default function Credits() {
         }
       }
       
-      // Load company pool stats if user is org owner
-      if (currentUser.appRole === 'organization_owner' && currentUser.orgId) {
+      // Load company pool stats if user is org owner (check both appRole and isOrgOwner flag)
+      const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
+      
+      if (isOrgOwner && currentUser.orgId) {
         try {
           const statsResponse = await base44.functions.invoke('getCompanyPoolStats');
           setCompanyPoolStats(statsResponse.data);
@@ -149,8 +152,8 @@ export default function Credits() {
     }
   };
 
-  // Determine if this is individual or company view
-  const isCompanyView = user?.appRole === 'organization_owner' && organization;
+  // Determine if this is individual or company view (check both appRole and isOrgOwner flag)
+  const isCompanyView = (user?.appRole === 'organization_owner' || user?.isOrgOwner === true) && organization;
 
   // Get current balance for display
   const personalBalance = user?.creditBalance || 0;

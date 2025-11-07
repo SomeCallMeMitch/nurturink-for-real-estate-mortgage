@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
 /**
@@ -21,8 +22,10 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Verify user is organization owner
-    if (user.appRole !== 'organization_owner') {
+    // Verify user is organization owner (check both appRole and isOrgOwner flag)
+    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    
+    if (!isOrgOwner) {
       return Response.json(
         { error: 'Only organization owners can view team member usage' },
         { status: 403 }
