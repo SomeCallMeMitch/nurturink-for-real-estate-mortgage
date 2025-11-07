@@ -406,7 +406,6 @@ export default function Credits() {
   // Calculate price per note
   const getPricePerNote = (priceInCents, creditAmount) => {
     if (creditAmount === 0) return '$0.00';
-    // Ensure priceInCents is not negative before division
     const actualPrice = Math.max(0, priceInCents); 
     return `$${(actualPrice / 100 / creditAmount).toFixed(2)}`;
   };
@@ -423,7 +422,6 @@ export default function Credits() {
       return;
     }
 
-    // Validate against first available tier (or most popular)
     const referenceTier = pricingTiers.find(t => t.isMostPopular) || pricingTiers[0];
     
     if (!referenceTier) {
@@ -482,16 +480,8 @@ export default function Credits() {
   const calculateDiscountedPrice = (tier) => {
     if (!appliedCoupon || !appliedCoupon.pricing) return tier.priceInCents;
 
-    // For simplicity, apply the same discount percentage to all tiers
-    // In a more sophisticated implementation, you'd call validateCouponForTier for each tier
-    // Assuming appliedCoupon.pricing.discountApplied is the discount amount for the reference tier
-    // and appliedCoupon.pricing.originalPrice is the original price of the reference tier.
-    // We calculate a discount ratio and apply it to the current tier.
     const discountRatio = appliedCoupon.pricing.discountApplied / appliedCoupon.pricing.originalPrice;
-    
-    // Calculate the actual discount for THIS tier
     const discountAmountForThisTier = Math.round(tier.priceInCents * discountRatio);
-    
     const finalPrice = tier.priceInCents - discountAmountForThisTier;
     
     return finalPrice > 0 ? finalPrice : 0;
@@ -504,11 +494,10 @@ export default function Credits() {
     try {
       const response = await base44.functions.invoke('createCheckoutSession', {
         pricingTierId: tier.id,
-        couponCode: appliedCoupon ? appliedCoupon.coupon.code : null // Pass coupon code if applied
+        couponCode: appliedCoupon ? appliedCoupon.coupon.code : null
       });
       
       if (response.data.success && response.data.checkoutUrl) {
-        // Redirect to Stripe checkout
         window.location.href = response.data.checkoutUrl;
       } else {
         throw new Error('Failed to create checkout session');
@@ -570,7 +559,6 @@ export default function Credits() {
         format: 'csv'
       });
       
-      // Create blob and download
       const blob = new Blob([response.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
