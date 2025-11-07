@@ -1,3 +1,4 @@
+
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
 // Helper function to replace placeholders in text
@@ -111,15 +112,66 @@ Deno.serve(async (req) => {
       );
     }
     
+    // Calculate total credits needed
+    const creditsNeeded = batch.selectedClientIds.length;
+    
+    // Check credit availability using service role
+    let companyPoolCredits = 0;
+    let personalCredits = user.creditBalance || 0;
+    let organization = null; // Declare organization here, will be populated if user.orgId exists
+    
+    if (user.orgId) {
+      const orgs = await base44.asServiceRole.entities.Organization.filter({ 
+        id: user.orgId 
+      });
+      
+      if (orgs && orgs.length > 0) {
+        organization = orgs[0];
+        companyPoolCredits = organization.creditBalance || 0;
+      }
+    }
+    
+    const totalAvailable = companyPoolCredits + personalCredits;
+    
+    // Verify user has enough credits
+    if (totalAvailable < creditsNeeded) {
+      return Response.json(
+        { 
+          error: 'Insufficient credits',
+          creditsNeeded: creditsNeeded,
+          totalAvailable: totalAvailable,
+          companyPoolCredits: companyPoolCredits,
+          personalCredits: personalCredits,
+          deficit: creditsNeeded - totalAvailable
+        },
+        { status: 402 } // Payment Required
+      );
+    }
+    
+    // Calculate credit deduction from each source for the *full* batch if successful
+    let creditsFromCompany = 0;
+    let creditsFromPersonal = 0;
+    
+    if (companyPoolCredits >= creditsNeeded) {
+      // All credits from company pool
+      creditsFromCompany = creditsNeeded;
+      creditsFromPersonal = 0;
+    } else if (companyPoolCredits > 0) {
+      // Use all company credits + remaining from personal
+      creditsFromCompany = companyPoolCredits;
+      creditsFromPersonal = creditsNeeded - companyPoolCredits;
+    } else {
+      // All credits from personal
+      creditsFromCompany = 0;
+      creditsFromPersonal = creditsNeeded;
+    }
+    
     // Load necessary data using service role for admin access
-    const [clients, organization, noteStyleProfile] = await Promise.all([
+    // organization is already loaded above if needed, so remove it from this Promise.all
+    const [clients, noteStyleProfile] = await Promise.all([
       base44.asServiceRole.entities.Client.filter({ 
         id: { $in: batch.selectedClientIds } 
       }),
-      user.orgId 
-        ? base44.asServiceRole.entities.Organization.filter({ id: user.orgId })
-            .then(orgs => orgs.length > 0 ? orgs[0] : null)
-        : Promise.resolve(null),
       batch.selectedNoteStyleProfileId 
         ? base44.asServiceRole.entities.NoteStyleProfile.filter({ 
             id: batch.selectedNoteStyleProfileId 
@@ -259,12 +311,82 @@ Deno.serve(async (req) => {
       }
     }
     
-    // 7. Update batch status
+    // 7. Deduct credits and create transaction records
+    const successfulSends = processedMailings.length;
+    
+    if (successfulSends > 0) {
+      // Determine how many credits to deduct from each source based on successful sends
+      let actualCompanyDeduction = 0;
+      let actualPersonalDeduction = 0;
+      
+      // Logic to correctly distribute the deduction based on original plan and actual successful sends
+      if (creditsFromCompany >= successfulSends) {
+        actualCompanyDeduction = successfulSends;
+        actualPersonalDeduction = 0;
+      } else if (creditsFromCompany > 0) {
+        actualCompanyDeduction = creditsFromCompany;
+        actualPersonalDeduction = successfulSends - creditsFromCompany;
+      } else {
+        actualCompanyDeduction = 0;
+        actualPersonalDeduction = successfulSends;
+      }
+      
+      // Deduct from company pool if applicable
+      if (actualCompanyDeduction > 0 && organization) {
+        const newOrgBalance = companyPoolCredits - actualCompanyDeduction;
+        
+        await base44.asServiceRole.entities.Organization.update(organization.id, {
+          creditBalance: newOrgBalance
+        });
+        
+        // Create transaction record for organization
+        await base44.asServiceRole.entities.Transaction.create({
+          orgId: user.orgId,
+          userId: user.id,
+          type: 'deduction',
+          amount: -actualCompanyDeduction,
+          balanceAfter: newOrgBalance,
+          balanceType: 'organization',
+          description: `Sent ${actualCompanyDeduction} handwritten ${actualCompanyDeduction === 1 ? 'note' : 'notes'} (company credits)`,
+          metadata: {
+            mailingBatchId: mailingBatchId,
+            noteCount: actualCompanyDeduction,
+            source: 'company_pool'
+          }
+        });
+      }
+      
+      // Deduct from personal balance if applicable
+      if (actualPersonalDeduction > 0) {
+        const newUserBalance = personalCredits - actualPersonalDeduction;
+        
+        await base44.asServiceRole.entities.User.update(user.id, {
+          creditBalance: newUserBalance
+        });
+        
+        // Create transaction record for user
+        await base44.asServiceRole.entities.Transaction.create({
+          orgId: user.orgId,
+          userId: user.id,
+          type: 'deduction',
+          amount: -actualPersonalDeduction,
+          balanceAfter: newUserBalance,
+          balanceType: 'user',
+          description: `Sent ${actualPersonalDeduction} handwritten ${actualPersonalDeduction === 1 ? 'note' : 'notes'} (personal credits)`,
+          metadata: {
+            mailingBatchId: mailingBatchId,
+            noteCount: actualPersonalDeduction,
+            source: 'personal'
+          }
+        });
+      }
+    }
+    
+    // 8. Update batch status
     await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, {
       status: 'completed'
     });
     
-    // TODO: Future implementation - Deduct credits from user/organization
     // TODO: Future implementation - Send confirmation email
     
     // Return success response
@@ -272,7 +394,12 @@ Deno.serve(async (req) => {
       success: true,
       processedCount: processedMailings.length,
       totalClients: clients.length,
-      mailings: processedMailings
+      mailings: processedMailings,
+      creditsDeducted: {
+        company: actualCompanyDeduction,
+        personal: actualPersonalDeduction,
+        total: successfulSends
+      }
     };
     
     // Include errors if any occurred

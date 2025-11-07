@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, ArrowRight, AlertTriangle, AlertCircle, Send } from "lucide-react";
+import { Loader2, Save, AlertTriangle, AlertCircle, Send } from "lucide-react";
 import { debounce } from "lodash";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -21,6 +21,7 @@ import {
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import EditModeSelector from "@/components/mailing/EditModeSelector";
 import EnvelopePreview from "@/components/preview/EnvelopePreview";
+import NotEnoughCreditsModal from "@/components/modals/NotEnoughCreditsModal";
 
 // Helper to replace placeholders in address text
 const replacePlaceholders = (text, client, user, organization) => {
@@ -125,8 +126,8 @@ export default function ReviewAndSend() {
   const [companyAddressDialogOpen, setCompanyAddressDialogOpen] = useState(false);
   const [repAddressDialogOpen, setRepAddressDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState({
-    companyName: '', // New field
-    returnAddressName: '', // New field
+    companyName: '',
+    returnAddressName: '',
     street: '',
     address2: '',
     city: '',
@@ -134,6 +135,11 @@ export default function ReviewAndSend() {
     zipCode: ''
   });
   const [savingAddress, setSavingAddress] = useState(false);
+
+  // NEW: Credit checking state
+  const [creditCheckResult, setCreditCheckResult] = useState(null);
+  const [checkingCredits, setCheckingCredits] = useState(false);
+  const [showNotEnoughCreditsModal, setShowNotEnoughCreditsModal] = useState(false);
 
   // Load all data on mount
   useEffect(() => {
@@ -215,6 +221,41 @@ export default function ReviewAndSend() {
       setLoading(false);
     }
   };
+
+  // NEW: Check credit availability
+  const checkCreditAvailability = useCallback(async () => {
+    if (!clients.length) return;
+    
+    try {
+      setCheckingCredits(true);
+      
+      const response = await base44.functions.invoke('checkCreditAvailability', {
+        creditsNeeded: clients.length
+      });
+      
+      setCreditCheckResult(response.data);
+      
+      // If not available, don't show modal automatically, wait for user to click send
+      
+    } catch (error) {
+      console.error('Failed to check credit availability:', error);
+      toast({
+        title: 'Credit check failed',
+        description: 'Unable to verify credit balance. Please try again.',
+        variant: 'destructive',
+        duration: 3000
+      });
+    } finally {
+      setCheckingCredits(false);
+    }
+  }, [clients.length, toast]);
+
+  // Check credits when component loads and clients are available
+  useEffect(() => {
+    if (clients.length > 0 && user) {
+      checkCreditAvailability();
+    }
+  }, [clients.length, user?.id, checkCreditAvailability]); // Added checkCreditAvailability to deps
 
   // Debounced save function
   const debouncedSave = useMemo(
@@ -437,13 +478,26 @@ export default function ReviewAndSend() {
     }
   };
 
-  // Handle send
+  // UPDATED: Handle send with credit check
   const handleSend = async () => {
     try {
+      // Check if we have enough credits
+      if (!creditCheckResult) {
+        // Need to check credits first
+        await checkCreditAvailability();
+        return; // Wait for check to complete, user will click again
+      }
+      
+      if (!creditCheckResult.available) {
+        // Not enough credits - show modal
+        setShowNotEnoughCreditsModal(true);
+        return;
+      }
+      
       setSaving(true);
       
       // Validate that we have necessary data
-      if (!noteStyleProfile) { // Using noteStyleProfile to check if a design is selected
+      if (!noteStyleProfile) {
         toast({
           title: 'Missing card design',
           description: 'Please select a card design before sending',
@@ -470,6 +524,12 @@ export default function ReviewAndSend() {
           variant: 'warning',
           duration: 5000
         });
+      } else {
+        toast({
+          title: 'Notes sent successfully!',
+          description: `${response.data.processedCount} notes have been queued for sending`,
+          duration: 3000
+        });
       }
       
       // Navigate to confirmation page
@@ -488,6 +548,23 @@ export default function ReviewAndSend() {
       setSaving(false);
     }
   };
+
+  // Get current credit summary for display
+  const creditSummary = useMemo(() => {
+    if (!creditCheckResult || !user) return null;
+    
+    const companyCredits = creditCheckResult.companyPoolCredits || 0;
+    const personalCredits = creditCheckResult.personalCredits || 0;
+    const total = creditCheckResult.totalAvailable || 0;
+    
+    return {
+      companyCredits,
+      personalCredits,
+      total,
+      hasCompanyPool: organization && companyCredits > 0,
+      sufficient: creditCheckResult.available
+    };
+  }, [creditCheckResult, user, organization]);
 
   if (loading) {
     return (
@@ -527,10 +604,93 @@ export default function ReviewAndSend() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      {/* Workflow Steps Header */}
-      <WorkflowSteps currentStep={4} creditsLeft={user?.creditBalance || 0} />
+      {/* Workflow Steps Header - UPDATED to show current balance */}
+      <WorkflowSteps 
+        currentStep={4} 
+        creditsLeft={creditSummary?.total || user?.creditBalance || 0} 
+      />
       
       <div className="max-w-[1600px] mx-auto p-6">
+        {/* Credit Warning Banner - Show if insufficient credits */}
+        {creditCheckResult && !creditCheckResult.available && (
+          <Card className="mb-6 border-red-300 bg-red-50">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <h3 className="font-semibold text-red-900 mb-1">Insufficient Credits</h3>
+                  <p className="text-sm text-red-800 mb-3">
+                    You need {creditCheckResult.creditsNeeded} credits to send to {clients.length} {clients.length === 1 ? 'recipient' : 'recipients'}, 
+                    but you only have {creditCheckResult.totalAvailable} credits available.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => navigate(createPageUrl('Credits'))}
+                      size="sm"
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      Purchase Credits
+                    </Button>
+                    <Button
+                      onClick={checkCreditAvailability}
+                      size="sm"
+                      variant="outline"
+                      disabled={checkingCredits}
+                    >
+                      {checkingCredits ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Checking...
+                        </>
+                      ) : (
+                        'Refresh Balance'
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Credit Info Banner - Show if sufficient credits */}
+        {creditSummary && creditSummary.sufficient && (
+          <Card className="mb-6 border-green-300 bg-green-50">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <Send className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-green-900">
+                      Ready to send to {clients.length} {clients.length === 1 ? 'recipient' : 'recipients'}
+                    </p>
+                    <p className="text-xs text-green-700">
+                      {creditSummary.hasCompanyPool ? (
+                        <>
+                          Using {Math.min(clients.length, creditSummary.companyCredits)} from company pool
+                          {clients.length > creditSummary.companyCredits && 
+                            ` + ${clients.length - creditSummary.companyCredits} personal credits`
+                          }
+                        </>
+                      ) : (
+                        `Using ${clients.length} of your ${creditSummary.personalCredits} personal credits`
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-green-700">
+                    {creditSummary.total - clients.length}
+                  </p>
+                  <p className="text-xs text-green-600">Credits remaining</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Three-Column Layout */}
         <div className="grid grid-cols-12 gap-6">
           {/* Left Column: Recipients */}
@@ -750,7 +910,7 @@ export default function ReviewAndSend() {
                       returnAddressMode={getCurrentReturnAddressMode()} // Pass the mode
                     />
                   ) : (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-gray-50">
                       Loading preview...
                     </div>
                   )}
@@ -772,20 +932,41 @@ export default function ReviewAndSend() {
         </div>
       </div>
 
-      {/* Sticky Footer */}
+      {/* Sticky Footer - UPDATED with credit info */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
-            <span className="font-medium">{clients.length} recipients ready to send</span>
+          <div className="flex items-center gap-6">
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">{clients.length} recipients ready to send</span>
+            </div>
+            
+            {creditSummary && (
+              <div className="text-sm">
+                <span className={`font-semibold ${
+                  creditSummary.sufficient ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {creditSummary.total} credits available
+                </span>
+                <span className="text-gray-500 ml-2">
+                  ({clients.length} needed)
+                </span>
+              </div>
+            )}
           </div>
           
           <Button
             onClick={handleSend}
-            className="bg-orange-500 hover:bg-orange-600 gap-2 text-lg px-8 py-6"
-            disabled={saving}
+            className={`gap-2 text-lg px-8 py-6 ${
+              creditSummary && !creditSummary.sufficient
+                ? 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed'
+                : 'bg-orange-500 hover:bg-orange-600'
+            }`}
+            disabled={saving || checkingCredits || (creditCheckResult && !creditCheckResult.available)}
           >
             {saving ? (
               <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Sending...</>
+            ) : checkingCredits ? (
+              <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Checking Credits...</>
             ) : (
               <><Send className="w-5 h-5" />Send Notes</>
             )}
@@ -986,6 +1167,13 @@ export default function ReviewAndSend() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* NEW: Not Enough Credits Modal */}
+      <NotEnoughCreditsModal
+        open={showNotEnoughCreditsModal}
+        onClose={() => setShowNotEnoughCreditsModal(false)}
+        creditInfo={creditCheckResult}
+      />
     </div>
   );
 }
