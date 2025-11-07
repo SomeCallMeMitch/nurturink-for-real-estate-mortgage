@@ -1,14 +1,28 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Database, ArrowRight, CheckCircle2, AlertCircle, DollarSign } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { 
+  Mail, 
+  Database, 
+  ArrowRight, 
+  CheckCircle2, 
+  AlertCircle, 
+  DollarSign,
+  Zap 
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Existing state
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState(null);
   const [seedingTemplates, setSeedingTemplates] = useState(false);
@@ -19,6 +33,86 @@ export default function Home() {
   const [pricingSeedResult, setPricingSeedResult] = useState(null);
   const [seedingCredits, setSeedingCredits] = useState(false);
   const [creditsSeedResult, setCreditsSeedResult] = useState(null);
+  
+  // NEW: Simulated purchase state
+  const [purchaseType, setPurchaseType] = useState('user');
+  const [creditAmount, setCreditAmount] = useState(20);
+  const [simulating, setSimulating] = useState(false);
+  const [simulateResult, setSimulateResult] = useState(null);
+  const [user, setUser] = useState(null);
+  const [isOrgOwner, setIsOrgOwner] = useState(false);
+
+  // Load user on mount to check permissions
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
+      // Check if user is org owner (dual check)
+      const orgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
+      setIsOrgOwner(orgOwner);
+    } catch (error) {
+      console.error('Failed to load user:', error);
+    }
+  };
+
+  // NEW: Handle simulated purchase
+  const handleSimulatePurchase = async () => {
+    try {
+      setSimulating(true);
+      setSimulateResult(null);
+      
+      const response = await base44.functions.invoke('simulateCreditPurchase', {
+        creditAmount: parseInt(creditAmount),
+        purchaseType: purchaseType
+      });
+      
+      setSimulateResult({
+        success: response.data.success,
+        message: response.data.message,
+        creditsAdded: response.data.creditsAdded,
+        previousBalance: response.data.previousBalance,
+        newBalance: response.data.newBalance,
+        purchaseType: response.data.purchaseType,
+        targetEntity: response.data.targetEntity
+      });
+      
+      // Show success toast
+      toast({
+        title: 'Credits Added! 🎉',
+        description: `Successfully added ${response.data.creditsAdded} credits to ${response.data.purchaseType === 'user' ? 'your account' : 'organization pool'}`,
+        duration: 3000,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
+      // Navigate to Credits page after a brief delay
+      setTimeout(() => {
+        navigate(createPageUrl('Credits'));
+      }, 1500);
+      
+    } catch (error) {
+      console.error('Failed to simulate purchase:', error);
+      
+      setSimulateResult({
+        success: false,
+        message: error.response?.data?.error || 'Failed to simulate credit purchase'
+      });
+      
+      // Show error toast
+      toast({
+        title: 'Purchase Failed',
+        description: error.response?.data?.error || 'Failed to simulate credit purchase',
+        variant: 'destructive',
+        duration: 4000
+      });
+    } finally {
+      setSimulating(false);
+    }
+  };
 
   const handleSeedData = async () => {
     try {
@@ -192,7 +286,154 @@ export default function Home() {
             </CardHeader>
           </Card>
 
-          {/* NEW: Seed Test Credits */}
+          {/* NEW: Simulate Credit Purchase - Enhanced */}
+          <Card className="border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50">
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-emerald-100 rounded-lg">
+                  <Zap className="w-6 h-6 text-emerald-600" />
+                </div>
+                <div>
+                  <CardTitle className="text-xl">Simulate Credit Purchase</CardTitle>
+                  <CardDescription>
+                    Flexible credit testing tool - Add any amount to user or organization
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {/* Purchase Type Selection */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold text-gray-700">Credit Type</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="type-user"
+                        name="purchaseType"
+                        value="user"
+                        checked={purchaseType === 'user'}
+                        onChange={(e) => setPurchaseType(e.target.value)}
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <label htmlFor="type-user" className="text-sm text-gray-700 cursor-pointer">
+                        Personal Credits
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        id="type-org"
+                        name="purchaseType"
+                        value="organization"
+                        checked={purchaseType === 'organization'}
+                        onChange={(e) => setPurchaseType(e.target.value)}
+                        disabled={!user?.orgId}
+                        className="w-4 h-4 text-emerald-600 focus:ring-emerald-500 disabled:opacity-50"
+                      />
+                      <label 
+                        htmlFor="type-org" 
+                        className={`text-sm cursor-pointer ${
+                          !user?.orgId ? 'text-gray-400' : 'text-gray-700'
+                        }`}
+                      >
+                        Organization Credits
+                        {!user?.orgId && ' (No org)'}
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Credit Amount Input */}
+                <div className="space-y-2">
+                  <Label htmlFor="creditAmount" className="text-sm font-semibold text-gray-700">
+                    Credit Amount
+                  </Label>
+                  <Input
+                    id="creditAmount"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    value={creditAmount}
+                    onChange={(e) => setCreditAmount(e.target.value)}
+                    className="text-lg font-semibold"
+                    placeholder="20"
+                  />
+                </div>
+              </div>
+
+              {/* Info Message */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-800">
+                  <strong>Testing Mode:</strong> This bypasses Stripe and directly adds credits. 
+                  {purchaseType === 'organization' && !user?.orgId && (
+                    <span className="text-orange-600 block mt-1">
+                      ⚠️ Cannot add organization credits as you are not part of an organization.
+                    </span>
+                  )}
+                  {purchaseType === 'organization' && user?.orgId && !isOrgOwner && user?.appRole !== 'super_admin' && (
+                    <span className="text-orange-600 block mt-1">
+                      ⚠️ You need to be an organization owner or Super Admin to add org credits.
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              {/* Action Button */}
+              <Button
+                onClick={handleSimulatePurchase}
+                disabled={simulating || !creditAmount || creditAmount <= 0 || (purchaseType === 'organization' && (!user?.orgId || (!isOrgOwner && user?.appRole !== 'super_admin')))}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6"
+              >
+                {simulating ? (
+                  <>
+                    <span className="animate-spin mr-2">⚙️</span>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-5 h-5 mr-2" />
+                    Add {creditAmount} {purchaseType === 'user' ? 'Personal' : 'Organization'} Credits
+                  </>
+                )}
+              </Button>
+
+              {/* Result Display */}
+              {simulateResult && (
+                <CardContent className="px-0 pt-0"> {/* Adjusted padding to match design */}
+                  <div className={`flex items-start gap-3 p-4 rounded-lg ${
+                    simulateResult.success 
+                      ? 'bg-green-50 border border-green-200' 
+                      : 'bg-red-50 border border-red-200'
+                  }`}>
+                    {simulateResult.success ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`font-medium ${
+                        simulateResult.success ? 'text-green-900' : 'text-red-900'
+                      }`}>
+                        {simulateResult.message}
+                      </p>
+                      {simulateResult.success && (
+                        <div className="text-sm text-green-700 mt-2 space-y-1">
+                          <p>Balance: {simulateResult.previousBalance} → <strong>{simulateResult.newBalance}</strong> credits</p>
+                          <p>Type: {simulateResult.purchaseType === 'user' ? 'Personal' : 'Organization'}</p>
+                          <p className="text-xs text-green-600 mt-2">Redirecting to Credits page...</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* OLD: Simple Seed Credits (Keep for quick 20 credit add) */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -201,9 +442,9 @@ export default function Home() {
                     <DollarSign className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <CardTitle>Test Credits</CardTitle>
+                    <CardTitle>Quick Add 20 Credits</CardTitle>
                     <CardDescription>
-                      Add 20 test credits to your account (Testing Feature)
+                      Fast way to add 20 personal credits (one-click)
                     </CardDescription>
                   </div>
                 </div>
@@ -504,7 +745,7 @@ export default function Home() {
             <ol className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">1.</span>
-                <span>Click "Add 20 Credits" to get test credits for your account</span>
+                <span>Use "Simulate Credit Purchase" to add any amount of personal or organization credits</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold text-indigo-600">2.</span>
