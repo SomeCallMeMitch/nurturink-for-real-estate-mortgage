@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     
     // Parse request body
     const body = await req.json();
-    const { pricingTierId } = body;
+    const { pricingTierId, couponCode } = body;
     
     // Validate input
     if (!pricingTierId) {
@@ -48,6 +48,218 @@ Deno.serve(async (req) => {
         { status: 400 }
       );
     }
+    
+    // Initialize pricing variables
+    let finalPriceInCents = tier.priceInCents;
+    let discountApplied = 0;
+    let validatedCoupon = null;
+    
+    // ==================== COUPON VALIDATION & CALCULATION ====================
+    if (couponCode && couponCode.trim()) {
+      console.log('🎟️ Validating coupon:', couponCode);
+      
+      // Fetch coupon from database
+      const coupons = await base44.asServiceRole.entities.Coupon.filter({ 
+        code: couponCode.toUpperCase().trim() 
+      });
+      
+      if (!coupons || coupons.length === 0) {
+        return Response.json(
+          { error: 'Invalid coupon code' },
+          { status: 400 }
+        );
+      }
+      
+      const coupon = coupons[0];
+      
+      // 1. Check if coupon is active
+      if (!coupon.isActive) {
+        return Response.json(
+          { error: 'This coupon is no longer active' },
+          { status: 400 }
+        );
+      }
+      
+      // 2. Check expiration
+      if (coupon.expiresAt) {
+        const now = new Date();
+        const expiresAt = new Date(coupon.expiresAt);
+        if (now > expiresAt) {
+          return Response.json(
+            { error: 'This coupon has expired' },
+            { status: 400 }
+          );
+        }
+      }
+      
+      // 3. Check global max uses
+      if (coupon.maxUsesGlobal !== null && coupon.usedCount >= coupon.maxUsesGlobal) {
+        return Response.json(
+          { error: 'This coupon has reached its usage limit' },
+          { status: 400 }
+        );
+      }
+      
+      // 4. Check per-user max uses
+      if (coupon.maxUsesPerUser !== null) {
+        const userTransactions = await base44.asServiceRole.entities.Transaction.filter({
+          userId: user.id,
+          couponCode: coupon.code
+        });
+        
+        if (userTransactions.length >= coupon.maxUsesPerUser) {
+          return Response.json(
+            { error: 'You have already used this coupon the maximum number of times' },
+            { status: 400 }
+          );
+        }
+      }
+      
+      // 5. Check if tier is eligible
+      if (coupon.eligibleTierIds && coupon.eligibleTierIds.length > 0) {
+        if (!coupon.eligibleTierIds.includes(pricingTierId)) {
+          return Response.json(
+            { error: 'This coupon is not valid for the selected pricing tier' },
+            { status: 400 }
+          );
+        }
+      }
+      
+      // ==================== APPLY DISCOUNT ====================
+      console.log('✅ Coupon valid, applying discount. Mode:', coupon.applyMode);
+      
+      if (coupon.applyMode === 'percentage') {
+        // Simple percentage discount
+        const discountPercent = coupon.discountValue || 0;
+        discountApplied = Math.round(tier.priceInCents * (discountPercent / 100));
+        finalPriceInCents = tier.priceInCents - discountApplied;
+        
+        console.log(`💰 Percentage discount: ${discountPercent}% = $${(discountApplied / 100).toFixed(2)} off`);
+        
+      } else if (coupon.applyMode === 'fixed_amount') {
+        // Simple fixed amount discount (in cents)
+        discountApplied = coupon.discountValue || 0;
+        finalPriceInCents = tier.priceInCents - discountApplied;
+        
+        console.log(`💰 Fixed amount discount: $${(discountApplied / 100).toFixed(2)} off`);
+        
+      } else if (coupon.applyMode === 'tier_price_match') {
+        // Complex tier price matching
+        console.log('🎯 Tier price-match mode');
+        
+        let targetTier = null;
+        
+        // Determine target tier
+        if (coupon.applyNextTierUp) {
+          // Find next tier up (higher credit amount)
+          const allTiers = await base44.asServiceRole.entities.PricingTier.filter({ 
+            isActive: true 
+          });
+          
+          // Sort by credit amount ascending
+          const sortedTiers = allTiers.sort((a, b) => a.creditAmount - b.creditAmount);
+          
+          // Find tiers with higher credit amount than selected tier
+          const higherTiers = sortedTiers.filter(t => t.creditAmount > tier.creditAmount);
+          
+          if (higherTiers.length > 0) {
+            targetTier = higherTiers[0]; // First tier above current
+            console.log(`📈 Next tier up: ${targetTier.name} (${targetTier.creditAmount} credits)`);
+          } else {
+            // No higher tier exists, use current tier
+            targetTier = tier;
+            console.log(`⚠️ No higher tier found, using current tier`);
+          }
+        } else if (coupon.targetTierId) {
+          // Use specified target tier
+          const targetTiers = await base44.asServiceRole.entities.PricingTier.filter({ 
+            id: coupon.targetTierId 
+          });
+          
+          if (targetTiers && targetTiers.length > 0) {
+            targetTier = targetTiers[0];
+            console.log(`🎯 Target tier: ${targetTier.name} (${targetTier.creditAmount} credits)`);
+          }
+        }
+        
+        if (!targetTier) {
+          return Response.json(
+            { error: 'Coupon configuration error: no valid target tier' },
+            { status: 500 }
+          );
+        }
+        
+        // Calculate price-per-note from target tier
+        const targetPricePerNote = targetTier.priceInCents / targetTier.creditAmount;
+        console.log(`💵 Target price-per-note: $${(targetPricePerNote / 100).toFixed(4)}`);
+        
+        // Apply to selected tier's credit amount
+        let matchedPrice = Math.round(targetPricePerNote * tier.creditAmount);
+        console.log(`🧮 Matched price: $${(matchedPrice / 100).toFixed(2)}`);
+        
+        // Apply cap if specified
+        if (coupon.capTierId) {
+          const capTiers = await base44.asServiceRole.entities.PricingTier.filter({ 
+            id: coupon.capTierId 
+          });
+          
+          if (capTiers && capTiers.length > 0) {
+            const capTier = capTiers[0];
+            const capPrice = capTier.priceInCents;
+            
+            if (matchedPrice < capPrice) {
+              console.log(`🚫 Cap applied: price raised from $${(matchedPrice / 100).toFixed(2)} to $${(capPrice / 100).toFixed(2)}`);
+              matchedPrice = capPrice;
+            }
+          }
+        }
+        
+        // Calculate discount
+        discountApplied = tier.priceInCents - matchedPrice;
+        finalPriceInCents = matchedPrice;
+        
+        console.log(`💰 Tier price-match discount: $${(discountApplied / 100).toFixed(2)} off`);
+      }
+      
+      // ==================== APPLY BONUS DISCOUNT ====================
+      if (coupon.bonusDiscountType && coupon.bonusDiscountType !== 'none') {
+        console.log('🎁 Applying bonus discount. Type:', coupon.bonusDiscountType);
+        
+        let bonusDiscount = 0;
+        
+        if (coupon.bonusDiscountType === 'per_note_discount') {
+          // Discount per note/credit
+          const bonusPerNote = coupon.bonusDiscountValue || 0;
+          bonusDiscount = bonusPerNote * tier.creditAmount;
+          console.log(`🎁 Bonus per-note: $${(bonusPerNote / 100).toFixed(2)} × ${tier.creditAmount} = $${(bonusDiscount / 100).toFixed(2)}`);
+          
+        } else if (coupon.bonusDiscountType === 'percentage') {
+          // Additional percentage off the already-discounted price
+          const bonusPercent = coupon.bonusDiscountValue || 0;
+          bonusDiscount = Math.round(finalPriceInCents * (bonusPercent / 100));
+          console.log(`🎁 Bonus percentage: ${bonusPercent}% of $${(finalPriceInCents / 100).toFixed(2)} = $${(bonusDiscount / 100).toFixed(2)}`);
+        }
+        
+        discountApplied += bonusDiscount;
+        finalPriceInCents -= bonusDiscount;
+      }
+      
+      // Ensure price doesn't go negative
+      if (finalPriceInCents < 0) {
+        console.warn('⚠️ Final price was negative, setting to $0');
+        finalPriceInCents = 0;
+      }
+      
+      // Store validated coupon for later use
+      validatedCoupon = coupon;
+      
+      console.log('✅ Final price calculation:');
+      console.log(`   Original: $${(tier.priceInCents / 100).toFixed(2)}`);
+      console.log(`   Discount: $${(discountApplied / 100).toFixed(2)}`);
+      console.log(`   Final: $${(finalPriceInCents / 100).toFixed(2)}`);
+    }
+    
+    // ==================== CONTINUE WITH STRIPE CHECKOUT ====================
     
     // Load organization if user belongs to one
     let organization = null;
@@ -103,7 +315,13 @@ Deno.serve(async (req) => {
     const url = new URL(req.url);
     const appBaseUrl = `${url.protocol}//${url.host}`;
     
-    // Create Stripe checkout session
+    // Build product description with discount info
+    let productDescription = `${tier.creditAmount} handwritten note${tier.creditAmount === 1 ? '' : 's'}`;
+    if (validatedCoupon) {
+      productDescription += ` (Coupon: ${validatedCoupon.code})`;
+    }
+    
+    // Create Stripe checkout session with (potentially discounted) price
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       payment_method_types: ['card'],
@@ -113,13 +331,16 @@ Deno.serve(async (req) => {
             currency: 'usd',
             product_data: {
               name: tier.name,
-              description: `${tier.creditAmount} handwritten note${tier.creditAmount === 1 ? '' : 's'}`,
+              description: productDescription,
               metadata: {
                 pricingTierId: tier.id,
-                creditAmount: tier.creditAmount.toString()
+                creditAmount: tier.creditAmount.toString(),
+                originalPrice: tier.priceInCents.toString(),
+                discountApplied: validatedCoupon ? discountApplied.toString() : '0',
+                couponCode: validatedCoupon ? validatedCoupon.code : ''
               }
             },
-            unit_amount: tier.priceInCents,
+            unit_amount: finalPriceInCents,
           },
           quantity: 1,
         },
@@ -132,18 +353,29 @@ Deno.serve(async (req) => {
         orgId: user.orgId || '',
         pricingTierId: tier.id,
         creditAmount: tier.creditAmount.toString(),
-        purchaseType: isOrgPurchase ? 'organization' : 'user'
+        purchaseType: isOrgPurchase ? 'organization' : 'user',
+        couponCode: validatedCoupon ? validatedCoupon.code : '',
+        originalPrice: tier.priceInCents.toString(),
+        discountApplied: validatedCoupon ? discountApplied.toString() : '0',
+        finalPrice: finalPriceInCents.toString()
       }
     });
+    
+    console.log('✅ Stripe checkout session created:', session.id);
+    console.log('💳 Final amount:', `$${(finalPriceInCents / 100).toFixed(2)}`);
     
     return Response.json({
       success: true,
       checkoutUrl: session.url,
-      sessionId: session.id
+      sessionId: session.id,
+      originalPrice: tier.priceInCents,
+      discountApplied: validatedCoupon ? discountApplied : 0,
+      finalPrice: finalPriceInCents,
+      couponApplied: validatedCoupon ? validatedCoupon.code : null
     });
     
   } catch (error) {
-    console.error('Error creating checkout session:', error);
+    console.error('❌ Error creating checkout session:', error);
     return Response.json(
       { 
         error: error.message || 'Failed to create checkout session',
