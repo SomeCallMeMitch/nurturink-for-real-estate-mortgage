@@ -6,7 +6,7 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label'; // Added Label import
+import { Label } from '@/components/ui/label';
 import { 
   Loader2, 
   CreditCard, 
@@ -22,7 +22,7 @@ import {
   TrendingDown,
   RefreshCw,
   Receipt,
-  CheckCircle // Added CheckCircle import for coupon banner
+  CheckCircle
 } from 'lucide-react';
 import {
   Select,
@@ -48,6 +48,7 @@ export default function Credits() {
   const [error, setError] = useState(null);
   const [purchasingTierId, setPurchasingTierId] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
   
   // Transaction filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,23 +70,8 @@ export default function Credits() {
     const sessionId = urlParams.get('session_id');
     
     if (payment === 'success' && sessionId) {
-      setPaymentStatus('success');
-      toast({
-        title: 'Payment Successful! 🎉',
-        description: 'Your credits have been added to your account.',
-        duration: 5000,
-        className: 'bg-green-50 border-green-200 text-green-900'
-      });
-      
-      // Clean URL after showing toast
-      const newSearchParams = new URLSearchParams();
-      if (urlParams.has('page')) {
-          newSearchParams.set('page', urlParams.get('page'));
-      }
-      window.history.replaceState({}, '', window.location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''));
-      
-      // Reload data to show updated balance
-      setTimeout(() => loadData(), 500);
+      // Process payment success
+      handlePaymentSuccess(sessionId);
     } else if (payment === 'cancelled') {
       setPaymentStatus('cancelled');
       toast({
@@ -96,13 +82,182 @@ export default function Credits() {
       });
       
       // Clean URL
-      const newSearchParams = new URLSearchParams();
-      if (urlParams.has('page')) {
-          newSearchParams.set('page', urlParams.get('page'));
-      }
-      window.history.replaceState({}, '', window.location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''));
+      cleanUrl();
     }
   }, []);
+
+  const cleanUrl = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const newSearchParams = new URLSearchParams();
+    if (urlParams.has('page')) {
+      newSearchParams.set('page', urlParams.get('page'));
+    }
+    window.history.replaceState({}, '', window.location.pathname + (newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''));
+  };
+
+  /**
+   * Handle successful payment by fetching session data and updating credits
+   * This follows Base44's security model where the frontend (with user session)
+   * performs the credit update, not an external webhook
+   */
+  const handlePaymentSuccess = async (sessionId) => {
+    try {
+      setProcessingPayment(true);
+      console.log('💳 Processing payment success for session:', sessionId);
+      
+      // Step 1: Fetch and validate session from Stripe via our backend
+      const sessionResponse = await base44.functions.invoke('fetchStripeSession', {
+        sessionId: sessionId
+      });
+      
+      if (!sessionResponse.data.success) {
+        throw new Error('Failed to validate payment session');
+      }
+      
+      const { session } = sessionResponse.data;
+      console.log('✅ Session validated:', session);
+      
+      // Extract metadata
+      const {
+        userId,
+        orgId,
+        pricingTierId,
+        creditAmount,
+        purchaseType,
+        couponCode,
+        originalPrice,
+        discountApplied,
+        finalPrice
+      } = session.metadata;
+      
+      const credits = parseInt(creditAmount);
+      const isOrgPurchase = purchaseType === 'organization';
+      
+      // Step 2: Load current user data to get fresh balance
+      const currentUser = await base44.auth.me();
+      
+      // Step 3: Update credit balance based on purchase type
+      let newBalance;
+      let balanceType;
+      
+      if (isOrgPurchase && orgId) {
+        // Organization purchase - update organization balance
+        const orgs = await base44.entities.Organization.filter({ id: orgId });
+        if (!orgs || orgs.length === 0) {
+          throw new Error('Organization not found');
+        }
+        
+        const org = orgs[0];
+        newBalance = (org.creditBalance || 0) + credits;
+        balanceType = 'organization';
+        
+        // Update organization credit balance
+        await base44.entities.Organization.update(orgId, {
+          creditBalance: newBalance
+        });
+        
+        console.log(`✅ Updated organization balance: ${org.creditBalance} → ${newBalance}`);
+      } else {
+        // Individual user purchase - update user balance
+        newBalance = (currentUser.creditBalance || 0) + credits;
+        balanceType = 'user';
+        
+        // Update user credit balance
+        await base44.auth.updateMe({
+          creditBalance: newBalance
+        });
+        
+        console.log(`✅ Updated user balance: ${currentUser.creditBalance} → ${newBalance}`);
+      }
+      
+      // Step 4: Load pricing tier for transaction description
+      const tiers = await base44.entities.PricingTier.filter({ id: pricingTierId });
+      const tier = tiers && tiers.length > 0 ? tiers[0] : null;
+      
+      // Step 5: Build transaction description
+      let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes`;
+      if (couponCode) {
+        const discountAmount = discountApplied ? parseInt(discountApplied) : 0;
+        description += ` (${couponCode}: -$${(discountAmount / 100).toFixed(2)})`;
+      }
+      
+      // Step 6: Create transaction record
+      await base44.entities.Transaction.create({
+        orgId: orgId || currentUser.orgId || '',
+        userId: currentUser.id,
+        type: isOrgPurchase ? 'purchase_org' : 'purchase_user',
+        amount: credits,
+        balanceAfter: newBalance,
+        balanceType: balanceType,
+        description: description,
+        metadata: {
+          stripeSessionId: session.id,
+          stripePaymentIntent: session.paymentIntent,
+          amountPaid: session.amountTotal,
+          currency: session.currency,
+          originalPrice: originalPrice ? parseInt(originalPrice) : null,
+          discountApplied: discountApplied ? parseInt(discountApplied) : 0,
+          finalPrice: finalPrice ? parseInt(finalPrice) : session.amountTotal,
+          pricingTierName: tier?.name || null
+        },
+        relatedPricingTierId: pricingTierId,
+        stripePaymentId: session.paymentIntent,
+        couponCode: couponCode || null
+      });
+      
+      console.log('✅ Transaction record created');
+      
+      // Step 7: Increment coupon usage count if coupon was used
+      if (couponCode) {
+        try {
+          const coupons = await base44.entities.Coupon.filter({ 
+            code: couponCode.trim().toUpperCase() 
+          });
+          
+          if (coupons && coupons.length > 0) {
+            const coupon = coupons[0];
+            await base44.entities.Coupon.update(coupon.id, {
+              usedCount: (coupon.usedCount || 0) + 1
+            });
+            console.log(`✅ Incremented coupon usage for ${couponCode}`);
+          }
+        } catch (couponError) {
+          console.error('⚠️ Failed to update coupon usage:', couponError);
+          // Don't fail the entire flow if coupon update fails
+        }
+      }
+      
+      // Step 8: Show success message
+      setPaymentStatus('success');
+      toast({
+        title: `Payment Successful! 🎉`,
+        description: `${credits} credits have been added to your account.${couponCode ? ` Coupon ${couponCode} applied!` : ''}`,
+        duration: 5000,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
+      // Clean URL
+      cleanUrl();
+      
+      // Reload data to show updated balance
+      await loadData();
+      
+    } catch (error) {
+      console.error('❌ Failed to process payment:', error);
+      setPaymentStatus('error');
+      toast({
+        title: 'Payment Processing Error',
+        description: error.response?.data?.error || error.message || 'Failed to add credits to your account. Please contact support.',
+        variant: 'destructive',
+        duration: 8000
+      });
+      
+      // Clean URL even on error
+      cleanUrl();
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -446,12 +601,19 @@ export default function Credits() {
   };
 
   // Loading state
-  if (loading) {
+  if (loading || processingPayment) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="w-12 h-12 text-indigo-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading credit information...</p>
+          <p className="text-gray-600">
+            {processingPayment ? 'Processing your payment...' : 'Loading credit information...'}
+          </p>
+          {processingPayment && (
+            <p className="text-sm text-gray-500 mt-2">
+              Please wait while we add credits to your account
+            </p>
+          )}
         </div>
       </div>
     );
