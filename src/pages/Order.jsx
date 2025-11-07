@@ -16,17 +16,25 @@ export default function OrderPage() {
     useEffect(() => {
         const fetchUserAndPackage = async () => {
             try {
+                console.log('🔍 Order page: Starting to fetch user and package...');
+                
                 const currentUser = await base44.auth.me();
+                console.log('✅ Order page: User loaded:', currentUser);
                 setUser(currentUser);
                 
                 const storedPackage = localStorage.getItem('selectedPackage');
+                console.log('📦 Order page: Raw localStorage data:', storedPackage);
+                
                 if (storedPackage) {
-                    setPkg(JSON.parse(storedPackage));
+                    const parsedPkg = JSON.parse(storedPackage);
+                    console.log('📦 Order page: Parsed package:', parsedPkg);
+                    setPkg(parsedPkg);
                 } else {
+                    console.error('❌ Order page: No package in localStorage');
                     setError("No package selected. Please go back and choose a package.");
                 }
             } catch (err) {
-                console.error("Failed to fetch user:", err);
+                console.error("❌ Order page: Failed to fetch user:", err);
                 setError("Could not load user data. Please try again.");
             }
         };
@@ -34,11 +42,18 @@ export default function OrderPage() {
     }, []);
 
     const handleCheckout = async () => {
+        console.log('🚀 handleCheckout: Function called!');
+        console.log('📦 handleCheckout: pkg =', pkg);
+        console.log('👤 handleCheckout: user =', user);
+        
         if (!pkg || !user) {
+            console.error('❌ handleCheckout: Missing pkg or user');
             setError("Missing order details or user information.");
             return;
         }
+        
         if (!pkg.pricingTierId) {
+            console.error('❌ handleCheckout: Missing pricingTierId');
             setError("Selected package is missing pricing tier ID. Please go back and pick a package again.");
             return;
         }
@@ -46,20 +61,38 @@ export default function OrderPage() {
         setIsLoading(true);
         setError(null);
         
+        console.log('💾 handleCheckout: About to call createCheckoutSession with:', {
+            pricingTierId: pkg.pricingTierId,
+            couponCode: pkg.couponCode || undefined
+        });
+        
         try {
+            console.log('🔄 handleCheckout: Calling base44.functions.invoke...');
+            
             const response = await base44.functions.invoke('createCheckoutSession', {
                 pricingTierId: pkg.pricingTierId,
                 couponCode: pkg.couponCode || undefined
             });
 
+            console.log('✅ handleCheckout: Response received:', response);
+            console.log('✅ handleCheckout: Response data:', response?.data);
+
             const url = response?.data?.checkoutUrl;
+            console.log('🔗 handleCheckout: Checkout URL:', url);
+            
             if (url) {
+                console.log('✅ handleCheckout: Redirecting to Stripe...');
                 window.location.href = url;
             } else {
                 throw new Error("Checkout session did not return a URL.");
             }
         } catch (err) {
-            console.error("Checkout error:", err);
+            console.error("❌ handleCheckout: Error caught:", err);
+            console.error("❌ handleCheckout: Error message:", err.message);
+            console.error("❌ handleCheckout: Error response:", err.response);
+            console.error("❌ handleCheckout: Error response data:", err.response?.data);
+            console.error("❌ handleCheckout: Full error object:", JSON.stringify(err, null, 2));
+            
             setError(
                 err?.response?.data?.error ||
                 err?.message ||
