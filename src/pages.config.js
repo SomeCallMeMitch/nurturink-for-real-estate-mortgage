@@ -26,6 +26,7 @@ import AdminCoupons from './pages/AdminCoupons';
 import Order from './pages/Order';
 import PaymentCancel from './pages/PaymentCancel';
 import PaymentSuccess from './pages/PaymentSuccess';
+import TeamManagement from './pages/TeamManagement';
 import Layout from './Layout.jsx';
 
 
@@ -58,6 +59,7 @@ export const PAGES = {
     "Order": Order,
     "PaymentCancel": PaymentCancel,
     "PaymentSuccess": PaymentSuccess,
+    "TeamManagement": TeamManagement,
 }
 
 export const pagesConfig = {
