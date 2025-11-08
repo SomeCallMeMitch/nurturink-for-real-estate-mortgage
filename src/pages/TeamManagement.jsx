@@ -20,8 +20,7 @@ import {
   UserX,
   UserCog,
   AlertCircle,
-  RefreshCw,
-  X
+  RefreshCw
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
@@ -55,29 +54,23 @@ export default function TeamManagement() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Data state
   const [user, setUser] = useState(null);
   const [members, setMembers] = useState([]);
   const [summaryStats, setSummaryStats] = useState(null);
-  
-  // UI state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Modal state
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('sales_rep');
   const [inviting, setInviting] = useState(false);
   
-  // Role change state
   const [roleChangeDialogOpen, setRoleChangeDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
   const [newRole, setNewRole] = useState('');
   const [changingRole, setChangingRole] = useState(false);
   
-  // Remove member state
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState(null);
   const [removing, setRemoving] = useState(false);
@@ -91,11 +84,9 @@ export default function TeamManagement() {
       setLoading(true);
       setError(null);
       
-      // Load current user
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // Verify user has permission
       const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
       const isSuperAdmin = currentUser.appRole === 'super_admin';
       
@@ -111,7 +102,6 @@ export default function TeamManagement() {
         return;
       }
       
-      // Load team data
       const response = await base44.functions.invoke('getOrganizationTeamData');
       setMembers(response.data.members || []);
       setSummaryStats(response.data.summaryStats || {
@@ -129,12 +119,8 @@ export default function TeamManagement() {
     }
   };
 
-  // Filter members based on search
   const filteredMembers = useMemo(() => {
-    if (!searchQuery.trim()) {
-      return members;
-    }
-    
+    if (!searchQuery.trim()) return members;
     const query = searchQuery.toLowerCase();
     return members.filter(member =>
       member.name.toLowerCase().includes(query) ||
@@ -142,7 +128,6 @@ export default function TeamManagement() {
     );
   }, [members, searchQuery]);
 
-  // Format date to relative time
   const formatRelativeTime = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -158,7 +143,6 @@ export default function TeamManagement() {
     return date.toLocaleDateString();
   };
 
-  // Get role badge color
   const getRoleBadge = (member) => {
     if (member.isOrgOwner) {
       return <Badge className="bg-purple-100 text-purple-800"><Shield className="w-3 h-3 mr-1" />Admin</Badge>;
@@ -166,7 +150,6 @@ export default function TeamManagement() {
     return <Badge className="bg-blue-100 text-blue-800"><Users className="w-3 h-3 mr-1" />Member</Badge>;
   };
 
-  // Get status badge
   const getStatusBadge = (status) => {
     const colors = {
       'Active': 'bg-green-100 text-green-800',
@@ -188,7 +171,6 @@ export default function TeamManagement() {
     );
   };
 
-  // Handle invite submission
   const handleInvite = async () => {
     if (!inviteEmail.trim()) {
       toast({
@@ -215,7 +197,6 @@ export default function TeamManagement() {
         className: 'bg-green-50 border-green-200 text-green-900'
       });
 
-      // Log simulated email for testing
       if (response.data.simulatedEmail) {
         console.log('📧 Invitation details:', response.data.simulatedEmail);
       }
@@ -223,8 +204,6 @@ export default function TeamManagement() {
       setInviteModalOpen(false);
       setInviteEmail('');
       setInviteRole('sales_rep');
-      
-      // Reload data
       await loadData();
       
     } catch (error) {
@@ -240,7 +219,6 @@ export default function TeamManagement() {
     }
   };
 
-  // Handle role change
   const handleOpenRoleChange = (member) => {
     setSelectedMember(member);
     setNewRole(member.isOrgOwner ? 'organization_owner' : 'sales_rep');
@@ -267,8 +245,6 @@ export default function TeamManagement() {
 
       setRoleChangeDialogOpen(false);
       setSelectedMember(null);
-      
-      // Reload data
       await loadData();
       
     } catch (error) {
@@ -284,7 +260,6 @@ export default function TeamManagement() {
     }
   };
 
-  // Handle remove member
   const handleOpenRemove = (member) => {
     setMemberToRemove(member);
     setRemoveDialogOpen(true);
@@ -296,7 +271,6 @@ export default function TeamManagement() {
     try {
       setRemoving(true);
       
-      // If it's a pending invitation, cancel it
       if (memberToRemove.status === 'Pending') {
         await base44.functions.invoke('cancelInvitation', {
           invitationId: memberToRemove.invitationId
@@ -309,7 +283,6 @@ export default function TeamManagement() {
           className: 'bg-green-50 border-green-200 text-green-900'
         });
       } else {
-        // Remove active member
         await base44.functions.invoke('removeTeamMember', {
           userId: memberToRemove.userId
         });
@@ -324,8 +297,6 @@ export default function TeamManagement() {
 
       setRemoveDialogOpen(false);
       setMemberToRemove(null);
-      
-      // Reload data
       await loadData();
       
     } catch (error) {
@@ -374,13 +345,11 @@ export default function TeamManagement() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50">
       <div className="max-w-7xl mx-auto p-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Team Management</h1>
           <p className="text-lg text-gray-600">Manage your organization's team members and roles</p>
         </div>
 
-        {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="pt-6">
@@ -439,7 +408,6 @@ export default function TeamManagement() {
           </Card>
         </div>
 
-        {/* Search and Actions */}
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
@@ -475,7 +443,6 @@ export default function TeamManagement() {
           </CardContent>
         </Card>
 
-        {/* Team Members Table */}
         <Card>
           <CardHeader>
             <CardTitle>Team Members</CardTitle>
@@ -603,7 +570,6 @@ export default function TeamManagement() {
           </CardContent>
         </Card>
 
-        {/* Invite Member Modal */}
         <Dialog open={inviteModalOpen} onOpenChange={setInviteModalOpen}>
           <DialogContent>
             <DialogHeader>
@@ -678,7 +644,6 @@ export default function TeamManagement() {
           </DialogContent>
         </Dialog>
 
-        {/* Role Change Dialog */}
         <Dialog open={roleChangeDialogOpen} onOpenChange={setRoleChangeDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -733,7 +698,6 @@ export default function TeamManagement() {
           </DialogContent>
         </Dialog>
 
-        {/* Remove Member Dialog */}
         <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
