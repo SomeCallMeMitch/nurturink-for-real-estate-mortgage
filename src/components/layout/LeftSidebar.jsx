@@ -12,7 +12,8 @@ import {
   Users,
   DollarSign,
   BarChart3,
-  UsersRound // Added UsersRound icon
+  UsersRound,
+  Palette
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -119,6 +120,7 @@ export default function LeftSidebar() {
   ];
 
   const superAdminPageUrl = createPageUrl('SuperAdminDashboard');
+  const whitelabelPageUrl = createPageUrl('SuperAdminWhitelabel');
 
   // Helper function to check if a menu item is active
   const isMenuItemActive = (pageName) => {
@@ -157,7 +159,7 @@ export default function LeftSidebar() {
           );
         })}
 
-        {/* Super Admin Link - Conditionally rendered only for 'super_admin' role */}
+        {/* Super Admin Links - Conditionally rendered only for 'super_admin' role */}
         {user && user.appRole === 'super_admin' && (
           <div className="pt-4 mt-4 border-t border-gray-200">
             <Link
@@ -168,6 +170,16 @@ export default function LeftSidebar() {
             >
               <Shield className="w-5 h-5" />
               <span>Super Admin</span>
+            </Link>
+            
+            <Link
+              to={whitelabelPageUrl}
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors ${
+                location.pathname === whitelabelPageUrl ? "bg-purple-50 text-purple-700 font-semibold" : ""
+              }`}
+            >
+              <Palette className="w-5 h-5" />
+              <span>Whitelabel</span>
             </Link>
           </div>
         )}

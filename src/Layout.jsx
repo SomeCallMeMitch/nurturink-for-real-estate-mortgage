@@ -1,4 +1,3 @@
-
 import React from "react";
 import MainLayout from "./components/layout/MainLayout";
 import { Toaster } from "@/components/ui/toaster";
@@ -34,7 +33,8 @@ export default function Layout({ children, currentPageName }) {
     "Order",
     "PaymentSuccess",
     "PaymentCancel",
-    "TeamManagement"
+    "TeamManagement",
+    "SuperAdminWhitelabel"
   ];
   
   // Check if current page should use MainLayout
@@ -69,8 +69,8 @@ export default function Layout({ children, currentPageName }) {
         children
       )}
       
-      {/* Global Toaster for all pages */}
-      <Toaster />
+      {/* Global Toaster with default 3 second duration */}
+      <Toaster duration={3000} />
     </>
   );
 }
