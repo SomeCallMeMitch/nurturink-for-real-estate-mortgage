@@ -29,11 +29,12 @@ export default function Layout({ children, currentPageName }) {
     "SettingsTeam",
     "SuperAdminCardManagement",
     "AdminPricing",
-    "AdminCoupons", // Added AdminCoupons
+    "AdminCoupons",
     "Credits",
     "Order",
     "PaymentSuccess",
-    "PaymentCancel"
+    "PaymentCancel",
+    "TeamManagement"
   ];
   
   // Check if current page should use MainLayout

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -10,7 +11,8 @@ import {
   Shield,
   Users,
   DollarSign,
-  BarChart3
+  BarChart3,
+  UsersRound // Added UsersRound icon
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -92,6 +94,13 @@ export default function LeftSidebar() {
       icon: DollarSign,
       path: 'Credits',
       roles: ['sales_rep', 'organization_owner', 'super_admin']
+    },
+    { // New Team menu item
+      id: 'team',
+      label: 'Team',
+      icon: UsersRound,
+      path: 'TeamManagement',
+      roles: ['organization_owner', 'super_admin']
     },
     {
       id: 'analytics',
