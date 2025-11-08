@@ -23,7 +23,8 @@ import {
   Receipt,
   CheckCircle,
   Building2,
-  User as UserIcon
+  User as UserIcon,
+  Send
 } from 'lucide-react';
 import {
   Select,
@@ -59,6 +60,12 @@ export default function Credits() {
   const [couponCode, setCouponCode] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
+
+  // NEW: Credit allocation state
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [loadingTeamMembers, setLoadingTeamMembers] = useState(false);
+  const [allocations, setAllocations] = useState({});
+  const [allocating, setAllocating] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -106,6 +113,20 @@ export default function Credits() {
         } catch (err) {
           console.error('Failed to load company pool stats:', err);
         }
+
+        // NEW: Load team members for allocation
+        try {
+          setLoadingTeamMembers(true);
+          const teamResponse = await base44.functions.invoke('getTeamMemberUsage');
+          setTeamMembers(teamResponse.data.teamMembers || []);
+        } catch (err) {
+          console.error('Failed to load team members:', err);
+          setTeamMembers([]); // Ensure it's empty on error
+        } finally {
+          setLoadingTeamMembers(false);
+        }
+      } else {
+        setTeamMembers([]); // If not org owner, ensure teamMembers is empty
       }
       
       // Determine which pricing tiers to load
@@ -387,6 +408,85 @@ export default function Credits() {
     }
   };
 
+  // NEW: Handle allocation amount change
+  const handleAllocationChange = (userId, value) => {
+    const numValue = parseInt(value);
+    setAllocations(prev => ({
+      ...prev,
+      [userId]: isNaN(numValue) || numValue < 0 ? '' : numValue
+    }));
+  };
+
+  // NEW: Calculate total allocation
+  const totalAllocation = useMemo(() => {
+    return Object.values(allocations).reduce((sum, amount) => sum + (typeof amount === 'number' ? amount : 0), 0);
+  }, [allocations]);
+
+  // NEW: Handle allocate credits
+  const handleAllocateCredits = async () => {
+    // Filter out zero, empty, or invalid allocations
+    const validAllocations = Object.entries(allocations).reduce((acc, [userId, amount]) => {
+      const numAmount = parseInt(amount);
+      if (!isNaN(numAmount) && numAmount > 0) {
+        acc[userId] = numAmount;
+      }
+      return acc;
+    }, {});
+
+    if (Object.keys(validAllocations).length === 0) {
+      toast({
+        title: 'No allocations specified',
+        description: 'Please enter credit amounts for at least one team member',
+        variant: 'destructive',
+        duration: 3000
+      });
+      return;
+    }
+
+    if (totalAllocation > companyBalance) {
+      toast({
+        title: 'Insufficient credits',
+        description: `You are trying to allocate ${totalAllocation} credits but only have ${companyBalance} available in the company pool`,
+        variant: 'destructive',
+        duration: 4000
+      });
+      return;
+    }
+
+    try {
+      setAllocating(true);
+
+      const response = await base44.functions.invoke('allocateCredits', {
+        allocations: validAllocations
+      });
+
+      if (response.data.success) {
+        toast({
+          title: 'Credits Allocated Successfully! 🎉',
+          description: `Allocated ${response.data.totalAllocated} credits to ${response.data.allocations.length} team ${response.data.allocations.length === 1 ? 'member' : 'members'}`,
+          duration: 4000,
+          className: 'bg-green-50 border-green-200 text-green-900'
+        });
+
+        // Clear allocations
+        setAllocations({});
+
+        // Reload data to reflect changes
+        await loadData();
+      }
+    } catch (error) {
+      console.error('Failed to allocate credits:', error);
+      toast({
+        title: 'Allocation Failed',
+        description: error.response?.data?.error || 'Failed to allocate credits. Please try again.',
+        variant: 'destructive',
+        duration: 4000
+      });
+    } finally {
+      setAllocating(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -549,6 +649,169 @@ export default function Credits() {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* NEW: Allocate Credits Section (Only for Org Owners) */}
+        {isCompanyView && (
+          <Card className="mb-12 border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-orange-100 rounded-lg">
+                    <Users className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-2xl">Allocate Credits to Team</CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Distribute credits from the company pool ({companyBalance} available) to team members
+                    </p>
+                  </div>
+                </div>
+                {totalAllocation > 0 && (
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Total to Allocate</p>
+                    <p className={`text-3xl font-bold ${
+                      totalAllocation > companyBalance ? 'text-red-600' : 'text-orange-600'
+                    }`}>
+                      {totalAllocation}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              {loadingTeamMembers ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="w-8 h-8 text-orange-500 animate-spin mr-3" />
+                  <p className="text-gray-600">Loading team members...</p>
+                </div>
+              ) : teamMembers.length === 0 ? (
+                // No team members warning
+                <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-6">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-semibold text-yellow-900 mb-1">
+                        No Team Members to Allocate Credits To
+                      </h3>
+                      <p className="text-sm text-yellow-800 mb-3">
+                        You currently have no team members in your organization. Credits can only be allocated to sales reps and other team members.
+                      </p>
+                      <p className="text-sm text-yellow-700">
+                        <strong>Next Steps:</strong> Add team members to your organization through the Team Management page, then return here to allocate credits.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // Team members table
+                <div className="space-y-6">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-100 border-b-2 border-gray-200">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
+                            Team Member
+                          </th>
+                          <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                            Current Balance
+                          </th>
+                          <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                            Used This Month
+                          </th>
+                          <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
+                            Allocate Credits
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {teamMembers.map((member) => (
+                          <tr key={member.userId} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-4">
+                              <div>
+                                <p className="font-medium text-gray-900">{member.name}</p>
+                                <p className="text-sm text-gray-500">{member.email}</p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-center">
+                              <span className="inline-flex items-center px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold">
+                                {member.personalBalance} credits
+                              </span>
+                            </td>
+                            <td className="px-4 py-4 text-center">
+                              <span className="text-gray-700 font-medium">
+                                {member.creditsUsed}
+                              </span>
+                            </td>
+                            <td className="px-4 py-4">
+                              <div className="flex items-center justify-end gap-2">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  max={companyBalance}
+                                  value={allocations[member.userId] || ''}
+                                  onChange={(e) => handleAllocationChange(member.userId, e.target.value)}
+                                  placeholder="0"
+                                  className="w-24 text-right"
+                                />
+                                <span className="text-sm text-gray-500">credits</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Summary and Action */}
+                  <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
+                    <div>
+                      <p className="text-sm text-gray-600">
+                        Company Pool: <span className="font-semibold text-gray-900">{companyBalance} credits</span>
+                      </p>
+                      {totalAllocation > 0 && (
+                        <p className="text-sm text-gray-600 mt-1">
+                          After allocation: <span className={`font-semibold ${
+                            totalAllocation > companyBalance ? 'text-red-600' : 'text-gray-900'
+                          }`}>
+                            {companyBalance - totalAllocation} credits remaining
+                          </span>
+                        </p>
+                      )}
+                    </div>
+
+                    <Button
+                      onClick={handleAllocateCredits}
+                      disabled={allocating || totalAllocation === 0 || totalAllocation > companyBalance}
+                      className="bg-orange-600 hover:bg-orange-700 gap-2"
+                      size="lg"
+                    >
+                      {allocating ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Allocating...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-5 h-5" />
+                          Allocate {totalAllocation} Credits
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Helper text */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>💡 Tip:</strong> Enter the number of credits you want to give to each team member. 
+                      Credits will be deducted from the company pool and added to their personal balances.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
 
         {/* Pricing Tiers Section */}
