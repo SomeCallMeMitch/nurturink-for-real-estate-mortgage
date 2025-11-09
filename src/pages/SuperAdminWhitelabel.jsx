@@ -625,314 +625,313 @@ export default function SuperAdminWhitelabel() {
                 </CardContent>
               </Card>
 
-              {/* Success Toast Colors */}
+              {/* All Notification Colors in One Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    Success Notification Colors
-                  </CardTitle>
+                  <CardTitle>Notification Colors</CardTitle>
+                  <CardDescription>Customize the appearance of different notification types</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <Label>Background</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastSuccessBg}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessBg: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastSuccessBg}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessBg: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Success */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <h4 className="font-semibold text-gray-900">Success</h4>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Background</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastSuccessBg}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessBg: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastSuccessBg}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessBg: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Text</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastSuccessText}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessText: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastSuccessText}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessText: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Border</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastSuccessBorder}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessBorder: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastSuccessBorder}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessBorder: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Preview */}
+                      <div 
+                        className="p-3 rounded-lg border-2 mt-3"
+                        style={{
+                          backgroundColor: settings.toastSuccessBg,
+                          color: settings.toastSuccessText,
+                          borderColor: settings.toastSuccessBorder
+                        }}
+                      >
+                        <p className="font-semibold text-sm">Success! ✓</p>
+                        <p className="text-xs">Preview</p>
                       </div>
                     </div>
-                    <div>
-                      <Label>Text</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastSuccessText}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessText: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastSuccessText}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessText: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Border</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastSuccessBorder}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessBorder: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastSuccessBorder}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastSuccessBorder: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Preview */}
-                  <div 
-                    className="p-4 rounded-lg border-2"
-                    style={{
-                      backgroundColor: settings.toastSuccessBg,
-                      color: settings.toastSuccessText,
-                      borderColor: settings.toastSuccessBorder
-                    }}
-                  >
-                    <p className="font-semibold">Success! ✓</p>
-                    <p className="text-sm">This is how a success notification will look</p>
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Error Toast Colors */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-red-600" />
-                    Error Notification Colors
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <Label>Background</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastErrorBg}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastErrorBg: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastErrorBg}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastErrorBg: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
+                    {/* Error */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <AlertCircle className="w-5 h-5 text-red-600" />
+                        <h4 className="font-semibold text-gray-900">Error</h4>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Background</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastErrorBg}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastErrorBg: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastErrorBg}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastErrorBg: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Text</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastErrorText}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastErrorText: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastErrorText}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastErrorText: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Border</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastErrorBorder}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastErrorBorder: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastErrorBorder}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastErrorBorder: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Preview */}
+                      <div 
+                        className="p-3 rounded-lg border-2 mt-3"
+                        style={{
+                          backgroundColor: settings.toastErrorBg,
+                          color: settings.toastErrorText,
+                          borderColor: settings.toastErrorBorder
+                        }}
+                      >
+                        <p className="font-semibold text-sm">Error!</p>
+                        <p className="text-xs">Preview</p>
                       </div>
                     </div>
-                    <div>
-                      <Label>Text</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastErrorText}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastErrorText: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastErrorText}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastErrorText: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Border</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastErrorBorder}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastErrorBorder: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastErrorBorder}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastErrorBorder: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Preview */}
-                  <div 
-                    className="p-4 rounded-lg border-2"
-                    style={{
-                      backgroundColor: settings.toastErrorBg,
-                      color: settings.toastErrorText,
-                      borderColor: settings.toastErrorBorder
-                    }}
-                  >
-                    <p className="font-semibold">Error!</p>
-                    <p className="text-sm">This is how an error notification will look</p>
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Warning Toast Colors */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertCircle className="w-5 h-5 text-yellow-600" />
-                    Warning Notification Colors
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <Label>Background</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastWarningBg}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastWarningBg: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastWarningBg}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastWarningBg: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
+                    {/* Warning */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <AlertCircle className="w-5 h-5 text-yellow-600" />
+                        <h4 className="font-semibold text-gray-900">Warning</h4>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Background</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastWarningBg}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastWarningBg: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastWarningBg}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastWarningBg: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Text</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastWarningText}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastWarningText: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastWarningText}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastWarningText: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Border</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastWarningBorder}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastWarningBorder: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastWarningBorder}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastWarningBorder: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Preview */}
+                      <div 
+                        className="p-3 rounded-lg border-2 mt-3"
+                        style={{
+                          backgroundColor: settings.toastWarningBg,
+                          color: settings.toastWarningText,
+                          borderColor: settings.toastWarningBorder
+                        }}
+                      >
+                        <p className="font-semibold text-sm">Warning!</p>
+                        <p className="text-xs">Preview</p>
                       </div>
                     </div>
-                    <div>
-                      <Label>Text</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastWarningText}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastWarningText: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastWarningText}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastWarningText: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Border</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastWarningBorder}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastWarningBorder: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastWarningBorder}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastWarningBorder: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Preview */}
-                  <div 
-                    className="p-4 rounded-lg border-2"
-                    style={{
-                      backgroundColor: settings.toastWarningBg,
-                      color: settings.toastWarningText,
-                      borderColor: settings.toastWarningBorder
-                    }}
-                  >
-                    <p className="font-semibold">Warning!</p>
-                    <p className="text-sm">This is how a warning notification will look</p>
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Info Toast Colors */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Eye className="w-5 h-5 text-blue-600" />
-                    Info Notification Colors
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid md:grid-cols-3 gap-4">
-                    <div>
-                      <Label>Background</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastInfoBg}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastInfoBg: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastInfoBg}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastInfoBg: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
+                    {/* Info */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Eye className="w-5 h-5 text-blue-600" />
+                        <h4 className="font-semibold text-gray-900">Info</h4>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Background</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastInfoBg}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastInfoBg: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastInfoBg}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastInfoBg: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Text</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastInfoText}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastInfoText: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastInfoText}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastInfoText: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <Label className="text-xs">Border</Label>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Input
+                            type="color"
+                            value={settings.toastInfoBorder}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastInfoBorder: e.target.value }))}
+                            className="w-12 h-8 cursor-pointer p-1"
+                          />
+                          <Input
+                            type="text"
+                            value={settings.toastInfoBorder}
+                            onChange={(e) => setSettings(prev => ({ ...prev, toastInfoBorder: e.target.value }))}
+                            className="font-mono text-xs flex-1"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Preview */}
+                      <div 
+                        className="p-3 rounded-lg border-2 mt-3"
+                        style={{
+                          backgroundColor: settings.toastInfoBg,
+                          color: settings.toastInfoText,
+                          borderColor: settings.toastInfoBorder
+                        }}
+                      >
+                        <p className="font-semibold text-sm">Info</p>
+                        <p className="text-xs">Preview</p>
                       </div>
                     </div>
-                    <div>
-                      <Label>Text</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastInfoText}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastInfoText: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastInfoText}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastInfoText: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label>Border</Label>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Input
-                          type="color"
-                          value={settings.toastInfoBorder}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastInfoBorder: e.target.value }))}
-                          className="w-16 h-10 cursor-pointer"
-                        />
-                        <Input
-                          type="text"
-                          value={settings.toastInfoBorder}
-                          onChange={(e) => setSettings(prev => ({ ...prev, toastInfoBorder: e.target.value }))}
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Preview */}
-                  <div 
-                    className="p-4 rounded-lg border-2"
-                    style={{
-                      backgroundColor: settings.toastInfoBg,
-                      color: settings.toastInfoText,
-                      borderColor: settings.toastInfoBorder
-                    }}
-                  >
-                    <p className="font-semibold">Info</p>
-                    <p className="text-sm">This is how an info notification will look</p>
                   </div>
                 </CardContent>
               </Card>

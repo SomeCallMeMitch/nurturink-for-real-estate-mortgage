@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -17,7 +16,7 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
-export default function LeftSidebar() {
+export default function LeftSidebar({ whitelabelSettings }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
 
@@ -59,6 +58,10 @@ export default function LeftSidebar() {
     setUser(null);
   };
 
+  // Get brand name and logo from whitelabel settings
+  const brandName = whitelabelSettings?.brandName || 'RoofScribe';
+  const logoUrl = whitelabelSettings?.logoUrl;
+
   // Menu items - super_admin has access to ALL items
   const menuItems = [
     {
@@ -96,7 +99,7 @@ export default function LeftSidebar() {
       path: 'Credits',
       roles: ['sales_rep', 'organization_owner', 'super_admin']
     },
-    { // New Team menu item
+    {
       id: 'team',
       label: 'Team',
       icon: UsersRound,
@@ -137,7 +140,25 @@ export default function LeftSidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-4 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-indigo-600">RoofScribe</h1>
+        {logoUrl ? (
+          <div className="flex items-center gap-3">
+            <img 
+              src={logoUrl} 
+              alt={brandName}
+              className="h-8 w-auto object-contain"
+              onError={(e) => {
+                console.error('Logo failed to load:', logoUrl);
+                e.target.style.display = 'none';
+                e.target.nextElementSibling.style.display = 'block';
+              }}
+            />
+            <h1 className="text-2xl font-bold text-indigo-600" style={{ display: logoUrl ? 'none' : 'block' }}>
+              {brandName}
+            </h1>
+          </div>
+        ) : (
+          <h1 className="text-2xl font-bold text-indigo-600">{brandName}</h1>
+        )}
       </div>
 
       <nav className="flex-1 p-4 space-y-2">
