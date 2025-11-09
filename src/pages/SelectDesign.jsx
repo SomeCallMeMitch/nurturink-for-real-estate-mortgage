@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, Search, Loader2, ArrowRight, Check, AlertTriangle } from "lucide-react";
+import { Star, Search, Loader2, ArrowRight, Check, AlertTriangle, ArrowLeft } from "lucide-react";
 import { debounce } from "lodash";
 
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
@@ -46,6 +46,16 @@ export default function SelectDesign() {
   // Local state for design selection
   const [localSelectedDesignId, setLocalSelectedDesignId] = useState(null);
   const [localDesignOverrides, setLocalDesignOverrides] = useState({});
+
+  // NEW: Calculate total available credits (company pool + personal)
+  const totalAvailableCredits = useMemo(() => {
+    if (!user) return 0;
+    
+    const personalCredits = user.creditBalance || 0;
+    const companyCredits = organization?.creditBalance || 0;
+    
+    return personalCredits + companyCredits;
+  }, [user, organization]);
 
   useEffect(() => {
     if (mailingBatchId) {
@@ -340,6 +350,11 @@ export default function SelectDesign() {
     [clients]
   );
 
+  // NEW: Handle back navigation
+  const handleBack = () => {
+    navigate(createPageUrl(`CreateContent?mailingBatchId=${mailingBatchId}`));
+  };
+
   // Handle continue
   const handleContinue = () => {
     if (!localSelectedDesignId) {
@@ -409,8 +424,24 @@ export default function SelectDesign() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      {/* Workflow Steps Header */}
-      <WorkflowSteps currentStep={3} creditsLeft={user?.creditBalance || 0} />
+      {/* NEW: Page Header with Back Button and Title */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Select Design</h1>
+        </div>
+      </div>
+
+      {/* Workflow Steps Header - UPDATED with correct credits */}
+      <WorkflowSteps currentStep={3} creditsLeft={totalAvailableCredits} />
       
       <div className="max-w-[1600px] mx-auto p-6">
         {/* Three-Column Layout */}

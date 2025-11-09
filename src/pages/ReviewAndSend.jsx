@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, AlertTriangle, AlertCircle, Send } from "lucide-react";
+import { Loader2, Save, AlertTriangle, AlertCircle, Send, ArrowLeft } from "lucide-react";
 import { debounce } from "lodash";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -141,6 +141,16 @@ export default function ReviewAndSend() {
   const [checkingCredits, setCheckingCredits] = useState(false);
   const [showNotEnoughCreditsModal, setShowNotEnoughCreditsModal] = useState(false);
 
+  // NEW: Calculate total available credits (company pool + personal)
+  const totalAvailableCredits = useMemo(() => {
+    if (!user) return 0;
+    
+    const personalCredits = user.creditBalance || 0;
+    const companyCredits = organization?.creditBalance || 0;
+    
+    return personalCredits + companyCredits;
+  }, [user, organization]);
+
   // Load all data on mount
   useEffect(() => {
     if (mailingBatchId) {
@@ -255,7 +265,7 @@ export default function ReviewAndSend() {
     if (clients.length > 0 && user) {
       checkCreditAvailability();
     }
-  }, [clients.length, user?.id, checkCreditAvailability]); // Added checkCreditAvailability to deps
+  }, [clients.length, user?.id, checkCreditAvailability]);
 
   // Debounced save function
   const debouncedSave = useMemo(
@@ -274,6 +284,11 @@ export default function ReviewAndSend() {
     }, 500),
     [mailingBatchId]
   );
+
+  // NEW: Handle back navigation
+  const handleBack = () => {
+    navigate(createPageUrl(`SelectDesign?mailingBatchId=${mailingBatchId}`));
+  };
 
   // Handle mode change
   const handleModeChange = (mode, recipientId) => {
@@ -604,10 +619,26 @@ export default function ReviewAndSend() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
+      {/* NEW: Page Header with Back Button and Title */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Review & Send</h1>
+        </div>
+      </div>
+
       {/* Workflow Steps Header - UPDATED to show current balance */}
       <WorkflowSteps 
         currentStep={4} 
-        creditsLeft={creditSummary?.total || user?.creditBalance || 0} 
+        creditsLeft={totalAvailableCredits} 
       />
       
       <div className="max-w-[1600px] mx-auto p-6">

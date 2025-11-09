@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, Save, Loader2, AlertTriangle } from "lucide-react";
+import { ArrowRight, Save, Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
 import { debounce } from "lodash";
 
 import EditModeSelector from "@/components/mailing/EditModeSelector";
@@ -152,6 +152,16 @@ export default function CreateContent() {
   const [localIncludeGreeting, setLocalIncludeGreeting] = useState(true);
   const [localIncludeSignature, setLocalIncludeSignature] = useState(true);
   const [localSelectedNoteStyleProfileId, setLocalSelectedNoteStyleProfileId] = useState(null);
+
+  // NEW: Calculate total available credits (company pool + personal)
+  const totalAvailableCredits = useMemo(() => {
+    if (!user) return 0;
+    
+    const personalCredits = user.creditBalance || 0;
+    const companyCredits = organization?.creditBalance || 0;
+    
+    return personalCredits + companyCredits;
+  }, [user, organization]);
 
   // Load all data on mount
   useEffect(() => {
@@ -430,6 +440,11 @@ export default function CreateContent() {
     }
   };
 
+  // NEW: Handle back navigation
+  const handleBack = () => {
+    navigate(createPageUrl(`FindClients?mailingBatchId=${mailingBatchId}`));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -498,8 +513,24 @@ export default function CreateContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      {/* Workflow Steps Header */}
-      <WorkflowSteps currentStep={2} creditsLeft={user?.creditBalance || 0} />
+      {/* NEW: Page Header with Back Button and Title */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <h1 className="text-2xl font-bold text-gray-900">Create Content</h1>
+        </div>
+      </div>
+
+      {/* Workflow Steps Header - UPDATED with correct credits */}
+      <WorkflowSteps currentStep={2} creditsLeft={totalAvailableCredits} />
       
       <div className="max-w-[1600px] mx-auto p-6">
         {/* Three-Column Layout - DYNAMIC WIDTHS */}
