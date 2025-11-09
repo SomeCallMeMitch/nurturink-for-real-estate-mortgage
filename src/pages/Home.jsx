@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -5,9 +6,11 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, Database, ArrowRight, CheckCircle2, AlertCircle, DollarSign } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Home() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   const [seeding, setSeeding] = useState(false);
   const [seedResult, setSeedResult] = useState(null);
@@ -33,11 +36,23 @@ export default function Home() {
         clientCount: response.data.clientCount
       });
       
+      toast({
+        title: 'Test Data Created! ✓',
+        description: response.data.message,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
     } catch (error) {
       console.error('Failed to seed data:', error);
       setSeedResult({
         success: false,
         message: error.response?.data?.error || 'Failed to seed test data'
+      });
+      
+      toast({
+        title: 'Failed to Create Data',
+        description: error.response?.data?.error || 'Failed to seed test data',
+        variant: 'destructive'
       });
     } finally {
       setSeeding(false);
@@ -57,11 +72,23 @@ export default function Home() {
         categoryCount: response.data.categoryCount
       });
       
+      toast({
+        title: 'Categories Created! ✓',
+        description: response.data.message,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
     } catch (error) {
       console.error('Failed to seed categories:', error);
       setCategorySeedResult({
         success: false,
         message: error.response?.data?.error || 'Failed to seed template categories'
+      });
+      
+      toast({
+        title: 'Failed to Create Categories',
+        description: error.response?.data?.error || 'Failed to seed template categories',
+        variant: 'destructive'
       });
     } finally {
       setSeedingCategories(false);
@@ -86,11 +113,23 @@ export default function Home() {
         templateCount: templateResult.data.templateCount
       });
       
+      toast({
+        title: 'Templates Created! ✓',
+        description: `${profileResult.data.message} ${templateResult.data.message}`,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
     } catch (error) {
       console.error('Failed to seed templates and profiles:', error);
       setTemplateSeedResult({
         success: false,
         message: error.response?.data?.error || 'Failed to seed templates and profiles'
+      });
+      
+      toast({
+        title: 'Failed to Create Templates',
+        description: error.response?.data?.error || 'Failed to seed templates and profiles',
+        variant: 'destructive'
       });
     } finally {
       setSeedingTemplates(false);
@@ -111,11 +150,23 @@ export default function Home() {
         scope: response.data.scope
       });
       
+      toast({
+        title: 'Pricing Tiers Created! ✓',
+        description: response.data.message,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
     } catch (error) {
       console.error('Failed to seed pricing tiers:', error);
       setPricingSeedResult({
         success: false,
         message: error.response?.data?.error || 'Failed to seed pricing tiers'
+      });
+      
+      toast({
+        title: 'Failed to Create Pricing',
+        description: error.response?.data?.error || 'Failed to seed pricing tiers',
+        variant: 'destructive'
       });
     } finally {
       setSeedingPricing(false);
@@ -139,11 +190,23 @@ export default function Home() {
         creditsAdded: response.data.creditsAdded
       });
       
+      toast({
+        title: 'Credits Added! ✓',
+        description: `Added ${response.data.creditsAdded} credits to your account`,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
     } catch (error) {
       console.error('Failed to seed credits:', error);
       setCreditsSeedResult({
         success: false,
         message: error.response?.data?.error || 'Failed to seed credits'
+      });
+      
+      toast({
+        title: 'Failed to Add Credits',
+        description: error.response?.data?.error || 'Failed to seed credits',
+        variant: 'destructive'
       });
     } finally {
       setSeedingCredits(false);

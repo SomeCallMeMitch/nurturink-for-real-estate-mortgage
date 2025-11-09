@@ -34,7 +34,11 @@ export default function Layout({ children, currentPageName }) {
     "PaymentSuccess",
     "PaymentCancel",
     "TeamManagement",
-    "SuperAdminWhitelabel"
+    "SuperAdminWhitelabel",
+    "SuperAdminDashboard",
+    "AdminCardLayout",
+    "AdminEnvelopeLayout",
+    "AdminCreateContentLayout"
   ];
   
   // Check if current page should use MainLayout
@@ -69,8 +73,8 @@ export default function Layout({ children, currentPageName }) {
         children
       )}
       
-      {/* Global Toaster with default 3 second duration */}
-      <Toaster duration={3000} />
+      {/* Global Toaster - will auto-dismiss after 3 seconds */}
+      <Toaster />
     </>
   );
 }
