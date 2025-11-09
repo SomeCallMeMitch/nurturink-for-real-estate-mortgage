@@ -1,4 +1,3 @@
-
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
 // Helper function to replace placeholders in text
@@ -118,7 +117,7 @@ Deno.serve(async (req) => {
     // Check credit availability using service role
     let companyPoolCredits = 0;
     let personalCredits = user.creditBalance || 0;
-    let organization = null; // Declare organization here, will be populated if user.orgId exists
+    let organization = null;
     
     if (user.orgId) {
       const orgs = await base44.asServiceRole.entities.Organization.filter({ 
@@ -144,30 +143,26 @@ Deno.serve(async (req) => {
           personalCredits: personalCredits,
           deficit: creditsNeeded - totalAvailable
         },
-        { status: 402 } // Payment Required
+        { status: 402 }
       );
     }
     
-    // Calculate credit deduction from each source for the *full* batch if successful
+    // Calculate credit deduction from each source
     let creditsFromCompany = 0;
     let creditsFromPersonal = 0;
     
     if (companyPoolCredits >= creditsNeeded) {
-      // All credits from company pool
       creditsFromCompany = creditsNeeded;
       creditsFromPersonal = 0;
     } else if (companyPoolCredits > 0) {
-      // Use all company credits + remaining from personal
       creditsFromCompany = companyPoolCredits;
       creditsFromPersonal = creditsNeeded - companyPoolCredits;
     } else {
-      // All credits from personal
       creditsFromCompany = 0;
       creditsFromPersonal = creditsNeeded;
     }
     
-    // Load necessary data using service role for admin access
-    // organization is already loaded above if needed, so remove it from this Promise.all
+    // Load necessary data
     const [clients, noteStyleProfile] = await Promise.all([
       base44.asServiceRole.entities.Client.filter({ 
         id: { $in: batch.selectedClientIds } 
@@ -190,6 +185,7 @@ Deno.serve(async (req) => {
     // Process each client and create Note + Mailing records
     const processedMailings = [];
     const errors = [];
+    const currentTimestamp = new Date().toISOString();
     
     for (const client of clients) {
       try {
@@ -243,6 +239,7 @@ Deno.serve(async (req) => {
           message: fullMessage,
           signature: signatureText,
           status: 'queued_for_sending',
+          sentDate: currentTimestamp,
           creditCost: 1,
           recipientName: client.fullName,
           senderUserId: user.id,
@@ -276,7 +273,6 @@ Deno.serve(async (req) => {
             zip: user.zipCode || ''
           };
         }
-        // If returnMode === 'none', returnAddress stays null
         
         // 6. Create Mailing entity
         const mailing = await base44.asServiceRole.entities.Mailing.create({
@@ -292,6 +288,14 @@ Deno.serve(async (req) => {
           },
           returnAddress: returnAddress,
           status: 'queued'
+        });
+        
+        // 7. Update Client tracking fields
+        const currentTotalNotes = (client.totalNotesSent || 0) + 1;
+        
+        await base44.asServiceRole.entities.Client.update(client.id, {
+          lastNoteSentDate: currentTimestamp,
+          totalNotesSent: currentTotalNotes
         });
         
         processedMailings.push({
@@ -311,15 +315,13 @@ Deno.serve(async (req) => {
       }
     }
     
-    // 7. Deduct credits and create transaction records
+    // 8. Deduct credits and create transaction records
     const successfulSends = processedMailings.length;
+    let actualCompanyDeduction = 0;
+    let actualPersonalDeduction = 0;
     
     if (successfulSends > 0) {
-      // Determine how many credits to deduct from each source based on successful sends
-      let actualCompanyDeduction = 0;
-      let actualPersonalDeduction = 0;
-      
-      // Logic to correctly distribute the deduction based on original plan and actual successful sends
+      // Calculate actual deductions based on successful sends
       if (creditsFromCompany >= successfulSends) {
         actualCompanyDeduction = successfulSends;
         actualPersonalDeduction = 0;
@@ -382,12 +384,10 @@ Deno.serve(async (req) => {
       }
     }
     
-    // 8. Update batch status
+    // 9. Update batch status
     await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, {
       status: 'completed'
     });
-    
-    // TODO: Future implementation - Send confirmation email
     
     // Return success response
     const response = {
