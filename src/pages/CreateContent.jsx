@@ -410,7 +410,7 @@ export default function CreateContent() {
   // Get selected note style profile
   const selectedNoteStyleProfile = useMemo(() => {
     if (!localSelectedNoteStyleProfileId) return null;
-    return noteStyleProfiles.find(p => p.id === localSelectedNoteProfileId);
+    return noteStyleProfiles.find(p => p.id === localSelectedNoteStyleProfileId);
   }, [localSelectedNoteStyleProfileId, noteStyleProfiles]);
 
   // Prepare recipients for EditModeSelector
