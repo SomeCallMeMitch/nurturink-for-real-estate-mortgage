@@ -95,6 +95,8 @@ export default function SuperAdminWhitelabel() {
       const response = await base44.functions.invoke('getWhitelabelSettings');
       const loadedSettings = response.data.settings;
       
+      console.log('📊 Loaded settings:', loadedSettings);
+      
       setSettings(loadedSettings);
       setOriginalSettings(loadedSettings);
       
@@ -120,7 +122,6 @@ export default function SuperAdminWhitelabel() {
       toast({
         title: 'Settings Saved! ✓',
         description: 'Whitelabel settings have been updated successfully',
-        duration: 3000,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
       
@@ -129,8 +130,7 @@ export default function SuperAdminWhitelabel() {
       toast({
         title: 'Save Failed',
         description: err.response?.data?.error || 'Failed to save settings',
-        variant: 'destructive',
-        duration: 4000
+        variant: 'destructive'
       });
     } finally {
       setSaving(false);
@@ -146,12 +146,20 @@ export default function SuperAdminWhitelabel() {
     if (!file) return;
     
     try {
+      console.log(`📤 Uploading ${field}...`, file.name);
+      
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      setSettings(prev => ({
-        ...prev,
-        [field]: file_url
-      }));
+      console.log(`✅ Upload successful! URL:`, file_url);
+      
+      setSettings(prev => {
+        const updated = {
+          ...prev,
+          [field]: file_url
+        };
+        console.log(`📝 Updated settings state:`, updated);
+        return updated;
+      });
       
       toast({
         title: 'Image Uploaded',
@@ -211,6 +219,10 @@ export default function SuperAdminWhitelabel() {
       </div>
     );
   }
+
+  console.log('🎨 Current settings state:', settings);
+  console.log('🖼️ Logo URL:', settings.logoUrl);
+  console.log('🖼️ Favicon URL:', settings.faviconUrl);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
@@ -305,14 +317,23 @@ export default function SuperAdminWhitelabel() {
                 {/* Logo Upload */}
                 <div>
                   <Label htmlFor="logo">Main Logo</Label>
-                  <div className="mt-2 flex items-center gap-4">
-                    {settings.logoUrl && (
+                  <div className="mt-2 flex items-start gap-4">
+                    {settings.logoUrl ? (
                       <div className="w-32 h-32 border-2 border-gray-200 rounded-lg flex items-center justify-center bg-white p-2">
                         <img 
                           src={settings.logoUrl} 
                           alt="Logo preview" 
                           className="max-w-full max-h-full object-contain"
+                          onError={(e) => {
+                            console.error('❌ Logo failed to load:', settings.logoUrl);
+                            e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999">No Image</text></svg>';
+                          }}
+                          onLoad={() => console.log('✅ Logo loaded successfully:', settings.logoUrl)}
                         />
+                      </div>
+                    ) : (
+                      <div className="w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                        <p className="text-xs text-gray-400 text-center px-2">No logo uploaded</p>
                       </div>
                     )}
                     <div className="flex-1">
@@ -334,6 +355,11 @@ export default function SuperAdminWhitelabel() {
                       <p className="text-xs text-gray-500 mt-2">
                         Recommended: PNG or SVG, max 500KB
                       </p>
+                      {settings.logoUrl && (
+                        <p className="text-xs text-blue-600 mt-1 font-mono break-all">
+                          Current: {settings.logoUrl.substring(0, 50)}...
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -341,14 +367,23 @@ export default function SuperAdminWhitelabel() {
                 {/* Favicon Upload */}
                 <div>
                   <Label htmlFor="favicon">Favicon</Label>
-                  <div className="mt-2 flex items-center gap-4">
-                    {settings.faviconUrl && (
+                  <div className="mt-2 flex items-start gap-4">
+                    {settings.faviconUrl ? (
                       <div className="w-16 h-16 border-2 border-gray-200 rounded-lg flex items-center justify-center bg-white p-1">
                         <img 
                           src={settings.faviconUrl} 
                           alt="Favicon preview" 
                           className="max-w-full max-h-full object-contain"
+                          onError={(e) => {
+                            console.error('❌ Favicon failed to load:', settings.faviconUrl);
+                            e.target.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="50" height="50"><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="%23999">X</text></svg>';
+                          }}
+                          onLoad={() => console.log('✅ Favicon loaded successfully:', settings.faviconUrl)}
                         />
+                      </div>
+                    ) : (
+                      <div className="w-16 h-16 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50">
+                        <p className="text-xs text-gray-400">No icon</p>
                       </div>
                     )}
                     <div className="flex-1">
@@ -370,6 +405,11 @@ export default function SuperAdminWhitelabel() {
                       <p className="text-xs text-gray-500 mt-2">
                         Recommended: 32x32 or 64x64 pixels, ICO or PNG
                       </p>
+                      {settings.faviconUrl && (
+                        <p className="text-xs text-blue-600 mt-1 font-mono break-all">
+                          Current: {settings.faviconUrl.substring(0, 50)}...
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
