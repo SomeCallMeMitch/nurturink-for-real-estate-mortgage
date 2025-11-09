@@ -7,13 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { 
   Search, 
   ArrowRight, 
@@ -23,7 +16,10 @@ import {
   Mail,
   Tag,
   RefreshCw,
-  X
+  X,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from "lucide-react";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import { useToast } from "@/components/ui/use-toast";
@@ -45,7 +41,8 @@ export default function FindClients() {
   
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("no_notes_first"); // Default: clients with no notes first
+  const [sortColumn, setSortColumn] = useState("no_notes_first"); // Column to sort by
+  const [sortDirection, setSortDirection] = useState("asc"); // 'asc' or 'desc'
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
 
@@ -91,7 +88,7 @@ export default function FindClients() {
 
   // Toggle favorite status
   const handleToggleFavorite = async (clientId, e) => {
-    e.stopPropagation(); // Prevent client selection
+    e.stopPropagation();
     
     try {
       const response = await base44.functions.invoke('toggleFavoriteClient', {
@@ -99,7 +96,6 @@ export default function FindClients() {
       });
       
       if (response.data.success) {
-        // Update local state
         setFavoriteClientIds(prev => {
           const newSet = new Set(prev);
           if (response.data.isFavorited) {
@@ -117,6 +113,18 @@ export default function FindClients() {
         description: err.response?.data?.error || 'Please try again',
         variant: 'destructive'
       });
+    }
+  };
+
+  // Handle column header click for sorting
+  const handleSort = (column) => {
+    if (sortColumn === column) {
+      // Toggle direction if same column
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New column, default to ascending
+      setSortColumn(column);
+      setSortDirection('asc');
     }
   };
 
@@ -154,84 +162,66 @@ export default function FindClients() {
     }
     
     // Apply sorting
-    switch (sortBy) {
+    const direction = sortDirection === 'asc' ? 1 : -1;
+    
+    switch (sortColumn) {
       case "no_notes_first":
         // Default: Clients with no notes first, then by last note date (most recent first)
         result.sort((a, b) => {
           const aTotalNotes = a.totalNotesSent || 0;
           const bTotalNotes = b.totalNotesSent || 0;
           
-          // If one has notes and other doesn't, no notes comes first
           if (aTotalNotes === 0 && bTotalNotes > 0) return -1;
           if (aTotalNotes > 0 && bTotalNotes === 0) return 1;
           
-          // If both have no notes or both have notes, sort by last note date (most recent first)
           if (aTotalNotes === 0 && bTotalNotes === 0) {
-            // Both have no notes - sort by firstName
             return (a.firstName || '').localeCompare(b.firstName || '');
           }
           
-          // Both have notes - sort by lastNoteSentDate (most recent first)
           const aDate = a.lastNoteSentDate ? new Date(a.lastNoteSentDate) : new Date(0);
           const bDate = b.lastNoteSentDate ? new Date(b.lastNoteSentDate) : new Date(0);
           return bDate - aDate;
         });
         break;
         
-      case "firstName_asc":
-        result.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
-        break;
-        
-      case "firstName_desc":
-        result.sort((a, b) => (b.firstName || '').localeCompare(a.firstName || ''));
-        break;
-        
-      case "lastName_asc":
-        result.sort((a, b) => (a.lastName || '').localeCompare(b.lastName || ''));
-        break;
-        
-      case "lastName_desc":
-        result.sort((a, b) => (b.lastName || '').localeCompare(a.lastName || ''));
-        break;
-        
-      case "city_asc":
-        result.sort((a, b) => (a.city || '').localeCompare(b.city || ''));
-        break;
-        
-      case "city_desc":
-        result.sort((a, b) => (b.city || '').localeCompare(a.city || ''));
-        break;
-        
-      case "state_asc":
-        result.sort((a, b) => (a.state || '').localeCompare(b.state || ''));
-        break;
-        
-      case "state_desc":
-        result.sort((a, b) => (b.state || '').localeCompare(a.state || ''));
-        break;
-        
-      case "last_note_recent":
+      case "name":
         result.sort((a, b) => {
-          const aDate = a.lastNoteSentDate ? new Date(a.lastNoteSentDate) : new Date(0);
-          const bDate = b.lastNoteSentDate ? new Date(b.lastNoteSentDate) : new Date(0);
-          return bDate - aDate;
+          const aName = (a.fullName || '').toLowerCase();
+          const bName = (b.fullName || '').toLowerCase();
+          return direction * aName.localeCompare(bName);
         });
         break;
         
-      case "last_note_oldest":
+      case "company":
         result.sort((a, b) => {
-          const aDate = a.lastNoteSentDate ? new Date(a.lastNoteSentDate) : new Date(0);
-          const bDate = b.lastNoteSentDate ? new Date(b.lastNoteSentDate) : new Date(0);
-          return aDate - bDate;
+          const aCompany = (a.company || '').toLowerCase();
+          const bCompany = (b.company || '').toLowerCase();
+          return direction * aCompany.localeCompare(bCompany);
         });
         break;
         
-      case "most_notes":
-        result.sort((a, b) => (b.totalNotesSent || 0) - (a.totalNotesSent || 0));
+      case "location":
+        result.sort((a, b) => {
+          const aLoc = `${a.city || ''}, ${a.state || ''}`.toLowerCase();
+          const bLoc = `${b.city || ''}, ${b.state || ''}`.toLowerCase();
+          return direction * aLoc.localeCompare(bLoc);
+        });
         break;
         
-      case "least_notes":
-        result.sort((a, b) => (a.totalNotesSent || 0) - (b.totalNotesSent || 0));
+      case "notes":
+        result.sort((a, b) => {
+          const aNotes = a.totalNotesSent || 0;
+          const bNotes = b.totalNotesSent || 0;
+          return direction * (aNotes - bNotes);
+        });
+        break;
+        
+      case "lastNote":
+        result.sort((a, b) => {
+          const aDate = a.lastNoteSentDate ? new Date(a.lastNoteSentDate) : new Date(0);
+          const bDate = b.lastNoteSentDate ? new Date(b.lastNoteSentDate) : new Date(0);
+          return direction * (aDate - bDate);
+        });
         break;
         
       default:
@@ -239,7 +229,7 @@ export default function FindClients() {
     }
     
     return result;
-  }, [clients, searchQuery, sortBy, showFavoritesOnly, selectedTags, favoriteClientIds]);
+  }, [clients, searchQuery, sortColumn, sortDirection, showFavoritesOnly, selectedTags, favoriteClientIds]);
 
   // Handle individual checkbox toggle
   const handleToggleClient = (clientId) => {
@@ -300,7 +290,8 @@ export default function FindClients() {
   // Clear all filters
   const handleClearFilters = () => {
     setSearchQuery("");
-    setSortBy("no_notes_first");
+    setSortColumn("no_notes_first");
+    setSortDirection("asc");
     setShowFavoritesOnly(false);
     setSelectedTags([]);
   };
@@ -309,7 +300,7 @@ export default function FindClients() {
   const hasActiveFilters = searchQuery.trim() || 
                           showFavoritesOnly || 
                           selectedTags.length > 0 || 
-                          sortBy !== "no_notes_first";
+                          sortColumn !== "no_notes_first";
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -325,6 +316,16 @@ export default function FindClients() {
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
     if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
     return date.toLocaleDateString();
+  };
+
+  // Get sort icon for column header
+  const getSortIcon = (column) => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="w-4 h-4 text-indigo-600" />
+      : <ArrowDown className="w-4 h-4 text-indigo-600" />;
   };
 
   if (loading) {
@@ -354,7 +355,7 @@ export default function FindClients() {
         {/* Search, Filter, and Sort Controls */}
         <Card className="mb-6">
           <CardContent className="pt-6 space-y-4">
-            {/* Row 1: Search, Sort, Favorites, Refresh */}
+            {/* Row 1: Search, Favorites, Refresh */}
             <div className="flex gap-3">
               {/* Search */}
               <div className="flex-1 relative">
@@ -366,28 +367,6 @@ export default function FindClients() {
                   className="pl-10"
                 />
               </div>
-              
-              {/* Sort Dropdown */}
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-64">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no_notes_first">No Notes First (Default)</SelectItem>
-                  <SelectItem value="firstName_asc">First Name (A-Z)</SelectItem>
-                  <SelectItem value="firstName_desc">First Name (Z-A)</SelectItem>
-                  <SelectItem value="lastName_asc">Last Name (A-Z)</SelectItem>
-                  <SelectItem value="lastName_desc">Last Name (Z-A)</SelectItem>
-                  <SelectItem value="city_asc">City (A-Z)</SelectItem>
-                  <SelectItem value="city_desc">City (Z-A)</SelectItem>
-                  <SelectItem value="state_asc">State (A-Z)</SelectItem>
-                  <SelectItem value="state_desc">State (Z-A)</SelectItem>
-                  <SelectItem value="last_note_recent">Last Note (Recent First)</SelectItem>
-                  <SelectItem value="last_note_oldest">Last Note (Oldest First)</SelectItem>
-                  <SelectItem value="most_notes">Most Notes Sent</SelectItem>
-                  <SelectItem value="least_notes">Least Notes Sent</SelectItem>
-                </SelectContent>
-              </Select>
               
               {/* Favorites Toggle */}
               <Button
@@ -445,7 +424,7 @@ export default function FindClients() {
                   {searchQuery && <Badge variant="secondary">Search: "{searchQuery}"</Badge>}
                   {showFavoritesOnly && <Badge variant="secondary">Favorites Only</Badge>}
                   {selectedTags.length > 0 && <Badge variant="secondary">{selectedTags.length} Tag{selectedTags.length > 1 ? 's' : ''}</Badge>}
-                  {sortBy !== "no_notes_first" && <Badge variant="secondary">Custom Sort</Badge>}
+                  {sortColumn !== "no_notes_first" && <Badge variant="secondary">Sorted by {sortColumn}</Badge>}
                 </div>
                 <Button
                   variant="ghost"
@@ -528,6 +507,54 @@ export default function FindClients() {
               </div>
             ) : (
               <div className="space-y-2">
+                {/* Sortable Column Headers */}
+                <div className="flex items-center gap-4 px-4 py-2 bg-gray-50 rounded-t-lg border-b-2 border-gray-200">
+                  {/* Checkbox column - no sort */}
+                  <div className="w-6"></div>
+                  
+                  {/* Name column - sortable */}
+                  <button
+                    onClick={() => handleSort('name')}
+                    className="flex-1 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 transition-colors group"
+                  >
+                    <span>Name / Company</span>
+                    {getSortIcon('name')}
+                  </button>
+                  
+                  {/* Location column - sortable */}
+                  <button
+                    onClick={() => handleSort('location')}
+                    className="w-40 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 transition-colors group"
+                  >
+                    <span>Location</span>
+                    {getSortIcon('location')}
+                  </button>
+                  
+                  {/* Notes column - sortable */}
+                  <button
+                    onClick={() => handleSort('notes')}
+                    className="w-32 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 transition-colors group"
+                  >
+                    <Mail className="w-4 h-4" />
+                    <span>Notes</span>
+                    {getSortIcon('notes')}
+                  </button>
+                  
+                  {/* Last Note column - sortable */}
+                  <button
+                    onClick={() => handleSort('lastNote')}
+                    className="w-40 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 transition-colors group"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>Last Note</span>
+                    {getSortIcon('lastNote')}
+                  </button>
+                  
+                  {/* Favorite column - no sort */}
+                  <div className="w-10"></div>
+                </div>
+
+                {/* Client Rows */}
                 {processedClients.map((client) => {
                   const isSelected = selectedClientIds.includes(client.id);
                   const isFavorited = favoriteClientIds.has(client.id);
@@ -551,7 +578,7 @@ export default function FindClients() {
                         onClick={(e) => e.stopPropagation()}
                       />
                       
-                      {/* Client Info */}
+                      {/* Name / Company Column */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-medium text-gray-900 truncate">
@@ -563,14 +590,9 @@ export default function FindClients() {
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
                           {client.company && (
                             <span className="truncate">{client.company}</span>
-                          )}
-                          {client.city && client.state && (
-                            <span className="flex items-center gap-1">
-                              {client.city}, {client.state}
-                            </span>
                           )}
                         </div>
                         {client.tags && client.tags.length > 0 && (
@@ -584,20 +606,24 @@ export default function FindClients() {
                         )}
                       </div>
                       
-                      {/* Stats */}
-                      <div className="flex items-center gap-6 text-sm">
-                        {/* Notes Count */}
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Mail className="w-4 h-4" />
-                          <span className="font-medium">{totalNotes}</span>
-                          <span className="text-gray-400">note{totalNotes !== 1 ? 's' : ''}</span>
-                        </div>
-                        
-                        {/* Last Note Date */}
-                        <div className="flex items-center gap-2 text-gray-600">
-                          <Calendar className="w-4 h-4" />
-                          <span className="font-medium">{lastNoteDate}</span>
-                        </div>
+                      {/* Location Column */}
+                      <div className="w-40 text-sm text-gray-600">
+                        {client.city && client.state ? (
+                          <span>{client.city}, {client.state}</span>
+                        ) : (
+                          <span className="text-gray-400">No location</span>
+                        )}
+                      </div>
+                      
+                      {/* Notes Count Column */}
+                      <div className="w-32 flex items-center gap-2 text-sm text-gray-600">
+                        <span className="font-medium">{totalNotes}</span>
+                        <span className="text-gray-400">note{totalNotes !== 1 ? 's' : ''}</span>
+                      </div>
+                      
+                      {/* Last Note Date Column */}
+                      <div className="w-40 text-sm text-gray-600">
+                        <span className="font-medium">{lastNoteDate}</span>
                       </div>
                       
                       {/* Favorite Button */}
@@ -605,7 +631,7 @@ export default function FindClients() {
                         variant="ghost"
                         size="icon"
                         onClick={(e) => handleToggleFavorite(client.id, e)}
-                        className={`${isFavorited ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'}`}
+                        className={`w-10 ${isFavorited ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'}`}
                       >
                         <Star className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
                       </Button>
