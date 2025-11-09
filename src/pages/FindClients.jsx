@@ -18,9 +18,9 @@ import {
   Tag,
   RefreshCw,
   X,
-  ChevronsUpDown, // Updated import
-  ChevronUp,      // Updated import
-  ChevronDown     // Updated import
+  ChevronsUpDown,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,6 +35,9 @@ export default function FindClients() {
   const [availableTags, setAvailableTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  // NEW: State for user and organization
+  const [user, setUser] = useState(null);
+  const [organization, setOrganization] = useState(null);
 
   // Selection state
   const [selectedClientIds, setSelectedClientIds] = useState([]);
@@ -56,12 +59,16 @@ export default function FindClients() {
       setLoading(true);
       setError(null);
 
-      const user = await base44.auth.me();
+      const currentUser = await base44.auth.me(); // Renamed to avoid conflict with state 'user' during initial fetch
+      setUser(currentUser); // Set the user state
+      if (currentUser.organization) { // Check if organization data is nested in user
+        setOrganization(currentUser.organization); // Set the organization state
+      }
 
       // Load clients and favorites in parallel
       const [clientList, favoritesList] = await Promise.all([
-        base44.entities.Client.filter({ orgId: user.orgId }),
-        base44.entities.FavoriteClient.filter({ userId: user.id })
+        base44.entities.Client.filter({ orgId: currentUser.orgId }), // Use currentUser.orgId
+        base44.entities.FavoriteClient.filter({ userId: currentUser.id }) // Use currentUser.id
       ]);
 
       setClients(clientList);
@@ -85,6 +92,21 @@ export default function FindClients() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // NEW: Calculate total available credits
+  const totalAvailableCredits = useMemo(() => {
+    if (!user) return 0;
+    
+    const personalCredits = user.creditBalance || 0;
+    const companyCredits = organization?.creditBalance || 0;
+    
+    return personalCredits + companyCredits;
+  }, [user, organization]);
+
+  // NEW: Handle back to home
+  const handleBack = () => {
+    navigate(createPageUrl('Home'));
   };
 
   // Toggle favorite status
@@ -342,8 +364,13 @@ export default function FindClients() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Workflow Steps Header */}
-      <WorkflowSteps currentStep={1} creditsLeft={0} />
+      {/* Workflow Steps Header with Back Button and Title */}
+      <WorkflowSteps 
+        currentStep={1} 
+        creditsLeft={totalAvailableCredits}
+        pageTitle="Find Clients"
+        onBackClick={handleBack}
+      />
 
       <div className="max-w-7xl mx-auto p-6">
         {/* Error Message */}

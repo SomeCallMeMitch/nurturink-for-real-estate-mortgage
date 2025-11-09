@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowRight, Save, Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
+import { ArrowRight, Save, Loader2, AlertTriangle } from "lucide-react";
 import { debounce } from "lodash";
 
 import EditModeSelector from "@/components/mailing/EditModeSelector";
@@ -153,7 +153,7 @@ export default function CreateContent() {
   const [localIncludeSignature, setLocalIncludeSignature] = useState(true);
   const [localSelectedNoteStyleProfileId, setLocalSelectedNoteStyleProfileId] = useState(null);
 
-  // NEW: Calculate total available credits (company pool + personal)
+  // Calculate total available credits (company pool + personal)
   const totalAvailableCredits = useMemo(() => {
     if (!user) return 0;
     
@@ -410,7 +410,7 @@ export default function CreateContent() {
   // Get selected note style profile
   const selectedNoteStyleProfile = useMemo(() => {
     if (!localSelectedNoteStyleProfileId) return null;
-    return noteStyleProfiles.find(p => p.id === localSelectedNoteStyleProfileId);
+    return noteStyleProfiles.find(p => p.id === localSelectedNoteProfileId);
   }, [localSelectedNoteStyleProfileId, noteStyleProfiles]);
 
   // Prepare recipients for EditModeSelector
@@ -513,24 +513,13 @@ export default function CreateContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      {/* NEW: Page Header with Back Button and Title */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900">Create Content</h1>
-        </div>
-      </div>
-
-      {/* Workflow Steps Header - UPDATED with correct credits */}
-      <WorkflowSteps currentStep={2} creditsLeft={totalAvailableCredits} />
+      {/* Workflow Steps Header with Back Button and Title */}
+      <WorkflowSteps 
+        currentStep={2} 
+        creditsLeft={totalAvailableCredits}
+        pageTitle="Create Content"
+        onBackClick={handleBack}
+      />
       
       <div className="max-w-[1600px] mx-auto p-6">
         {/* Three-Column Layout - DYNAMIC WIDTHS */}

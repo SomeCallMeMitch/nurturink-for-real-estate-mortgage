@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, Save, AlertTriangle, AlertCircle, Send, ArrowLeft } from "lucide-react";
+import { Loader2, Save, AlertTriangle, AlertCircle, Send } from "lucide-react";
 import { debounce } from "lodash";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -141,7 +141,7 @@ export default function ReviewAndSend() {
   const [checkingCredits, setCheckingCredits] = useState(false);
   const [showNotEnoughCreditsModal, setShowNotEnoughCreditsModal] = useState(false);
 
-  // NEW: Calculate total available credits (company pool + personal)
+  // Calculate total available credits
   const totalAvailableCredits = useMemo(() => {
     if (!user) return 0;
     
@@ -285,7 +285,7 @@ export default function ReviewAndSend() {
     [mailingBatchId]
   );
 
-  // NEW: Handle back navigation
+  // Handle back navigation
   const handleBack = () => {
     navigate(createPageUrl(`SelectDesign?mailingBatchId=${mailingBatchId}`));
   };
@@ -619,26 +619,12 @@ export default function ReviewAndSend() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      {/* NEW: Page Header with Back Button and Title */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900">Review & Send</h1>
-        </div>
-      </div>
-
-      {/* Workflow Steps Header - UPDATED to show current balance */}
+      {/* Workflow Steps Header with Back Button and Title */}
       <WorkflowSteps 
         currentStep={4} 
-        creditsLeft={totalAvailableCredits} 
+        creditsLeft={totalAvailableCredits}
+        pageTitle="Review & Send"
+        onBackClick={handleBack}
       />
       
       <div className="max-w-[1600px] mx-auto p-6">
