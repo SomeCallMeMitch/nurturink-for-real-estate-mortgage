@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -11,9 +12,9 @@ import { ArrowLeft, Save, Loader2 } from "lucide-react";
 export default function AdminClientEdit() {
   const navigate = useNavigate();
   
-  // Get client ID from URL
+  // Get client ID from URL query parameter
   const urlParams = new URLSearchParams(window.location.search);
-  const clientId = window.location.pathname.split('/').pop();
+  const clientId = urlParams.get('id');
   const isNew = clientId === 'new';
   
   const [loading, setLoading] = useState(!isNew);
@@ -43,7 +44,7 @@ export default function AdminClientEdit() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      if (!isNew) {
+      if (!isNew && clientId) { // Added clientId check for robustness
         setLoading(true);
         const clients = await base44.entities.Client.filter({ id: clientId });
         
@@ -299,7 +300,6 @@ export default function AdminClientEdit() {
                 </div>
               </div>
 
-              {/* Error Message */}
               {error && (
                 <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
                   {error}

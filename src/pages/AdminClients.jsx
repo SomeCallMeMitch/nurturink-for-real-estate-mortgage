@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -160,7 +161,7 @@ export default function AdminClients() {
               </p>
             </div>
             <Button
-              onClick={() => navigate(createPageUrl('AdminClients/new'))}
+              onClick={() => navigate(createPageUrl('AdminClientEdit?id=new'))}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -225,7 +226,7 @@ export default function AdminClients() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => navigate(createPageUrl(`AdminClients/${client.id}`))}
+                                onClick={() => navigate(createPageUrl(`AdminClientEdit?id=${client.id}`))}
                               >
                                 <Edit className="w-4 h-4" />
                               </Button>
