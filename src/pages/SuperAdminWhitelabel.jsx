@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -154,8 +155,7 @@ export default function SuperAdminWhitelabel() {
       
       toast({
         title: 'Image Uploaded',
-        description: 'Image uploaded successfully',
-        duration: 2000
+        description: 'Image uploaded successfully'
       });
       
     } catch (err) {
@@ -163,8 +163,7 @@ export default function SuperAdminWhitelabel() {
       toast({
         title: 'Upload Failed',
         description: 'Failed to upload image',
-        variant: 'destructive',
-        duration: 3000
+        variant: 'destructive'
       });
     }
   };
@@ -217,9 +216,31 @@ export default function SuperAdminWhitelabel() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
       <div className="max-w-6xl mx-auto p-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Whitelabel Settings</h1>
-          <p className="text-lg text-gray-600">Customize the branding and appearance of your application</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Whitelabel Settings</h1>
+            <p className="text-lg text-gray-600">Customize the branding and appearance of your application</p>
+          </div>
+          
+          {/* Always Visible Save Button */}
+          <Button 
+            onClick={handleSave}
+            disabled={saving || !hasChanges}
+            className="bg-indigo-600 hover:bg-indigo-700"
+            size="lg"
+          >
+            {saving ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Changes
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Save Bar */}
@@ -233,24 +254,7 @@ export default function SuperAdminWhitelabel() {
                 </div>
                 <div className="flex gap-3">
                   <Button variant="outline" onClick={handleReset}>
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Save Changes
-                      </>
-                    )}
+                    Reset Changes
                   </Button>
                 </div>
               </div>
@@ -896,38 +900,40 @@ export default function SuperAdminWhitelabel() {
           </TabsContent>
         </Tabs>
 
-        {/* Bottom Save Button */}
-        {hasChanges && (
-          <Card className="mt-6 border-2 border-indigo-200 bg-indigo-50">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <p className="text-indigo-900 font-semibold">Ready to apply your changes?</p>
-                <div className="flex gap-3">
+        {/* Bottom Save Button - Always Visible */}
+        <Card className={`mt-6 ${hasChanges ? 'border-2 border-indigo-300 bg-indigo-50' : 'border border-gray-200'}`}>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <p className={hasChanges ? 'text-indigo-900 font-semibold' : 'text-gray-600'}>
+                {hasChanges ? 'Ready to apply your changes?' : 'No unsaved changes'}
+              </p>
+              <div className="flex gap-3">
+                {hasChanges && (
                   <Button variant="outline" onClick={handleReset}>
-                    Cancel
+                    Reset Changes
                   </Button>
-                  <Button 
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4 mr-2" />
-                        Save All Changes
-                      </>
-                    )}
-                  </Button>
-                </div>
+                )}
+                <Button 
+                  onClick={handleSave}
+                  disabled={saving || !hasChanges}
+                  className="bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save All Changes
+                    </>
+                  )}
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -176,8 +177,7 @@ export default function TeamManagement() {
       toast({
         title: 'Email required',
         description: 'Please enter an email address',
-        variant: 'destructive',
-        duration: 3000
+        variant: 'destructive'
       });
       return;
     }
@@ -193,7 +193,6 @@ export default function TeamManagement() {
       toast({
         title: response.data.userAdded ? 'Member Added! 🎉' : 'Invitation Sent! 📧',
         description: response.data.message,
-        duration: 4000,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
 
@@ -211,8 +210,7 @@ export default function TeamManagement() {
       toast({
         title: 'Invitation Failed',
         description: error.response?.data?.error || 'Failed to send invitation',
-        variant: 'destructive',
-        duration: 4000
+        variant: 'destructive'
       });
     } finally {
       setInviting(false);
@@ -239,7 +237,6 @@ export default function TeamManagement() {
       toast({
         title: 'Role Updated! ✓',
         description: `${selectedMember.name}'s role has been changed to ${newRole === 'organization_owner' ? 'Admin' : 'Member'}`,
-        duration: 3000,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
 
@@ -252,8 +249,7 @@ export default function TeamManagement() {
       toast({
         title: 'Role Change Failed',
         description: error.response?.data?.error || 'Failed to update role',
-        variant: 'destructive',
-        duration: 4000
+        variant: 'destructive'
       });
     } finally {
       setChangingRole(false);
@@ -279,7 +275,6 @@ export default function TeamManagement() {
         toast({
           title: 'Invitation Cancelled',
           description: `Invitation to ${memberToRemove.email} has been cancelled`,
-          duration: 3000,
           className: 'bg-green-50 border-green-200 text-green-900'
         });
       } else {
@@ -290,7 +285,6 @@ export default function TeamManagement() {
         toast({
           title: 'Member Removed',
           description: `${memberToRemove.name} has been removed from your organization`,
-          duration: 3000,
           className: 'bg-green-50 border-green-200 text-green-900'
         });
       }
@@ -304,8 +298,7 @@ export default function TeamManagement() {
       toast({
         title: 'Removal Failed',
         description: error.response?.data?.error || 'Failed to remove member',
-        variant: 'destructive',
-        duration: 4000
+        variant: 'destructive'
       });
     } finally {
       setRemoving(false);

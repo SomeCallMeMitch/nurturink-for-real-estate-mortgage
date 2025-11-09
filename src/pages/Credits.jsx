@@ -251,8 +251,7 @@ export default function Credits() {
       toast({
         title: 'Coupon code required',
         description: 'Please enter a coupon code',
-        variant: 'destructive',
-        duration: 3000
+        variant: 'destructive'
       });
       return;
     }
@@ -263,8 +262,7 @@ export default function Credits() {
       toast({
         title: 'No pricing tiers available',
         description: 'Cannot validate coupon without pricing tiers',
-        variant: 'destructive',
-        duration: 3000
+        variant: 'destructive'
       });
       return;
     }
@@ -282,7 +280,6 @@ export default function Credits() {
         toast({
           title: `Coupon Applied! 🎉`,
           description: `${response.data.coupon.description}`,
-          duration: 5000,
           className: 'bg-green-50 border-green-200 text-green-900'
         });
       }
@@ -292,8 +289,7 @@ export default function Credits() {
       toast({
         title: 'Invalid Coupon',
         description: err.response?.data?.error || 'This coupon code is not valid',
-        variant: 'destructive',
-        duration: 4000
+        variant: 'destructive'
       });
     } finally {
       setValidatingCoupon(false);
@@ -305,8 +301,7 @@ export default function Credits() {
     setAppliedCoupon(null);
     toast({
       title: 'Coupon removed',
-      description: 'Coupon has been removed from your purchase',
-      duration: 2000
+      description: 'Coupon has been removed from your purchase'
     });
   };
 
@@ -392,7 +387,6 @@ export default function Credits() {
       toast({
         title: 'Export Successful',
         description: 'Transaction history exported to CSV',
-        duration: 3000,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
     } catch (error) {
@@ -400,8 +394,7 @@ export default function Credits() {
       toast({
         title: 'Export Failed',
         description: error.response?.data?.error || 'Failed to export transaction history',
-        variant: 'destructive',
-        duration: 3000
+        variant: 'destructive'
       });
     } finally {
       setExporting(false);
@@ -437,8 +430,7 @@ export default function Credits() {
       toast({
         title: 'No allocations specified',
         description: 'Please enter credit amounts for at least one team member',
-        variant: 'destructive',
-        duration: 3000
+        variant: 'destructive'
       });
       return;
     }
@@ -447,8 +439,7 @@ export default function Credits() {
       toast({
         title: 'Insufficient credits',
         description: `You are trying to allocate ${totalAllocation} credits but only have ${companyBalance} available in the company pool`,
-        variant: 'destructive',
-        duration: 4000
+        variant: 'destructive'
       });
       return;
     }
@@ -464,7 +455,6 @@ export default function Credits() {
         toast({
           title: 'Credits Allocated Successfully! 🎉',
           description: `Allocated ${response.data.totalAllocated} credits to ${response.data.allocations.length} team ${response.data.allocations.length === 1 ? 'member' : 'members'}`,
-          duration: 4000,
           className: 'bg-green-50 border-green-200 text-green-900'
         });
 
@@ -479,8 +469,7 @@ export default function Credits() {
       toast({
         title: 'Allocation Failed',
         description: error.response?.data?.error || 'Failed to allocate credits. Please try again.',
-        variant: 'destructive',
-        duration: 4000
+        variant: 'destructive'
       });
     } finally {
       setAllocating(false);

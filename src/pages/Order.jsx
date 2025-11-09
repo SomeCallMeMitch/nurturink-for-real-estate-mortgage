@@ -190,7 +190,6 @@ export default function OrderPage() {
         toast({
           title: 'Purchase Simulated! 🎉',
           description: `Successfully added ${response.data.creditsAdded} credits`,
-          duration: 2000,
           className: 'bg-green-50 border-green-200 text-green-900'
         });
         
@@ -212,8 +211,7 @@ export default function OrderPage() {
       toast({
         title: 'Simulation Failed',
         description: err?.response?.data?.error || 'Failed to simulate purchase',
-        variant: 'destructive',
-        duration: 4000
+        variant: 'destructive'
       });
       
       setIsSimulating(false);
