@@ -78,13 +78,26 @@ export default function MainLayout({ children, whitelabelSettings }) {
             color: ${whitelabelSettings.accentColor || '#7C3AED'} !important;
           }
           
-          /* Apply fonts */
+          /* Apply fonts - REMOVED !important to allow preview fonts to work */
           h1, h2, h3, h4, h5, h6 {
-            font-family: '${whitelabelSettings.fontHeadings || 'Inter'}', sans-serif !important;
+            font-family: '${whitelabelSettings.fontHeadings || 'Inter'}', sans-serif;
           }
           
-          body, p, span, div {
-            font-family: '${whitelabelSettings.fontBody || 'Inter'}', sans-serif !important;
+          body, p:not([class*="font-"]), span:not([class*="font-"]), div:not([class*="font-"]) {
+            font-family: '${whitelabelSettings.fontBody || 'Inter'}', sans-serif;
+          }
+          
+          /* Ensure handwriting fonts always take precedence */
+          .font-caveat, .font-caveat * {
+            font-family: 'Caveat', cursive !important;
+          }
+          
+          .font-kalam, .font-kalam * {
+            font-family: 'Kalam', cursive !important;
+          }
+          
+          .font-patrick, .font-patrick * {
+            font-family: 'Patrick Hand', cursive !important;
           }
         `}</style>
       )}
