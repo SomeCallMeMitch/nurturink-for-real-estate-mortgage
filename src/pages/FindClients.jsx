@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -7,19 +8,19 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Search, 
-  ArrowRight, 
-  Users, 
-  Star, 
+import {
+  Search,
+  ArrowRight,
+  Users,
+  Star,
   Calendar,
   Mail,
   Tag,
   RefreshCw,
   X,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown
+  ChevronsUpDown, // Updated import
+  ChevronUp,      // Updated import
+  ChevronDown     // Updated import
 } from "lucide-react";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import { useToast } from "@/components/ui/use-toast";
@@ -27,18 +28,18 @@ import { useToast } from "@/components/ui/use-toast";
 export default function FindClients() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  
+
   // Data state
   const [clients, setClients] = useState([]);
   const [favoriteClientIds, setFavoriteClientIds] = useState(new Set());
   const [availableTags, setAvailableTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Selection state
   const [selectedClientIds, setSelectedClientIds] = useState([]);
   const [initializing, setInitializing] = useState(false);
-  
+
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
   const [sortColumn, setSortColumn] = useState("no_notes_first"); // Column to sort by
@@ -54,21 +55,21 @@ export default function FindClients() {
     try {
       setLoading(true);
       setError(null);
-      
+
       const user = await base44.auth.me();
-      
+
       // Load clients and favorites in parallel
       const [clientList, favoritesList] = await Promise.all([
         base44.entities.Client.filter({ orgId: user.orgId }),
         base44.entities.FavoriteClient.filter({ userId: user.id })
       ]);
-      
+
       setClients(clientList);
-      
+
       // Create a Set of favorited client IDs for fast lookup
       const favIds = new Set(favoritesList.map(f => f.clientId));
       setFavoriteClientIds(favIds);
-      
+
       // Extract unique tags from all clients
       const tagsSet = new Set();
       clientList.forEach(client => {
@@ -77,7 +78,7 @@ export default function FindClients() {
         }
       });
       setAvailableTags(Array.from(tagsSet).sort());
-      
+
     } catch (err) {
       console.error('Failed to load data:', err);
       setError('Failed to load clients. Please try again.');
@@ -89,12 +90,12 @@ export default function FindClients() {
   // Toggle favorite status
   const handleToggleFavorite = async (clientId, e) => {
     e.stopPropagation();
-    
+
     try {
       const response = await base44.functions.invoke('toggleFavoriteClient', {
         clientId: clientId
       });
-      
+
       if (response.data.success) {
         setFavoriteClientIds(prev => {
           const newSet = new Set(prev);
@@ -131,7 +132,7 @@ export default function FindClients() {
   // Filter, sort, and process clients
   const processedClients = useMemo(() => {
     let result = [...clients];
-    
+
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -140,19 +141,19 @@ export default function FindClients() {
         const company = (client.company || '').toLowerCase();
         const city = (client.city || '').toLowerCase();
         const state = (client.state || '').toLowerCase();
-        
-        return fullName.includes(query) || 
-               company.includes(query) || 
-               city.includes(query) || 
+
+        return fullName.includes(query) ||
+               company.includes(query) ||
+               city.includes(query) ||
                state.includes(query);
       });
     }
-    
+
     // Apply favorites filter
     if (showFavoritesOnly) {
       result = result.filter(client => favoriteClientIds.has(client.id));
     }
-    
+
     // Apply tags filter
     if (selectedTags.length > 0) {
       result = result.filter(client => {
@@ -160,30 +161,30 @@ export default function FindClients() {
         return selectedTags.some(tag => client.tags.includes(tag));
       });
     }
-    
+
     // Apply sorting
     const direction = sortDirection === 'asc' ? 1 : -1;
-    
+
     switch (sortColumn) {
       case "no_notes_first":
         // Default: Clients with no notes first, then by last note date (most recent first)
         result.sort((a, b) => {
           const aTotalNotes = a.totalNotesSent || 0;
           const bTotalNotes = b.totalNotesSent || 0;
-          
+
           if (aTotalNotes === 0 && bTotalNotes > 0) return -1;
           if (aTotalNotes > 0 && bTotalNotes === 0) return 1;
-          
+
           if (aTotalNotes === 0 && bTotalNotes === 0) {
             return (a.firstName || '').localeCompare(b.firstName || '');
           }
-          
+
           const aDate = a.lastNoteSentDate ? new Date(a.lastNoteSentDate) : new Date(0);
           const bDate = b.lastNoteSentDate ? new Date(b.lastNoteSentDate) : new Date(0);
           return bDate - aDate;
         });
         break;
-        
+
       case "name":
         result.sort((a, b) => {
           const aName = (a.fullName || '').toLowerCase();
@@ -191,7 +192,7 @@ export default function FindClients() {
           return direction * aName.localeCompare(bName);
         });
         break;
-        
+
       case "company":
         result.sort((a, b) => {
           const aCompany = (a.company || '').toLowerCase();
@@ -199,7 +200,7 @@ export default function FindClients() {
           return direction * aCompany.localeCompare(bCompany);
         });
         break;
-        
+
       case "location":
         result.sort((a, b) => {
           const aLoc = `${a.city || ''}, ${a.state || ''}`.toLowerCase();
@@ -207,7 +208,7 @@ export default function FindClients() {
           return direction * aLoc.localeCompare(bLoc);
         });
         break;
-        
+
       case "notes":
         result.sort((a, b) => {
           const aNotes = a.totalNotesSent || 0;
@@ -215,7 +216,7 @@ export default function FindClients() {
           return direction * (aNotes - bNotes);
         });
         break;
-        
+
       case "lastNote":
         result.sort((a, b) => {
           const aDate = a.lastNoteSentDate ? new Date(a.lastNoteSentDate) : new Date(0);
@@ -223,11 +224,11 @@ export default function FindClients() {
           return direction * (aDate - bDate);
         });
         break;
-        
+
       default:
         break;
     }
-    
+
     return result;
   }, [clients, searchQuery, sortColumn, sortDirection, showFavoritesOnly, selectedTags, favoriteClientIds]);
 
@@ -252,7 +253,7 @@ export default function FindClients() {
   };
 
   // Check if all filtered clients are selected
-  const allSelected = processedClients.length > 0 && 
+  const allSelected = processedClients.length > 0 &&
     processedClients.every(client => selectedClientIds.includes(client.id));
 
   // Handle continue button
@@ -260,15 +261,15 @@ export default function FindClients() {
     try {
       setInitializing(true);
       setError(null);
-      
+
       const response = await base44.functions.invoke('initializeMailingBatch', {
         clientIds: selectedClientIds
       });
-      
+
       const { mailingBatchId } = response.data;
-      
+
       navigate(createPageUrl(`CreateContent?mailingBatchId=${mailingBatchId}`));
-      
+
     } catch (err) {
       console.error('Failed to initialize mailing batch:', err);
       setError(err.response?.data?.error || 'Failed to start workflow. Please try again.');
@@ -297,9 +298,9 @@ export default function FindClients() {
   };
 
   // Check if any filters are active
-  const hasActiveFilters = searchQuery.trim() || 
-                          showFavoritesOnly || 
-                          selectedTags.length > 0 || 
+  const hasActiveFilters = searchQuery.trim() ||
+                          showFavoritesOnly ||
+                          selectedTags.length > 0 ||
                           sortColumn !== "no_notes_first";
 
   // Format date for display
@@ -309,7 +310,7 @@ export default function FindClients() {
     const now = new Date();
     const diffMs = now - date;
     const diffDays = Math.floor(diffMs / 86400000);
-    
+
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
@@ -318,14 +319,14 @@ export default function FindClients() {
     return date.toLocaleDateString();
   };
 
-  // Get sort icon for column header
+  // Get sort icon for column header - IMPROVED VERSION
   const getSortIcon = (column) => {
     if (sortColumn !== column) {
-      return <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" />;
+      return <ChevronsUpDown className="w-5 h-5 opacity-30 group-hover:opacity-60 transition-opacity" />;
     }
-    return sortDirection === 'asc' 
-      ? <ArrowUp className="w-4 h-4 text-indigo-600" />
-      : <ArrowDown className="w-4 h-4 text-indigo-600" />;
+    return sortDirection === 'asc'
+      ? <ChevronUp className="w-5 h-5 text-indigo-600 font-bold" />
+      : <ChevronDown className="w-5 h-5 text-indigo-600 font-bold" />;
   };
 
   if (loading) {
@@ -343,7 +344,7 @@ export default function FindClients() {
     <div className="min-h-screen bg-gray-50">
       {/* Workflow Steps Header */}
       <WorkflowSteps currentStep={1} creditsLeft={0} />
-      
+
       <div className="max-w-7xl mx-auto p-6">
         {/* Error Message */}
         {error && (
@@ -367,7 +368,7 @@ export default function FindClients() {
                   className="pl-10"
                 />
               </div>
-              
+
               {/* Favorites Toggle */}
               <Button
                 variant={showFavoritesOnly ? "default" : "outline"}
@@ -377,7 +378,7 @@ export default function FindClients() {
                 <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
                 Favorites Only
               </Button>
-              
+
               {/* Refresh Button */}
               <Button
                 variant="outline"
@@ -403,8 +404,8 @@ export default function FindClients() {
                       key={tag}
                       variant={isSelected ? "default" : "outline"}
                       className={`cursor-pointer transition-colors ${
-                        isSelected 
-                          ? 'bg-indigo-600 hover:bg-indigo-700' 
+                        isSelected
+                          ? 'bg-indigo-600 hover:bg-indigo-700'
                           : 'hover:bg-gray-100'
                       }`}
                       onClick={() => handleToggleTag(tag)}
@@ -452,7 +453,7 @@ export default function FindClients() {
                   </Badge>
                 )}
               </CardTitle>
-              
+
               {/* Continue Button and Select All Checkbox */}
               <div className="flex items-center gap-4">
                 {/* Select All Checkbox */}
@@ -471,7 +472,7 @@ export default function FindClients() {
                     </label>
                   </div>
                 )}
-                
+
                 {/* Continue Button */}
                 <Button
                   onClick={handleContinue}
@@ -484,19 +485,19 @@ export default function FindClients() {
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             {processedClients.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500 mb-2">
-                  {clients.length === 0 
-                    ? 'No clients found' 
+                  {clients.length === 0
+                    ? 'No clients found'
                     : 'No clients match your filters'}
                 </p>
                 {hasActiveFilters && clients.length > 0 && (
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={handleClearFilters}
                     className="mt-2"
@@ -508,10 +509,10 @@ export default function FindClients() {
             ) : (
               <div className="space-y-2">
                 {/* Sortable Column Headers */}
-                <div className="flex items-center gap-4 px-4 py-2 bg-gray-50 rounded-t-lg border-b-2 border-gray-200">
+                <div className="flex items-center gap-4 px-4 py-3 bg-gray-50 rounded-t-lg border-b-2 border-gray-200">
                   {/* Checkbox column - no sort */}
                   <div className="w-6"></div>
-                  
+
                   {/* Name column - sortable */}
                   <button
                     onClick={() => handleSort('name')}
@@ -520,7 +521,7 @@ export default function FindClients() {
                     <span>Name / Company</span>
                     {getSortIcon('name')}
                   </button>
-                  
+
                   {/* Location column - sortable */}
                   <button
                     onClick={() => handleSort('location')}
@@ -529,7 +530,7 @@ export default function FindClients() {
                     <span>Location</span>
                     {getSortIcon('location')}
                   </button>
-                  
+
                   {/* Notes column - sortable */}
                   <button
                     onClick={() => handleSort('notes')}
@@ -539,7 +540,7 @@ export default function FindClients() {
                     <span>Notes</span>
                     {getSortIcon('notes')}
                   </button>
-                  
+
                   {/* Last Note column - sortable */}
                   <button
                     onClick={() => handleSort('lastNote')}
@@ -549,7 +550,7 @@ export default function FindClients() {
                     <span>Last Note</span>
                     {getSortIcon('lastNote')}
                   </button>
-                  
+
                   {/* Favorite column - no sort */}
                   <div className="w-10"></div>
                 </div>
@@ -560,7 +561,7 @@ export default function FindClients() {
                   const isFavorited = favoriteClientIds.has(client.id);
                   const totalNotes = client.totalNotesSent || 0;
                   const lastNoteDate = formatDate(client.lastNoteSentDate);
-                  
+
                   return (
                     <div
                       key={client.id}
@@ -577,7 +578,7 @@ export default function FindClients() {
                         onCheckedChange={() => handleToggleClient(client.id)}
                         onClick={(e) => e.stopPropagation()}
                       />
-                      
+
                       {/* Name / Company Column */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -605,7 +606,7 @@ export default function FindClients() {
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Location Column */}
                       <div className="w-40 text-sm text-gray-600">
                         {client.city && client.state ? (
@@ -614,18 +615,18 @@ export default function FindClients() {
                           <span className="text-gray-400">No location</span>
                         )}
                       </div>
-                      
+
                       {/* Notes Count Column */}
                       <div className="w-32 flex items-center gap-2 text-sm text-gray-600">
                         <span className="font-medium">{totalNotes}</span>
                         <span className="text-gray-400">note{totalNotes !== 1 ? 's' : ''}</span>
                       </div>
-                      
+
                       {/* Last Note Date Column */}
                       <div className="w-40 text-sm text-gray-600">
                         <span className="font-medium">{lastNoteDate}</span>
                       </div>
-                      
+
                       {/* Favorite Button */}
                       <Button
                         variant="ghost"

@@ -219,7 +219,7 @@ export default function Home() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Welcome to <span className="text-indigo-600">RoofScribe</span>
+            Welcome to <span className="brand-text">RoofScribe</span>
           </h1>
           <p className="text-xl text-gray-600">
             Send personalized handwritten notecards to your clients
@@ -229,12 +229,12 @@ export default function Home() {
         {/* Quick Actions */}
         <div className="grid gap-6 mb-8">
           {/* Send a Card */}
-          <Card className="border-2 border-indigo-200 hover:border-indigo-400 transition-all hover:shadow-lg">
+          <Card className="border-2 brand-border hover:shadow-lg transition-all">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-indigo-100 rounded-lg">
-                    <Mail className="w-6 h-6 text-indigo-600" />
+                  <div className="p-3 brand-bg-light rounded-lg">
+                    <Mail className="w-6 h-6 brand-text" />
                   </div>
                   <div>
                     <CardTitle className="text-2xl">Send a Card</CardTitle>
@@ -246,7 +246,7 @@ export default function Home() {
                 <Button 
                   onClick={() => navigate(createPageUrl('FindClients'))}
                   size="lg"
-                  className="bg-indigo-600 hover:bg-indigo-700"
+                  className="brand-button"
                 >
                   Get Started
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -602,7 +602,45 @@ export default function Home() {
             </ol>
           </CardContent>
         </Card>
+        
+        <style>{`
+          .brand-text {
+            color: var(--color-primary, #4F46E5);
+          }
+          
+          .brand-border {
+            border-color: var(--color-primary, #4F46E5);
+          }
+          
+          .brand-bg-light {
+            background-color: ${adjustBrightness(getComputedStyle(document.documentElement).getPropertyValue('--color-primary') || '#4F46E5', 90)};
+          }
+          
+          .brand-button {
+            background-color: var(--color-primary, #4F46E5);
+          }
+          
+          .brand-button:hover {
+            opacity: 0.9;
+          }
+        `}</style>
       </div>
     </div>
   );
+}
+
+function adjustBrightness(hex, percent) {
+  if (typeof document === 'undefined') { // Prevent execution on server-side rendering
+    return '#EEF2FF'; 
+  }
+  if (!hex || hex === '') return '#EEF2FF';
+  const num = parseInt(hex.replace('#', ''), 16);
+  const amt = Math.round(2.55 * percent);
+  const R = (num >> 16) + amt;
+  const G = (num >> 8 & 0x00FF) + amt;
+  const B = (num & 0x0000FF) + amt;
+  return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+    (B < 255 ? B < 1 ? 0 : B : 255))
+    .toString(16).slice(1);
 }
