@@ -509,6 +509,16 @@ export default function CreateContent() {
     return noteStyleProfiles.find(p => p.id === currentProfileId);
   }, [getCurrentNoteStyleProfileId, noteStyleProfiles]);
 
+  // PHASE 2: Helper function to check if a client has any custom overrides
+  const hasCustomOverrides = (clientId) => {
+    return !!(
+      localContentOverrides[clientId] ||
+      localGreetingOverrides.hasOwnProperty(clientId) ||
+      localSignatureOverrides.hasOwnProperty(clientId) ||
+      localNoteStyleProfileOverrides.hasOwnProperty(clientId)
+    );
+  };
+
   // Prepare recipients for EditModeSelector
   const recipients = useMemo(() => 
     clients.map(client => ({
@@ -641,6 +651,7 @@ export default function CreateContent() {
                 <div className="max-h-48 overflow-y-auto space-y-1">
                   {clients.map(client => {
                     const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
+                    const hasCustom = hasCustomOverrides(client.id);
                     
                     return (
                       <button
@@ -652,7 +663,14 @@ export default function CreateContent() {
                             : 'border-l-4 border-l-transparent hover:bg-gray-50 text-gray-900 font-medium'
                         }`}
                       >
-                        {client.fullName || 'Unnamed Client'}
+                        <div className="flex items-center justify-between">
+                          <span>{client.fullName || 'Unnamed Client'}</span>
+                          {hasCustom && !isEditing && (
+                            <span className="px-2 py-0.5 text-xs font-semibold text-orange-700 bg-orange-100 rounded-full">
+                              Custom
+                            </span>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
