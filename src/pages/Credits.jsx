@@ -481,6 +481,40 @@ export default function Credits() {
     }
   };
 
+  // NEW: Handle toggle company pool access
+  const handleTogglePoolAccess = async (userId, currentAccess) => {
+    try {
+      const newAccess = !currentAccess;
+      
+      const response = await base44.functions.invoke('toggleCompanyPoolAccess', {
+        userId: userId,
+        canAccessCompanyPool: newAccess
+      });
+
+      if (response.data.success) {
+        toast({
+          title: 'Pool Access Updated',
+          description: response.data.message,
+          className: 'bg-green-50 border-green-200 text-green-900'
+        });
+
+        // Update team members state
+        setTeamMembers(prev => prev.map(member => 
+          member.userId === userId 
+            ? { ...member, canAccessCompanyPool: newAccess }
+            : member
+        ));
+      }
+    } catch (error) {
+      console.error('Failed to toggle pool access:', error);
+      toast({
+        title: 'Update Failed',
+        description: error.response?.data?.error || 'Failed to update pool access',
+        variant: 'destructive'
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -750,6 +784,9 @@ export default function Credits() {
                           <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
                             Used This Month
                           </th>
+                          <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700">
+                            Pool Access
+                          </th>
                           <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">
                             Allocate Credits
                           </th>
@@ -774,12 +811,24 @@ export default function Credits() {
                                 {member.creditsUsed}
                               </span>
                             </td>
+                            <td className="px-4 py-4 text-center">
+                              <button
+                                onClick={() => handleTogglePoolAccess(member.userId, member.canAccessCompanyPool)}
+                                className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
+                                  member.canAccessCompanyPool
+                                    ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                {member.canAccessCompanyPool ? '✓ Enabled' : '✗ Disabled'}
+                              </button>
+                            </td>
                             <td className="px-4 py-4">
                               <div className="flex items-center justify-end gap-2">
                                 <Input
                                   type="number"
                                   min="0"
-                                  max={companyPoolBalance}
+                                  max={companyPoolBalance} {/* Corrected from 'companyBalance' */}
                                   value={allocations[member.userId] || ''}
                                   onChange={(e) => handleAllocationChange(member.userId, e.target.value)}
                                   placeholder="0"
@@ -831,11 +880,12 @@ export default function Credits() {
                     </Button>
                   </div>
 
-                  {/* Helper text */}
+                  {/* Updated Helper text with pool access info */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <p className="text-sm text-blue-800">
-                      <strong>💡 Tip:</strong> Enter the number of credits you want to give to each team member. 
-                      Credits will be deducted from the company pool and added to their personal balances.
+                      <strong>💡 Tip:</strong> Enter the number of credits to allocate to each team member. 
+                      Toggle "Pool Access" to control whether they can draw from the company pool when their 
+                      allocated and personal credits are exhausted.
                     </p>
                   </div>
                 </div>
