@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -165,9 +164,6 @@ export default function CreateContent() {
     const companyAllocated = user.companyAllocatedCredits || 0;
     const personalPurchased = user.personalPurchasedCredits || 0;
     
-    // Only include company pool if user has access
-    // user.canAccessCompanyPool can be undefined, true, or false.
-    // If undefined or true, access is granted. If explicitly false, access is denied.
     const canAccessPool = user.canAccessCompanyPool !== false;
     const companyCredits = canAccessPool ? (organization?.creditBalance || 0) : 0;
     
@@ -198,26 +194,19 @@ export default function CreateContent() {
       console.log('📡 Step 1: Loading user...');
       const currentUser = await base44.auth.me();
       console.log('✅ User loaded:', currentUser.email);
-      console.log('👤 User orgId:', currentUser.orgId);
       setUser(currentUser);
       
-      // Load organization data
       console.log('📡 Step 2: Loading organization...');
       if (currentUser.orgId) {
         const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
         if (orgList && orgList.length > 0) {
           console.log('✅ Organization loaded:', orgList[0].name);
           setOrganization(orgList[0]);
-        } else {
-          console.log('⚠️ Organization not found for orgId:', currentUser.orgId);
         }
-      } else {
-        console.log('⚠️ User has no orgId');
       }
       
       console.log('📡 Step 3: Loading mailing batch...');
       const batch = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
-      console.log('✅ Mailing batch query result:', batch);
       
       if (!batch || batch.length === 0) {
         throw new Error('Mailing batch not found');
@@ -227,14 +216,11 @@ export default function CreateContent() {
       console.log('✅ Mailing batch loaded:', batchData.id);
       setMailingBatch(batchData);
       
-      // Initialize local state from batch (including new override states)
       setLocalGlobalMessage(batchData.globalMessage || '');
       setLocalContentOverrides(batchData.contentOverrides || {});
       setLocalIncludeGreeting(batchData.includeGreeting);
       setLocalIncludeSignature(batchData.includeSignature);
       setLocalSelectedNoteStyleProfileId(batchData.selectedNoteStyleProfileId);
-      
-      // Initialize override states from batch
       setLocalGreetingOverrides(batchData.greetingOverrides || {});
       setLocalSignatureOverrides(batchData.signatureOverrides || {});
       setLocalNoteStyleProfileOverrides(batchData.noteStyleProfileOverrides || {});
@@ -247,8 +233,6 @@ export default function CreateContent() {
       setClients(clientList);
       
       console.log('📡 Step 5: Loading templates...');
-      
-      // Load all templates using the same queries as Templates page
       const [personal, organizationTemplates, platform] = await Promise.all([
         base44.entities.Template.filter({ 
           createdByUserId: currentUser.id, 
@@ -266,16 +250,8 @@ export default function CreateContent() {
         })
       ]);
       
-      // Combine all templates
       const allTemplates = [...personal, ...organizationTemplates, ...platform];
-      
-      console.log('✅ Templates loaded:', {
-        personal: personal.length,
-        organization: organizationTemplates.length,
-        platform: platform.length,
-        total: allTemplates.length
-      });
-      
+      console.log('✅ Templates loaded:', allTemplates.length);
       setTemplates(allTemplates);
       
       // PHASE 3: Auto-apply default template if globalMessage is empty
@@ -286,7 +262,6 @@ export default function CreateContent() {
           console.log('🎯 PHASE 3: Auto-applying default template:', defaultTemplate.name);
           setLocalGlobalMessage(defaultTemplate.content);
           
-          // Save to database immediately
           await base44.entities.MailingBatch.update(mailingBatchId, {
             globalMessage: defaultTemplate.content
           });
@@ -306,7 +281,6 @@ export default function CreateContent() {
       console.log('✅ Note style profiles loaded:', profileList.length);
       setNoteStyleProfiles(profileList);
       
-      // Auto-select default profile if batch doesn't have one selected
       if (!batchData.selectedNoteStyleProfileId && profileList.length > 0) {
         const defaultProfile = profileList.find(p => p.isDefault) || profileList[0];
         setLocalSelectedNoteStyleProfileId(defaultProfile.id);
@@ -316,21 +290,18 @@ export default function CreateContent() {
       console.log('📡 Step 7: Loading instance settings...');
       try {
         const settingsResponse = await base44.functions.invoke('getInstanceSettings');
-        console.log('✅ Instance settings loaded:', settingsResponse);
         setInstanceSettings(settingsResponse.data);
       } catch (settingsError) {
-        console.error('⚠️ Failed to load instance settings, using fallback:', settingsError);
+        console.error('⚠️ Failed to load instance settings, using fallback');
         setInstanceSettings(FALLBACK_SETTINGS);
       }
       
       console.log('📡 Step 8: Loading column width settings...'); 
       try {
         const layoutResponse = await base44.functions.invoke('getCreateContentLayoutSettings');
-        console.log('✅ Column width settings loaded:', layoutResponse);
         setColumnWidths(layoutResponse.data);
       } catch (layoutError) {
-        console.error('⚠️ Failed to load column width settings, using defaults:', layoutError);
-        // Keep default values already set in state
+        console.error('⚠️ Failed to load column width settings, using defaults');
       }
       
       console.log('✅ All data loaded successfully');
@@ -347,12 +318,10 @@ export default function CreateContent() {
     }
   };
 
-  // Autosave function
   const saveChanges = async (data) => {
     await base44.entities.MailingBatch.update(mailingBatchId, data);
   };
 
-  // Updated autosave data object to include new overrides
   const autosaveData = useMemo(() => ({
     globalMessage: localGlobalMessage,
     contentOverrides: localContentOverrides,
@@ -373,7 +342,6 @@ export default function CreateContent() {
     localNoteStyleProfileOverrides
   ]);
 
-  // Setup autosave
   const { isSaving, lastSaved, saveNow } = useAutosave(
     autosaveData,
     saveChanges,
@@ -381,19 +349,16 @@ export default function CreateContent() {
     !loading && mailingBatch !== null
   );
 
-  // Handle edit mode change
   const handleModeChange = (mode, recipientId) => {
     setEditMode(mode);
     setSelectedRecipientId(recipientId);
   };
 
-  // Handle clicking on a recipient name in the list
   const handleRecipientClick = (clientId) => {
     setEditMode('individual');
     setSelectedRecipientId(clientId);
   };
 
-  // Get current message based on mode
   const getCurrentMessage = () => {
     if (editMode === 'bulk') {
       return localGlobalMessage;
@@ -402,7 +367,6 @@ export default function CreateContent() {
     }
   };
 
-  // Update message based on mode
   const handleMessageChange = (newMessage) => {
     if (editMode === 'bulk') {
       setLocalGlobalMessage(newMessage);
@@ -414,12 +378,10 @@ export default function CreateContent() {
     }
   };
 
-  // Handle template selection
   const handleTemplateSelect = (template) => {
     handleMessageChange(template.content);
   };
 
-  // Handle placeholder insertion
   const handlePlaceholderSelect = (placeholder) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
@@ -435,50 +397,39 @@ export default function CreateContent() {
     
     handleMessageChange(newMessage);
     
-    // Set cursor position after placeholder
     setTimeout(() => {
       textarea.selectionStart = textarea.selectionEnd = start + placeholder.length;
       textarea.focus();
     }, 0);
   };
 
-  // Get current greeting value based on mode
   const getCurrentIncludeGreeting = () => {
     if (editMode === 'individual' && selectedRecipientId) {
-      // Check if there's an override for this client
       if (localGreetingOverrides.hasOwnProperty(selectedRecipientId)) {
         return localGreetingOverrides[selectedRecipientId];
       }
     }
-    // Fall back to global setting
     return localIncludeGreeting;
   };
 
-  // Get current signature value based on mode
   const getCurrentIncludeSignature = () => {
     if (editMode === 'individual' && selectedRecipientId) {
-      // Check if there's an override for this client
       if (localSignatureOverrides.hasOwnProperty(selectedRecipientId)) {
         return localSignatureOverrides[selectedRecipientId];
       }
     }
-    // Fall back to global setting
     return localIncludeSignature;
   };
 
-  // Get current note style profile value based on mode
   const getCurrentNoteStyleProfileId = () => {
     if (editMode === 'individual' && selectedRecipientId) {
-      // Check if there's an override for this client
       if (localNoteStyleProfileOverrides.hasOwnProperty(selectedRecipientId)) {
         return localNoteStyleProfileOverrides[selectedRecipientId];
       }
     }
-    // Fall back to global setting
     return localSelectedNoteStyleProfileId;
   };
 
-  // Handle greeting checkbox change
   const handleGreetingChange = (checked) => {
     if (editMode === 'bulk') {
       setLocalIncludeGreeting(checked);
@@ -490,7 +441,6 @@ export default function CreateContent() {
     }
   };
 
-  // Handle signature checkbox change
   const handleSignatureChange = (checked) => {
     if (editMode === 'bulk') {
       setLocalIncludeSignature(checked);
@@ -502,7 +452,6 @@ export default function CreateContent() {
     }
   };
 
-  // Handle note style profile change
   const handleNoteStyleProfileChange = (profileId) => {
     if (editMode === 'bulk') {
       setLocalSelectedNoteStyleProfileId(profileId);
@@ -514,23 +463,19 @@ export default function CreateContent() {
     }
   };
 
-  // Get current client for preview
   const getCurrentClient = () => {
     if (editMode === 'individual' && selectedRecipientId) {
       return clients.find(c => c.id === selectedRecipientId);
     }
-    // Return first client as sample for bulk mode
     return clients[0] || {};
   };
 
-  // Get selected note style profile (updated to use getCurrentNoteStyleProfileId)
   const selectedNoteStyleProfile = useMemo(() => {
     const currentProfileId = getCurrentNoteStyleProfileId();
     if (!currentProfileId) return null;
     return noteStyleProfiles.find(p => p.id === currentProfileId);
   }, [getCurrentNoteStyleProfileId, noteStyleProfiles]);
 
-  // PHASE 2: Helper function to check if a client has any custom overrides
   const hasCustomOverrides = (clientId) => {
     return !!(
       localContentOverrides[clientId] ||
@@ -540,34 +485,26 @@ export default function CreateContent() {
     );
   };
 
-  // Prepare recipients for EditModeSelector
-  const recipients = useMemo(() 
-    clients.map(client => ({
+  const recipients = useMemo(() => {
+    return clients.map(client => ({
       id: client.id,
       name: client.fullName || 'Unnamed Client'
-    })),
-    [clients]
-  );
+    }));
+  }, [clients]);
 
-  // UPDATED: Handle continue - save before navigating
   const handleContinue = async () => {
     try {
-      // Save any pending changes before navigating
       console.log('💾 Saving changes before navigation...');
       await saveNow();
       console.log('✅ Changes saved successfully');
-      
-      // Navigate to next step
       navigate(createPageUrl(`SelectDesign?mailingBatchId=${mailingBatchId}`));
     } catch (err) {
       console.error('❌ Failed to save before navigation:', err);
-      // Display a user-friendly error message
       setError('Failed to save your changes. Please try again.');
       setErrorDetails(err.message || 'Unknown error during save before navigation');
     }
   };
 
-  // NEW: Handle back navigation
   const handleBack = () => {
     navigate(createPageUrl(`FindClients?mailingBatchId=${mailingBatchId}`));
   };
@@ -640,7 +577,6 @@ export default function CreateContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-32">
-      {/* Workflow Steps Header with Back Button and Title */}
       <WorkflowSteps 
         currentStep={2} 
         creditsLeft={totalAvailableCredits}
@@ -649,11 +585,8 @@ export default function CreateContent() {
       />
       
       <div className="max-w-[1600px] mx-auto p-6">
-        {/* Three-Column Layout - DYNAMIC WIDTHS */}
         <div className="grid grid-cols-12 gap-6">
-          {/* Left Column: Recipients + Template Library */}
           <div style={{ gridColumn: `span ${columnWidths.leftColumnSpan}` }} className="space-y-6">
-            {/* Recipients Section - INCREASED FONT SIZE BY 25% */}
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-3">
@@ -699,7 +632,6 @@ export default function CreateContent() {
               </CardContent>
             </Card>
 
-            {/* Template Library */}
             <TemplateLibrary
               templates={templates}
               onTemplateSelect={handleTemplateSelect}
@@ -707,11 +639,9 @@ export default function CreateContent() {
             />
           </div>
 
-          {/* Center Column: Message Editor */}
           <div style={{ gridColumn: `span ${columnWidths.centerColumnSpan}` }}>
             <Card>
               <CardContent className="pt-6 space-y-6">
-                {/* Save Status */}
                 <div className="flex items-center justify-end text-xs text-gray-500">
                   {isSaving ? (
                     <span className="flex items-center gap-2">
@@ -726,7 +656,6 @@ export default function CreateContent() {
                   ) : null}
                 </div>
 
-                {/* Edit Mode Selector */}
                 <EditModeSelector
                   mode={editMode}
                   selectedRecipientId={selectedRecipientId}
@@ -734,7 +663,6 @@ export default function CreateContent() {
                   onModeChange={handleModeChange}
                 />
 
-                {/* Writing Style */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Writing Style
@@ -756,7 +684,6 @@ export default function CreateContent() {
                   </Select>
                 </div>
 
-                {/* Message Editor */}
                 <div>
                   <Textarea
                     ref={textareaRef}
@@ -767,10 +694,8 @@ export default function CreateContent() {
                   />
                 </div>
 
-                {/* Placeholder Buttons - REPLACED WITH MODAL */}
                 <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
 
-                {/* Include Options */}
                 <div className="flex items-center gap-6 pt-4 border-t">
                   <div className="flex items-center space-x-2">
                     <Checkbox
@@ -798,17 +723,14 @@ export default function CreateContent() {
             </Card>
           </div>
 
-          {/* Right Column: Preview */}
           <div style={{ gridColumn: `span ${columnWidths.rightColumnSpan}` }}>
             <Card className="sticky top-6">
               <CardContent className="pt-6">
                 <h3 className="font-semibold text-gray-900 mb-4">Preview for {getCurrentClient().fullName || 'Client'}</h3>
                 
-                {/* Preview container with proper width and padding */}
                 <div className="flex justify-center px-4">
                   {instanceSettings && (
                     <div className="w-full max-w-[440px]">
-                      {/* Updated to use new getters */}
                       <CardPreview
                         message={getCurrentMessage()}
                         client={getCurrentClient()}
@@ -837,7 +759,6 @@ export default function CreateContent() {
         </div>
       </div>
 
-      {/* Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="text-sm text-gray-600">
