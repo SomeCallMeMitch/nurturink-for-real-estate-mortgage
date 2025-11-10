@@ -176,9 +176,11 @@ export default function Credits() {
   // Determine if this is individual or company view (check both appRole and isOrgOwner flag)
   const isCompanyView = (user?.appRole === 'organization_owner' || user?.isOrgOwner === true) && organization;
 
-  // Get current balance for display
-  const personalBalance = user?.creditBalance || 0;
-  const companyBalance = organization?.creditBalance || 0;
+  // Get current balance for display - UPDATED FOR NEW SYSTEM
+  const companyAllocatedBalance = user?.companyAllocatedCredits || 0;
+  const personalPurchasedBalance = user?.personalPurchasedCredits || 0;
+  const personalTotalBalance = companyAllocatedBalance + personalPurchasedBalance;
+  const companyPoolBalance = organization?.creditBalance || 0;
 
   // Calculate transaction statistics
   const transactionStats = useMemo(() => {
@@ -435,10 +437,10 @@ export default function Credits() {
       return;
     }
 
-    if (totalAllocation > companyBalance) {
+    if (totalAllocation > companyPoolBalance) {
       toast({
         title: 'Insufficient credits',
-        description: `You are trying to allocate ${totalAllocation} credits but only have ${companyBalance} available in the company pool`,
+        description: `You are trying to allocate ${totalAllocation} credits but only have ${companyPoolBalance} available in the company pool`,
         variant: 'destructive'
       });
       return;
@@ -517,7 +519,7 @@ export default function Credits() {
 
         {/* Balance Display - Different for Individual vs Company */}
         {isCompanyView ? (
-          // Company Admin View
+          // Company Admin View - UPDATED WITH BREAKDOWN
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             {/* Company Pool */}
             <Card className="md:col-span-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white border-0 shadow-xl">
@@ -529,7 +531,7 @@ export default function Credits() {
                       <h2 className="text-xl font-semibold text-orange-100">Company Credit Pool</h2>
                     </div>
                     <div className="flex items-baseline gap-3">
-                      <span className="text-5xl font-bold">{companyBalance}</span>
+                      <span className="text-5xl font-bold">{companyPoolBalance}</span>
                       <span className="text-2xl text-orange-100">Credits Available</span>
                     </div>
                     {companyPoolStats && (
@@ -556,26 +558,39 @@ export default function Credits() {
               </CardContent>
             </Card>
 
-            {/* Personal Balance */}
+            {/* Personal Balance - WITH BREAKDOWN */}
             <Card>
               <CardContent className="pt-6">
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       <UserIcon className="w-4 h-4 text-gray-600" />
                       <p className="text-sm text-gray-600">Your Personal Balance</p>
                     </div>
-                    <p className="text-3xl font-bold text-indigo-600">{personalBalance}</p>
+                    <p className="text-3xl font-bold text-indigo-600">{personalTotalBalance}</p>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  For personal use only
+                
+                {/* Credit Breakdown */}
+                <div className="space-y-2 pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Company Allocated:</span>
+                    <span className="font-semibold text-green-600">{companyAllocatedBalance}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">You Purchased:</span>
+                    <span className="font-semibold text-blue-600">{personalPurchasedBalance}</span>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-3">
+                  💡 Company-allocated used first, then personal
                 </p>
               </CardContent>
             </Card>
           </div>
         ) : (
-          // Individual User View
+          // Individual User View - WITH BREAKDOWN
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <Card className="md:col-span-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0 shadow-xl">
               <CardContent className="py-8">
@@ -583,15 +598,28 @@ export default function Credits() {
                   <div className="flex-1">
                     <h2 className="text-xl font-semibold mb-2 text-blue-100">Your Personal Balance</h2>
                     <div className="flex items-baseline gap-3">
-                      <span className="text-5xl font-bold">{personalBalance}</span>
-                      <span className="text-2xl text-blue-100">Notes remaining</span>
+                      <span className="text-5xl font-bold">{personalTotalBalance}</span>
+                      <span className="text-2xl text-blue-100">Credits</span>
                     </div>
-                    {organization && companyBalance > 0 && (
+                    
+                    {/* Credit Breakdown */}
+                    <div className="mt-4 pt-4 border-t border-blue-400 space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-blue-100">Company Allocated:</span>
+                        <span className="font-semibold">{companyAllocatedBalance}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-blue-100">You Purchased:</span>
+                        <span className="font-semibold">{personalPurchasedBalance}</span>
+                      </div>
+                    </div>
+                    
+                    {organization && companyPoolBalance > 0 && (
                       <div className="mt-4 pt-4 border-t border-blue-400">
                         <p className="text-sm text-blue-100 mb-1">Company Pool Available</p>
-                        <p className="text-3xl font-bold">{companyBalance} credits</p>
+                        <p className="text-3xl font-bold">{companyPoolBalance} credits</p>
                         <p className="text-xs text-blue-100 mt-2">
-                          💡 You'll use company credits first, then your personal credits
+                          💡 Credits are used in this order: Company allocated → Your purchased → Company pool
                         </p>
                       </div>
                     )}
@@ -652,7 +680,7 @@ export default function Credits() {
                   <div>
                     <CardTitle className="text-2xl">Allocate Credits to Team</CardTitle>
                     <p className="text-sm text-gray-600 mt-1">
-                      Distribute credits from the company pool ({companyBalance} available) to team members
+                      Distribute credits from the company pool ({companyPoolBalance} available) to team members
                     </p>
                   </div>
                 </div>
@@ -660,7 +688,7 @@ export default function Credits() {
                   <div className="text-right">
                     <p className="text-sm text-gray-600">Total to Allocate</p>
                     <p className={`text-3xl font-bold ${
-                      totalAllocation > companyBalance ? 'text-red-600' : 'text-orange-600'
+                      totalAllocation > companyPoolBalance ? 'text-red-600' : 'text-orange-600'
                     }`}>
                       {totalAllocation}
                     </p>
@@ -738,7 +766,7 @@ export default function Credits() {
                                 <Input
                                   type="number"
                                   min="0"
-                                  max={companyBalance}
+                                  max={companyPoolBalance}
                                   value={allocations[member.userId] || ''}
                                   onChange={(e) => handleAllocationChange(member.userId, e.target.value)}
                                   placeholder="0"
@@ -757,14 +785,14 @@ export default function Credits() {
                   <div className="flex items-center justify-between pt-4 border-t-2 border-gray-200">
                     <div>
                       <p className="text-sm text-gray-600">
-                        Company Pool: <span className="font-semibold text-gray-900">{companyBalance} credits</span>
+                        Company Pool: <span className="font-semibold text-gray-900">{companyPoolBalance} credits</span>
                       </p>
                       {totalAllocation > 0 && (
                         <p className="text-sm text-gray-600 mt-1">
                           After allocation: <span className={`font-semibold ${
-                            totalAllocation > companyBalance ? 'text-red-600' : 'text-gray-900'
+                            totalAllocation > companyPoolBalance ? 'text-red-600' : 'text-gray-900'
                           }`}>
-                            {companyBalance - totalAllocation} credits remaining
+                            {companyPoolBalance - totalAllocation} credits remaining
                           </span>
                         </p>
                       )}
@@ -772,7 +800,7 @@ export default function Credits() {
 
                     <Button
                       onClick={handleAllocateCredits}
-                      disabled={allocating || totalAllocation === 0 || totalAllocation > companyBalance}
+                      disabled={allocating || totalAllocation === 0 || totalAllocation > companyPoolBalance}
                       className="bg-orange-600 hover:bg-orange-700 gap-2"
                       size="lg"
                     >
@@ -1178,7 +1206,7 @@ export default function Credits() {
                   <p className="text-sm text-blue-700">
                     {isCompanyView 
                       ? 'These credits are shared across your entire team. Purchase credits to allocate to team members or keep in the company pool.'
-                      : 'When sending notes, company pool credits will be used first. Once depleted, your personal credits will be used.'
+                      : 'Credits are used in this order: company allocated → your purchased credits → company pool.'
                     }
                   </p>
                 </div>

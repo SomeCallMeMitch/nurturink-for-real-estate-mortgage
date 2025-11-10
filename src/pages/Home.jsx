@@ -301,7 +301,7 @@ export default function Home() {
                     </p>
                     {creditsSeedResult.success && (
                       <p className="text-sm text-green-700 mt-1">
-                        Balance: {creditsSeedResult.previousBalance} → {creditsSeedResult.newBalance} credits
+                        20 company-allocated credits added to your account!
                       </p>
                     )}
                   </div>
@@ -613,7 +613,7 @@ export default function Home() {
           }
           
           .brand-bg-light {
-            background-color: ${adjustBrightness(getComputedStyle(document.documentElement).getPropertyValue('--color-primary') || '#4F46E5', 90)};
+            background-color: ${typeof document !== 'undefined' ? adjustBrightness(getComputedStyle(document.documentElement).getPropertyValue('--color-primary') || '#4F46E5', 90) : '#EEF2FF'};
           }
           
           .brand-button {
