@@ -828,7 +828,7 @@ export default function Credits() {
                                 <Input
                                   type="number"
                                   min="0"
-                                  max={companyPoolBalance} {/* Corrected from 'companyBalance' */}
+                                  max={companyPoolBalance}
                                   value={allocations[member.userId] || ''}
                                   onChange={(e) => handleAllocationChange(member.userId, e.target.value)}
                                   placeholder="0"
