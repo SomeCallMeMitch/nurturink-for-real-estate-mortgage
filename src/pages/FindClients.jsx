@@ -94,14 +94,15 @@ export default function FindClients() {
     }
   };
 
-  // NEW: Calculate total available credits
+  // Calculate total available credits (company pool + personal)
   const totalAvailableCredits = useMemo(() => {
     if (!user) return 0;
     
-    const personalCredits = user.creditBalance || 0;
+    const companyAllocated = user.companyAllocatedCredits || 0;
+    const personalPurchased = user.personalPurchasedCredits || 0;
     const companyCredits = organization?.creditBalance || 0;
     
-    return personalCredits + companyCredits;
+    return companyAllocated + personalPurchased + companyCredits;
   }, [user, organization]);
 
   // NEW: Handle back to home

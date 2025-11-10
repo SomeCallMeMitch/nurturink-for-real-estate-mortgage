@@ -145,10 +145,11 @@ export default function ReviewAndSend() {
   const totalAvailableCredits = useMemo(() => {
     if (!user) return 0;
     
-    const personalCredits = user.creditBalance || 0;
+    const companyAllocated = user.companyAllocatedCredits || 0;
+    const personalPurchased = user.personalPurchasedCredits || 0;
     const companyCredits = organization?.creditBalance || 0;
     
-    return personalCredits + companyCredits;
+    return companyAllocated + personalPurchased + companyCredits;
   }, [user, organization]);
 
   // Load all data on mount
@@ -862,9 +863,6 @@ export default function ReviewAndSend() {
                     <div className={`w-full p-4 rounded-lg border-2 border-gray-200 bg-gray-50 ${
                       getCurrentReturnAddressMode() === 'rep' ? 'border-orange-500 bg-orange-50' : ''
                     }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold text-gray-500">Rep</h3>
-                      </div>
                       <div className="flex items-start gap-2 text-sm text-red-600">
                         <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <div>

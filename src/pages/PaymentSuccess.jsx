@@ -120,12 +120,13 @@ export default function PaymentSuccessPage() {
     return isOrgOwner && organization && transaction?.type === 'purchase_org';
   }, [user, organization, transaction]);
 
-  // Get current credit balance
+  // Get current credit balance - UPDATED FOR NEW SYSTEM
   const getCurrentBalance = () => {
     if (isCompanyPurchase) {
       return organization?.creditBalance || 0;
     }
-    return user?.creditBalance || 0;
+    // For individual users, show personal purchased credits
+    return user?.personalPurchasedCredits || 0;
   };
 
   // Format price
