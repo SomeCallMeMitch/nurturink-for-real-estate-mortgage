@@ -298,7 +298,7 @@ Deno.serve(async (req) => {
       
       // Process credit addition based on purchase type
       if (isOrgPurchase && organization) {
-        // Organization purchase
+        // Organization purchase - goes to organization.creditBalance
         console.log('💼 Processing organization purchase...');
         
         const currentBalance = organization.creditBalance || 0;
@@ -358,20 +358,20 @@ Deno.serve(async (req) => {
         console.log(`✅ Simulated organization purchase complete: ${credits} credits added`);
         
       } else {
-        // Individual user purchase
+        // Individual user purchase - goes to user.personalPurchasedCredits
         console.log('👤 Processing user purchase...');
         
-        const currentBalance = user.creditBalance || 0;
-        const newBalance = currentBalance + credits;
+        const currentPersonalPurchased = user.personalPurchasedCredits || 0;
+        const newPersonalPurchased = currentPersonalPurchased + credits;
         
-        console.log(`User balance: ${currentBalance} → ${newBalance}`);
+        console.log(`User personalPurchasedCredits: ${currentPersonalPurchased} → ${newPersonalPurchased}`);
         
-        // Update user credit balance
+        // Update user's personal purchased credit balance
         await base44.asServiceRole.entities.User.update(user.id, {
-          creditBalance: newBalance
+          personalPurchasedCredits: newPersonalPurchased
         });
         
-        console.log('✅ User balance updated');
+        console.log('✅ User personalPurchasedCredits updated');
         
         // Build transaction description
         let description = `Purchased ${tier.name} - ${credits} notes`;
@@ -386,7 +386,7 @@ Deno.serve(async (req) => {
           userId: user.id,
           type: 'purchase_user',
           amount: credits,
-          balanceAfter: newBalance,
+          balanceAfter: newPersonalPurchased,
           balanceType: 'user',
           description: description,
           metadata: {
@@ -397,7 +397,8 @@ Deno.serve(async (req) => {
             originalPrice: tier.priceInCents,
             discountApplied: discountApplied,
             finalPrice: finalPriceInCents,
-            pricingTierName: tier.name
+            pricingTierName: tier.name,
+            creditType: 'personalPurchasedCredits'
           },
           relatedPricingTierId: pricingTierId,
           stripePaymentId: `sim_pi_${Date.now()}`,
@@ -415,7 +416,7 @@ Deno.serve(async (req) => {
           console.log(`✅ Coupon ${validatedCoupon.code} usage incremented to ${newUsedCount}`);
         }
         
-        console.log(`✅ Simulated user purchase complete: ${credits} credits added`);
+        console.log(`✅ Simulated user purchase complete: ${credits} credits added (personalPurchasedCredits)`);
       }
       
       console.log('========================================');

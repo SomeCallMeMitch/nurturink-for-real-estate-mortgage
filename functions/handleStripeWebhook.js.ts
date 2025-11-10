@@ -1,3 +1,4 @@
+
 import { createServiceClient } from 'npm:@base44/sdk@0.7.1';
 import Stripe from 'npm:stripe@14.11.0';
 
@@ -192,10 +193,10 @@ Deno.serve(async (req) => {
         }
       }
       
-      // ==================== CREDIT BALANCE UPDATE ====================
+      // ==================== CREDIT BALANCE UPDATE (UPDATED FOR NEW SYSTEM) ====================
       
       if (isOrgPurchase && organization) {
-        // Organization purchase
+        // Organization purchase - goes to organization.creditBalance
         console.log('🏢 Processing organization purchase...');
         
         const currentBalance = organization.creditBalance || 0;
@@ -249,20 +250,20 @@ Deno.serve(async (req) => {
         }
         
       } else {
-        // Individual user purchase
+        // Individual user purchase - goes to user.personalPurchasedCredits
         console.log('👤 Processing individual user purchase...');
         
-        const currentBalance = user.creditBalance || 0;
-        const newBalance = currentBalance + credits;
+        const currentPersonalPurchased = user.personalPurchasedCredits || 0;
+        const newPersonalPurchased = currentPersonalPurchased + credits;
         
-        console.log(`💳 User balance: ${currentBalance} → ${newBalance}`);
+        console.log(`💳 User personalPurchasedCredits: ${currentPersonalPurchased} → ${newPersonalPurchased}`);
         
-        // Update user credit balance
+        // Update user's personal purchased credit balance
         await base44.entities.User.update(user.id, {
-          creditBalance: newBalance
+          personalPurchasedCredits: newPersonalPurchased
         });
         
-        console.log('✅ User balance updated');
+        console.log('✅ User personalPurchasedCredits updated');
         
         // Build transaction description
         let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes`;
@@ -277,7 +278,7 @@ Deno.serve(async (req) => {
           userId: user.id,
           type: 'purchase_user',
           amount: credits,
-          balanceAfter: newBalance,
+          balanceAfter: newPersonalPurchased,
           balanceType: 'user',
           description: description,
           metadata: {
@@ -288,7 +289,8 @@ Deno.serve(async (req) => {
             originalPrice: originalPrice ? parseInt(originalPrice) : null,
             discountApplied: discountApplied ? parseInt(discountApplied) : 0,
             finalPrice: finalPrice ? parseInt(finalPrice) : session.amount_total,
-            pricingTierName: tier?.name || null
+            pricingTierName: tier?.name || null,
+            creditType: 'personalPurchasedCredits'
           },
           relatedPricingTierId: pricingTierId,
           stripePaymentId: session.payment_intent,
@@ -296,7 +298,7 @@ Deno.serve(async (req) => {
         });
         
         console.log('✅ Transaction record created:', transaction.id);
-        console.log(`✅ User purchase complete: ${credits} credits added to ${user.email}`);
+        console.log(`✅ User purchase complete: ${credits} credits added to ${user.email} (personalPurchasedCredits)`);
         
         if (couponUsed) {
           console.log(`🎉 Coupon ${couponUsed.code} applied successfully`);
