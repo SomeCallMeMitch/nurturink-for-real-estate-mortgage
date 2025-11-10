@@ -153,15 +153,20 @@ export default function CreateContent() {
   const [localIncludeSignature, setLocalIncludeSignature] = useState(true);
   const [localSelectedNoteStyleProfileId, setLocalSelectedNoteStyleProfileId] = useState(null);
 
-  // Calculate total available credits (company pool + personal)
+  // Calculate total available credits with CORRECTED hierarchy
   const totalAvailableCredits = useMemo(() => {
     if (!user) return 0;
     
     const companyAllocated = user.companyAllocatedCredits || 0;
     const personalPurchased = user.personalPurchasedCredits || 0;
-    const companyCredits = organization?.creditBalance || 0;
     
-    return companyAllocated + personalPurchased + companyCredits;
+    // Only include company pool if user has access
+    // user.canAccessCompanyPool can be undefined, true, or false.
+    // If undefined or true, access is granted. If explicitly false, access is denied.
+    const canAccessPool = user.canAccessCompanyPool !== false;
+    const companyCredits = canAccessPool ? (organization?.creditBalance || 0) : 0;
+    
+    return companyAllocated + companyCredits + personalPurchased;
   }, [user, organization]);
 
   // Load all data on mount

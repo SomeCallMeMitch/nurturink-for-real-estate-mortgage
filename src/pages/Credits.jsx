@@ -181,6 +181,9 @@ export default function Credits() {
   const personalPurchasedBalance = user?.personalPurchasedCredits || 0;
   const personalTotalBalance = companyAllocatedBalance + personalPurchasedBalance;
   const companyPoolBalance = organization?.creditBalance || 0;
+  
+  // Check if user can access company pool
+  const canAccessCompanyPool = user?.canAccessCompanyPool !== false;
 
   // Calculate transaction statistics
   const transactionStats = useMemo(() => {
@@ -584,13 +587,13 @@ export default function Credits() {
                 </div>
                 
                 <p className="text-xs text-gray-500 mt-3">
-                  💡 Company-allocated used first, then personal
+                  💡 Allocated used first, then pool, then personal
                 </p>
               </CardContent>
             </Card>
           </div>
         ) : (
-          // Individual User View - WITH BREAKDOWN
+          // Individual User View - WITH BREAKDOWN AND CONDITIONAL POOL VISIBILITY
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <Card className="md:col-span-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0 shadow-xl">
               <CardContent className="py-8">
@@ -614,12 +617,22 @@ export default function Credits() {
                       </div>
                     </div>
                     
-                    {organization && companyPoolBalance > 0 && (
+                    {/* CONDITIONAL: Only show company pool if user has access */}
+                    {organization && companyPoolBalance > 0 && canAccessCompanyPool && (
                       <div className="mt-4 pt-4 border-t border-blue-400">
                         <p className="text-sm text-blue-100 mb-1">Company Pool Available</p>
                         <p className="text-3xl font-bold">{companyPoolBalance} credits</p>
                         <p className="text-xs text-blue-100 mt-2">
-                          💡 Credits are used in this order: Company allocated → Your purchased → Company pool
+                          💡 Credits used: Allocated → Pool → Personal
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Show message if user doesn't have pool access */}
+                    {organization && !canAccessCompanyPool && (
+                      <div className="mt-4 pt-4 border-t border-blue-400">
+                        <p className="text-xs text-blue-100">
+                          ℹ️ You currently don't have access to the company pool
                         </p>
                       </div>
                     )}
@@ -920,7 +933,7 @@ export default function Credits() {
               <CardContent className="py-12 text-center">
                 <CreditCard className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500 mb-2">No pricing packages available</p>
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-gray-400 mt-1">
                   Please contact your administrator or check back later
                 </p>
               </CardContent>
@@ -1193,7 +1206,7 @@ export default function Credits() {
           </CardContent>
         </Card>
 
-        {/* Info Card for Organization Users */}
+        {/* Info Card for Organization Users - UPDATED */}
         {user?.orgId && organization && (
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="py-4">
@@ -1205,8 +1218,10 @@ export default function Credits() {
                   </h3>
                   <p className="text-sm text-blue-700">
                     {isCompanyView 
-                      ? 'These credits are shared across your entire team. Purchase credits to allocate to team members or keep in the company pool.'
-                      : 'Credits are used in this order: company allocated → your purchased credits → company pool.'
+                      ? 'These credits are shared across your team. Purchase credits to allocate to team members or keep in the company pool.'
+                      : canAccessCompanyPool
+                        ? 'When sending notes, credits are used in this order: Company allocated → Company pool → Your personal credits.'
+                        : 'When sending notes, credits are used in this order: Company allocated → Your personal credits. You currently don\'t have access to the company pool.'
                     }
                   </p>
                 </div>

@@ -141,15 +141,18 @@ export default function ReviewAndSend() {
   const [checkingCredits, setCheckingCredits] = useState(false);
   const [showNotEnoughCreditsModal, setShowNotEnoughCreditsModal] = useState(false);
 
-  // Calculate total available credits
+  // Calculate total available credits with CORRECTED hierarchy
   const totalAvailableCredits = useMemo(() => {
     if (!user) return 0;
     
     const companyAllocated = user.companyAllocatedCredits || 0;
     const personalPurchased = user.personalPurchasedCredits || 0;
-    const companyCredits = organization?.creditBalance || 0;
     
-    return companyAllocated + personalPurchased + companyCredits;
+    // Only include company pool if user has access
+    const canAccessPool = user.canAccessCompanyPool !== false; // Default to true if undefined
+    const companyCredits = canAccessPool ? (organization?.creditBalance || 0) : 0;
+    
+    return companyAllocated + companyCredits + personalPurchased;
   }, [user, organization]);
 
   // Load all data on mount
