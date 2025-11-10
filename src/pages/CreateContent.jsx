@@ -152,6 +152,11 @@ export default function CreateContent() {
   const [localIncludeGreeting, setLocalIncludeGreeting] = useState(true);
   const [localIncludeSignature, setLocalIncludeSignature] = useState(true);
   const [localSelectedNoteStyleProfileId, setLocalSelectedNoteStyleProfileId] = useState(null);
+  
+  // New override states for individual client options
+  const [localGreetingOverrides, setLocalGreetingOverrides] = useState({});
+  const [localSignatureOverrides, setLocalSignatureOverrides] = useState({});
+  const [localNoteStyleProfileOverrides, setLocalNoteStyleProfileOverrides] = useState({});
 
   // Calculate total available credits with CORRECTED hierarchy
   const totalAvailableCredits = useMemo(() => {
@@ -222,12 +227,17 @@ export default function CreateContent() {
       console.log('✅ Mailing batch loaded:', batchData.id);
       setMailingBatch(batchData);
       
-      // Initialize local state from batch
+      // Initialize local state from batch (including new override states)
       setLocalGlobalMessage(batchData.globalMessage || '');
       setLocalContentOverrides(batchData.contentOverrides || {});
       setLocalIncludeGreeting(batchData.includeGreeting);
       setLocalIncludeSignature(batchData.includeSignature);
       setLocalSelectedNoteStyleProfileId(batchData.selectedNoteStyleProfileId);
+      
+      // Initialize override states from batch
+      setLocalGreetingOverrides(batchData.greetingOverrides || {});
+      setLocalSignatureOverrides(batchData.signatureOverrides || {});
+      setLocalNoteStyleProfileOverrides(batchData.noteStyleProfileOverrides || {});
       
       console.log('📡 Step 4: Loading clients...');
       const clientList = await base44.entities.Client.filter({
@@ -240,20 +250,15 @@ export default function CreateContent() {
       
       // Load all templates using the same queries as Templates page
       const [personal, organizationTemplates, platform] = await Promise.all([
-        // Personal templates
         base44.entities.Template.filter({ 
           createdByUserId: currentUser.id, 
           type: 'personal' 
         }),
-        
-        // Organization templates
         base44.entities.Template.filter({ 
           orgId: currentUser.orgId, 
           type: 'organization',
           status: 'approved'
         }),
-        
-        // Platform templates
         base44.entities.Template.filter({ 
           type: 'platform',
           isDefault: true, 
@@ -326,14 +331,26 @@ export default function CreateContent() {
     await base44.entities.MailingBatch.update(mailingBatchId, data);
   };
 
-  // Autosave data object
+  // Updated autosave data object to include new overrides
   const autosaveData = useMemo(() => ({
     globalMessage: localGlobalMessage,
     contentOverrides: localContentOverrides,
     includeGreeting: localIncludeGreeting,
     includeSignature: localIncludeSignature,
-    selectedNoteStyleProfileId: localSelectedNoteStyleProfileId
-  }), [localGlobalMessage, localContentOverrides, localIncludeGreeting, localIncludeSignature, localSelectedNoteStyleProfileId]);
+    selectedNoteStyleProfileId: localSelectedNoteStyleProfileId,
+    greetingOverrides: localGreetingOverrides,
+    signatureOverrides: localSignatureOverrides,
+    noteStyleProfileOverrides: localNoteStyleProfileOverrides
+  }), [
+    localGlobalMessage, 
+    localContentOverrides, 
+    localIncludeGreeting, 
+    localIncludeSignature, 
+    localSelectedNoteStyleProfileId,
+    localGreetingOverrides,
+    localSignatureOverrides,
+    localNoteStyleProfileOverrides
+  ]);
 
   // Setup autosave
   const { isSaving, lastSaved, saveNow } = useAutosave(
@@ -404,6 +421,78 @@ export default function CreateContent() {
     }, 0);
   };
 
+  // Get current greeting value based on mode
+  const getCurrentIncludeGreeting = () => {
+    if (editMode === 'individual' && selectedRecipientId) {
+      // Check if there's an override for this client
+      if (localGreetingOverrides.hasOwnProperty(selectedRecipientId)) {
+        return localGreetingOverrides[selectedRecipientId];
+      }
+    }
+    // Fall back to global setting
+    return localIncludeGreeting;
+  };
+
+  // Get current signature value based on mode
+  const getCurrentIncludeSignature = () => {
+    if (editMode === 'individual' && selectedRecipientId) {
+      // Check if there's an override for this client
+      if (localSignatureOverrides.hasOwnProperty(selectedRecipientId)) {
+        return localSignatureOverrides[selectedRecipientId];
+      }
+    }
+    // Fall back to global setting
+    return localIncludeSignature;
+  };
+
+  // Get current note style profile value based on mode
+  const getCurrentNoteStyleProfileId = () => {
+    if (editMode === 'individual' && selectedRecipientId) {
+      // Check if there's an override for this client
+      if (localNoteStyleProfileOverrides.hasOwnProperty(selectedRecipientId)) {
+        return localNoteStyleProfileOverrides[selectedRecipientId];
+      }
+    }
+    // Fall back to global setting
+    return localSelectedNoteStyleProfileId;
+  };
+
+  // Handle greeting checkbox change
+  const handleGreetingChange = (checked) => {
+    if (editMode === 'bulk') {
+      setLocalIncludeGreeting(checked);
+    } else {
+      setLocalGreetingOverrides(prev => ({
+        ...prev,
+        [selectedRecipientId]: checked
+      }));
+    }
+  };
+
+  // Handle signature checkbox change
+  const handleSignatureChange = (checked) => {
+    if (editMode === 'bulk') {
+      setLocalIncludeSignature(checked);
+    } else {
+      setLocalSignatureOverrides(prev => ({
+        ...prev,
+        [selectedRecipientId]: checked
+      }));
+    }
+  };
+
+  // Handle note style profile change
+  const handleNoteStyleProfileChange = (profileId) => {
+    if (editMode === 'bulk') {
+      setLocalSelectedNoteStyleProfileId(profileId);
+    } else {
+      setLocalNoteStyleProfileOverrides(prev => ({
+        ...prev,
+        [selectedRecipientId]: profileId
+      }));
+    }
+  };
+
   // Get current client for preview
   const getCurrentClient = () => {
     if (editMode === 'individual' && selectedRecipientId) {
@@ -413,11 +502,12 @@ export default function CreateContent() {
     return clients[0] || {};
   };
 
-  // Get selected note style profile
+  // Get selected note style profile (updated to use getCurrentNoteStyleProfileId)
   const selectedNoteStyleProfile = useMemo(() => {
-    if (!localSelectedNoteStyleProfileId) return null;
-    return noteStyleProfiles.find(p => p.id === localSelectedNoteStyleProfileId);
-  }, [localSelectedNoteStyleProfileId, noteStyleProfiles]);
+    const currentProfileId = getCurrentNoteStyleProfileId();
+    if (!currentProfileId) return null;
+    return noteStyleProfiles.find(p => p.id === currentProfileId);
+  }, [getCurrentNoteStyleProfileId, noteStyleProfiles]);
 
   // Prepare recipients for EditModeSelector
   const recipients = useMemo(() => 
@@ -611,8 +701,8 @@ export default function CreateContent() {
                     Writing Style
                   </label>
                   <Select
-                    value={localSelectedNoteStyleProfileId || ''}
-                    onValueChange={setLocalSelectedNoteStyleProfileId}
+                    value={getCurrentNoteStyleProfileId() || ''}
+                    onValueChange={handleNoteStyleProfileChange}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select style..." />
@@ -646,8 +736,8 @@ export default function CreateContent() {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="includeGreeting"
-                      checked={localIncludeGreeting}
-                      onCheckedChange={setLocalIncludeGreeting}
+                      checked={getCurrentIncludeGreeting()}
+                      onCheckedChange={handleGreetingChange}
                     />
                     <label htmlFor="includeGreeting" className="text-sm font-medium">
                       Include Greeting
@@ -657,8 +747,8 @@ export default function CreateContent() {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="includeSignature"
-                      checked={localIncludeSignature}
-                      onCheckedChange={setLocalIncludeSignature}
+                      checked={getCurrentIncludeSignature()}
+                      onCheckedChange={handleSignatureChange}
                     />
                     <label htmlFor="includeSignature" className="text-sm font-medium">
                       Include Signature
@@ -679,6 +769,7 @@ export default function CreateContent() {
                 <div className="flex justify-center px-4">
                   {instanceSettings && (
                     <div className="w-full max-w-[440px]">
+                      {/* Updated to use new getters */}
                       <CardPreview
                         message={getCurrentMessage()}
                         client={getCurrentClient()}
@@ -687,8 +778,8 @@ export default function CreateContent() {
                         noteStyleProfile={selectedNoteStyleProfile}
                         selectedDesign={null}
                         previewSettings={instanceSettings.cardPreviewSettings}
-                        includeGreeting={localIncludeGreeting}
-                        includeSignature={localIncludeSignature}
+                        includeGreeting={getCurrentIncludeGreeting()}
+                        includeSignature={getCurrentIncludeSignature()}
                         randomIndentEnabled={true}
                         showLineCounter={true}
                       />
