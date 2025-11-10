@@ -20,7 +20,7 @@ import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 // Default fallback settings if API fails
 const FALLBACK_SETTINGS = {
   cardPreviewSettings: {
-    fontSize: 22, // Changed from 24 to 22
+    fontSize: 22,
     lineHeight: 1,
     baseTextWidth: 360,
     baseMarginLeft: 40,
@@ -278,6 +278,27 @@ export default function CreateContent() {
       
       setTemplates(allTemplates);
       
+      // PHASE 3: Auto-apply default template if globalMessage is empty
+      if (!batchData.globalMessage || batchData.globalMessage.trim() === '') {
+        const defaultTemplate = allTemplates.find(t => t.isDefault === true);
+        
+        if (defaultTemplate) {
+          console.log('🎯 PHASE 3: Auto-applying default template:', defaultTemplate.name);
+          setLocalGlobalMessage(defaultTemplate.content);
+          
+          // Save to database immediately
+          await base44.entities.MailingBatch.update(mailingBatchId, {
+            globalMessage: defaultTemplate.content
+          });
+          
+          console.log('✅ Default template applied and saved');
+        } else {
+          console.log('ℹ️ No default template found to auto-apply');
+        }
+      } else {
+        console.log('ℹ️ Global message already exists, skipping default template auto-apply');
+      }
+      
       console.log('📡 Step 6: Loading note style profiles...');
       const profileList = await base44.entities.NoteStyleProfile.filter({
         orgId: currentUser.orgId
@@ -520,7 +541,7 @@ export default function CreateContent() {
   };
 
   // Prepare recipients for EditModeSelector
-  const recipients = useMemo(() => 
+  const recipients = useMemo(() 
     clients.map(client => ({
       id: client.id,
       name: client.fullName || 'Unnamed Client'
