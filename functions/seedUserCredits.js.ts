@@ -1,5 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
+/**
+ * Seed test credits for development/testing
+ * Adds credits to companyAllocatedCredits (simulating company allocation)
+ */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -19,13 +23,13 @@ Deno.serve(async (req) => {
       // If no body, use default
     }
     
-    // Get current credit balance
-    const currentBalance = user.creditBalance || 0;
-    const newBalance = currentBalance + creditAmount;
+    // Get current balances
+    const currentCompanyAllocated = user.companyAllocatedCredits || 0;
+    const newCompanyAllocated = currentCompanyAllocated + creditAmount;
     
-    // Update user's credit balance
+    // Update user's company-allocated credit balance
     await base44.auth.updateMe({
-      creditBalance: newBalance
+      companyAllocatedCredits: newCompanyAllocated
     });
     
     // Create transaction record
@@ -34,20 +38,21 @@ Deno.serve(async (req) => {
       userId: user.id,
       type: 'voucher',
       amount: creditAmount,
-      balanceAfter: newBalance,
+      balanceAfter: newCompanyAllocated,
       balanceType: 'user',
-      description: `Test credit seed: Added ${creditAmount} credits`,
+      description: `Test credit seed: Added ${creditAmount} company-allocated credits`,
       metadata: {
         source: 'test_seed',
-        previousBalance: currentBalance
+        previousBalance: currentCompanyAllocated,
+        creditType: 'companyAllocatedCredits'
       }
     });
     
     return Response.json({
       success: true,
-      message: `Successfully added ${creditAmount} credits!`,
-      previousBalance: currentBalance,
-      newBalance: newBalance,
+      message: `Successfully added ${creditAmount} company-allocated credits!`,
+      previousBalance: currentCompanyAllocated,
+      newBalance: newCompanyAllocated,
       creditsAdded: creditAmount
     });
     

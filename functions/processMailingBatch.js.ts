@@ -114,9 +114,10 @@ Deno.serve(async (req) => {
     // Calculate total credits needed
     const creditsNeeded = batch.selectedClientIds.length;
     
-    // Check credit availability using service role
+    // Get user's credit balances with new granular tracking
+    const companyAllocatedCredits = user.companyAllocatedCredits || 0;
+    const personalPurchasedCredits = user.personalPurchasedCredits || 0;
     let companyPoolCredits = 0;
-    let personalCredits = user.creditBalance || 0;
     let organization = null;
     
     if (user.orgId) {
@@ -130,7 +131,7 @@ Deno.serve(async (req) => {
       }
     }
     
-    const totalAvailable = companyPoolCredits + personalCredits;
+    const totalAvailable = companyAllocatedCredits + personalPurchasedCredits + companyPoolCredits;
     
     // Verify user has enough credits
     if (totalAvailable < creditsNeeded) {
@@ -139,27 +140,42 @@ Deno.serve(async (req) => {
           error: 'Insufficient credits',
           creditsNeeded: creditsNeeded,
           totalAvailable: totalAvailable,
-          companyPoolCredits: companyPoolCredits,
-          personalCredits: personalCredits,
+          breakdown: {
+            companyAllocatedCredits: companyAllocatedCredits,
+            personalPurchasedCredits: personalPurchasedCredits,
+            companyPoolCredits: companyPoolCredits
+          },
           deficit: creditsNeeded - totalAvailable
         },
         { status: 402 }
       );
     }
     
-    // Calculate credit deduction from each source
-    let creditsFromCompany = 0;
-    let creditsFromPersonal = 0;
+    // Calculate credit deduction plan following hierarchy:
+    // 1. Company-allocated credits first
+    // 2. Personal purchased credits second
+    // 3. Company pool credits last
+    let remaining = creditsNeeded;
+    let fromCompanyAllocated = 0;
+    let fromPersonalPurchased = 0;
+    let fromCompanyPool = 0;
     
-    if (companyPoolCredits >= creditsNeeded) {
-      creditsFromCompany = creditsNeeded;
-      creditsFromPersonal = 0;
-    } else if (companyPoolCredits > 0) {
-      creditsFromCompany = companyPoolCredits;
-      creditsFromPersonal = creditsNeeded - companyPoolCredits;
-    } else {
-      creditsFromCompany = 0;
-      creditsFromPersonal = creditsNeeded;
+    // Step 1: Use company-allocated credits first
+    if (companyAllocatedCredits > 0) {
+      fromCompanyAllocated = Math.min(companyAllocatedCredits, remaining);
+      remaining -= fromCompanyAllocated;
+    }
+    
+    // Step 2: Use personal purchased credits second
+    if (remaining > 0 && personalPurchasedCredits > 0) {
+      fromPersonalPurchased = Math.min(personalPurchasedCredits, remaining);
+      remaining -= fromPersonalPurchased;
+    }
+    
+    // Step 3: Use company pool last
+    if (remaining > 0 && companyPoolCredits > 0) {
+      fromCompanyPool = Math.min(companyPoolCredits, remaining);
+      remaining -= fromCompanyPool;
     }
     
     // Load necessary data
@@ -315,30 +331,83 @@ Deno.serve(async (req) => {
       }
     }
     
-    // 8. Deduct credits and create transaction records
+    // 8. Deduct credits following the hierarchy and create transaction records
     const successfulSends = processedMailings.length;
-    let actualCompanyDeduction = 0;
-    let actualPersonalDeduction = 0;
+    let actualFromCompanyAllocated = 0;
+    let actualFromPersonalPurchased = 0;
+    let actualFromCompanyPool = 0;
     
     if (successfulSends > 0) {
-      // Calculate actual deductions based on successful sends
-      if (creditsFromCompany >= successfulSends) {
-        actualCompanyDeduction = successfulSends;
-        actualPersonalDeduction = 0;
-      } else if (creditsFromCompany > 0) {
-        actualCompanyDeduction = creditsFromCompany;
-        actualPersonalDeduction = successfulSends - creditsFromCompany;
-      } else {
-        actualCompanyDeduction = 0;
-        actualPersonalDeduction = successfulSends;
+      // Recalculate deductions based on successful sends
+      let remainingToDeduct = successfulSends;
+      
+      // Step 1: Deduct from company-allocated credits first
+      if (fromCompanyAllocated > 0) {
+        actualFromCompanyAllocated = Math.min(fromCompanyAllocated, remainingToDeduct);
+        remainingToDeduct -= actualFromCompanyAllocated;
+        
+        const newCompanyAllocatedBalance = companyAllocatedCredits - actualFromCompanyAllocated;
+        
+        await base44.asServiceRole.entities.User.update(user.id, {
+          companyAllocatedCredits: newCompanyAllocatedBalance
+        });
+        
+        // Create transaction record
+        await base44.asServiceRole.entities.Transaction.create({
+          orgId: user.orgId,
+          userId: user.id,
+          type: 'deduction',
+          amount: -actualFromCompanyAllocated,
+          balanceAfter: newCompanyAllocatedBalance,
+          balanceType: 'user',
+          description: `Sent ${actualFromCompanyAllocated} handwritten ${actualFromCompanyAllocated === 1 ? 'note' : 'notes'} (company-allocated credits)`,
+          metadata: {
+            mailingBatchId: mailingBatchId,
+            noteCount: actualFromCompanyAllocated,
+            source: 'company_allocated',
+            creditType: 'companyAllocatedCredits'
+          }
+        });
       }
       
-      // Deduct from company pool if applicable
-      if (actualCompanyDeduction > 0 && organization) {
-        const newOrgBalance = companyPoolCredits - actualCompanyDeduction;
+      // Step 2: Deduct from personal purchased credits second
+      if (remainingToDeduct > 0 && fromPersonalPurchased > 0) {
+        actualFromPersonalPurchased = Math.min(fromPersonalPurchased, remainingToDeduct);
+        remainingToDeduct -= actualFromPersonalPurchased;
+        
+        const newPersonalPurchasedBalance = personalPurchasedCredits - actualFromPersonalPurchased;
+        
+        await base44.asServiceRole.entities.User.update(user.id, {
+          personalPurchasedCredits: newPersonalPurchasedBalance
+        });
+        
+        // Create transaction record
+        await base44.asServiceRole.entities.Transaction.create({
+          orgId: user.orgId,
+          userId: user.id,
+          type: 'deduction',
+          amount: -actualFromPersonalPurchased,
+          balanceAfter: newPersonalPurchasedBalance,
+          balanceType: 'user',
+          description: `Sent ${actualFromPersonalPurchased} handwritten ${actualFromPersonalPurchased === 1 ? 'note' : 'notes'} (personal purchased credits)`,
+          metadata: {
+            mailingBatchId: mailingBatchId,
+            noteCount: actualFromPersonalPurchased,
+            source: 'personal_purchased',
+            creditType: 'personalPurchasedCredits'
+          }
+        });
+      }
+      
+      // Step 3: Deduct from company pool last
+      if (remainingToDeduct > 0 && fromCompanyPool > 0 && organization) {
+        actualFromCompanyPool = Math.min(fromCompanyPool, remainingToDeduct);
+        remainingToDeduct -= actualFromCompanyPool;
+        
+        const newCompanyPoolBalance = companyPoolCredits - actualFromCompanyPool;
         
         await base44.asServiceRole.entities.Organization.update(organization.id, {
-          creditBalance: newOrgBalance
+          creditBalance: newCompanyPoolBalance
         });
         
         // Create transaction record for organization
@@ -346,39 +415,14 @@ Deno.serve(async (req) => {
           orgId: user.orgId,
           userId: user.id,
           type: 'deduction',
-          amount: -actualCompanyDeduction,
-          balanceAfter: newOrgBalance,
+          amount: -actualFromCompanyPool,
+          balanceAfter: newCompanyPoolBalance,
           balanceType: 'organization',
-          description: `Sent ${actualCompanyDeduction} handwritten ${actualCompanyDeduction === 1 ? 'note' : 'notes'} (company credits)`,
+          description: `Sent ${actualFromCompanyPool} handwritten ${actualFromCompanyPool === 1 ? 'note' : 'notes'} (company pool credits)`,
           metadata: {
             mailingBatchId: mailingBatchId,
-            noteCount: actualCompanyDeduction,
+            noteCount: actualFromCompanyPool,
             source: 'company_pool'
-          }
-        });
-      }
-      
-      // Deduct from personal balance if applicable
-      if (actualPersonalDeduction > 0) {
-        const newUserBalance = personalCredits - actualPersonalDeduction;
-        
-        await base44.asServiceRole.entities.User.update(user.id, {
-          creditBalance: newUserBalance
-        });
-        
-        // Create transaction record for user
-        await base44.asServiceRole.entities.Transaction.create({
-          orgId: user.orgId,
-          userId: user.id,
-          type: 'deduction',
-          amount: -actualPersonalDeduction,
-          balanceAfter: newUserBalance,
-          balanceType: 'user',
-          description: `Sent ${actualPersonalDeduction} handwritten ${actualPersonalDeduction === 1 ? 'note' : 'notes'} (personal credits)`,
-          metadata: {
-            mailingBatchId: mailingBatchId,
-            noteCount: actualPersonalDeduction,
-            source: 'personal'
           }
         });
       }
@@ -396,8 +440,9 @@ Deno.serve(async (req) => {
       totalClients: clients.length,
       mailings: processedMailings,
       creditsDeducted: {
-        company: actualCompanyDeduction,
-        personal: actualPersonalDeduction,
+        companyAllocated: actualFromCompanyAllocated,
+        personalPurchased: actualFromPersonalPurchased,
+        companyPool: actualFromCompanyPool,
         total: successfulSends
       }
     };
