@@ -7,6 +7,7 @@ import { RotateCw } from "lucide-react";
 export default function Landing1() {
   const [heroVariation, setHeroVariation] = useState(1);
   const [socialProofVariation, setSocialProofVariation] = useState('A');
+  const [problemVariation, setProblemVariation] = useState('A');
 
   const cycleHero = () => {
     setHeroVariation((prev) => (prev % 5) + 1);
