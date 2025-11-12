@@ -3,6 +3,7 @@ import HeroSection1 from "@/components/landing/HeroSection1";
 import SocialProofBanner from "@/components/landing/SocialProofBanner";
 import ProblemAgitationSection from "@/components/landing/ProblemAgitationSection";
 import ContrastSection from "@/components/landing/ContrastSection";
+import HowItWorksSection from "@/components/landing/HowItWorksSection";
 import { Button } from "@/components/ui/button";
 import { RotateCw } from "lucide-react";
 
@@ -11,6 +12,7 @@ export default function Landing1() {
   const [socialProofVariation, setSocialProofVariation] = useState('A');
   const [problemVariation, setProblemVariation] = useState('A');
   const [contrastVariation, setContrastVariation] = useState('A');
+  const [howItWorksVariation, setHowItWorksVariation] = useState('A');
 
   const cycleHero = () => {
     setHeroVariation((prev) => (prev % 5) + 1);
@@ -35,6 +37,14 @@ export default function Landing1() {
   const cycleContrast = () => {
     const variations = ['A', 'B'];
     setContrastVariation((prev) => {
+      const currentIndex = variations.indexOf(prev);
+      return variations[(currentIndex + 1) % 2];
+    });
+  };
+
+  const cycleHowItWorks = () => {
+    const variations = ['A', 'B'];
+    setHowItWorksVariation((prev) => {
       const currentIndex = variations.indexOf(prev);
       return variations[(currentIndex + 1) % 2];
     });
@@ -79,6 +89,15 @@ export default function Landing1() {
           <RotateCw className="w-4 h-4" />
           Contrast {contrastVariation}
         </Button>
+        
+        <Button
+          onClick={cycleHowItWorks}
+          className="bg-teal-600 hover:bg-teal-700 shadow-lg gap-2"
+          size="lg"
+        >
+          <RotateCw className="w-4 h-4" />
+          How It Works {howItWorksVariation}
+        </Button>
       </div>
 
       {/* Hero Section */}
@@ -92,6 +111,9 @@ export default function Landing1() {
       
       {/* Contrast Section */}
       <ContrastSection variation={contrastVariation} />
+      
+      {/* How It Works Section */}
+      <HowItWorksSection variation={howItWorksVariation} />
     </div>
   );
 }
