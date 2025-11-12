@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import HeroSection1 from "@/components/landing/HeroSection1";
 import SocialProofBanner from "@/components/landing/SocialProofBanner";
+import ProblemAgitationSection from "@/components/landing/ProblemAgitationSection";
 import { Button } from "@/components/ui/button";
 import { RotateCw } from "lucide-react";
 
@@ -16,6 +17,14 @@ export default function Landing1() {
   const cycleSocialProof = () => {
     const variations = ['A', 'B', 'C', 'D'];
     setSocialProofVariation((prev) => {
+      const currentIndex = variations.indexOf(prev);
+      return variations[(currentIndex + 1) % 4];
+    });
+  };
+
+  const cycleProblem = () => {
+    const variations = ['A', 'B', 'C', 'D'];
+    setProblemVariation((prev) => {
       const currentIndex = variations.indexOf(prev);
       return variations[(currentIndex + 1) % 4];
     });
@@ -42,6 +51,15 @@ export default function Landing1() {
           <RotateCw className="w-4 h-4" />
           Social Proof {socialProofVariation}
         </Button>
+        
+        <Button
+          onClick={cycleProblem}
+          className="bg-orange-600 hover:bg-orange-700 shadow-lg gap-2"
+          size="lg"
+        >
+          <RotateCw className="w-4 h-4" />
+          Problem {problemVariation}
+        </Button>
       </div>
 
       {/* Hero Section */}
@@ -49,6 +67,9 @@ export default function Landing1() {
       
       {/* Social Proof Banner */}
       <SocialProofBanner variation={socialProofVariation} />
+      
+      {/* Problem Agitation Section */}
+      <ProblemAgitationSection variation={problemVariation} />
     </div>
   );
 }
