@@ -26,7 +26,7 @@ export default function Landing() {
           size="lg"
         >
           <RotateCw className="w-4 h-4" />
-          Hero V{heroVariation}/5
+          Hero {heroVariation}/5
         </Button>
         
         <Button
@@ -35,7 +35,7 @@ export default function Landing() {
           size="lg"
         >
           <RotateCw className="w-4 h-4" />
-          Problem V{problemVariation}/3
+          Problem {problemVariation}/3
         </Button>
       </div>
 
