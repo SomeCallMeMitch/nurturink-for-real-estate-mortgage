@@ -28,6 +28,7 @@ import PaymentCancel from './pages/PaymentCancel';
 import PaymentSuccess from './pages/PaymentSuccess';
 import TeamManagement from './pages/TeamManagement';
 import SuperAdminWhitelabel from './pages/SuperAdminWhitelabel';
+import Landing from './pages/Landing';
 import Layout from './Layout.jsx';
 
 
@@ -62,6 +63,7 @@ export const PAGES = {
     "PaymentSuccess": PaymentSuccess,
     "TeamManagement": TeamManagement,
     "SuperAdminWhitelabel": SuperAdminWhitelabel,
+    "Landing": Landing,
 }
 
 export const pagesConfig = {
