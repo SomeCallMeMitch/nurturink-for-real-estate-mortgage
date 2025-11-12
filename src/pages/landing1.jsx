@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import HeroSection1 from "@/components/landing/HeroSection1";
 import SocialProofBanner from "@/components/landing/SocialProofBanner";
 import ProblemAgitationSection from "@/components/landing/ProblemAgitationSection";
+import ContrastSection from "@/components/landing/ContrastSection";
 import { Button } from "@/components/ui/button";
 import { RotateCw } from "lucide-react";
 
@@ -9,6 +10,7 @@ export default function Landing1() {
   const [heroVariation, setHeroVariation] = useState(1);
   const [socialProofVariation, setSocialProofVariation] = useState('A');
   const [problemVariation, setProblemVariation] = useState('A');
+  const [contrastVariation, setContrastVariation] = useState('A');
 
   const cycleHero = () => {
     setHeroVariation((prev) => (prev % 5) + 1);
@@ -27,6 +29,14 @@ export default function Landing1() {
     setProblemVariation((prev) => {
       const currentIndex = variations.indexOf(prev);
       return variations[(currentIndex + 1) % 4];
+    });
+  };
+
+  const cycleContrast = () => {
+    const variations = ['A', 'B'];
+    setContrastVariation((prev) => {
+      const currentIndex = variations.indexOf(prev);
+      return variations[(currentIndex + 1) % 2];
     });
   };
 
@@ -70,6 +80,9 @@ export default function Landing1() {
       
       {/* Problem Agitation Section */}
       <ProblemAgitationSection variation={problemVariation} />
+      
+      {/* Contrast Section */}
+      <ContrastSection variation={contrastVariation} />
     </div>
   );
 }
