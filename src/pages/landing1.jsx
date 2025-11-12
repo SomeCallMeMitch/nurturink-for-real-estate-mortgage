@@ -70,6 +70,15 @@ export default function Landing1() {
           <RotateCw className="w-4 h-4" />
           Problem {problemVariation}
         </Button>
+        
+        <Button
+          onClick={cycleContrast}
+          className="bg-pink-600 hover:bg-pink-700 shadow-lg gap-2"
+          size="lg"
+        >
+          <RotateCw className="w-4 h-4" />
+          Contrast {contrastVariation}
+        </Button>
       </div>
 
       {/* Hero Section */}
