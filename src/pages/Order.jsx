@@ -127,10 +127,12 @@ export default function OrderPage() {
     }
     
     try {
+      // CRITICAL FIX: Pass app_origin to backend
       const response = await base44.functions.invoke('createCheckoutSession', {
         pricingTierId: pkg.pricingTierId,
         couponCode: pkg.couponCode || undefined,
-        simulateSuccess: false
+        simulateSuccess: false,
+        app_origin: window.location.origin  // ← KEY FIX
       });
 
       const url = response?.data?.checkoutUrl;
@@ -177,10 +179,12 @@ export default function OrderPage() {
     try {
       console.log('🎭 Simulating purchase for testing...');
       
+      // CRITICAL FIX: Pass app_origin to backend
       const response = await base44.functions.invoke('createCheckoutSession', {
         pricingTierId: pkg.pricingTierId,
         couponCode: pkg.couponCode || undefined,
-        simulateSuccess: true
+        simulateSuccess: true,
+        app_origin: window.location.origin  // ← KEY FIX
       });
 
       console.log('✅ Simulation response:', response.data);

@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     
     // Parse request body
     const body = await req.json();
-    const { pricingTierId, couponCode, simulateSuccess } = body;
+    const { pricingTierId, couponCode, simulateSuccess, app_origin } = body;
     
     console.log('\n========================================');
     console.log(simulateSuccess ? '🎭 SIMULATING PURCHASE' : '💳 CREATING CHECKOUT SESSION');
@@ -26,6 +26,7 @@ Deno.serve(async (req) => {
     console.log('Pricing Tier ID:', pricingTierId);
     console.log('Coupon Code:', couponCode || 'None');
     console.log('Simulate Success:', simulateSuccess || false);
+    console.log('App Origin:', app_origin || 'Not provided');
     
     // Validate input
     if (!pricingTierId) {
@@ -472,9 +473,9 @@ Deno.serve(async (req) => {
       stripeCustomerId = customer.id;
     }
     
-    // Get app URL from request headers
-    const url = new URL(req.url);
-    const appBaseUrl = `${url.protocol}//${url.host}`;
+    // CRITICAL FIX: Use app_origin from frontend, not function URL
+    const appBaseUrl = app_origin || new URL(req.url).origin;
+    console.log('🔗 Using base URL for redirects:', appBaseUrl);
     
     // Build product description with discount info
     let productDescription = `${tier.creditAmount} handwritten note${tier.creditAmount === 1 ? '' : 's'}`;
@@ -524,6 +525,7 @@ Deno.serve(async (req) => {
     
     console.log('✅ Stripe checkout session created:', session.id);
     console.log('💳 Final amount:', `$${(finalPriceInCents / 100).toFixed(2)}`);
+    console.log('🔗 Success URL:', `${appBaseUrl}?page=Credits&payment=success&session_id={CHECKOUT_SESSION_ID}`);
     console.log('========================================\n');
     
     return Response.json({
