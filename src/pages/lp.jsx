@@ -41,6 +41,39 @@ export default function LandingPage() {
   
   return (
     <LPNoLayoutWrapper>
+      {/* CSS to hide left navigation and expand main content */}
+      <style>{`
+        /* Hide the left sidebar */
+        aside.w-64.bg-white.border-r.border-gray-200.flex.flex-col {
+          display: none !important;
+        }
+        
+        /* Hide any navigation inside the sidebar */
+        nav.flex-1.p-4.space-y-2 {
+          display: none !important;
+        }
+        
+        /* Ensure main content area takes full width */
+        main {
+          margin-left: 0 !important;
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        
+        /* Remove any grid column constraints */
+        body > div,
+        #root > div {
+          grid-template-columns: 1fr !important;
+        }
+        
+        /* Ensure content wrapper takes full width */
+        [class*="main-content"],
+        [class*="content-wrapper"] {
+          margin-left: 0 !important;
+          width: 100% !important;
+        }
+      `}</style>
+      
       <div className="min-h-screen bg-white">
         <LPHeader />
         <div className="pt-20">
