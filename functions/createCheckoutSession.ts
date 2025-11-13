@@ -483,6 +483,13 @@ Deno.serve(async (req) => {
       productDescription += ` (Coupon: ${validatedCoupon.code})`;
     }
     
+    // CRITICAL: Construct redirect URLs that go directly to PaymentSuccess page
+    const successUrl = `${appBaseUrl}?page=PaymentSuccess&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${appBaseUrl}?page=Credits&payment=cancelled`;
+    
+    console.log('🔗 Success URL:', successUrl);
+    console.log('🔗 Cancel URL:', cancelUrl);
+    
     // Create Stripe checkout session with (potentially discounted) price
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
@@ -508,8 +515,8 @@ Deno.serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${appBaseUrl}?page=Credits&payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appBaseUrl}?page=Credits&payment=cancelled`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         userId: user.id,
         orgId: user.orgId || '',
@@ -525,7 +532,7 @@ Deno.serve(async (req) => {
     
     console.log('✅ Stripe checkout session created:', session.id);
     console.log('💳 Final amount:', `$${(finalPriceInCents / 100).toFixed(2)}`);
-    console.log('🔗 Success URL:', `${appBaseUrl}?page=Credits&payment=success&session_id={CHECKOUT_SESSION_ID}`);
+    console.log('🔗 Checkout URL:', session.url);
     console.log('========================================\n');
     
     return Response.json({
