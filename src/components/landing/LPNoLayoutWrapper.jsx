@@ -6,6 +6,14 @@ import { Toaster } from "@/components/ui/toaster";
  * This ensures no left navigation or app chrome appears on marketing pages
  */
 export default function LPNoLayoutWrapper({ children }) {
+  console.log('🔍 LPNoLayoutWrapper.jsx: Component is rendering');
+  console.log('🔍 LPNoLayoutWrapper.jsx: Children received:', !!children);
+  
+  React.useEffect(() => {
+    console.log('🔍 LPNoLayoutWrapper.jsx: Component mounted in DOM');
+    console.log('🔍 LPNoLayoutWrapper.jsx: This wrapper should bypass all MainLayout logic');
+  }, []);
+  
   return (
     <>
       {/* Google Fonts for handwritten card preview (if needed) */}
