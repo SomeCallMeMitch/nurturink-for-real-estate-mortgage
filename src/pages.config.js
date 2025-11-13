@@ -30,6 +30,7 @@ import TeamManagement from './pages/TeamManagement';
 import SuperAdminWhitelabel from './pages/SuperAdminWhitelabel';
 import Landing from './pages/Landing';
 import landing1 from './pages/landing1';
+import lp from './pages/lp';
 import Layout from './Layout.jsx';
 
 
@@ -66,6 +67,7 @@ export const PAGES = {
     "SuperAdminWhitelabel": SuperAdminWhitelabel,
     "Landing": Landing,
     "landing1": landing1,
+    "lp": lp,
 }
 
 export const pagesConfig = {
