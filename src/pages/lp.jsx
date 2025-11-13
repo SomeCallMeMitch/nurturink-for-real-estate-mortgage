@@ -1,4 +1,5 @@
 import React from "react";
+import LPHeader from "@/components/landing/LPHeader";
 import LPHeroSection from "@/components/landing/LPHeroSection";
 import LPFeatures1Section from "@/components/landing/LPFeatures1Section";
 import LPSocialProofLogos from "@/components/landing/LPSocialProofLogos";
@@ -13,15 +14,18 @@ import LPFooter from "@/components/landing/LPFooter";
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
-      <LPHeroSection />
-      <LPFeatures1Section />
-      <LPSocialProofLogos />
-      <LPStatsBanner />
-      <LPFeatures2Section />
-      <LPHowItWorksSection />
-      <LPPricingSection />
-      <LPContactFormSection />
-      <LPFAQSection />
+      <LPHeader />
+      <div className="pt-20">
+        <LPHeroSection />
+        <LPFeatures1Section />
+        <LPSocialProofLogos />
+        <LPStatsBanner />
+        <LPFeatures2Section />
+        <LPHowItWorksSection />
+        <LPPricingSection />
+        <LPContactFormSection />
+        <LPFAQSection />
+      </div>
       <LPFooter />
     </div>
   );
