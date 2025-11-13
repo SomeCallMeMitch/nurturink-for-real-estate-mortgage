@@ -1,6 +1,7 @@
 import { createServiceClient } from 'npm:@base44/sdk@0.8.4';
 import Stripe from 'npm:stripe@14.11.0';
 
+// Stripe Webhook Handler - Processes payment completions
 // ⚠️ DEV MODE - SET TO FALSE BEFORE PRODUCTION ⚠️
 // When true, skips Stripe signature validation for testing in sandbox
 const DEV_MODE = true;
@@ -192,7 +193,7 @@ Deno.serve(async (req) => {
         }
       }
       
-      // ==================== CREDIT BALANCE UPDATE (UPDATED FOR NEW SYSTEM) ====================
+      // ==================== CREDIT BALANCE UPDATE ====================
       
       if (isOrgPurchase && organization) {
         // Organization purchase - goes to organization.creditBalance
