@@ -31,6 +31,7 @@ import SuperAdminWhitelabel from './pages/SuperAdminWhitelabel';
 import Landing from './pages/Landing';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
+import UpdateUserRole from './pages/UpdateUserRole';
 import Layout from './Layout.jsx';
 
 
@@ -68,6 +69,7 @@ export const PAGES = {
     "Landing": Landing,
     "landing1": landing1,
     "lp": lp,
+    "UpdateUserRole": UpdateUserRole,
 }
 
 export const pagesConfig = {
