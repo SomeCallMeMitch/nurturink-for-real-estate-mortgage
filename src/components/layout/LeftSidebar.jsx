@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { motion } from "framer-motion";
 import { createPageUrl } from "@/utils";
 import {
   Home,
@@ -152,12 +153,12 @@ export default function LeftSidebar({ whitelabelSettings }) {
                 e.target.nextElementSibling.style.display = 'block';
               }}
             />
-            <h1 className="text-2xl font-bold text-indigo-600" style={{ display: logoUrl ? 'none' : 'block' }}>
+            <h1 className="text-2xl font-bold text-blue-600" style={{ display: logoUrl ? 'none' : 'block' }}>
               {brandName}
             </h1>
           </div>
         ) : (
-          <h1 className="text-2xl font-bold text-indigo-600">{brandName}</h1>
+          <h1 className="text-2xl font-bold text-blue-600">{brandName}</h1>
         )}
       </div>
 
@@ -167,16 +168,22 @@ export default function LeftSidebar({ whitelabelSettings }) {
           const isActive = isMenuItemActive(item.path);
 
           return (
-            <Link
+            <motion.div
               key={item.id}
-              to={createPageUrl(item.path)}
-              className={`flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors ${
-                isActive ? "bg-indigo-50 text-indigo-600 font-semibold" : ""
-              }`}
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
-              <Icon className="w-5 h-5" />
-              <span>{item.label}</span>
-            </Link>
+              <Link
+                to={createPageUrl(item.path)}
+                className={`flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors ${
+                  isActive ? "bg-blue-50 text-blue-600 font-semibold shadow-sm" : ""
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </Link>
+            </motion.div>
           );
         })}
 

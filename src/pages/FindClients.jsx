@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -351,15 +351,15 @@ export default function FindClients() {
       return <ChevronsUpDown className="w-5 h-5 opacity-30 group-hover:opacity-60 transition-opacity" />;
     }
     return sortDirection === 'asc'
-      ? <ChevronUp className="w-5 h-5 text-indigo-600 font-bold" />
-      : <ChevronDown className="w-5 h-5 text-indigo-600 font-bold" />;
+      ? <ChevronUp className="w-5 h-5 text-blue-600 font-bold" />
+      : <ChevronDown className="w-5 h-5 text-blue-600 font-bold" />;
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <Users className="w-12 h-12 text-indigo-600 mx-auto mb-4 animate-pulse" />
+          <Users className="w-12 h-12 text-blue-600 mx-auto mb-4 animate-pulse" />
           <p className="text-gray-600">Loading clients...</p>
         </div>
       </div>
@@ -508,7 +508,7 @@ export default function FindClients() {
                 <Button
                   onClick={handleContinue}
                   disabled={selectedClientIds.length === 0 || initializing}
-                  className="bg-indigo-600 hover:bg-indigo-700 gap-2"
+                  className="bg-blue-600 hover:bg-blue-700 gap-2"
                 >
                   {initializing ? 'Initializing...' : 'Continue to Content'}
                   {!initializing && <ArrowRight className="w-4 h-4" />}
@@ -547,7 +547,7 @@ export default function FindClients() {
                   {/* Name column - sortable */}
                   <button
                     onClick={() => handleSort('name')}
-                    className="flex-1 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 transition-colors group"
+                    className="flex-1 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors group"
                   >
                     <span>Name / Company</span>
                     {getSortIcon('name')}
@@ -556,7 +556,7 @@ export default function FindClients() {
                   {/* Location column - sortable */}
                   <button
                     onClick={() => handleSort('location')}
-                    className="w-40 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 transition-colors group"
+                    className="w-40 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors group"
                   >
                     <span>Location</span>
                     {getSortIcon('location')}
@@ -565,7 +565,7 @@ export default function FindClients() {
                   {/* Notes column - sortable */}
                   <button
                     onClick={() => handleSort('notes')}
-                    className="w-32 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 transition-colors group"
+                    className="w-32 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors group"
                   >
                     <Mail className="w-4 h-4" />
                     <span>Notes</span>
@@ -575,7 +575,7 @@ export default function FindClients() {
                   {/* Last Note column - sortable */}
                   <button
                     onClick={() => handleSort('lastNote')}
-                    className="w-40 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-indigo-600 transition-colors group"
+                    className="w-40 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors group"
                   >
                     <Calendar className="w-4 h-4" />
                     <span>Last Note</span>
@@ -587,20 +587,24 @@ export default function FindClients() {
                 </div>
 
                 {/* Client Rows */}
-                {processedClients.map((client) => {
+                {processedClients.map((client, index) => {
                   const isSelected = selectedClientIds.includes(client.id);
                   const isFavorited = favoriteClientIds.has(client.id);
                   const totalNotes = client.totalNotesSent || 0;
                   const lastNoteDate = formatDate(client.lastNoteSentDate);
 
                   return (
-                    <div
+                    <motion.div
                       key={client.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, delay: index * 0.03 }}
+                      whileHover={{ scale: 1.01 }}
                       onClick={() => handleToggleClient(client.id)}
                       className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
                         isSelected
-                          ? 'border-indigo-600 bg-indigo-50'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
+                          ? 'border-blue-600 bg-blue-50 shadow-md'
+                          : 'border-gray-200 hover:border-blue-300 bg-white hover:shadow-sm'
                       }`}
                     >
                       {/* Checkbox */}
@@ -667,7 +671,7 @@ export default function FindClients() {
                       >
                         <Star className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
                       </Button>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>

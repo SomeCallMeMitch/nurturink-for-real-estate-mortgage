@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -213,22 +214,33 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
       <div className="max-w-4xl mx-auto p-8 pt-20">
         {/* Header */}
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
             Welcome to <span className="brand-text-primary">RoofScribe</span>
           </h1>
           <p className="text-xl text-gray-600">
             Send personalized handwritten notecards to your clients
           </p>
-        </div>
+        </motion.div>
 
         {/* Quick Actions */}
         <div className="grid gap-6 mb-8">
           {/* Send a Card */}
-          <Card className="border-2 border-blue-500 hover:shadow-lg transition-all">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card className="border-2 border-blue-500 hover:shadow-xl transition-all">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -255,7 +267,13 @@ export default function Home() {
           </Card>
 
           {/* Test Credits */}
-          <Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -310,7 +328,13 @@ export default function Home() {
           </Card>
 
           {/* Seed Test Data */}
-          <Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -362,9 +386,16 @@ export default function Home() {
               </CardContent>
             )}
           </Card>
+          </motion.div>
 
           {/* Seed Template Categories */}
-          <Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -417,9 +448,16 @@ export default function Home() {
               </CardContent>
             )}
           </Card>
+          </motion.div>
 
           {/* Seed Templates & Profiles */}
-          <Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -472,9 +510,16 @@ export default function Home() {
               </CardContent>
             )}
           </Card>
+          </motion.div>
 
           {/* Seed Pricing Tiers */}
-          <Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -529,9 +574,16 @@ export default function Home() {
               </CardContent>
             )}
           </Card>
+          </motion.div>
 
           {/* Card Design Management */}
-          <Card>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -555,6 +607,7 @@ export default function Home() {
               </div>
             </CardHeader>
           </Card>
+          </motion.div>
         </div>
 
         {/* Info Box */}
@@ -563,39 +616,39 @@ export default function Home() {
             <h3 className="font-semibold text-gray-900 mb-2">Quick Start Guide:</h3>
             <ol className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-indigo-600">1.</span>
+                <span className="font-semibold text-blue-600">1.</span>
                 <span>Click "Add 20 Credits" to get test credits for your account</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-indigo-600">2.</span>
+                <span className="font-semibold text-blue-600">2.</span>
                 <span>Click "Seed Test Data" to create 10 sample clients (first time only)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-indigo-600">3.</span>
+                <span className="font-semibold text-blue-600">3.</span>
                 <span>Click "Seed Categories" to create template categories (super admin, first time only)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-indigo-600">4.</span>
+                <span className="font-semibold text-blue-600">4.</span>
                 <span>Click "Seed Templates" to create sample templates and note style profiles (first time only)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-indigo-600">5.</span>
+                <span className="font-semibold text-blue-600">5.</span>
                 <span>Click "Seed Pricing" to create default pricing tiers (super admin or org owner)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-indigo-600">6.</span>
+                <span className="font-semibold text-blue-600">6.</span>
                 <span>Click "Manage Cards" to create card designs and categories (super admin)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-indigo-600">7.</span>
+                <span className="font-semibold text-blue-600">7.</span>
                 <span>Click "Send a Card" to start the workflow</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-indigo-600">8.</span>
+                <span className="font-semibold text-blue-600">8.</span>
                 <span>Select clients and compose your message</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="font-semibold text-indigo-600">9.</span>
+                <span className="font-semibold text-blue-600">9.</span>
                 <span>Choose a design and send your notecards!</span>
               </li>
             </ol>
