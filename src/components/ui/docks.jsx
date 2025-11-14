@@ -2,7 +2,7 @@ import React from "react";
 import { Sun, Moon, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { useDarkMode } from "@/components/hooks/useDarkMode";
+import { useDarkMode } from "../hooks/useDarkMode";
 
 export function Docks() {
   const navigate = useNavigate();
