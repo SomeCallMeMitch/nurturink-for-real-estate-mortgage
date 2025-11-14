@@ -327,6 +327,7 @@ export default function Home() {
               </CardContent>
             )}
           </Card>
+          </motion.div>
 
           {/* Seed Test Data */}
           <motion.div
