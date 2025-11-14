@@ -24,17 +24,17 @@ export default function LPHeader() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
         isScrolled
-          ? "bg-white shadow-md py-3"
-          : "bg-white/95 backdrop-blur-sm py-4"
+          ? "bg-white dark:bg-gray-900 shadow-md py-3"
+          : "bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm py-4"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="#" className="text-2xl font-bold text-orange-500">
+            <a href="#" className="text-2xl font-bold text-orange-500 dark:text-orange-400">
               RoofScribe
             </a>
           </div>
@@ -45,7 +45,7 @@ export default function LPHeader() {
               <a
                 key={index}
                 href={link.href}
-                className="text-gray-700 hover:text-orange-500 font-medium transition-colors"
+                className="text-gray-700 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 font-medium transition-colors"
               >
                 {link.label}
               </a>
@@ -62,7 +62,7 @@ export default function LPHeader() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-gray-700 hover:text-orange-500"
+            className="md:hidden p-2 text-gray-700 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400"
           >
             {isMobileMenuOpen ? (
               <X className="w-6 h-6" />
@@ -74,13 +74,13 @@ export default function LPHeader() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-200 dark:border-gray-700">
             <nav className="flex flex-col space-y-3 pt-4">
               {navLinks.map((link, index) => (
                 <a
                   key={index}
                   href={link.href}
-                  className="text-gray-700 hover:text-orange-500 font-medium transition-colors py-2"
+                  className="text-gray-700 dark:text-gray-300 hover:text-orange-500 dark:hover:text-orange-400 font-medium transition-colors py-2"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.label}
