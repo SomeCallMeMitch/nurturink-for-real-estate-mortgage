@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import LeftSidebar from "./LeftSidebar";
+import { Docks } from "@/components/ui/docks";
 
 export default function MainLayout({ children, whitelabelSettings }) {
   // Apply whitelabel colors dynamically
@@ -34,9 +35,13 @@ export default function MainLayout({ children, whitelabelSettings }) {
   }, [whitelabelSettings]);
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <LeftSidebar whitelabelSettings={whitelabelSettings} />
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto relative">
+        {/* Dark mode toggle - positioned top right */}
+        <div className="fixed top-4 right-6 z-50">
+          <Docks />
+        </div>
         {children}
       </main>
       
