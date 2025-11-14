@@ -139,7 +139,7 @@ export default function LeftSidebar({ whitelabelSettings }) {
 
   return (
     <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-colors duration-300">
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         {logoUrl ? (
           <div className="flex items-center gap-3">
             <img 
@@ -152,12 +152,12 @@ export default function LeftSidebar({ whitelabelSettings }) {
                 e.target.nextElementSibling.style.display = 'block';
               }}
             />
-            <h1 className="text-2xl font-bold text-indigo-600" style={{ display: logoUrl ? 'none' : 'block' }}>
+            <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400" style={{ display: logoUrl ? 'none' : 'block' }}>
               {brandName}
             </h1>
           </div>
         ) : (
-          <h1 className="text-2xl font-bold text-indigo-600">{brandName}</h1>
+          <h1 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{brandName}</h1>
         )}
       </div>
 
@@ -170,8 +170,10 @@ export default function LeftSidebar({ whitelabelSettings }) {
             <Link
               key={item.id}
               to={createPageUrl(item.path)}
-              className={`flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors ${
-                isActive ? "bg-indigo-50 text-indigo-600 font-semibold" : ""
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                isActive 
+                  ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-semibold" 
+                  : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -182,11 +184,13 @@ export default function LeftSidebar({ whitelabelSettings }) {
 
         {/* Super Admin Links - Conditionally rendered only for 'super_admin' role */}
         {user && user.appRole === 'super_admin' && (
-          <div className="pt-4 mt-4 border-t border-gray-200">
+          <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
             <Link
               to={superAdminPageUrl}
-              className={`flex items-center gap-3 px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors ${
-                location.pathname === superAdminPageUrl ? "bg-purple-50 text-purple-700 font-semibold" : ""
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                location.pathname === superAdminPageUrl 
+                  ? "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-semibold" 
+                  : "text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300"
               }`}
             >
               <Shield className="w-5 h-5" />
@@ -195,8 +199,10 @@ export default function LeftSidebar({ whitelabelSettings }) {
             
             <Link
               to={whitelabelPageUrl}
-              className={`flex items-center gap-3 px-4 py-2 rounded-lg text-purple-600 hover:bg-purple-50 hover:text-purple-700 transition-colors ${
-                location.pathname === whitelabelPageUrl ? "bg-purple-50 text-purple-700 font-semibold" : ""
+              className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
+                location.pathname === whitelabelPageUrl 
+                  ? "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 font-semibold" 
+                  : "text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300"
               }`}
             >
               <Palette className="w-5 h-5" />
@@ -206,10 +212,10 @@ export default function LeftSidebar({ whitelabelSettings }) {
         )}
       </nav>
 
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors w-full"
+          className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100 transition-colors w-full"
         >
           <LogOut className="w-5 h-5" />
           <span>Logout</span>
