@@ -1,0 +1,283 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* =========================
+     BLUE PRIMARY PALETTE
+     ========================= */
+  
+  /* Foundation Blues - Deep professional blue as primary */
+  --blue-primary: #1E40AF;        /* Deep Royal Blue - Primary brand color */
+  --blue-primary-light: #3B82F6;  /* Bright Blue - Hover states, accents */
+  --blue-primary-lighter: #60A5FA; /* Sky Blue - Subtle accents */
+  --blue-primary-dark: #1E3A8A;   /* Navy Blue - Dark mode, headers */
+  --blue-primary-darker: #172554;  /* Midnight Blue - Deepest shade */
+  
+  /* Accent Blues - Supporting tones */
+  --blue-accent: #0EA5E9;         /* Vivid Cyan Blue - CTAs, highlights */
+  --blue-accent-light: #38BDF8;   /* Light Cyan - Hover effects */
+  --blue-teal: #0D9488;           /* Teal Blue - Success states */
+  --blue-indigo: #6366F1;         /* Indigo - Special features */
+  
+  /* =========================
+     COMPLEMENTARY COLORS
+     ========================= */
+  
+  /* Warm Accents - For contrast and energy */
+  --orange-warm: #F97316;         /* Vibrant Orange - CTAs, urgency */
+  --orange-light: #FB923C;        /* Soft Orange - Hover states */
+  --amber-accent: #F59E0B;        /* Amber Gold - Premium features */
+  
+  /* Success & Status */
+  --green-success: #10B981;       /* Emerald Green - Success messages */
+  --green-light: #34D399;         /* Light Green - Success backgrounds */
+  --red-error: #EF4444;           /* Bright Red - Errors */
+  --yellow-warning: #F59E0B;      /* Amber - Warnings */
+  
+  /* =========================
+     NEUTRAL FOUNDATIONS
+     ========================= */
+  
+  /* Cool Grays - Blue-tinted for cohesion */
+  --gray-50: #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E1;
+  --gray-400: #94A3B8;
+  --gray-500: #64748B;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1E293B;
+  --gray-900: #0F172A;
+  
+  /* Pure */
+  --white: #FFFFFF;
+  --black: #000000;
+  
+  /* =========================
+     SEMANTIC COLOR MAPPING
+     ========================= */
+  
+  /* Backgrounds */
+  --bg-primary: var(--white);
+  --bg-secondary: var(--gray-50);
+  --bg-tertiary: var(--gray-100);
+  --bg-dark: var(--gray-900);
+  --bg-blue-subtle: #EFF6FF;      /* Very light blue tint */
+  --bg-blue-light: #DBEAFE;       /* Light blue for sections */
+  
+  /* Text */
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-600);
+  --text-tertiary: var(--gray-500);
+  --text-inverse: var(--white);
+  --text-link: var(--blue-accent);
+  
+  /* Borders */
+  --border-light: var(--gray-200);
+  --border-medium: var(--gray-300);
+  --border-dark: var(--gray-400);
+  --border-blue: var(--blue-primary-lighter);
+  
+  /* =========================
+     COMPONENT STATES
+     ========================= */
+  
+  /* Interactive States */
+  --state-hover: var(--blue-primary-light);
+  --state-active: var(--blue-primary-dark);
+  --state-focus: var(--blue-accent);
+  --state-disabled: var(--gray-300);
+  
+  /* Button Colors */
+  --btn-primary-bg: var(--blue-primary);
+  --btn-primary-hover: var(--blue-primary-dark);
+  --btn-primary-text: var(--white);
+  
+  --btn-secondary-bg: var(--orange-warm);
+  --btn-secondary-hover: #EA580C;
+  --btn-secondary-text: var(--white);
+  
+  --btn-outline-border: var(--blue-primary);
+  --btn-outline-text: var(--blue-primary);
+  --btn-outline-hover-bg: var(--bg-blue-subtle);
+  
+  /* Card & Surface Colors */
+  --card-bg: var(--white);
+  --card-hover: var(--gray-50);
+  --card-border: var(--border-light);
+  --card-shadow: rgba(30, 64, 175, 0.08);
+  
+  /* Badge & Tag Colors */
+  --badge-blue-bg: #DBEAFE;
+  --badge-blue-text: var(--blue-primary-dark);
+  --badge-orange-bg: #FED7AA;
+  --badge-orange-text: #9A3412;
+  --badge-green-bg: #D1FAE5;
+  --badge-green-text: #065F46;
+  
+  /* =========================
+     BRAND GRADIENT SETS
+     ========================= */
+  
+  /* Gradient 1: Ocean Depth */
+  --gradient-ocean-start: #1E40AF;
+  --gradient-ocean-end: #0EA5E9;
+  
+  /* Gradient 2: Sunset Warmth */
+  --gradient-sunset-start: #F97316;
+  --gradient-sunset-end: #F59E0B;
+  
+  /* Gradient 3: Cool Professional */
+  --gradient-cool-start: #3B82F6;
+  --gradient-cool-end: #6366F1;
+  
+  /* Gradient 4: Energetic */
+  --gradient-energy-start: #0EA5E9;
+  --gradient-energy-end: #10B981;
+}
+
+/* =========================
+   UTILITY CLASSES
+   ========================= */
+
+.brand-gradient-ocean {
+  background: linear-gradient(135deg, var(--gradient-ocean-start) 0%, var(--gradient-ocean-end) 100%);
+}
+
+.brand-gradient-sunset {
+  background: linear-gradient(135deg, var(--gradient-sunset-start) 0%, var(--gradient-sunset-end) 100%);
+}
+
+.brand-gradient-cool {
+  background: linear-gradient(135deg, var(--gradient-cool-start) 0%, var(--gradient-cool-end) 100%);
+}
+
+.brand-gradient-energy {
+  background: linear-gradient(135deg, var(--gradient-energy-start) 0%, var(--gradient-energy-end) 100%);
+}
+
+.brand-text-primary {
+  color: var(--blue-primary);
+}
+
+.brand-text-accent {
+  color: var(--blue-accent);
+}
+
+.brand-bg-primary {
+  background-color: var(--blue-primary);
+}
+
+.brand-bg-light {
+  background-color: var(--bg-blue-subtle);
+}
+
+.brand-border {
+  border-color: var(--blue-primary);
+}
+
+.brand-shadow {
+  box-shadow: 0 4px 6px -1px var(--card-shadow), 0 2px 4px -2px var(--card-shadow);
+}
+
+.brand-shadow-lg {
+  box-shadow: 0 10px 15px -3px var(--card-shadow), 0 4px 6px -4px var(--card-shadow);
+}
+
+/* Button Styles */
+.btn-brand-primary {
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  transition: all 0.2s ease;
+}
+
+.btn-brand-primary:hover {
+  background-color: var(--btn-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(30, 64, 175, 0.2);
+}
+
+.btn-brand-secondary {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  transition: all 0.2s ease;
+}
+
+.btn-brand-secondary:hover {
+  background-color: var(--btn-secondary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(249, 115, 22, 0.2);
+}
+
+/* Card Styles */
+.card-brand {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.card-brand:hover {
+  border-color: var(--blue-primary-lighter);
+  box-shadow: var(--brand-shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* =========================
+   ACCESSIBILITY
+   ========================= */
+
+/* Focus indicators - meets WCAG AAA */
+*:focus-visible {
+  outline: 2px solid var(--state-focus);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --blue-primary: #1E3A8A;
+    --text-primary: #000000;
+    --border-light: #475569;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================
+   TYPOGRAPHY ENHANCEMENTS
+   ========================= */
+
+.text-brand-heading {
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.text-brand-body {
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.text-brand-link {
+  color: var(--text-link);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.text-brand-link:hover {
+  color: var(--blue-primary-dark);
+  text-decoration: underline;
+}
