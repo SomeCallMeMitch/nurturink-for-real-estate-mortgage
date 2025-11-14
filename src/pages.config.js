@@ -32,7 +32,6 @@ import Landing from './pages/Landing';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
 import UpdateUserRole from './pages/UpdateUserRole';
-import lp1 from './pages/lp1';
 import Layout from './Layout.jsx';
 
 
@@ -71,7 +70,6 @@ export const PAGES = {
     "landing1": landing1,
     "lp": lp,
     "UpdateUserRole": UpdateUserRole,
-    "lp1": lp1,
 }
 
 export const pagesConfig = {

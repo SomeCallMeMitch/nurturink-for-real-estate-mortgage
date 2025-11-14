@@ -2,13 +2,9 @@ import React, { useEffect, useState } from "react";
 import MainLayout from "./components/layout/MainLayout";
 import { Toaster } from "@/components/ui/toaster";
 import { base44 } from "@/api/base44Client";
-import { useDarkMode } from "./components/hooks/useDarkMode";
 
 export default function Layout({ children, currentPageName }) {
   const [whitelabelSettings, setWhitelabelSettings] = useState(null);
-  
-  // Initialize dark mode
-  useDarkMode();
 
   useEffect(() => {
     // Load whitelabel settings for favicon

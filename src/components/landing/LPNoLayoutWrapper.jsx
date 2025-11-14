@@ -1,23 +1,21 @@
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { Docks } from "@/components/ui/docks";
-import { useDarkMode } from "../hooks/useDarkMode";
 
 /**
  * Minimal layout wrapper for landing pages that bypasses MainLayout
  * This ensures no left navigation or app chrome appears on marketing pages
  */
 export default function LPNoLayoutWrapper({ children }) {
-  // Initialize dark mode for landing pages
-  useDarkMode();
+  console.log('🔍 LPNoLayoutWrapper.jsx: Component is rendering');
+  console.log('🔍 LPNoLayoutWrapper.jsx: Children received:', !!children);
+  
+  React.useEffect(() => {
+    console.log('🔍 LPNoLayoutWrapper.jsx: Component mounted in DOM');
+    console.log('🔍 LPNoLayoutWrapper.jsx: This wrapper should bypass all MainLayout logic');
+  }, []);
   
   return (
     <>
-      {/* Dark mode toggle - positioned top right */}
-      <div className="fixed top-4 right-6 z-[9999]">
-        <Docks />
-      </div>
-      
       {/* Google Fonts for handwritten card preview (if needed) */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

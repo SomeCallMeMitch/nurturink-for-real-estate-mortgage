@@ -14,6 +14,7 @@ import {
   Trash, 
   Loader2, 
   DollarSign,
+  Tag,
   X,
   Star
 } from 'lucide-react';
@@ -39,6 +40,9 @@ import { useToast } from '@/components/ui/use-toast';
 export default function AdminPricing() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Active tab
+  const [activeTab, setActiveTab] = useState('pricing');
   
   // Data
   const [pricingTiers, setPricingTiers] = useState([]);
@@ -313,110 +317,154 @@ export default function AdminPricing() {
           </p>
         </div>
 
-        {/* REMOVED: Tab navigation between Pricing Tiers and Coupons */}
-        {/* Coupons now has its own dedicated page accessible from the sidebar */}
-
-        {/* Pricing Tiers Content (no longer in a tab) */}
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <p className="text-gray-600">
-              Create and manage pricing packages for credit purchases
-            </p>
-            <Button onClick={handleAddTier} className="bg-indigo-600 hover:bg-indigo-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Tier
-            </Button>
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <div className="flex gap-4">
+            <button
+              onClick={() => setActiveTab('pricing')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                activeTab === 'pricing'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4" />
+                Pricing Tiers ({pricingTiers.length})
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('coupons')}
+              className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+                activeTab === 'coupons'
+                  ? 'border-indigo-600 text-indigo-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Tag className="w-4 h-4" />
+                Coupons
+              </div>
+            </button>
           </div>
+        </div>
 
-          {pricingTiers.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">No pricing tiers yet. Create your first tier!</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {pricingTiers.map((tier) => (
-                <Card key={tier.id} className={`relative ${tier.isMostPopular ? 'border-2 border-orange-500' : ''}`}>
-                  {/* Most Popular Badge */}
-                  {tier.isMostPopular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <div className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-current" />
-                        Most Popular
-                      </div>
-                    </div>
-                  )}
+        {/* Pricing Tiers Tab */}
+        {activeTab === 'pricing' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <p className="text-gray-600">
+                Create and manage pricing packages for credit purchases
+              </p>
+              <Button onClick={handleAddTier} className="bg-indigo-600 hover:bg-indigo-700">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Tier
+              </Button>
+            </div>
 
-                  <CardHeader className={tier.isMostPopular ? 'pt-8' : ''}>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>{tier.name}</span>
-                      {!tier.isActive && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded font-normal">
-                          Inactive
-                        </span>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-
-                  <CardContent>
-                    {/* Price Display */}
-                    <div className="mb-4">
-                      <div className="text-3xl font-bold text-gray-900">
-                        {formatPrice(tier.priceInCents)}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        for {tier.creditAmount} {tier.creditAmount === 1 ? 'note' : 'notes'}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {getPricePerCredit(tier.priceInCents, tier.creditAmount)} per note
-                      </div>
-                    </div>
-
-                    {/* Highlights */}
-                    {tier.highlights && tier.highlights.length > 0 && (
-                      <div className="mb-4 space-y-2">
-                        {tier.highlights.map((highlight, idx) => (
-                          <div key={idx} className="flex items-start gap-2 text-sm text-gray-700">
-                            <span className="text-green-600 mt-0.5">✓</span>
-                            <span>{highlight}</span>
-                          </div>
-                        ))}
+            {pricingTiers.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500">No pricing tiers yet. Create your first tier!</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {pricingTiers.map((tier) => (
+                  <Card key={tier.id} className={`relative ${tier.isMostPopular ? 'border-2 border-orange-500' : ''}`}>
+                    {/* Most Popular Badge */}
+                    {tier.isMostPopular && (
+                      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                        <div className="bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1">
+                          <Star className="w-3 h-3 fill-current" />
+                          Most Popular
+                        </div>
                       </div>
                     )}
 
-                    {/* Metadata */}
-                    <div className="text-xs text-gray-500 mb-4 pt-4 border-t">
-                      Sort order: {tier.sortOrder}
-                    </div>
+                    <CardHeader className={tier.isMostPopular ? 'pt-8' : ''}>
+                      <CardTitle className="flex items-center justify-between">
+                        <span>{tier.name}</span>
+                        {!tier.isActive && (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded font-normal">
+                            Inactive
+                          </span>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
 
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditTier(tier)}
-                        className="flex-1"
-                      >
-                        <Pencil className="w-3 h-3 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteClick(tier)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
+                    <CardContent>
+                      {/* Price Display */}
+                      <div className="mb-4">
+                        <div className="text-3xl font-bold text-gray-900">
+                          {formatPrice(tier.priceInCents)}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          for {tier.creditAmount} {tier.creditAmount === 1 ? 'note' : 'notes'}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {getPricePerCredit(tier.priceInCents, tier.creditAmount)} per note
+                        </div>
+                      </div>
+
+                      {/* Highlights */}
+                      {tier.highlights && tier.highlights.length > 0 && (
+                        <div className="mb-4 space-y-2">
+                          {tier.highlights.map((highlight, idx) => (
+                            <div key={idx} className="flex items-start gap-2 text-sm text-gray-700">
+                              <span className="text-green-600 mt-0.5">✓</span>
+                              <span>{highlight}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Metadata */}
+                      <div className="text-xs text-gray-500 mb-4 pt-4 border-t">
+                        Sort order: {tier.sortOrder}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditTier(tier)}
+                          className="flex-1"
+                        >
+                          <Pencil className="w-3 h-3 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteClick(tier)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Coupons Tab - Placeholder */}
+        {activeTab === 'coupons' && (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Tag className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Coupons Coming Soon</h3>
+              <p className="text-gray-500">
+                Coupon management will be available in a future update
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Tier Form Dialog */}
         <Dialog open={tierFormOpen} onOpenChange={setTierFormOpen}>
