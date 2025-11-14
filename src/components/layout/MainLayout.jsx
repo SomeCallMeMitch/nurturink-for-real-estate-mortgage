@@ -38,11 +38,13 @@ export default function MainLayout({ children, whitelabelSettings }) {
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
       <LeftSidebar whitelabelSettings={whitelabelSettings} />
       <main className="flex-1 overflow-y-auto relative">
-        {/* Dark mode toggle - positioned top right */}
-        <div className="fixed top-4 right-6 z-50">
+        {/* Dark mode toggle - positioned top right with high z-index */}
+        <div className="fixed top-4 right-6 z-[100]">
           <Docks />
         </div>
-        {children}
+        <div className="pt-2">
+          {children}
+        </div>
       </main>
       
       {/* Global whitelabel styles */}

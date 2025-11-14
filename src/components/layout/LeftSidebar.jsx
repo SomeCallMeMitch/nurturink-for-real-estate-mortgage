@@ -138,7 +138,7 @@ export default function LeftSidebar({ whitelabelSettings }) {
   ) : [];
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
+    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-colors duration-300">
       <div className="p-4 border-b border-gray-200">
         {logoUrl ? (
           <div className="flex items-center gap-3">
