@@ -265,6 +265,7 @@ export default function Home() {
               </div>
             </CardHeader>
           </Card>
+          </motion.div>
 
           {/* Test Credits */}
           <motion.div

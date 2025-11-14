@@ -436,7 +436,7 @@ export default function FindClients() {
                       variant={isSelected ? "default" : "outline"}
                       className={`cursor-pointer transition-colors ${
                         isSelected
-                          ? 'bg-indigo-600 hover:bg-indigo-700'
+                          ? 'bg-blue-600 hover:bg-blue-700'
                           : 'hover:bg-gray-100'
                       }`}
                       onClick={() => handleToggleTag(tag)}
