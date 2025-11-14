@@ -7,12 +7,11 @@ import LPContactFormSection from "@/components/landing/LPContactFormSection";
 import LPFAQSection from "@/components/landing/LPFAQSection";
 import LPFooter from "@/components/landing/LPFooter";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Star, Users, TrendingUp, Target } from "lucide-react";
+import { ArrowRight, Play, Clock, DollarSign, Users, Zap, CheckCircle2, MessageSquare, Send } from "lucide-react";
 
 export default function LP1Page() {
   return (
     <LPNoLayoutWrapper>
-      {/* CSS to hide left navigation and expand main content */}
       <style>{`
         aside.w-64.bg-white.border-r.border-gray-200.flex.flex-col {
           display: none !important;
@@ -40,43 +39,32 @@ export default function LP1Page() {
         <LPHeader />
         
         <div className="pt-20">
-          {/* Hero Section */}
-          <section className="bg-gradient-to-br from-orange-50 to-white py-20">
-            <div className="max-w-7xl mx-auto px-6 lg:px-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Hero Section - Matching LPHeroSection style */}
+          <section className="bg-white py-16 lg:py-24">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="grid lg:grid-cols-2 gap-12 items-center">
                 <div>
-                  <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                  <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
                     Turn More Roofing Leads into Signed Contracts
                   </h1>
-                  <p className="text-xl text-gray-600 mb-8">
+                  <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                     The proven way to stay top of mind for up to a week
                   </p>
-                  <div className="flex gap-4">
-                    <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-6 text-lg">
-                      Get Started Free
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-lg font-semibold gap-2">
+                      Get Your Free Sample Note
+                      <ArrowRight className="w-5 h-5" />
                     </Button>
-                    <Button size="lg" variant="outline" className="border-gray-300 px-8 py-6 text-lg">
-                      Watch Demo
+                    <Button size="lg" variant="outline" className="text-lg px-8 py-6 rounded-lg font-semibold gap-2 border-2 border-gray-300">
+                      <Play className="w-5 h-5" />
+                      See How It Works
                     </Button>
-                  </div>
-                  <div className="mt-8 flex items-center gap-6 text-sm text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span>No credit card required</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CheckCircle2 className="w-5 h-5 text-green-600" />
-                      <span>Free sample included</span>
-                    </div>
                   </div>
                 </div>
                 <div className="relative">
-                  <div className="bg-gray-200 rounded-lg shadow-2xl aspect-video flex items-center justify-center">
-                    <div className="text-gray-400 text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/80 flex items-center justify-center">
-                        <div className="w-0 h-0 border-l-8 border-l-orange-600 border-t-6 border-t-transparent border-b-6 border-b-transparent ml-1"></div>
-                      </div>
-                      <p className="text-sm">Video Player</p>
+                  <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl shadow-2xl flex items-center justify-center">
+                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                      <Play className="w-10 h-10 text-orange-500 ml-1" />
                     </div>
                   </div>
                 </div>
@@ -84,10 +72,10 @@ export default function LP1Page() {
             </div>
           </section>
 
-          {/* Features Grid 1 - Benefits/Value Props */}
-          <section className="py-20 bg-white">
-            <div className="max-w-7xl mx-auto px-6 lg:px-8">
-              <div className="text-center mb-16">
+          {/* Features Grid 1 - Matching LPFeatures2Section style */}
+          <section className="bg-white py-16">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="text-center mb-12">
                 <h2 className="text-4xl font-bold text-gray-900 mb-4">
                   Why Roofing Pros Trust Us
                 </h2>
@@ -96,88 +84,109 @@ export default function LP1Page() {
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {[
                   {
-                    icon: <Target className="w-12 h-12 text-orange-600" />,
-                    title: "Stand Out from Competition",
-                    description: "Be the only roofer they remember with authentic handwritten cards"
+                    icon: Clock,
+                    title: "Save Hours Every Week",
+                    description: "No more writing cards by hand. We handle everything from printing to mailing."
                   },
                   {
-                    icon: <TrendingUp className="w-12 h-12 text-orange-600" />,
-                    title: "Increase Close Rates",
-                    description: "Convert 2-3x more leads into signed contracts with personal touches"
+                    icon: DollarSign,
+                    title: "Less Than a Coffee",
+                    description: "Under $3 per card including postage, envelope, and handwritten personalization."
                   },
                   {
-                    icon: <Users className="w-12 h-12 text-orange-600" />,
-                    title: "Build Trust Fast",
-                    description: "Handwritten notes create instant credibility and trust"
+                    icon: Users,
+                    title: "Perfect for Teams",
+                    description: "Allocate credits to sales reps. Track who sends what. Manage everything centrally."
                   },
                   {
-                    icon: <Star className="w-12 h-12 text-orange-600" />,
-                    title: "Get More Referrals",
-                    description: "Customers remember you and recommend you to neighbors"
+                    icon: Zap,
+                    title: "Send in Minutes",
+                    description: "Select clients, customize message, choose design. Done. We handle the rest."
                   }
-                ].map((feature, idx) => (
-                  <div key={idx} className="bg-white p-6 rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
-                    <div className="mb-4">{feature.icon}</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-3">{feature.title}</h3>
-                    <p className="text-gray-600">{feature.description}</p>
-                  </div>
-                ))}
+                ].map((feature, idx) => {
+                  const Icon = feature.icon;
+                  return (
+                    <div key={idx} className="text-center">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Icon className="w-8 h-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
+                      <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </section>
 
-          {/* How It Works Section */}
-          <section className="py-20 bg-gray-50">
-            <div className="max-w-7xl mx-auto px-6 lg:px-8">
-              <div className="text-center mb-16">
+          {/* How It Works Section - Matching LPHowItWorksSection style */}
+          <section className="bg-gray-50 py-16">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="text-center mb-12">
                 <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                  How It Works
+                  How It Works in 3 Simple Steps
                 </h2>
                 <p className="text-xl text-gray-600">
-                  Send handwritten cards in 3 simple steps
+                  From upload to mailbox in minutes
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              <div className="grid md:grid-cols-3 gap-8">
                 {[
                   {
                     number: "1",
-                    title: "Upload Your Leads",
-                    description: "Import contacts from your CRM or add them manually"
+                    icon: Users,
+                    title: "Choose Your Recipients",
+                    description: "Select clients from your CRM or upload a list. Tag and organize however you like."
                   },
                   {
                     number: "2",
-                    title: "Customize Your Message",
-                    description: "Choose a template or write your own personal message"
+                    icon: MessageSquare,
+                    title: "Personalize Your Message",
+                    description: "Use templates or write custom messages. Add merge fields for personal touches."
                   },
                   {
                     number: "3",
-                    title: "We Mail It For You",
-                    description: "Cards are written, addressed, stamped and mailed automatically"
+                    icon: Send,
+                    title: "We Handle the Rest",
+                    description: "Our robots write with real pens, address envelopes, add postage, and mail them out."
                   }
-                ].map((step, idx) => (
-                  <div key={idx} className="text-center relative">
-                    <div className="bg-orange-600 text-white w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">
-                      {step.number}
+                ].map((step, idx) => {
+                  const Icon = step.icon;
+                  return (
+                    <div key={idx} className="relative">
+                      <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 h-full">
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
+                            {step.number}
+                          </div>
+                          <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <Icon className="w-6 h-6 text-orange-600" />
+                          </div>
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
+                        <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                      </div>
+                      
+                      {idx < 2 && (
+                        <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                          <div className="w-8 h-0.5 bg-orange-300"></div>
+                        </div>
+                      )}
                     </div>
-                    <h3 className="text-2xl font-semibold text-gray-900 mb-4">{step.title}</h3>
-                    <p className="text-gray-600">{step.description}</p>
-                    {idx < 2 && (
-                      <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-orange-200"></div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </section>
 
           {/* Features Grid 2 - Product Features */}
-          <section className="py-20 bg-white">
-            <div className="max-w-7xl mx-auto px-6 lg:px-8">
-              <div className="text-center mb-16">
+          <section className="bg-white py-16">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="text-center mb-12">
                 <h2 className="text-4xl font-bold text-gray-900 mb-4">
                   Everything You Need to Succeed
                 </h2>
@@ -186,7 +195,7 @@ export default function LP1Page() {
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
                   {
                     title: "Real Handwritten Cards",
@@ -213,12 +222,12 @@ export default function LP1Page() {
                     description: "Know exactly when your cards arrive at prospects' homes"
                   }
                 ].map((feature, idx) => (
-                  <div key={idx} className="bg-gray-50 p-6 rounded-lg">
+                  <div key={idx} className="bg-gray-50 rounded-lg p-6">
                     <div className="flex items-start gap-3">
-                      <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
+                      <CheckCircle2 className="w-6 h-6 text-blue-600 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                        <p className="text-gray-600">{feature.description}</p>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">{feature.title}</h3>
+                        <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
                       </div>
                     </div>
                   </div>
@@ -227,39 +236,36 @@ export default function LP1Page() {
             </div>
           </section>
 
-          {/* Stats Section from existing lp */}
+          {/* Stats Section */}
           <LPStatsBanner />
 
-          {/* Pricing Section from existing lp */}
+          {/* Pricing Section */}
           <LPPricingSection />
 
           {/* Video Section - Get Your Free Sample */}
-          <section className="py-20 bg-orange-600">
-            <div className="max-w-5xl mx-auto px-6 lg:px-8">
+          <section className="bg-gradient-to-br from-orange-500 to-orange-600 py-16">
+            <div className="max-w-5xl mx-auto px-6">
               <div className="text-center mb-12">
                 <h2 className="text-4xl font-bold text-white mb-4">
                   Get Your Free Sample
                 </h2>
-                <p className="text-xl text-orange-100">
+                <p className="text-xl text-orange-100 leading-relaxed">
                   See the quality for yourself - we'll send you a free handwritten card
                 </p>
               </div>
               
-              <div className="bg-white rounded-lg shadow-2xl aspect-video max-w-3xl mx-auto flex items-center justify-center">
-                <div className="text-gray-400 text-center">
-                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-orange-100 flex items-center justify-center">
-                    <div className="w-0 h-0 border-l-10 border-l-orange-600 border-t-8 border-t-transparent border-b-8 border-b-transparent ml-1"></div>
-                  </div>
-                  <p className="text-lg font-medium">Video: See Our Process</p>
+              <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl shadow-2xl max-w-3xl mx-auto flex items-center justify-center">
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                  <Play className="w-10 h-10 text-orange-500 ml-1" />
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Contact Form Section from existing lp - Updated title to match "Get Your Free Sample" */}
+          {/* Contact Form Section */}
           <LPContactFormSection />
 
-          {/* FAQ Section from existing lp */}
+          {/* FAQ Section */}
           <LPFAQSection />
         </div>
 
