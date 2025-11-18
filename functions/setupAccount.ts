@@ -16,16 +16,16 @@ Deno.serve(async (req) => {
     }
 
     // Check if user is already onboarded
-    if (user.onboardingStatus === 'completed') {
+    if (user.onboardingComplete) {
         return Response.json({ success: true, message: "Already onboarded" });
     }
 
     let orgId = null;
     let appRole = 'sales_rep';
+    let accountTier = 'individual';
 
     if (role === 'sales_rep') {
       // Create a personal organization for the sales rep
-      // This simplifies logic so everyone has an orgId
       const org = await base44.asServiceRole.entities.Organization.create({
         name: `${user.full_name}'s Workspace`,
         accountType: 'company', // Treated as a company of 1
@@ -33,11 +33,8 @@ Deno.serve(async (req) => {
         creditBalance: 0
       });
       orgId = org.id;
-      appRole = 'sales_rep'; // Or organization_owner of their own workspace? 
-      // Prompt says Tier 1 is Individual Sales Rep. 
-      // Let's keep them as sales_rep but with their own org.
-      // Actually, if they pay directly, they act as an owner of their personal account.
-      // Let's set appRole to 'sales_rep' but they own the org.
+      appRole = 'sales_rep';
+      accountTier = 'individual';
     } 
     else if (role === 'company') {
       const org = await base44.asServiceRole.entities.Organization.create({
@@ -50,6 +47,7 @@ Deno.serve(async (req) => {
       });
       orgId = org.id;
       appRole = 'organization_owner';
+      accountTier = 'company';
     }
     else if (role === 'whitelabel') {
       const org = await base44.asServiceRole.entities.Organization.create({
@@ -61,14 +59,15 @@ Deno.serve(async (req) => {
         creditBalance: 0
       });
       orgId = org.id;
-      appRole = 'whitelabel_owner';
+      appRole = 'whitelabel_partner'; // Note: User schema enum says 'whitelabel_partner', not 'whitelabel_owner'
+      accountTier = 'whitelabel_partner';
       
       // Create WhitelabelPartner entity
       await base44.asServiceRole.entities.WhitelabelPartner.create({
         organizationId: org.id,
         partnerName: org.name,
-        wholesalePricePerCredit: 200, // Default wholesale price
-        resalePricePerCredit: 300, // Default resale price
+        wholesalePricePerCredit: 200, 
+        resalePricePerCredit: 300, 
       });
     }
 
@@ -76,9 +75,10 @@ Deno.serve(async (req) => {
     await base44.auth.updateMe({
       orgId: orgId,
       appRole: appRole,
-      onboardingStatus: 'completed',
-      jobTitle: details?.jobTitle,
-      phoneNumber: details?.phone
+      accountTier: accountTier,
+      onboardingComplete: true,
+      title: details?.jobTitle,
+      phone: details?.phone
     });
 
     return Response.json({ success: true, orgId, appRole });

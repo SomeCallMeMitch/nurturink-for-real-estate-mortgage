@@ -27,7 +27,7 @@ export default function Onboarding() {
     // Check if already onboarded
     const checkStatus = async () => {
       const user = await base44.auth.me();
-      if (user?.onboardingStatus === 'completed') {
+      if (user?.onboardingComplete) {
         navigate('/Home');
       }
     };
@@ -59,7 +59,6 @@ export default function Onboarding() {
           title: "Account Setup Complete",
           description: "Welcome to RoofScribe! Let's get you started.",
         });
-        // Force reload or re-fetch user to update context if needed, but navigation should trigger re-render
         window.location.href = '/Home'; 
       } else {
         throw new Error(response.data.error || "Setup failed");

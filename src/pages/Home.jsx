@@ -17,7 +17,7 @@ export default function Home() {
     const checkOnboarding = async () => {
       try {
         const user = await base44.auth.me();
-        if (user && (!user.onboardingStatus || user.onboardingStatus === 'pending')) {
+        if (user && !user.onboardingComplete) {
           navigate('/Onboarding');
         }
       } catch (e) {
