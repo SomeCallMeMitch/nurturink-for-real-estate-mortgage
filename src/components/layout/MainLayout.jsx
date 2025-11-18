@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { motion } from "framer-motion";
-import LeftSidebar from "./LeftSidebar";
+import TwoLevelSidebar from "./TwoLevelSidebar";
 
 export default function MainLayout({ children, whitelabelSettings }) {
   // Apply whitelabel colors dynamically
@@ -36,7 +36,7 @@ export default function MainLayout({ children, whitelabelSettings }) {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      <LeftSidebar whitelabelSettings={whitelabelSettings} />
+      <TwoLevelSidebar whitelabelSettings={whitelabelSettings} />
       <motion.main 
         className="flex-1 overflow-y-auto"
         initial={{ opacity: 0 }}
