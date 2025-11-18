@@ -18,7 +18,12 @@ import {
   Palette,
   Plus,
   CreditCard,
-  UserCircle
+  UserCircle,
+  PenTool,
+  MapPin,
+  Phone,
+  Link as LinkIcon,
+  Building
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
@@ -28,36 +33,7 @@ const softSpringEasing = "cubic-bezier(0.25, 1.1, 0.4, 1)";
 
 /* ----------------------------- Brand / Logos ----------------------------- */
 
-function BrandBadge({ whitelabelSettings, isCollapsed }) {
-  const logoUrl = whitelabelSettings?.logoUrl;
-  const brandName = whitelabelSettings?.brandName || 'RoofScribe';
-
-  if (isCollapsed) return null;
-
-  return (
-    <div className="relative shrink-0 w-full">
-      <div className="flex items-center p-1 w-full h-12">
-        {logoUrl ? (
-          <div className="flex items-center gap-3 px-2">
-            <img 
-              src={logoUrl} 
-              alt={brandName}
-              className="h-8 w-auto object-contain"
-            />
-            {/* Hide text if logo is present, or show it? Usually hide if logo has text. 
-                Let's show text only if no logo, or side-by-side if fitting. */}
-          </div>
-        ) : (
-          <div className="px-4 py-1">
-            <div className="font-semibold text-lg text-blue-600 truncate">
-              {brandName}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+// BrandBadge component removed to prevent double logos
 
 function MiniLogo({ whitelabelSettings }) {
   const logoUrl = whitelabelSettings?.logoUrl;
@@ -190,11 +166,26 @@ function getSidebarContent(activeSection, user, role) {
       title: "Settings",
       sections: [
         {
-          title: "Account",
+          title: "Profile & Preferences",
           items: [
-            { icon: <UserCircle size={16} />, label: "Profile", path: "SettingsProfile" },
+            { icon: <UserCircle size={16} />, label: "My Profile", path: "SettingsProfile" },
+            { icon: <PenTool size={16} />, label: "Writing Style", path: "SettingsWritingStyle" },
           ],
         },
+        {
+          title: "Contact Information",
+          items: [
+            { icon: <MapPin size={16} />, label: "Addresses", path: "SettingsAddresses" },
+            { icon: <Phone size={16} />, label: "Phone Numbers", path: "SettingsPhones" },
+            { icon: <LinkIcon size={16} />, label: "Social Links", path: "SettingsUrls" },
+          ]
+        },
+        ...(hasRole(['organization_owner', 'super_admin']) ? [{
+          title: "Organization",
+          items: [
+            { icon: <Building size={16} />, label: "Company Settings", path: "SettingsOrganization" },
+          ]
+        }] : []),
         ...(hasRole(['super_admin']) ? [{
           title: "Administration",
           items: [
@@ -302,10 +293,10 @@ function SectionTitle({
   isCollapsed,
 }) {
   return (
-    <div className={`w-full overflow-hidden transition-all duration-500 ${isCollapsed ? "px-0" : "px-2"}`} style={{ transitionTimingFunction: softSpringEasing }}>
-      <div className="flex items-center justify-between h-10">
+    <div className={`w-full overflow-hidden transition-all duration-500 ${isCollapsed ? "px-0" : "px-4"}`} style={{ transitionTimingFunction: softSpringEasing }}>
+      <div className="flex items-center justify-between h-12 border-b border-gray-100 mb-2">
         {!isCollapsed && (
-          <div className="font-semibold text-lg text-gray-800 leading-tight ml-2">
+          <div className="font-bold text-xl text-gray-900 leading-tight tracking-tight">
             {title}
           </div>
         )}
@@ -313,10 +304,10 @@ function SectionTitle({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center justify-center rounded-lg size-8 hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex items-center justify-center rounded-md size-8 hover:bg-gray-100 text-gray-400 hover:text-blue-600 transition-colors"
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            <ChevronDownIcon size={16} className={`transition-transform duration-500 ${isCollapsed ? "rotate-90" : "-rotate-90"}`} />
+            <ChevronDownIcon size={18} className={`transition-transform duration-500 ${isCollapsed ? "rotate-90" : "-rotate-90"}`} />
           </button>
         </div>
       </div>
@@ -355,9 +346,10 @@ function DetailSidebar({ activeSection, whitelabelSettings, user, onLogout }) {
       }`}
       style={{ transitionTimingFunction: softSpringEasing }}
     >
-      {!isCollapsed && <BrandBadge whitelabelSettings={whitelabelSettings} isCollapsed={isCollapsed} />}
-
-      <SectionTitle title={content.title} onToggleCollapse={toggleCollapse} isCollapsed={isCollapsed} />
+      {/* Removed BrandBadge to avoid double logo */}
+      <div className="pt-2 w-full">
+        <SectionTitle title={content.title} onToggleCollapse={toggleCollapse} isCollapsed={isCollapsed} />
+      </div>
 
       <div
         className={`flex flex-col w-full overflow-y-auto px-2 transition-all duration-500 ${
