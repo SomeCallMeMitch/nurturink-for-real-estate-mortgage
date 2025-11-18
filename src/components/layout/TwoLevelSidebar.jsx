@@ -95,15 +95,17 @@ function getSidebarContent(activeSection, user, role) {
       ],
     },
     mailing: {
-      title: "Mailing",
+      title: "Send a Card",
       sections: [
         {
-          title: "Actions",
+          title: "Workflow",
           items: [
-            { icon: <Mail size={16} />, label: "Send a Card", path: "FindClients" },
+            { icon: <Users size={16} />, label: "1. Find Clients", path: "FindClients" },
+            { icon: <FileText size={16} />, label: "2. Create Content", path: "CreateContent" },
+            { icon: <Palette size={16} />, label: "3. Select Design", path: "SelectDesign" },
+            { icon: <Mail size={16} />, label: "4. Review & Send", path: "ReviewAndSend" },
           ],
         },
-        // Add History or Campaigns here if available
       ],
     },
     contacts: {
@@ -234,7 +236,7 @@ function IconNavigation({
   // Define nav items with permissions
   const allNavItems = [
     { id: "dashboard", icon: <Dashboard size={20} />, label: "Dashboard", roles: ['sales_rep', 'organization_owner', 'super_admin'] },
-    { id: "mailing", icon: <Mail size={20} />, label: "Mailing", roles: ['sales_rep', 'organization_owner', 'super_admin'] },
+    { id: "mailing", icon: <Mail size={20} />, label: "Send a Card", roles: ['sales_rep', 'organization_owner', 'super_admin'] },
     { id: "contacts", icon: <Users size={20} />, label: "Contacts", roles: ['sales_rep', 'organization_owner', 'super_admin'] },
     { id: "templates", icon: <FileText size={20} />, label: "Templates", roles: ['sales_rep', 'organization_owner', 'super_admin'] },
     { id: "credits", icon: <DollarSign size={20} />, label: "Credits", roles: ['sales_rep', 'organization_owner', 'super_admin'] },
@@ -503,7 +505,7 @@ export default function TwoLevelSidebar({ whitelabelSettings }) {
   useEffect(() => {
     const path = location.pathname;
     // Simple heuristic to set active section based on path
-    if (path.includes("FindClients")) setActiveSection("mailing");
+    if (path.includes("FindClients") || path.includes("CreateContent") || path.includes("SelectDesign") || path.includes("ReviewAndSend")) setActiveSection("mailing");
     else if (path.includes("Clients")) setActiveSection("contacts");
     else if (path.includes("Template")) setActiveSection("templates");
     else if (path.includes("Credits") || path.includes("Order")) setActiveSection("credits");
