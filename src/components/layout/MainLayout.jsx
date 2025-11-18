@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
-import { motion } from "framer-motion";
-import TwoLevelSidebar from "./TwoLevelSidebar";
+import React, { useEffect, useState } from "react";
+import { AppSidebar } from "./AppSidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function MainLayout({ children, whitelabelSettings }) {
   // Apply whitelabel colors dynamically
@@ -11,11 +11,14 @@ export default function MainLayout({ children, whitelabelSettings }) {
       // Apply primary color
       if (whitelabelSettings.primaryColor) {
         root.style.setProperty('--color-primary', whitelabelSettings.primaryColor);
+        // Also set sidebar primary variables if needed
+        root.style.setProperty('--sidebar-primary', whitelabelSettings.primaryColor);
       }
       
       // Apply accent color
       if (whitelabelSettings.accentColor) {
         root.style.setProperty('--color-accent', whitelabelSettings.accentColor);
+        root.style.setProperty('--sidebar-accent', whitelabelSettings.accentColor);
       }
       
       // Apply background color
@@ -35,16 +38,18 @@ export default function MainLayout({ children, whitelabelSettings }) {
   }, [whitelabelSettings]);
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <TwoLevelSidebar whitelabelSettings={whitelabelSettings} />
-      <motion.main 
-        className="flex-1 overflow-y-auto"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        {children}
-      </motion.main>
+    <SidebarProvider>
+      <AppSidebar whitelabelSettings={whitelabelSettings} />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b px-4">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="-ml-1" />
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-y-auto">
+          {children}
+        </div>
+      </SidebarInset>
       
       {/* Global whitelabel styles - Font overrides only */}
       {whitelabelSettings && (
@@ -71,35 +76,29 @@ export default function MainLayout({ children, whitelabelSettings }) {
             font-family: 'Patrick Hand', cursive !important;
           }
           
-          /* Smooth transitions for all interactive elements */
-          * {
-            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 200ms;
+          /* Sidebar variable overrides for customization */
+          :root {
+             --sidebar-background: #ffffff;
+             --sidebar-foreground: #374151;
+             --sidebar-primary: var(--primary);
+             --sidebar-primary-foreground: #ffffff;
+             --sidebar-accent: #f3f4f6;
+             --sidebar-accent-foreground: #111827;
+             --sidebar-border: #e5e7eb;
+             --sidebar-ring: var(--ring);
+          }
+          .dark {
+             --sidebar-background: #111827;
+             --sidebar-foreground: #f3f4f6;
+             --sidebar-primary: var(--primary);
+             --sidebar-primary-foreground: #ffffff;
+             --sidebar-accent: #1f2937;
+             --sidebar-accent-foreground: #f3f4f6;
+             --sidebar-border: #374151;
+             --sidebar-ring: var(--ring);
           }
         `}</style>
       )}
-    </div>
+    </SidebarProvider>
   );
-}
-
-// Helper function to convert hex to RGB
-function hexToRgb(hex) {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result 
-    ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
-    : '79, 70, 229'; // fallback to indigo-600
-}
-
-// Helper function to adjust brightness
-function adjustBrightness(hex, percent) {
-  const num = parseInt(hex.replace('#', ''), 16);
-  const amt = Math.round(2.55 * percent);
-  const R = (num >> 16) + amt;
-  const G = (num >> 8 & 0x00FF) + amt;
-  const B = (num & 0x0000FF) + amt;
-  return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-    (B < 255 ? B < 1 ? 0 : B : 255))
-    .toString(16).slice(1);
 }
