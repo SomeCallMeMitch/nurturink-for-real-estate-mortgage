@@ -33,7 +33,6 @@ import landing1 from './pages/landing1';
 import lp from './pages/lp';
 import UpdateUserRole from './pages/UpdateUserRole';
 import SidebarDemo from './pages/SidebarDemo';
-import Onboarding from './pages/Onboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -73,7 +72,6 @@ export const PAGES = {
     "lp": lp,
     "UpdateUserRole": UpdateUserRole,
     "SidebarDemo": SidebarDemo,
-    "Onboarding": Onboarding,
 }
 
 export const pagesConfig = {

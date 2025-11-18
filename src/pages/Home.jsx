@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +18,6 @@ export default function Home() {
       try {
         const user = await base44.auth.me();
         if (user && (!user.onboardingStatus || user.onboardingStatus === 'pending')) {
-          // Not onboarded yet, redirect
           navigate('/Onboarding');
         }
       } catch (e) {
