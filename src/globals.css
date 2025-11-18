@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===================================
+   ROOFSCRIBE GLOBAL THEME SYSTEM
+   Light/Dark Mode via .dark class
+   =================================== */
+
 :root {
   /* =========================
      BLUE PRIMARY PALETTE
