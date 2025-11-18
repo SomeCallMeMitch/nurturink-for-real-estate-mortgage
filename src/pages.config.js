@@ -32,7 +32,8 @@ import Landing from './pages/Landing';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
 import UpdateUserRole from './pages/UpdateUserRole';
-import Layout from './Layout.jsx';
+import SidebarDemo from './pages/SidebarDemo';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -70,10 +71,11 @@ export const PAGES = {
     "landing1": landing1,
     "lp": lp,
     "UpdateUserRole": UpdateUserRole,
+    "SidebarDemo": SidebarDemo,
 }
 
 export const pagesConfig = {
     mainPage: "Home",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };
