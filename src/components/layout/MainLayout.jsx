@@ -46,58 +46,16 @@ export default function MainLayout({ children, whitelabelSettings }) {
         {children}
       </motion.main>
       
-      {/* Global whitelabel styles */}
+      {/* Global whitelabel styles - Font overrides only */}
       {whitelabelSettings && (
         <style>{`
-          :root {
-            --primary-rgb: ${hexToRgb(whitelabelSettings.primaryColor || '#4F46E5')};
-            --accent-rgb: ${hexToRgb(whitelabelSettings.accentColor || '#7C3AED')};
-          }
-          
-          /* Apply primary blue color scheme */
-          .bg-indigo-600, .bg-blue-600 {
-            background-color: ${whitelabelSettings.primaryColor || '#1E40AF'} !important;
-          }
-          
-          .hover\\:bg-indigo-700:hover, .hover\\:bg-blue-700:hover {
-            background-color: ${adjustBrightness(whitelabelSettings.primaryColor || '#1E40AF', -10)} !important;
-          }
-          
-          .text-indigo-600, .text-blue-600 {
-            color: ${whitelabelSettings.primaryColor || '#1E40AF'} !important;
-          }
-          
-          .border-indigo-600, .border-blue-600, .border-blue-500 {
-            border-color: ${whitelabelSettings.primaryColor || '#1E40AF'} !important;
-          }
-          
-          .bg-indigo-50, .bg-blue-50 {
-            background-color: ${adjustBrightness(whitelabelSettings.primaryColor || '#1E40AF', 90)} !important;
-          }
-          
-          /* Smooth transitions for all interactive elements */
-          * {
-            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
-            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-            transition-duration: 200ms;
-          }
-          
-          /* Apply accent color */
-          .bg-purple-600 {
-            background-color: ${whitelabelSettings.accentColor || '#7C3AED'} !important;
-          }
-          
-          .text-purple-600 {
-            color: ${whitelabelSettings.accentColor || '#7C3AED'} !important;
-          }
-          
-          /* Apply fonts - REMOVED !important to allow preview fonts to work */
+          /* Apply fonts from WL settings if available, otherwise use theme defaults */
           h1, h2, h3, h4, h5, h6 {
-            font-family: '${whitelabelSettings.fontHeadings || 'Inter'}', sans-serif;
+            font-family: '${whitelabelSettings.fontHeadings || 'Helvetica Neue'}', sans-serif;
           }
           
           body, p:not([class*="font-"]), span:not([class*="font-"]), div:not([class*="font-"]) {
-            font-family: '${whitelabelSettings.fontBody || 'Inter'}', sans-serif;
+            font-family: '${whitelabelSettings.fontBody || 'Helvetica Neue'}', sans-serif;
           }
           
           /* Ensure handwriting fonts always take precedence */
@@ -111,6 +69,13 @@ export default function MainLayout({ children, whitelabelSettings }) {
           
           .font-patrick, .font-patrick * {
             font-family: 'Patrick Hand', cursive !important;
+          }
+          
+          /* Smooth transitions for all interactive elements */
+          * {
+            transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform;
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            transition-duration: 200ms;
           }
         `}</style>
       )}
