@@ -1,3 +1,4 @@
+css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,139 +9,58 @@
    =================================== */
 
 :root {
-  /* =========================
-     BLUE PRIMARY PALETTE
-     ========================= */
-  
-  /* Foundation Blues - Deep professional blue as primary */
-  --blue-primary: #1E40AF;        /* Deep Royal Blue - Primary brand color */
-  --blue-primary-light: #3B82F6;  /* Bright Blue - Hover states, accents */
-  --blue-primary-lighter: #60A5FA; /* Sky Blue - Subtle accents */
-  --blue-primary-dark: #1E3A8A;   /* Navy Blue - Dark mode, headers */
-  --blue-primary-darker: #172554;  /* Midnight Blue - Deepest shade */
-  
-  /* Accent Blues - Supporting tones */
-  --blue-accent: #0EA5E9;         /* Vivid Cyan Blue - CTAs, highlights */
-  --blue-accent-light: #38BDF8;   /* Light Cyan - Hover effects */
-  --blue-teal: #0D9488;           /* Teal Blue - Success states */
-  --blue-indigo: #6366F1;         /* Indigo - Special features */
-  
-  /* =========================
-     COMPLEMENTARY COLORS
-     ========================= */
-  
-  /* Warm Accents - For contrast and energy */
-  --orange-warm: #F97316;         /* Vibrant Orange - CTAs, urgency */
-  --orange-light: #FB923C;        /* Soft Orange - Hover states */
-  --amber-accent: #F59E0B;        /* Amber Gold - Premium features */
-  
-  /* Success & Status */
-  --green-success: #10B981;       /* Emerald Green - Success messages */
-  --green-light: #34D399;         /* Light Green - Success backgrounds */
-  --red-error: #EF4444;           /* Bright Red - Errors */
-  --yellow-warning: #F59E0B;      /* Amber - Warnings */
-  
-  /* =========================
-     NEUTRAL FOUNDATIONS
-     ========================= */
-  
-  /* Cool Grays - Blue-tinted for cohesion */
-  --gray-50: #F8FAFC;
-  --gray-100: #F1F5F9;
-  --gray-200: #E2E8F0;
-  --gray-300: #CBD5E1;
-  --gray-400: #94A3B8;
-  --gray-500: #64748B;
-  --gray-600: #475569;
-  --gray-700: #334155;
-  --gray-800: #1E293B;
-  --gray-900: #0F172A;
-  
-  /* Pure */
-  --white: #FFFFFF;
-  --black: #000000;
-  
-  /* =========================
-     SEMANTIC COLOR MAPPING
-     ========================= */
-  
-  /* Backgrounds */
-  --bg-primary: var(--white);
-  --bg-secondary: var(--gray-50);
-  --bg-tertiary: var(--gray-100);
-  --bg-dark: var(--gray-900);
-  --bg-blue-subtle: #EFF6FF;      /* Very light blue tint */
-  --bg-blue-light: #DBEAFE;       /* Light blue for sections */
-  
-  /* Text */
-  --text-primary: var(--gray-900);
-  --text-secondary: var(--gray-600);
-  --text-tertiary: var(--gray-500);
-  --text-inverse: var(--white);
-  --text-link: var(--blue-accent);
-  
-  /* Borders */
-  --border-light: var(--gray-200);
-  --border-medium: var(--gray-300);
-  --border-dark: var(--gray-400);
-  --border-blue: var(--blue-primary-lighter);
-  
-  /* =========================
-     COMPONENT STATES
-     ========================= */
-  
-  /* Interactive States */
-  --state-hover: var(--blue-primary-light);
-  --state-active: var(--blue-primary-dark);
-  --state-focus: var(--blue-accent);
-  --state-disabled: var(--gray-300);
-  
-  /* Button Colors */
-  --btn-primary-bg: var(--blue-primary);
-  --btn-primary-hover: var(--blue-primary-dark);
-  --btn-primary-text: var(--white);
-  
-  --btn-secondary-bg: var(--orange-warm);
-  --btn-secondary-hover: #EA580C;
-  --btn-secondary-text: var(--white);
-  
-  --btn-outline-border: var(--blue-primary);
-  --btn-outline-text: var(--blue-primary);
-  --btn-outline-hover-bg: var(--bg-blue-subtle);
-  
-  /* Card & Surface Colors */
-  --card-bg: var(--white);
-  --card-hover: var(--gray-50);
-  --card-border: var(--border-light);
-  --card-shadow: rgba(30, 64, 175, 0.08);
-  
-  /* Badge & Tag Colors */
-  --badge-blue-bg: #DBEAFE;
-  --badge-blue-text: var(--blue-primary-dark);
-  --badge-orange-bg: #FED7AA;
-  --badge-orange-text: #9A3412;
-  --badge-green-bg: #D1FAE5;
-  --badge-green-text: #065F46;
-  
-  /* =========================
-     BRAND GRADIENT SETS
-     ========================= */
-  
-  /* Gradient 1: Ocean Depth */
-  --gradient-ocean-start: #1E40AF;
-  --gradient-ocean-end: #0EA5E9;
-  
-  /* Gradient 2: Sunset Warmth */
-  --gradient-sunset-start: #F97316;
-  --gradient-sunset-end: #F59E0B;
-  
-  /* Gradient 3: Cool Professional */
-  --gradient-cool-start: #3B82F6;
-  --gradient-cool-end: #6366F1;
-  
-  /* Gradient 4: Energetic */
-  --gradient-energy-start: #0EA5E9;
-  --gradient-energy-end: #10B981;
+  /* Core Theme Variables */
+  --card: #ffffff;
+  --ring: #0477d1;
+  --input: #e3e3e3;
+  --muted: #eeeeee;
+  --accent: #e3e3e3;
+  --border: #e3e3e3;
+  --radius: 0.5rem;
+  --shadow: 0 0 3px 2px rgba(100, 100, 100, 0.6);
+  --popover: #ffffff;
+  --primary: #0477d1;
+  --spacing: 4px;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --secondary: #edf6fc;
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 3px 3px 5px 0 rgba(100, 100, 100, 0.6);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --background: #ffffff;
+  --foreground: #222222;
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --destructive: #d9363d;
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  --card-foreground: #222222;
+  --muted-foreground: #787878;
+  --accent-foreground: #035392;
+  --popover-foreground: #222222;
+  --primary-foreground: #ffffff;
+  --secondary-foreground: #575757;
+  --destructive-foreground: #ffffff;
+}
+
+.dark {
+  --card: #1a1a1a;
+  --ring: #0c82d6;
+  --input: #4a4a4a;
+  --muted: #3a3a3a;
+  --accent: #4a4a4a;
+  --border: #4a4a4a;
+  --popover: #1a1a1a;
+  --primary: #0c82d6;
+  --secondary: #2a2a2a;
+  --background: #000000;
+  --foreground: #ffffff;
+  --destructive: #c0392b;
+  --card-foreground: #ffffff;
+  --muted-foreground: #8a8a8a;
+  --accent-foreground: #e3e3e3;
+  --popover-foreground: #ffffff;
+  --primary-foreground: #ffffff;
+  --secondary-foreground: #a3a3a3;
+  --destructive-foreground: #ffffff;
 }
 
 /* =========================
