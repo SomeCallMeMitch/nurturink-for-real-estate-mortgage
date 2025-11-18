@@ -1,0 +1,90 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { role, companyName, details } = await req.json();
+
+    if (!['sales_rep', 'company', 'whitelabel'].includes(role)) {
+      return Response.json({ error: 'Invalid role selected' }, { status: 400 });
+    }
+
+    // Check if user is already onboarded
+    if (user.onboardingStatus === 'completed') {
+        return Response.json({ success: true, message: "Already onboarded" });
+    }
+
+    let orgId = null;
+    let appRole = 'sales_rep';
+
+    if (role === 'sales_rep') {
+      // Create a personal organization for the sales rep
+      // This simplifies logic so everyone has an orgId
+      const org = await base44.asServiceRole.entities.Organization.create({
+        name: `${user.full_name}'s Workspace`,
+        accountType: 'company', // Treated as a company of 1
+        activeTeamMembers: 1,
+        creditBalance: 0
+      });
+      orgId = org.id;
+      appRole = 'sales_rep'; // Or organization_owner of their own workspace? 
+      // Prompt says Tier 1 is Individual Sales Rep. 
+      // Let's keep them as sales_rep but with their own org.
+      // Actually, if they pay directly, they act as an owner of their personal account.
+      // Let's set appRole to 'sales_rep' but they own the org.
+    } 
+    else if (role === 'company') {
+      const org = await base44.asServiceRole.entities.Organization.create({
+        name: companyName || `${user.full_name}'s Company`,
+        accountType: 'company',
+        website: details?.website,
+        phone: details?.phone,
+        activeTeamMembers: 1,
+        creditBalance: 0
+      });
+      orgId = org.id;
+      appRole = 'organization_owner';
+    }
+    else if (role === 'whitelabel') {
+      const org = await base44.asServiceRole.entities.Organization.create({
+        name: companyName || `${user.full_name}'s Agency`,
+        accountType: 'whitelabel_partner',
+        website: details?.website,
+        phone: details?.phone,
+        activeTeamMembers: 1,
+        creditBalance: 0
+      });
+      orgId = org.id;
+      appRole = 'whitelabel_owner';
+      
+      // Create WhitelabelPartner entity
+      await base44.asServiceRole.entities.WhitelabelPartner.create({
+        organizationId: org.id,
+        partnerName: org.name,
+        wholesalePricePerCredit: 200, // Default wholesale price
+        resalePricePerCredit: 300, // Default resale price
+      });
+    }
+
+    // Update User
+    await base44.auth.updateMe({
+      orgId: orgId,
+      appRole: appRole,
+      onboardingStatus: 'completed',
+      jobTitle: details?.jobTitle,
+      phoneNumber: details?.phone
+    });
+
+    return Response.json({ success: true, orgId, appRole });
+
+  } catch (error) {
+    console.error("Setup account error:", error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
