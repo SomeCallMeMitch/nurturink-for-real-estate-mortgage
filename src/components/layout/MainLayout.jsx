@@ -41,12 +41,7 @@ export default function MainLayout({ children, whitelabelSettings }) {
     <SidebarProvider>
       <AppSidebar whitelabelSettings={whitelabelSettings} />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b px-4">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="-ml-1" />
-          </div>
-        </header>
-        <div className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-y-auto">
+        <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto pt-4">
           {children}
         </div>
       </SidebarInset>

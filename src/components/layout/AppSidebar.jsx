@@ -53,6 +53,7 @@ import {
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 function AvatarCircle({ user }) {
@@ -110,6 +111,7 @@ function CollapsibleMenu({ item, location }) {
 
 export function AppSidebar({ whitelabelSettings }) {
   const [user, setUser] = useState(null);
+  const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -198,17 +200,29 @@ export function AppSidebar({ whitelabelSettings }) {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className="flex items-center gap-2 p-2">
-           {whitelabelSettings?.logoUrl ? (
-             <img src={whitelabelSettings.logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
-           ) : (
-             <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
-               R
-             </div>
-           )}
-           <span className="font-bold text-lg truncate group-data-[collapsible=icon]:hidden">
-             {whitelabelSettings?.brandName || 'RoofScribe'}
-           </span>
+        <div className="flex items-center justify-between p-2">
+           <div className="flex items-center gap-2 group-data-[collapsible=icon]:hidden overflow-hidden">
+             {whitelabelSettings?.logoUrl ? (
+               <img src={whitelabelSettings.logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
+             ) : (
+               <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
+                 R
+               </div>
+             )}
+             <span className="font-bold text-lg truncate">
+               {whitelabelSettings?.brandName || 'RoofScribe'}
+             </span>
+           </div>
+           
+           <Button 
+             variant="ghost" 
+             size="icon" 
+             onClick={toggleSidebar}
+             className="shrink-0 ml-auto"
+           >
+             <Menu className="h-5 w-5" />
+             <span className="sr-only">Toggle Sidebar</span>
+           </Button>
         </div>
       </SidebarHeader>
       
