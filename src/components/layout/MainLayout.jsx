@@ -13,9 +13,10 @@ export default function MainLayout({ children, whitelabelSettings }) {
     const checkUser = async () => {
       try {
         const u = await base44.auth.me();
+        console.log('MainLayout: Fetched user:', u);
         setUser(u);
       } catch (e) {
-        // ignore
+        console.error('MainLayout: Failed to fetch user:', e);
       } finally {
         setLoading(false);
       }

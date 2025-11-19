@@ -102,6 +102,10 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
     item.roles && (item.roles.includes(user.appRole) || item.roles.includes(user.role))
   ) : [];
 
+  // Debug logging
+  console.log('LeftSidebar rendering. User:', user);
+  console.log('Visible items:', visibleMenuItems.length);
+
   return (
     // Changed w-64 to w-[16rem] to break any potential CSS selector matches from Landing Page styles
     <aside className="w-[16rem] bg-white border-r border-gray-200 flex flex-col h-full">
