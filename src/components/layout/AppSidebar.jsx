@@ -140,7 +140,7 @@ export function AppSidebar({ whitelabelSettings }) {
       title: "App Home", 
       url: "Home", 
       icon: Home,
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
     }
   ];
 

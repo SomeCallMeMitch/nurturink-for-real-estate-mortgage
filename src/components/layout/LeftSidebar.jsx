@@ -70,56 +70,56 @@ export default function LeftSidebar({ whitelabelSettings }) {
       label: 'Home',
       icon: Home,
       path: 'Home',
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
     },
     {
       id: 'send-card',
       label: 'Send a Card',
       icon: Mail,
       path: 'FindClients',
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
     },
     {
       id: 'clients',
       label: 'Clients',
       icon: Users,
       path: 'AdminClients',
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
     },
     {
       id: 'templates',
       label: 'Templates',
       icon: FileText,
       path: 'Templates',
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
     },
     {
       id: 'credits',
       label: 'Credits',
       icon: DollarSign,
       path: 'Credits',
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
     },
     {
       id: 'team',
       label: 'Team',
       icon: UsersRound,
       path: 'TeamManagement',
-      roles: ['organization_owner', 'super_admin']
+      roles: ['organization_owner', 'whitelabel_partner', 'super_admin']
     },
     {
       id: 'analytics',
       label: 'Analytics',
       icon: BarChart3,
       path: 'Analytics',
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
     },
     {
       id: 'settings',
       label: 'Settings',
       icon: Settings,
       path: 'SettingsProfile',
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
     }
   ];
 
