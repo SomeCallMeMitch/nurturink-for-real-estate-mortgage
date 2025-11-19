@@ -24,7 +24,8 @@ import {
   MapPin,
   Phone,
   Link as LinkIcon,
-  Building
+  Building,
+  Home
 } from "lucide-react";
 
 import {
@@ -134,51 +135,11 @@ export function AppSidebar({ whitelabelSettings }) {
   const hasRole = (allowedRoles) => !allowedRoles || (user && allowedRoles.includes(user.appRole));
 
   const navItems = [
+    // Generic User Items - kept for Super Admin to access user features if needed
     { 
-      title: "Dashboard", 
+      title: "App Home", 
       url: "Home", 
-      icon: LayoutDashboard,
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
-    },
-    {
-      title: "Send a Card",
-      icon: Mail,
-      roles: ['sales_rep', 'organization_owner', 'super_admin'],
-      items: [
-        { title: "1. Find Clients", url: "FindClients" },
-        { title: "2. Create Content", url: "CreateContent" },
-        { title: "3. Select Design", url: "SelectDesign" },
-        { title: "4. Review & Send", url: "ReviewAndSend" },
-      ]
-    },
-    {
-      title: "Contacts",
-      url: "AdminClients",
-      icon: Users,
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
-    },
-    {
-      title: "Templates",
-      url: "Templates",
-      icon: FileText,
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
-    },
-    {
-      title: "Credits",
-      url: "Credits",
-      icon: DollarSign,
-      roles: ['sales_rep', 'organization_owner', 'super_admin']
-    },
-    {
-      title: "Team",
-      url: "TeamManagement",
-      icon: UsersRound,
-      roles: ['organization_owner', 'super_admin']
-    },
-    {
-      title: "Analytics",
-      url: "Analytics",
-      icon: BarChart3,
+      icon: Home,
       roles: ['sales_rep', 'organization_owner', 'super_admin']
     }
   ];
@@ -193,8 +154,13 @@ export function AppSidebar({ whitelabelSettings }) {
   ];
 
   const adminItems = [
-    { title: "Super Admin", url: "SuperAdminDashboard", icon: Shield },
-    { title: "Whitelabel", url: "SuperAdminWhitelabel", icon: Palette },
+    { title: "Dashboard", url: "SuperAdminDashboard", icon: LayoutDashboard },
+    { title: "Card Designs", url: "SuperAdminCardManagement", icon: Palette },
+    { title: "Pricing Tiers", url: "AdminPricing", icon: DollarSign },
+    { title: "Coupons", url: "AdminCoupons", icon: FileText },
+    { title: "Preview Layout", url: "AdminCardLayout", icon: Shield },
+    { title: "Content Layout", url: "AdminCreateContentLayout", icon: PenTool },
+    { title: "Envelope Layout", url: "AdminEnvelopeLayout", icon: Mail },
   ];
 
   return (
@@ -275,29 +241,28 @@ export function AppSidebar({ whitelabelSettings }) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {hasRole(['super_admin']) && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Administration</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item) => (
-                   <SidebarMenuItem key={item.title}>
-                     <SidebarMenuButton 
-                       asChild 
-                       isActive={location.pathname === createPageUrl(item.url)}
-                       tooltip={item.title}
-                     >
-                       <a href={createPageUrl(item.url)} onClick={(e) => { e.preventDefault(); navigate(createPageUrl(item.url)); }}>
-                         <item.icon />
-                         <span>{item.title}</span>
-                       </a>
-                     </SidebarMenuButton>
-                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        {/* Always show Admin items in this specific Sidebar since it's now Super Admin specific */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminItems.map((item) => (
+                 <SidebarMenuItem key={item.title}>
+                   <SidebarMenuButton 
+                     asChild 
+                     isActive={location.pathname === createPageUrl(item.url)}
+                     tooltip={item.title}
+                   >
+                     <a href={createPageUrl(item.url)} onClick={(e) => { e.preventDefault(); navigate(createPageUrl(item.url)); }}>
+                       <item.icon />
+                       <span>{item.title}</span>
+                     </a>
+                   </SidebarMenuButton>
+                 </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
       </SidebarContent>
 

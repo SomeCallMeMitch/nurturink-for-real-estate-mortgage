@@ -1,8 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { AppSidebar } from "./AppSidebar";
+import LeftSidebar from "./LeftSidebar";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { base44 } from "@/api/base44Client";
 
 export default function MainLayout({ children, whitelabelSettings }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const u = await base44.auth.me();
+        setUser(u);
+      } catch (e) {
+        // ignore
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkUser();
+  }, []);
+
   // Apply whitelabel colors dynamically
   useEffect(() => {
     if (whitelabelSettings) {
@@ -37,63 +56,79 @@ export default function MainLayout({ children, whitelabelSettings }) {
     }
   }, [whitelabelSettings]);
 
-  return (
-    <SidebarProvider>
-      <AppSidebar whitelabelSettings={whitelabelSettings} />
-      <SidebarInset>
-        <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto pt-4">
-          {children}
-        </div>
-      </SidebarInset>
+  const isSuperAdmin = user?.appRole === 'super_admin';
+
+  // Common style block
+  const whitelabelStyles = whitelabelSettings && (
+    <style>{`
+      /* Apply fonts from WL settings if available, otherwise use theme defaults */
+      h1, h2, h3, h4, h5, h6 {
+        font-family: '${whitelabelSettings.fontHeadings || 'Helvetica Neue'}', sans-serif;
+      }
       
-      {/* Global whitelabel styles - Font overrides only */}
-      {whitelabelSettings && (
-        <style>{`
-          /* Apply fonts from WL settings if available, otherwise use theme defaults */
-          h1, h2, h3, h4, h5, h6 {
-            font-family: '${whitelabelSettings.fontHeadings || 'Helvetica Neue'}', sans-serif;
-          }
-          
-          body, p:not([class*="font-"]), span:not([class*="font-"]), div:not([class*="font-"]) {
-            font-family: '${whitelabelSettings.fontBody || 'Helvetica Neue'}', sans-serif;
-          }
-          
-          /* Ensure handwriting fonts always take precedence */
-          .font-caveat, .font-caveat * {
-            font-family: 'Caveat', cursive !important;
-          }
-          
-          .font-kalam, .font-kalam * {
-            font-family: 'Kalam', cursive !important;
-          }
-          
-          .font-patrick, .font-patrick * {
-            font-family: 'Patrick Hand', cursive !important;
-          }
-          
-          /* Sidebar variable overrides for customization */
-          :root {
-             --sidebar-background: #ffffff;
-             --sidebar-foreground: #374151;
-             --sidebar-primary: var(--primary);
-             --sidebar-primary-foreground: #ffffff;
-             --sidebar-accent: #f3f4f6;
-             --sidebar-accent-foreground: #111827;
-             --sidebar-border: #e5e7eb;
-             --sidebar-ring: var(--ring);
-          }
-          .dark {
-             --sidebar-background: #111827;
-             --sidebar-foreground: #f3f4f6;
-             --sidebar-primary: var(--primary);
-             --sidebar-primary-foreground: #ffffff;
-             --sidebar-accent: #1f2937;
-             --sidebar-accent-foreground: #f3f4f6;
-             --sidebar-border: #374151;
-             --sidebar-ring: var(--ring);
-          }
-        `}</style>
-      )}
-    </SidebarProvider>
+      body, p:not([class*="font-"]), span:not([class*="font-"]), div:not([class*="font-"]) {
+        font-family: '${whitelabelSettings.fontBody || 'Helvetica Neue'}', sans-serif;
+      }
+      
+      /* Ensure handwriting fonts always take precedence */
+      .font-caveat, .font-caveat * {
+        font-family: 'Caveat', cursive !important;
+      }
+      
+      .font-kalam, .font-kalam * {
+        font-family: 'Kalam', cursive !important;
+      }
+      
+      .font-patrick, .font-patrick * {
+        font-family: 'Patrick Hand', cursive !important;
+      }
+      
+      /* Sidebar variable overrides for customization */
+      :root {
+         --sidebar-background: #ffffff;
+         --sidebar-foreground: #374151;
+         --sidebar-primary: var(--primary);
+         --sidebar-primary-foreground: #ffffff;
+         --sidebar-accent: #f3f4f6;
+         --sidebar-accent-foreground: #111827;
+         --sidebar-border: #e5e7eb;
+         --sidebar-ring: var(--ring);
+      }
+      .dark {
+         --sidebar-background: #111827;
+         --sidebar-foreground: #f3f4f6;
+         --sidebar-primary: var(--primary);
+         --sidebar-primary-foreground: #ffffff;
+         --sidebar-accent: #1f2937;
+         --sidebar-accent-foreground: #f3f4f6;
+         --sidebar-border: #374151;
+         --sidebar-ring: var(--ring);
+      }
+    `}</style>
+  );
+
+  if (isSuperAdmin) {
+    return (
+      <SidebarProvider>
+        <AppSidebar whitelabelSettings={whitelabelSettings} />
+        <SidebarInset>
+          <div className="flex flex-1 flex-col gap-4 p-4 overflow-y-auto pt-4">
+            {children}
+          </div>
+        </SidebarInset>
+        {whitelabelStyles}
+      </SidebarProvider>
+    );
+  }
+
+  // Regular User Layout - Simple Sidebar
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <LeftSidebar whitelabelSettings={whitelabelSettings} />
+      <main className="flex-1 overflow-y-auto p-8">
+        {children}
+      </main>
+      {whitelabelStyles}
+    </div>
   );
 }
