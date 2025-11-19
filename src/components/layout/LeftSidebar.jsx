@@ -17,88 +17,54 @@ import {
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
-export default function LeftSidebar({ whitelabelSettings }) {
+export default function LeftSidebar({ whitelabelSettings, user }) {
   const location = useLocation();
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      let currentUser = null;
-      try {
-        currentUser = await base44.auth.me();
-
-        // Mock user data for local development if no real user is found
-        if (!currentUser) {
-            currentUser = {
-                id: 'mock-user-123',
-                email: 'test@example.com',
-                isOrgOwner: true,
-                appRole: 'organization_owner',
-                // Uncomment the line below to test 'super_admin' role:
-                // appRole: 'super_admin',
-            };
-        }
-      } catch (error) {
-        console.error("Failed to fetch current user:", error);
-        // Set a default user or null on error
-        currentUser = {
-            id: 'error-user',
-            email: 'error@example.com',
-            isOrgOwner: false,
-            appRole: 'user',
-        };
-      } finally {
-        setUser(currentUser);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const handleLogout = async () => {
     await base44.auth.logout();
-    setUser(null);
   };
 
   // Get brand name and logo from whitelabel settings
   const brandName = whitelabelSettings?.brandName || 'RoofScribe';
   const logoUrl = whitelabelSettings?.logoUrl;
 
-  // Menu items - super_admin has access to ALL items
+  // Menu items
+  // Added 'user' role to all common items to ensure fallback access
   const menuItems = [
     {
       id: 'home',
       label: 'Home',
       icon: Home,
       path: 'Home',
-      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
     },
     {
       id: 'send-card',
       label: 'Send a Card',
       icon: Mail,
       path: 'FindClients',
-      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
     },
     {
       id: 'clients',
       label: 'Clients',
       icon: Users,
       path: 'AdminClients',
-      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
     },
     {
       id: 'templates',
       label: 'Templates',
       icon: FileText,
       path: 'Templates',
-      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
     },
     {
       id: 'credits',
       label: 'Credits',
       icon: DollarSign,
       path: 'Credits',
-      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
     },
     {
       id: 'team',
@@ -112,19 +78,16 @@ export default function LeftSidebar({ whitelabelSettings }) {
       label: 'Analytics',
       icon: BarChart3,
       path: 'Analytics',
-      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
     },
     {
       id: 'settings',
       label: 'Settings',
       icon: Settings,
       path: 'SettingsProfile',
-      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
     }
   ];
-
-  const superAdminPageUrl = createPageUrl('SuperAdminDashboard');
-  const whitelabelPageUrl = createPageUrl('SuperAdminWhitelabel');
 
   // Helper function to check if a menu item is active
   const isMenuItemActive = (pageName) => {
@@ -134,12 +97,14 @@ export default function LeftSidebar({ whitelabelSettings }) {
   };
 
   // Filter menu items based on the user's role
+  // If user has no role (rare), fallback to showing basic items or handle gracefully
   const visibleMenuItems = user ? menuItems.filter(item =>
-    item.roles && item.roles.includes(user.appRole)
+    item.roles && (item.roles.includes(user.appRole) || item.roles.includes(user.role))
   ) : [];
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
+    // Changed w-64 to w-[16rem] to break any potential CSS selector matches from Landing Page styles
+    <aside className="w-[16rem] bg-white border-r border-gray-200 flex flex-col h-full">
       <div className="p-4 border-b border-gray-200">
         {logoUrl ? (
           <div className="flex items-center gap-3">
@@ -162,7 +127,7 @@ export default function LeftSidebar({ whitelabelSettings }) {
         )}
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {visibleMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = isMenuItemActive(item.path);
@@ -186,11 +151,18 @@ export default function LeftSidebar({ whitelabelSettings }) {
             </motion.div>
           );
         })}
-
-        {/* Super Admin links removed as they now use a dedicated layout */}
       </nav>
 
       <div className="p-4 border-t border-gray-200">
+        <div className="mb-4 flex items-center gap-3 px-4">
+             <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold text-sm">
+                 {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
+             </div>
+             <div className="overflow-hidden">
+                 <p className="text-sm font-medium text-gray-900 truncate">{user?.full_name}</p>
+                 <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+             </div>
+        </div>
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors w-full"

@@ -110,23 +110,10 @@ function CollapsibleMenu({ item, location }) {
   );
 }
 
-export function AppSidebar({ whitelabelSettings }) {
-  const [user, setUser] = useState(null);
+export function AppSidebar({ whitelabelSettings, user }) {
   const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
-  
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        if (currentUser) setUser(currentUser);
-      } catch (error) {
-        console.error("Failed to fetch user", error);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const handleLogout = async () => {
     await base44.auth.logout();
