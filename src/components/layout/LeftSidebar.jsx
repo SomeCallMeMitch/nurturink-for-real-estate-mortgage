@@ -97,14 +97,23 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
   };
 
   // Filter menu items based on the user's role
-  // If user has no role (rare), fallback to showing basic items or handle gracefully
-  const visibleMenuItems = user ? menuItems.filter(item =>
-    item.roles && (item.roles.includes(user.appRole) || item.roles.includes(user.role))
-  ) : [];
+  const visibleMenuItems = menuItems.filter(item => {
+    // If no roles defined, show to everyone
+    if (!item.roles || item.roles.length === 0) return true;
+    
+    // If user not logged in (or not loaded), hide items requiring roles
+    if (!user) return false;
 
-  // Debug logging
-  console.log('LeftSidebar rendering. User:', user);
-  console.log('Visible items:', visibleMenuItems.length);
+    // Check specific roles
+    if (user.appRole && item.roles.includes(user.appRole)) return true;
+    if (user.role && item.roles.includes(user.role)) return true;
+
+    // Fallback: If item allows 'user' role, show it to any logged-in user
+    // This ensures users without a specific 'appRole' still see basic items
+    if (item.roles.includes('user')) return true;
+
+    return false;
+  });
 
   return (
     // Changed w-64 to w-[16rem] to break any potential CSS selector matches from Landing Page styles

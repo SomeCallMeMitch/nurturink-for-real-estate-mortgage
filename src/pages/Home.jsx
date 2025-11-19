@@ -12,19 +12,27 @@ export default function Home() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Onboarding Check
+  // Auth & Onboarding Check
   useEffect(() => {
-    const checkOnboarding = async () => {
+    const checkAuth = async () => {
       try {
         const user = await base44.auth.me();
-        if (user && !user.onboardingComplete) {
+        
+        if (!user) {
+          // Redirect to login if not authenticated
+          return base44.auth.redirectToLogin('/Home');
+        }
+        
+        if (!user.onboardingComplete) {
           navigate('/Onboarding');
         }
       } catch (e) {
-        console.error("Failed to check onboarding status", e);
+        console.error("Failed to check auth status", e);
+        // Fallback to login on error
+        base44.auth.redirectToLogin('/Home');
       }
     };
-    checkOnboarding();
+    checkAuth();
   }, [navigate]);
   
   const [seeding, setSeeding] = useState(false);
