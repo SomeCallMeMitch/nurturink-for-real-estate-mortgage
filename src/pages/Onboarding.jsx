@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
+import RequireAuth from "@/components/auth/RequireAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -91,7 +92,8 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <RequireAuth>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
         
         {/* Progress Indicator */}
@@ -246,7 +248,6 @@ export default function Onboarding() {
           </motion.div>
         )}
       </div>
-    </div>
     </RequireAuth>
   );
 }
