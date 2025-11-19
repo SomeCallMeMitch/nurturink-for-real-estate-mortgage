@@ -53,8 +53,15 @@ export default function LPHeader() {
             ))}
           </nav>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
+          {/* CTA Buttons */}
+          <div className="hidden md:flex items-center gap-4">
+            <Button 
+              variant="ghost"
+              className="text-gray-700 hover:text-orange-500 font-semibold"
+              onClick={() => base44.auth.redirectToLogin('/Home')}
+            >
+              Sign In
+            </Button>
             <Button 
               className="bg-orange-500 hover:bg-orange-600 text-white font-semibold"
               onClick={() => base44.auth.redirectToLogin('/Home')}
@@ -90,12 +97,21 @@ export default function LPHeader() {
                   {link.label}
                 </a>
               ))}
-              <Button 
-                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold w-full mt-2"
-                onClick={() => base44.auth.redirectToLogin('/Home')}
-              >
-                Get Free Sample
-              </Button>
+              <div className="flex flex-col gap-2 mt-2">
+                <Button 
+                  variant="outline"
+                  className="w-full text-gray-700"
+                  onClick={() => base44.auth.redirectToLogin('/Home')}
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold w-full"
+                  onClick={() => base44.auth.redirectToLogin('/Home')}
+                >
+                  Get Free Sample
+                </Button>
+              </div>
             </nav>
           </div>
         )}
