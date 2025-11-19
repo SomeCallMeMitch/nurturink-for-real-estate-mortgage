@@ -16,20 +16,22 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const user = await base44.auth.me();
+        const isAuth = await base44.auth.isAuthenticated();
         
-        if (!user) {
-          // Redirect to login if not authenticated
-          return base44.auth.redirectToLogin('/Home');
+        if (!isAuth) {
+          // Redirect to landing page if not authenticated
+          return navigate(createPageUrl('lp'));
         }
         
+        const user = await base44.auth.me();
+        
         if (!user.onboardingComplete) {
-          navigate('/Onboarding');
+          navigate(createPageUrl('Onboarding'));
         }
       } catch (e) {
         console.error("Failed to check auth status", e);
-        // Fallback to login on error
-        base44.auth.redirectToLogin('/Home');
+        // Redirect to landing page on error
+        navigate(createPageUrl('lp'));
       }
     };
     checkAuth();
