@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle, Star } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 const variations = {
   1: {
@@ -94,6 +95,7 @@ export default function HeroSection({ variation = 1 }) {
               <Button 
                 size="lg" 
                 className="bg-[#16a34a] hover:bg-[#15803d] text-white text-lg font-semibold px-9 py-7 rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(22,163,74,0.3)]"
+                onClick={() => base44.auth.redirectToLogin('/Home')}
               >
                 {content.cta}
                 <ArrowRight className="w-5 h-5 ml-2" />

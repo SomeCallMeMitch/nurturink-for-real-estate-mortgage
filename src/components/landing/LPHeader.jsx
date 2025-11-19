@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 export default function LPHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -54,7 +55,10 @@ export default function LPHeader() {
 
           {/* CTA Button */}
           <div className="hidden md:block">
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+            <Button 
+              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+              onClick={() => base44.auth.redirectToLogin('/Home')}
+            >
               Get Free Sample
             </Button>
           </div>
@@ -86,7 +90,10 @@ export default function LPHeader() {
                   {link.label}
                 </a>
               ))}
-              <Button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold w-full mt-2">
+              <Button 
+                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold w-full mt-2"
+                onClick={() => base44.auth.redirectToLogin('/Home')}
+              >
                 Get Free Sample
               </Button>
             </nav>

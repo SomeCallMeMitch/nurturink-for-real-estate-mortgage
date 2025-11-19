@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 export default function LPHeroSection() {
   return (
@@ -16,7 +17,11 @@ export default function LPHeroSection() {
               Stop losing contracts to competitors who send forgettable emails. Send handwritten notecards that get opened, read, and remembered—turning more estimates into signed deals.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-lg font-semibold gap-2">
+              <Button 
+                size="lg" 
+                className="bg-orange-500 hover:bg-orange-600 text-white text-lg px-8 py-6 rounded-lg font-semibold gap-2"
+                onClick={() => base44.auth.redirectToLogin('/Home')}
+              >
                 Get Your Free Sample Note
                 <ArrowRight className="w-5 h-5" />
               </Button>
