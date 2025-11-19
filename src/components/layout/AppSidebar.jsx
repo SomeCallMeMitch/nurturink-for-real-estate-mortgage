@@ -111,6 +111,7 @@ function CollapsibleMenu({ item, location }) {
 }
 
 export function AppSidebar({ whitelabelSettings, user }) {
+  console.log('AppSidebar: Rendering. User prop:', user);
   const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
@@ -119,7 +120,11 @@ export function AppSidebar({ whitelabelSettings, user }) {
     await base44.auth.logout();
   };
 
-  const hasRole = (allowedRoles) => !allowedRoles || (user && allowedRoles.includes(user.appRole));
+  const hasRole = (allowedRoles) => {
+    const result = !allowedRoles || (user && allowedRoles.includes(user.appRole));
+    console.log(`AppSidebar: Checking role for ${allowedRoles} -> ${result} (User role: ${user?.appRole})`);
+    return result;
+  };
 
   const navItems = [
     // Generic User Items - kept for Super Admin to access user features if needed

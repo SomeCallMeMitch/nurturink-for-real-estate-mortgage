@@ -78,7 +78,10 @@ export default function MainLayout({ children, whitelabelSettings }) {
 
   const isSuperAdmin = user?.appRole === 'super_admin';
 
+  console.log('MainLayout Render: user:', user, 'isSuperAdmin:', isSuperAdmin, 'role:', user?.appRole);
+
   if (isSuperAdmin) {
+    console.log('MainLayout: Rendering AppSidebar (Super Admin)');
     return (
       <SidebarProvider>
         <AppSidebar whitelabelSettings={whitelabelSettings} user={user} />
@@ -93,6 +96,7 @@ export default function MainLayout({ children, whitelabelSettings }) {
   }
 
   // Regular User Layout - Simple Sidebar
+  console.log('MainLayout: Rendering LeftSidebar (Regular User/Not Loaded Yet)');
   return (
     <div className="flex h-screen bg-gray-50">
       <LeftSidebar whitelabelSettings={whitelabelSettings} user={user} />

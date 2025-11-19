@@ -18,6 +18,7 @@ import {
 import { base44 } from "@/api/base44Client";
 
 export default function LeftSidebar({ whitelabelSettings, user }) {
+  console.log('LeftSidebar: Rendering. User prop:', user);
   const location = useLocation();
 
   const handleLogout = async () => {
