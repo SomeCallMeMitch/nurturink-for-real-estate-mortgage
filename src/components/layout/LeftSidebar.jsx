@@ -116,6 +116,11 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
     return false;
   });
 
+  // Debug logging
+  console.log('LeftSidebar: User role:', user?.appRole || user?.role);
+  console.log('LeftSidebar: Visible items count:', visibleMenuItems.length);
+  console.log('LeftSidebar: Visible items list:', visibleMenuItems.map(i => i.label));
+
   return (
     // Changed w-64 to w-[16rem] to break any potential CSS selector matches from Landing Page styles
     <aside className="w-[16rem] bg-white border-r border-gray-200 flex flex-col h-full">
