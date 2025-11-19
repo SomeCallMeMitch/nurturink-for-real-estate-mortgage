@@ -299,5 +299,6 @@ export default function SettingsOrganization() {
         </Card>
       </form>
     </SettingsLayout>
+    </RequireAuth>
   );
 }

@@ -256,5 +256,6 @@ export default function SettingsProfile() {
         </Card>
       </form>
     </SettingsLayout>
+    </RequireAuth>
   );
 }
