@@ -25,7 +25,8 @@ import {
   Phone,
   Link as LinkIcon,
   Building,
-  Home
+  Home,
+  MessageSquare
 } from "lucide-react";
 
 import {
