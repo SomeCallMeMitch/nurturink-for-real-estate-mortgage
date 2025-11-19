@@ -367,7 +367,8 @@ export default function FindClients() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <RequireAuth>
+      <div className="min-h-screen bg-gray-50">
       {/* Workflow Steps Header with Back Button and Title */}
       <WorkflowSteps 
         currentStep={1} 
@@ -680,5 +681,6 @@ export default function FindClients() {
         </Card>
       </div>
     </div>
+    </RequireAuth>
   );
 }

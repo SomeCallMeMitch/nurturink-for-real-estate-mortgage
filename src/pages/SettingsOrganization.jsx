@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import SettingsLayout from "@/components/settings/SettingsLayout";
+import RequireAuth from "@/components/auth/RequireAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -168,7 +169,8 @@ export default function SettingsOrganization() {
   }
 
   return (
-    <SettingsLayout>
+    <RequireAuth>
+      <SettingsLayout>
       <form onSubmit={handleSave}>
         <Card>
           <CardHeader>
