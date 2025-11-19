@@ -13,8 +13,7 @@ import {
   DollarSign,
   BarChart3,
   UsersRound,
-  Palette,
-  MessageSquare
+  Palette
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
