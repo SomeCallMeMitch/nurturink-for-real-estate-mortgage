@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 
 // Utility function for font mapping
@@ -14,6 +13,7 @@ const getFontClass = (fontName) => {
 
 // Replace placeholders in text with actual values
 // Supports {{client.firstName}}, {{me.fullName}}, {{org.name}} format
+// Must match placeholders defined in PlaceholderModal.js
 const replacePlaceholders = (text, client, user, organization) => {
   if (!text) return '';
   

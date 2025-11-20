@@ -194,14 +194,46 @@ export default function CreateContent() {
       console.log('📡 Step 1: Loading user...');
       const currentUser = await base44.auth.me();
       console.log('✅ User loaded:', currentUser.email);
-      setUser(currentUser);
+      
+      // Enrich user object with additional data for placeholder replacement
+      const enrichedUser = { ...currentUser };
+      
+      // Derive firstName and lastName from full_name if not already set
+      if (currentUser.full_name && !currentUser.firstName) {
+        const nameParts = currentUser.full_name.split(' ');
+        enrichedUser.firstName = nameParts[0];
+        enrichedUser.lastName = nameParts.slice(1).join(' ');
+      }
+      
+      // Fetch user's default phone number
+      try {
+        const userPhones = await base44.entities.UserPhone.filter({ userId: currentUser.id, isDefault: true });
+        if (userPhones.length > 0) {
+          enrichedUser.phone = userPhones[0].phoneNumber;
+        }
+      } catch (error) {
+        console.log('⚠️ Could not load user phone:', error);
+      }
+      
+      setUser(enrichedUser);
       
       console.log('📡 Step 2: Loading organization...');
       if (currentUser.orgId) {
         const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
         if (orgList && orgList.length > 0) {
-          console.log('✅ Organization loaded:', orgList[0].name);
-          setOrganization(orgList[0]);
+          const currentOrganization = orgList[0];
+          console.log('✅ Organization loaded:', currentOrganization.name);
+          setOrganization(currentOrganization);
+          
+          // Add organization's name as user's companyName if not already set
+          if (!enrichedUser.companyName) {
+            enrichedUser.companyName = currentOrganization.name;
+          }
+          // Add organization's phone if user doesn't have a default phone
+          if (!enrichedUser.phone && currentOrganization.phone) {
+            enrichedUser.phone = currentOrganization.phone;
+          }
+          setUser(enrichedUser);
         }
       }
       

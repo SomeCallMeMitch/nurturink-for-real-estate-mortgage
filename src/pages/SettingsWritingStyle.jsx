@@ -90,8 +90,8 @@ export default function SettingsWritingStyle() {
     setEditingProfile(null);
     setFormData({
       name: '',
-      defaultGreeting: 'Dear {{firstName}},',
-      signatureText: 'Sincerely,\n{{rep_full_name}}\n{{rep_company_name}}\n{{rep_phone}}',
+      defaultGreeting: 'Dear {{client.firstName}},',
+      signatureText: 'Sincerely,\n{{me.fullName}}\n{{me.companyName}}\n{{me.phone}}',
       handwritingFont: 'Caveat',
       includeSignatureByDefault: true
     });
@@ -231,13 +231,34 @@ export default function SettingsWritingStyle() {
     }));
   };
 
+  // Placeholder list matching PlaceholderModal.js
   const placeholders = [
-    { label: 'Client First Name', value: '{{firstName}}' },
-    { label: 'Client Last Name', value: '{{lastName}}' },
-    { label: 'Client Full Name', value: '{{fullName}}' },
-    { label: 'Your Name', value: '{{rep_full_name}}' },
-    { label: 'Your Company', value: '{{rep_company_name}}' },
-    { label: 'Your Phone', value: '{{rep_phone}}' },
+    { label: 'Client First Name', value: '{{client.firstName}}' },
+    { label: 'Client Last Name', value: '{{client.lastName}}' },
+    { label: 'Client Full Name', value: '{{client.fullName}}' },
+    { label: 'Client Initials', value: '{{client.initials}}' },
+    { label: 'Client Email', value: '{{client.email}}' },
+    { label: 'Client Phone', value: '{{client.phone}}' },
+    { label: 'Client Street', value: '{{client.street}}' },
+    { label: 'Client City', value: '{{client.city}}' },
+    { label: 'Client State', value: '{{client.state}}' },
+    { label: 'Client ZIP Code', value: '{{client.zipCode}}' },
+    { label: 'Client Company', value: '{{client.company}}' },
+    { label: 'Your First Name', value: '{{me.firstName}}' },
+    { label: 'Your Last Name', value: '{{me.lastName}}' },
+    { label: 'Your Full Name', value: '{{me.fullName}}' },
+    { label: 'Your Email', value: '{{me.email}}' },
+    { label: 'Your Phone', value: '{{me.phone}}' },
+    { label: 'Your Title', value: '{{me.title}}' },
+    { label: 'Your Company Name', value: '{{me.companyName}}' },
+    { label: 'Your Street', value: '{{me.street}}' },
+    { label: 'Your City', value: '{{me.city}}' },
+    { label: 'Your State', value: '{{me.state}}' },
+    { label: 'Your ZIP Code', value: '{{me.zipCode}}' },
+    { label: 'Organization Name', value: '{{org.name}}' },
+    { label: 'Organization Website', value: '{{org.website}}' },
+    { label: 'Organization Email', value: '{{org.email}}' },
+    { label: 'Organization Phone', value: '{{org.phone}}' },
   ];
 
   if (loading) {
