@@ -1,0 +1,252 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { Resend } from 'npm:resend@3.0.0';
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+
+const createOrgReceiptHTML = ({
+  admin_firstName,
+  organization_name,
+  order_number,
+  transaction_id,
+  purchase_date,
+  credits_purchased,
+  price_paid,
+  original_price,
+  discount_amount,
+  coupon_code,
+  payment_method,
+  new_org_pool_balance,
+  team_size,
+  team_management_url,
+  receipt_url,
+  app_logo_url
+}) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organization Purchase Receipt</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; max-width: 100%;">
+          
+          <!-- Header with Business Receipt Badge -->
+          <tr>
+            <td style="background-color: #ffffff; padding: 40px 40px 20px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="text-align: left;">
+                    <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; max-width: 200px;" />
+                  </td>
+                  <td style="text-align: right;">
+                    <span style="display: inline-block; background-color: #FF7A00; color: #ffffff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">BUSINESS RECEIPT</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Thank You -->
+          <tr>
+            <td style="padding: 20px 40px 30px;">
+              <h1 style="margin: 0 0 10px; font-size: 24px; font-weight: bold; color: #111827;">Thanks for your purchase, ${admin_firstName}!</h1>
+              <p style="margin: 0; font-size: 16px; color: #374151;">${credits_purchased} credits have been added to ${organization_name}'s pool.</p>
+            </td>
+          </tr>
+          
+          <!-- Transaction Details Table -->
+          <tr>
+            <td style="padding: 0 40px 30px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="border: 1px solid #e5e7eb; border-radius: 8px;">
+                <tr style="background-color: #f9fafb;">
+                  <td style="padding: 12px 20px; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Organization</td>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${organization_name}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Receipt #</td>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${order_number}</td>
+                </tr>
+                <tr style="background-color: #f9fafb;">
+                  <td style="padding: 12px 20px; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Transaction ID</td>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb;">${transaction_id}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Date</td>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb;">${purchase_date}</td>
+                </tr>
+                <tr style="background-color: #f9fafb;">
+                  <td style="padding: 12px 20px; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Credits Purchased</td>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb; font-weight: 600;">${credits_purchased}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Payment Method</td>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb;">•••• ${payment_method}</td>
+                </tr>
+                ${discount_amount > 0 ? `
+                <tr style="background-color: #f9fafb;">
+                  <td style="padding: 12px 20px; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb;">Original Price</td>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #111827; text-align: right; border-bottom: 1px solid #e5e7eb;">$${(original_price / 100).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #059669; border-bottom: 1px solid #e5e7eb;">Discount (${coupon_code || 'Applied'})</td>
+                  <td style="padding: 12px 20px; font-size: 14px; color: #059669; text-align: right; border-bottom: 1px solid #e5e7eb; font-weight: 600;">-$${(discount_amount / 100).toFixed(2)}</td>
+                </tr>
+                ` : ''}
+                <tr style="background-color: #fed7aa;">
+                  <td style="padding: 16px 20px; font-size: 16px; color: #111827; font-weight: bold;">Total Paid</td>
+                  <td style="padding: 16px 20px; font-size: 20px; color: #111827; text-align: right; font-weight: bold;">$${(price_paid / 100).toFixed(2)}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Organization Pool Balance -->
+          <tr>
+            <td style="padding: 0 40px 30px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #FF7A00 0%, #ea580c 100%); border-radius: 8px;">
+                <tr>
+                  <td style="padding: 24px; text-align: center;">
+                    <p style="margin: 0 0 8px; font-size: 14px; color: #ffffff; opacity: 0.9;">Organization pool</p>
+                    <p style="margin: 0 0 8px; font-size: 32px; font-weight: bold; color: #ffffff;">${new_org_pool_balance} credits</p>
+                    <p style="margin: 0; font-size: 14px; color: #ffffff; opacity: 0.9;">Available to ${team_size} team members</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Primary CTA -->
+          <tr>
+            <td style="padding: 0 40px 30px; text-align: center;">
+              <a href="${team_management_url}" style="display: inline-block; background-color: #FF7A00; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: bold;">Manage Team</a>
+            </td>
+          </tr>
+          
+          <!-- What Happens Next -->
+          <tr>
+            <td style="padding: 0 40px 30px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border-radius: 8px;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #1f2937;">What happens next?</p>
+                    <p style="margin: 0; font-size: 14px; color: #374151;">Your team can now use credits from the organization pool to send handwritten notes.</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          
+          <!-- Secondary CTA -->
+          <tr>
+            <td style="padding: 0 40px 40px; text-align: center;">
+              <a href="${receipt_url}" style="color: #FF7A00; text-decoration: none; font-size: 16px;">Download Receipt (PDF) →</a>
+            </td>
+          </tr>
+          
+          <!-- Billing Footer -->
+          <tr>
+            <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Billing questions? Contact us at <a href="mailto:billing@roofscribe.com" style="color: #FF7A00; text-decoration: none;">billing@roofscribe.com</a></p>
+              <p style="margin: 0 0 15px; font-size: 12px; color: #9ca3af;">This is a transactional email. Credits are non-refundable once used.</p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 RoofScribe. All rights reserved.</p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
+
+const createOrgReceiptText = (props) => `
+RoofScribe - Business Purchase Receipt
+
+Thanks for your purchase, ${props.admin_firstName}!
+
+${props.credits_purchased} credits have been added to ${props.organization_name}'s pool.
+
+TRANSACTION DETAILS:
+Organization: ${props.organization_name}
+Receipt #: ${props.order_number}
+Transaction ID: ${props.transaction_id}
+Date: ${props.purchase_date}
+Credits Purchased: ${props.credits_purchased}
+Payment Method: •••• ${props.payment_method}
+${props.discount_amount > 0 ? `
+Original Price: $${(props.original_price / 100).toFixed(2)}
+Discount (${props.coupon_code || 'Applied'}): -$${(props.discount_amount / 100).toFixed(2)}
+` : ''}
+Total Paid: $${(props.price_paid / 100).toFixed(2)}
+
+ORGANIZATION POOL: ${props.new_org_pool_balance} credits
+Available to ${props.team_size} team members
+
+WHAT HAPPENS NEXT?
+Your team can now use credits from the organization pool to send handwritten notes.
+
+Manage Team: ${props.team_management_url}
+Download Receipt: ${props.receipt_url}
+
+Billing questions? Contact billing@roofscribe.com
+
+This is a transactional email. Credits are non-refundable once used.
+© 2024 RoofScribe. All rights reserved.
+`;
+
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const data = await req.json();
+
+    const emailData = {
+      admin_firstName: data.admin_firstName,
+      admin_email: data.admin_email,
+      organization_name: data.organization_name,
+      order_number: data.order_number,
+      transaction_id: data.transaction_id || 'N/A',
+      purchase_date: data.purchase_date || new Date().toLocaleString('en-US'),
+      credits_purchased: data.credits_purchased,
+      price_paid: data.price_paid,
+      original_price: data.original_price || data.price_paid,
+      discount_amount: data.discount_amount || 0,
+      coupon_code: data.coupon_code,
+      payment_method: data.payment_method,
+      new_org_pool_balance: data.new_org_pool_balance,
+      team_size: data.team_size,
+      team_management_url: data.team_management_url || `${Deno.env.get("APP_URL")}/TeamManagement`,
+      receipt_url: data.receipt_url || `${Deno.env.get("APP_URL")}/receipts/${data.order_number}`,
+      app_logo_url: data.app_logo_url || `${Deno.env.get("APP_URL")}/logo.png`
+    };
+
+    const result = await resend.emails.send({
+      from: 'RoofScribe <billing@roofscribe.com>',
+      to: data.admin_email,
+      subject: `${data.organization_name} Credit Purchase - Receipt #${data.order_number}`,
+      html: createOrgReceiptHTML(emailData),
+      text: createOrgReceiptText(emailData)
+    });
+
+    return Response.json({ 
+      success: true, 
+      emailId: result.data?.id,
+      message: 'Organization credit purchase receipt sent' 
+    });
+
+  } catch (error) {
+    console.error('Error sending org credit receipt:', error);
+    return Response.json({ error: error.message }, { status: 500 });
+  }
+});
