@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Database, ArrowRight, CheckCircle2, AlertCircle, DollarSign, Send } from "lucide-react";
+import { Mail, Database, ArrowRight, CheckCircle2, AlertCircle, DollarSign } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function Home() {
@@ -49,8 +49,6 @@ export default function Home() {
   const [pricingSeedResult, setPricingSeedResult] = useState(null);
   const [seedingCredits, setSeedingCredits] = useState(false);
   const [creditsSeedResult, setCreditsSeedResult] = useState(null);
-  const [sendingEmails, setSendingEmails] = useState(false);
-  const [emailTestResult, setEmailTestResult] = useState(null);
 
   const handleSeedData = async () => {
     try {
@@ -239,46 +237,6 @@ export default function Home() {
       });
     } finally {
       setSeedingCredits(false);
-    }
-  };
-
-  const handleSendTestEmails = async () => {
-    try {
-      setSendingEmails(true);
-      setEmailTestResult(null);
-      
-      const response = await base44.functions.invoke('sendTestEmails', {
-        test_email: 'aatman.base44@gmail.com'
-      });
-      
-      setEmailTestResult({
-        success: response.data.success,
-        message: response.data.message,
-        results: response.data.results
-      });
-      
-      const sentCount = response.data.results.filter(r => r.status === 'sent').length;
-      
-      toast({
-        title: 'Test Emails Sent! ✓',
-        description: `${sentCount} of 4 emails sent successfully to aatman.base44@gmail.com`,
-        className: 'bg-green-50 border-green-200 text-green-900'
-      });
-      
-    } catch (error) {
-      console.error('Failed to send test emails:', error);
-      setEmailTestResult({
-        success: false,
-        message: error.response?.data?.error || 'Failed to send test emails'
-      });
-      
-      toast({
-        title: 'Failed to Send Emails',
-        description: error.response?.data?.error || 'Failed to send test emails',
-        variant: 'destructive'
-      });
-    } finally {
-      setSendingEmails(false);
     }
   };
 
@@ -647,77 +605,11 @@ export default function Home() {
             </Card>
           </motion.div>
 
-          {/* Test Email Templates */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            whileHover={{ y: -4 }}
-          >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-3 bg-pink-100 rounded-lg">
-                      <Send className="w-6 h-6 text-pink-600" />
-                    </div>
-                    <div>
-                      <CardTitle>Test Email Templates</CardTitle>
-                      <CardDescription>
-                        Send all 4 Resend email templates to aatman.base44@gmail.com
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <Button 
-                    onClick={handleSendTestEmails}
-                    variant="outline"
-                    disabled={sendingEmails}
-                    className="border-pink-600 text-pink-600 hover:bg-pink-50"
-                  >
-                    {sendingEmails ? 'Sending...' : 'Send Test Emails'}
-                  </Button>
-                </div>
-              </CardHeader>
-
-              {emailTestResult && (
-                <CardContent>
-                  <div className={`flex items-start gap-3 p-4 rounded-lg ${
-                    emailTestResult.success 
-                      ? 'bg-green-50 border border-green-200' 
-                      : 'bg-red-50 border border-red-200'
-                  }`}>
-                    {emailTestResult.success ? (
-                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
-                    ) : (
-                      <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-                    )}
-                    <div className="flex-1">
-                      <p className={`font-medium ${
-                        emailTestResult.success ? 'text-green-900' : 'text-red-900'
-                      }`}>
-                        {emailTestResult.message}
-                      </p>
-                      {emailTestResult.results && (
-                        <div className="mt-2 space-y-1">
-                          {emailTestResult.results.map((result, idx) => (
-                            <p key={idx} className="text-sm text-gray-700">
-                              {result.status === 'sent' ? '✓' : '✗'} {result.template}
-                            </p>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-          </motion.div>
-
           {/* Card Design Management */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
             whileHover={{ y: -4 }}
           >
             <Card>
@@ -751,7 +643,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.9 }}
+          transition={{ duration: 0.5, delay: 0.8 }}
         >
           <Card className="bg-gray-50">
             <CardContent className="pt-6">
