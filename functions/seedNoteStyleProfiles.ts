@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
         name: 'Professional',
         handwritingFont: 'Caveat',
         defaultGreeting: 'Dear {{client.firstName}},',
-        signatureText: 'Sincerely,\n{{me.fullName}}\n{{me.companyName}}\n{{me.phone}}',
+        signatureText: 'Sincerely,\n{{user.fullName}}\n{{user.companyName}}\n{{user.phone}}',
         includeSignatureByDefault: true,
         isDefault: true,
         isOrgWide: false
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
         name: 'Casual & Friendly',
         handwritingFont: 'Patrick Hand',
         defaultGreeting: 'Hi {{client.firstName}}!',
-        signatureText: 'Best,\n{{me.fullName}}',
+        signatureText: 'Best,\n{{user.fullName}}',
         includeSignatureByDefault: true,
         isDefault: false,
         isOrgWide: false
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
         name: 'Formal & Brief',
         handwritingFont: 'Kalam',
         defaultGreeting: 'Dear {{client.lastName}},',
-        signatureText: 'Regards,\n{{me.fullName}}\n{{me.companyName}}',
+        signatureText: 'Regards,\n{{user.fullName}}\n{{user.companyName}}',
         includeSignatureByDefault: true,
         isDefault: false,
         isOrgWide: false

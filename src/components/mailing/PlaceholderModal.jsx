@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Search, FileEdit } from 'lucide-react';
@@ -56,32 +55,32 @@ export default function PlaceholderModal({ onPlaceholderSelect }) {
         {
           title: 'NAME',
           placeholders: [
-            { code: '{{me.firstName}}', description: 'Your first name', example: 'John' },
-            { code: '{{me.lastName}}', description: 'Your last name', example: 'Smith' },
-            { code: '{{me.fullName}}', description: 'Your full name', example: 'John Smith' }
+            { code: '{{user.firstName}}', description: 'Your first name', example: 'John' },
+            { code: '{{user.lastName}}', description: 'Your last name', example: 'Smith' },
+            { code: '{{user.fullName}}', description: 'Your full name', example: 'John Smith' }
           ]
         },
         {
           title: 'CONTACT',
           placeholders: [
-            { code: '{{me.email}}', description: 'Your email address', example: 'john@example.com' },
-            { code: '{{me.phone}}', description: 'Your phone number', example: '(555) 987-6543' }
+            { code: '{{user.email}}', description: 'Your email address', example: 'john@example.com' },
+            { code: '{{user.phone}}', description: 'Your phone number', example: '(555) 987-6543' }
           ]
         },
         {
           title: 'BUSINESS',
           placeholders: [
-            { code: '{{me.title}}', description: 'Your job title', example: 'Senior Advisor' },
-            { code: '{{me.companyName}}', description: 'Your company name', example: 'Smith Roofing' }
+            { code: '{{user.title}}', description: 'Your job title', example: 'Senior Advisor' },
+            { code: '{{user.companyName}}', description: 'Your company name', example: 'Smith Roofing' }
           ]
         },
         {
           title: 'ADDRESS',
           placeholders: [
-            { code: '{{me.street}}', description: 'Your street address', example: '456 Oak Ave' },
-            { code: '{{me.city}}', description: 'Your city', example: 'Boulder' },
-            { code: '{{me.state}}', description: 'Your state', example: 'CO' },
-            { code: '{{me.zipCode}}', description: 'Your ZIP code', example: '80301' }
+            { code: '{{user.street}}', description: 'Your street address', example: '456 Oak Ave' },
+            { code: '{{user.city}}', description: 'Your city', example: 'Boulder' },
+            { code: '{{user.state}}', description: 'Your state', example: 'CO' },
+            { code: '{{user.zipCode}}', description: 'Your ZIP code', example: '80301' }
           ]
         }
       ]

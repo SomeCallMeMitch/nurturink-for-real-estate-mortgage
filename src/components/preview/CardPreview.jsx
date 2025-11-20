@@ -38,19 +38,19 @@ const replacePlaceholders = (text, client, user, organization) => {
     result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
   }
   
-  // User/Me placeholders
+  // User placeholders
   if (user) {
-    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
-    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
-    result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
-    result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
-    result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
-    result = result.replace(/\{\{me\.title\}\}/g, user.title || '');
-    result = result.replace(/\{\{me\.companyName\}\}/g, user.companyName || '');
-    result = result.replace(/\{\{me\.street\}\}/g, user.street || '');
-    result = result.replace(/\{\{me\.city\}\}/g, user.city || '');
-    result = result.replace(/\{\{me\.state\}\}/g, user.state || '');
-    result = result.replace(/\{\{me\.zipCode\}\}/g, user.zipCode || '');
+    result = result.replace(/\{\{user\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
+    result = result.replace(/\{\{user\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
+    result = result.replace(/\{\{user\.fullName\}\}/g, user.full_name || '');
+    result = result.replace(/\{\{user\.email\}\}/g, user.email || '');
+    result = result.replace(/\{\{user\.phone\}\}/g, user.phone || '');
+    result = result.replace(/\{\{user\.title\}\}/g, user.title || '');
+    result = result.replace(/\{\{user\.companyName\}\}/g, user.companyName || '');
+    result = result.replace(/\{\{user\.street\}\}/g, user.street || '');
+    result = result.replace(/\{\{user\.city\}\}/g, user.city || '');
+    result = result.replace(/\{\{user\.state\}\}/g, user.state || '');
+    result = result.replace(/\{\{user\.zipCode\}\}/g, user.zipCode || '');
   }
   
   // Organization placeholders
