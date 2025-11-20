@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Loader2, Code2, Info, MessageSquare } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, Code2, Info, MessageSquare, Star, Copy, Building, Globe, User, ChevronDown, ChevronUp } from "lucide-react";
 
 export default function SettingsWritingStyle() {
   const [profiles, setProfiles] = useState([]);
@@ -29,6 +29,21 @@ export default function SettingsWritingStyle() {
   const [saving, setSaving] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState({ open: false, profile: null });
   const [deleting, setDeleting] = useState(false);
+  
+  // New state for Phase 3
+  const [personalStyles, setPersonalStyles] = useState([]);
+  const [orgStyles, setOrgStyles] = useState([]);
+  const [platformStyles, setPlatformStyles] = useState([]);
+  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [togglingFavorite, setTogglingFavorite] = useState(null);
+  const [copying, setCopying] = useState(null);
+  const [copyDialog, setCopyDialog] = useState({ open: false, style: null, newName: '' });
+  const [sectionsCollapsed, setSectionsCollapsed] = useState({
+    favorites: false,
+    personal: false,
+    organization: true,
+    platform: true
+  });
 
   const [formData, setFormData] = useState({
     name: '',
@@ -48,11 +63,22 @@ export default function SettingsWritingStyle() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      const profileList = await base44.entities.NoteStyleProfile.filter({
-        orgId: currentUser.orgId
-      });
+      // Get all accessible profiles (row-level security handles filtering)
+      const profileList = await base44.entities.NoteStyleProfile.list();
 
       setProfiles(profileList);
+      
+      // Categorize by type
+      const personal = profileList.filter(s => s.type === 'personal');
+      const org = profileList.filter(s => s.type === 'organization');
+      const platform = profileList.filter(s => s.type === 'platform');
+      
+      setPersonalStyles(personal);
+      setOrgStyles(org);
+      setPlatformStyles(platform);
+      
+      // Set user's favorites
+      setFavoriteIds(currentUser.favoriteNoteStyleProfileIds || []);
     } catch (error) {
       console.error('Failed to load profiles:', error);
     } finally {
@@ -99,6 +125,9 @@ export default function SettingsWritingStyle() {
         ...formData,
         userId: user.id,
         orgId: user.orgId,
+        type: 'personal', // New personal styles
+        createdByUserId: user.id,
+        organizationId: null,
         isOrgWide: false,
         isDefault: false
       };
@@ -134,6 +163,72 @@ export default function SettingsWritingStyle() {
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleToggleFavorite = async (profileId, isFavorited) => {
+    try {
+      setTogglingFavorite(profileId);
+      
+      const response = await base44.functions.invoke('toggleFavoriteStyle', {
+        profileId,
+        action: isFavorited ? 'remove' : 'add'
+      });
+
+      if (response.data.success) {
+        // Update local state
+        const newFavorites = isFavorited 
+          ? favoriteIds.filter(id => id !== profileId)
+          : [...favoriteIds, profileId];
+        setFavoriteIds(newFavorites);
+        
+        // Update user in state
+        setUser(prev => ({ ...prev, favoriteNoteStyleProfileIds: newFavorites }));
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+      alert('Failed to update favorite. Please try again.');
+    } finally {
+      setTogglingFavorite(null);
+    }
+  };
+
+  const handleOpenCopyDialog = (style) => {
+    setCopyDialog({ 
+      open: true, 
+      style, 
+      newName: `${style.name} (My Copy)` 
+    });
+  };
+
+  const handleSaveAsMy = async () => {
+    if (!copyDialog.style) return;
+
+    try {
+      setCopying(copyDialog.style.id);
+      
+      const response = await base44.functions.invoke('saveAsMyStyle', {
+        sourceProfileId: copyDialog.style.id,
+        newName: copyDialog.newName || undefined
+      });
+
+      if (response.data.success) {
+        await loadData();
+        setCopyDialog({ open: false, style: null, newName: '' });
+        alert(`✓ Created personal copy: "${response.data.profile.name}"`);
+      }
+    } catch (error) {
+      console.error('Failed to copy style:', error);
+      alert('Failed to create personal copy. Please try again.');
+    } finally {
+      setCopying(null);
+    }
+  };
+
+  const toggleSection = (section) => {
+    setSectionsCollapsed(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
   };
 
   const placeholders = [
@@ -183,48 +278,150 @@ export default function SettingsWritingStyle() {
                   <p className="text-sm text-gray-400 mt-1">Create your first style to get started</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {profiles.map((profile) => (
-                    <div
-                      key={profile.id}
-                      className="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900 mb-2">{profile.name}</h3>
-                          <div className="text-sm text-gray-600 space-y-1">
-                            {profile.defaultGreeting && (
-                              <p>
-                                <span className="font-medium">Greeting:</span> {profile.defaultGreeting}
-                              </p>
-                            )}
-                            {profile.signatureText && (
-                              <p>
-                                <span className="font-medium">Signature:</span>{' '}
-                                {profile.signatureText.split('\n')[0]}
-                                {profile.signatureText.split('\n').length > 1 && '...'}
-                              </p>
-                            )}
-                            <p>
-                              <span className="font-medium">Font:</span> {profile.handwritingFont}
-                            </p>
-                          </div>
+                <div className="space-y-6">
+                  {/* Favorites Section */}
+                  {favoriteIds.length > 0 && (
+                    <div>
+                      <button
+                        onClick={() => toggleSection('favorites')}
+                        className="flex items-center justify-between w-full mb-3 text-left"
+                      >
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                          Favorited Styles
+                        </h3>
+                        {sectionsCollapsed.favorites ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronUp className="w-5 h-5 text-gray-400" />}
+                      </button>
+                      {!sectionsCollapsed.favorites && (
+                        <div className="space-y-3 pl-7">
+                          {profiles.filter(p => favoriteIds.includes(p.id)).map((profile) => (
+                            <StyleCard
+                              key={profile.id}
+                              profile={profile}
+                              isFavorited={true}
+                              togglingFavorite={togglingFavorite}
+                              copying={copying}
+                              onToggleFavorite={handleToggleFavorite}
+                              onEdit={handleEdit}
+                              onDelete={(p) => setDeleteDialog({ open: true, profile: p })}
+                              onCopy={handleOpenCopyDialog}
+                              profiles={profiles}
+                            />
+                          ))}
                         </div>
-                        <div className="flex gap-2 ml-4">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(profile)}>
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setDeleteDialog({ open: true, profile })}
-                          >
-                            <Trash2 className="w-4 h-4 text-red-600" />
-                          </Button>
-                        </div>
-                      </div>
+                      )}
                     </div>
-                  ))}
+                  )}
+
+                  {/* Personal Styles Section */}
+                  <div>
+                    <button
+                      onClick={() => toggleSection('personal')}
+                      className="flex items-center justify-between w-full mb-3 text-left"
+                    >
+                      <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                        <User className="w-5 h-5 text-indigo-600" />
+                        My Personal Styles
+                      </h3>
+                      {sectionsCollapsed.personal ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronUp className="w-5 h-5 text-gray-400" />}
+                    </button>
+                    {!sectionsCollapsed.personal && (
+                      <div className="space-y-3 pl-7">
+                        {personalStyles.length === 0 ? (
+                          <div className="text-center py-8 text-gray-500">
+                            <p>No personal styles yet</p>
+                            <Button onClick={handleNew} variant="outline" size="sm" className="mt-2">
+                              <Plus className="w-4 h-4 mr-2" />
+                              Create your first style
+                            </Button>
+                          </div>
+                        ) : (
+                          personalStyles.map((profile) => (
+                            <StyleCard
+                              key={profile.id}
+                              profile={profile}
+                              isFavorited={favoriteIds.includes(profile.id)}
+                              togglingFavorite={togglingFavorite}
+                              copying={copying}
+                              onToggleFavorite={handleToggleFavorite}
+                              onEdit={handleEdit}
+                              onDelete={(p) => setDeleteDialog({ open: true, profile: p })}
+                              onCopy={handleOpenCopyDialog}
+                              profiles={profiles}
+                            />
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Organization Styles Section */}
+                  {orgStyles.length > 0 && (
+                    <div>
+                      <button
+                        onClick={() => toggleSection('organization')}
+                        className="flex items-center justify-between w-full mb-3 text-left"
+                      >
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <Building className="w-5 h-5 text-green-600" />
+                          Organization Styles
+                        </h3>
+                        {sectionsCollapsed.organization ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronUp className="w-5 h-5 text-gray-400" />}
+                      </button>
+                      {!sectionsCollapsed.organization && (
+                        <div className="space-y-3 pl-7">
+                          {orgStyles.map((profile) => (
+                            <StyleCard
+                              key={profile.id}
+                              profile={profile}
+                              isFavorited={favoriteIds.includes(profile.id)}
+                              togglingFavorite={togglingFavorite}
+                              copying={copying}
+                              onToggleFavorite={handleToggleFavorite}
+                              onEdit={handleEdit}
+                              onDelete={(p) => setDeleteDialog({ open: true, profile: p })}
+                              onCopy={handleOpenCopyDialog}
+                              profiles={profiles}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Platform Styles Section */}
+                  {platformStyles.length > 0 && (
+                    <div>
+                      <button
+                        onClick={() => toggleSection('platform')}
+                        className="flex items-center justify-between w-full mb-3 text-left"
+                      >
+                        <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                          <Globe className="w-5 h-5 text-gray-600" />
+                          Platform Styles
+                        </h3>
+                        {sectionsCollapsed.platform ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronUp className="w-5 h-5 text-gray-400" />}
+                      </button>
+                      {!sectionsCollapsed.platform && (
+                        <div className="space-y-3 pl-7">
+                          {platformStyles.map((profile) => (
+                            <StyleCard
+                              key={profile.id}
+                              profile={profile}
+                              isFavorited={favoriteIds.includes(profile.id)}
+                              togglingFavorite={togglingFavorite}
+                              copying={copying}
+                              onToggleFavorite={handleToggleFavorite}
+                              onEdit={handleEdit}
+                              onDelete={(p) => setDeleteDialog({ open: true, profile: p })}
+                              onCopy={handleOpenCopyDialog}
+                              profiles={profiles}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
@@ -391,6 +588,164 @@ export default function SettingsWritingStyle() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Copy Style Dialog */}
+      <AlertDialog open={copyDialog.open} onOpenChange={(open) => setCopyDialog({ open, style: null, newName: '' })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save As My Style</AlertDialogTitle>
+            <AlertDialogDescription>
+              Create a personal copy of <strong>{copyDialog.style?.name}</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-4">
+            <Label htmlFor="copyName">New Style Name</Label>
+            <Input
+              id="copyName"
+              value={copyDialog.newName}
+              onChange={(e) => setCopyDialog(prev => ({ ...prev, newName: e.target.value }))}
+              placeholder="Enter new name..."
+              className="mt-2"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={copying}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleSaveAsMy}
+              disabled={copying || !copyDialog.newName.trim()}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              {copying ? 'Copying...' : 'Create Copy'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SettingsLayout>
+  );
+}
+
+// StyleCard Component
+function StyleCard({ profile, isFavorited, togglingFavorite, copying, onToggleFavorite, onEdit, onDelete, onCopy, profiles }) {
+  const isPersonal = profile.type === 'personal';
+  const canEdit = isPersonal;
+  
+  // Get type badge config
+  const typeBadge = {
+    personal: { icon: User, label: 'Personal', className: 'bg-indigo-600 text-white' },
+    organization: { icon: Building, label: 'Organization', className: 'bg-green-600 text-white' },
+    platform: { icon: Globe, label: 'Platform', className: 'bg-gray-600 text-white' }
+  }[profile.type];
+
+  // Get parent style name if copied
+  const parentStyle = profile.originalNoteStyleProfileId 
+    ? profiles.find(p => p.id === profile.originalNoteStyleProfileId)
+    : null;
+
+  return (
+    <div className="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          {/* Title and Badge */}
+          <div className="flex items-start gap-2 mb-2">
+            <h3 className="font-semibold text-gray-900">{profile.name}</h3>
+            {typeBadge && (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${typeBadge.className}`}>
+                <typeBadge.icon className="w-3 h-3" />
+                {typeBadge.label}
+              </span>
+            )}
+          </div>
+          
+          {/* Style Details */}
+          <div className="text-sm text-gray-600 space-y-1">
+            {profile.defaultGreeting && (
+              <p>
+                <span className="font-medium">Greeting:</span> {profile.defaultGreeting}
+              </p>
+            )}
+            {profile.signatureText && (
+              <p>
+                <span className="font-medium">Signature:</span>{' '}
+                {profile.signatureText.split('\n')[0]}
+                {profile.signatureText.split('\n').length > 1 && '...'}
+              </p>
+            )}
+            <p>
+              <span className="font-medium">Font:</span> {profile.handwritingFont}
+            </p>
+          </div>
+
+          {/* Parent/Origin Indicator */}
+          {parentStyle && (
+            <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+              <Copy className="w-3 h-3" />
+              Copied from: <span className="font-medium">{parentStyle.name}</span>
+            </p>
+          )}
+          {profile.originalNoteStyleProfileId && !parentStyle && (
+            <p className="text-xs text-gray-400 mt-2 flex items-center gap-1">
+              <Copy className="w-3 h-3" />
+              Copied from deleted style
+            </p>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 ml-4">
+          {/* Favorite Toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onToggleFavorite(profile.id, isFavorited)}
+            disabled={togglingFavorite === profile.id}
+            className="hover:bg-yellow-50"
+          >
+            {togglingFavorite === profile.id ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Star className={`w-4 h-4 ${isFavorited ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'}`} />
+            )}
+          </Button>
+
+          {/* Edit (Personal Only) */}
+          {canEdit && (
+            <Button variant="ghost" size="sm" onClick={() => onEdit(profile)}>
+              <Edit className="w-4 h-4" />
+            </Button>
+          )}
+
+          {/* Save As My Style (Org/Platform Only) */}
+          {!canEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onCopy(profile)}
+              disabled={copying === profile.id}
+              className="text-indigo-600 hover:bg-indigo-50"
+            >
+              {copying === profile.id ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 mr-1" />
+                  Save As My Style
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* Delete (Personal Only) */}
+          {canEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(profile)}
+            >
+              <Trash2 className="w-4 h-4 text-red-600" />
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
