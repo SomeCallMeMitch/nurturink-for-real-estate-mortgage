@@ -100,24 +100,41 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
   // Filter menu items based on the user's role
   const visibleMenuItems = menuItems.filter(item => {
     // If no roles defined, show to everyone
-    if (!item.roles || item.roles.length === 0) return true;
+    if (!item.roles || item.roles.length === 0) {
+      console.log(`LeftSidebar: Item '${item.label}' has no roles, showing to everyone`);
+      return true;
+    }
     
     // If user not logged in (or not loaded), hide items requiring roles
-    if (!user) return false;
+    if (!user) {
+      console.log(`LeftSidebar: Item '${item.label}' hidden - no user logged in`);
+      return false;
+    }
 
+    const userRole = user?.appRole || user?.role;
+    
     // Check specific roles
-    if (user.appRole && item.roles.includes(user.appRole)) return true;
-    if (user.role && item.roles.includes(user.role)) return true;
+    if (userRole && item.roles.includes(userRole)) {
+      console.log(`LeftSidebar: Item '${item.label}' visible - user role '${userRole}' matches allowed roles [${item.roles}]`);
+      return true;
+    }
 
     // Fallback: If item allows 'user' role, show it to any logged-in user
-    // This ensures users without a specific 'appRole' still see basic items
-    if (item.roles.includes('user')) return true;
+    if (item.roles.includes('user') && user) {
+      console.log(`LeftSidebar: Item '${item.label}' visible - fallback 'user' role matched`);
+      return true;
+    }
 
+    console.log(`LeftSidebar: Item '${item.label}' hidden - user role '${userRole}' NOT in allowed roles [${item.roles}]`);
     return false;
   });
 
   // Debug logging
-  console.log('LeftSidebar: User role:', user?.appRole || user?.role);
+  const userRole = user?.appRole || user?.role;
+  console.log('LeftSidebar: Full user object:', user);
+  console.log('LeftSidebar: User role (appRole):', user?.appRole);
+  console.log('LeftSidebar: User role (role):', user?.role);
+  console.log('LeftSidebar: Computed user role:', userRole);
   console.log('LeftSidebar: Visible items count:', visibleMenuItems.length);
   console.log('LeftSidebar: Visible items list:', visibleMenuItems.map(i => i.label));
 

@@ -24,6 +24,8 @@ export default function Home() {
         }
         
         const user = await base44.auth.me();
+        console.log('Home.js: Authenticated user appRole:', user?.appRole);
+        console.log('Home.js: Full user object:', user);
         
         if (!user.onboardingComplete) {
           navigate(createPageUrl('Onboarding'));

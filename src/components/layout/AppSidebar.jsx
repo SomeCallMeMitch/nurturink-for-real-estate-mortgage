@@ -121,8 +121,9 @@ export function AppSidebar({ whitelabelSettings, user }) {
   };
 
   const hasRole = (allowedRoles) => {
-    const result = !allowedRoles || (user && allowedRoles.includes(user.appRole));
-    console.log(`AppSidebar: Checking role for ${allowedRoles} -> ${result} (User role: ${user?.appRole})`);
+    const userRole = user?.appRole || user?.role;
+    const result = !allowedRoles || (user && allowedRoles.includes(userRole));
+    console.log(`AppSidebar: Checking role for [${allowedRoles}] -> ${result} (User role: '${userRole}', appRole: '${user?.appRole}', role: '${user?.role}')`);
     return result;
   };
 
