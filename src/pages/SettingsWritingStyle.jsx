@@ -496,11 +496,11 @@ export default function SettingsWritingStyle() {
                     id="greeting"
                     value={formData.defaultGreeting}
                     onChange={(e) => setFormData({ ...formData, defaultGreeting: e.target.value })}
-                    placeholder="Dear {{firstName}},"
+                    placeholder="Dear {{client.firstName}},"
                     className="h-20"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    Use placeholders like {'{{firstName}}'} for dynamic content
+                    Use placeholders like {'{{client.firstName}}'} for dynamic content
                   </p>
                 </div>
 
@@ -511,7 +511,7 @@ export default function SettingsWritingStyle() {
                     id="signature"
                     value={formData.signatureText}
                     onChange={(e) => setFormData({ ...formData, signatureText: e.target.value })}
-                    placeholder="Sincerely,&#10;{{rep_full_name}}&#10;{{rep_company_name}}"
+                    placeholder="Sincerely,&#10;{{user.fullName}}&#10;{{user.companyName}}"
                     className="h-32"
                   />
                   <p className="text-xs text-gray-500 mt-1">
