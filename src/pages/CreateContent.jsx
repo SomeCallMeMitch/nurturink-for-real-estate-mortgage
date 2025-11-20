@@ -240,12 +240,10 @@ export default function CreateContent() {
         }),
         base44.entities.Template.filter({ 
           orgId: currentUser.orgId, 
-          type: 'organization',
-          status: 'approved'
+          type: 'organization'
         }),
         base44.entities.Template.filter({ 
           type: 'platform',
-          isDefault: true, 
           status: 'approved' 
         })
       ]);
