@@ -4,6 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { base44 } from "@/api/base44Client";
 
 export default function Layout({ children, currentPageName }) {
+  // DEBUG: See what page we're actually on
+  console.log('🔍 Layout.js - currentPageName:', currentPageName);
+  
   const [whitelabelSettings, setWhitelabelSettings] = useState(null);
 
   useEffect(() => {
@@ -34,46 +37,13 @@ export default function Layout({ children, currentPageName }) {
     loadWhitelabelSettings();
   }, []);
 
-  // Pages that should use MainLayout
-  const mainAppPages = [
-    "Home",
-    "FindClients", 
-    "CreateContent",
-    "SelectDesign",
-    "ReviewAndSend",
-    "MailingConfirmation",
-    "Templates",
-    "EditTemplate",
-    "TemplatePreview",
-    "Analytics",
-    "Clients",
-    "Settings",
-    "AdminClients",
-    "AdminClientEdit",
-    "SettingsProfile",
-    "SettingsOrganization",
-    "SettingsWritingStyle",
-    "SettingsAddresses",
-    "SettingsPhones",
-    "SettingsUrls",
-    "SettingsTeam",
-    "SuperAdminCardManagement",
-    "AdminPricing",
-    "AdminCoupons",
-    "Credits",
-    "Order",
-    "PaymentSuccess",
-    "PaymentCancel",
-    "TeamManagement",
-    "SuperAdminWhitelabel",
-    "SuperAdminDashboard",
-    "AdminCardLayout",
-    "AdminEnvelopeLayout",
-    "AdminCreateContentLayout"
-  ];
+  // Pages that should NOT use MainLayout (no sidebar)
+  const noLayoutPages = ["lp", "Lp", "LandingPage"];
   
-  // Check if current page should use MainLayout
-  const useMainLayout = mainAppPages.includes(currentPageName);
+  // Check if current page should bypass MainLayout
+  const shouldBypassLayout = noLayoutPages.includes(currentPageName);
+  
+  console.log('🔍 Layout.js - shouldBypassLayout:', shouldBypassLayout);
   
   return (
     <>
@@ -98,10 +68,12 @@ export default function Layout({ children, currentPageName }) {
         }
       `}</style>
       
-      {useMainLayout ? (
-        <MainLayout whitelabelSettings={whitelabelSettings}>{children}</MainLayout>
-      ) : (
+      {shouldBypassLayout ? (
+        // Landing page and other no-layout pages render directly
         children
+      ) : (
+        // All other pages get MainLayout with sidebar
+        <MainLayout whitelabelSettings={whitelabelSettings}>{children}</MainLayout>
       )}
       
       {/* Global Toaster - will auto-dismiss after 3 seconds */}
