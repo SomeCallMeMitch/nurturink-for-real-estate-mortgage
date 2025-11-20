@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -215,14 +214,16 @@ export default function EditTemplate() {
           navigate(createPageUrl('Templates'));
         }
       } else {
-        // New template
+        // New template - determine default type based on user role
+        const isSuperAdminOrWL = currentUser.appRole === 'super_admin' || currentUser.appRole === 'whitelabel_partner';
+        
         const newTemplate = {
           name: '',
           content: '',
           templateCategoryIds: [],
           status: 'approved',
           isDefault: false,
-          type: 'organization'
+          type: isSuperAdminOrWL ? 'platform' : 'organization'
         };
         setTemplate(newTemplate);
         setInitialTemplate(newTemplate);
@@ -590,7 +591,7 @@ export default function EditTemplate() {
                           <SelectContent>
                             <SelectItem value="personal">Personal (Only You)</SelectItem>
                             <SelectItem value="organization">Organization (All Team Members)</SelectItem>
-                            {user?.appRole === 'super_admin' && (
+                            {(user?.appRole === 'super_admin' || user?.appRole === 'whitelabel_partner') && (
                               <SelectItem value="platform">Platform (All Users)</SelectItem>
                             )}
                           </SelectContent>
