@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
-import LPNoLayoutWrapper from "@/components/landing/LPNoLayoutWrapper";
 import LPHeader from "@/components/landing/LPHeader";
 import LPHeroSection from "@/components/landing/LPHeroSection";
 import LPFeatures1Section from "@/components/landing/LPFeatures1Section";
@@ -33,22 +32,20 @@ export default function LandingPage() {
   }, [navigate]);
   
   return (
-    <LPNoLayoutWrapper>
-      <div className="min-h-screen bg-white">
-        <LPHeader />
-        <div className="pt-20">
-          <LPHeroSection />
-          <LPFeatures1Section />
-          <LPSocialProofLogos />
-          <LPStatsBanner />
-          <LPFeatures2Section />
-          <LPHowItWorksSection />
-          <LPPricingSection />
-          <LPContactFormSection />
-          <LPFAQSection />
-        </div>
-        <LPFooter />
+    <div className="min-h-screen bg-white">
+      <LPHeader />
+      <div className="pt-20">
+        <LPHeroSection />
+        <LPFeatures1Section />
+        <LPSocialProofLogos />
+        <LPStatsBanner />
+        <LPFeatures2Section />
+        <LPHowItWorksSection />
+        <LPPricingSection />
+        <LPContactFormSection />
+        <LPFAQSection />
       </div>
-    </LPNoLayoutWrapper>
+      <LPFooter />
+    </div>
   );
 }
