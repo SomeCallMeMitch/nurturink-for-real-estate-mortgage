@@ -128,13 +128,13 @@ export function AppSidebar({ whitelabelSettings, user }) {
   };
 
   const navItems = [
-    // Generic User Items - kept for Super Admin to access user features if needed
-    { 
-      title: "App Home", 
-      url: "Home", 
-      icon: Home,
-      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin']
-    }
+    { title: "App Home", url: "Home", icon: Home },
+    { title: "Send a Card", url: "FindClients", icon: Mail },
+    { title: "Clients", url: "AdminClients", icon: Users },
+    { title: "Templates", url: "Templates", icon: FileText },
+    { title: "Credits", url: "Credits", icon: DollarSign },
+    { title: "Team", url: "TeamManagement", icon: UsersRound },
+    { title: "Analytics", url: "Analytics", icon: BarChart3 },
   ];
 
   const settingsItems = [
@@ -194,24 +194,14 @@ export function AppSidebar({ whitelabelSettings, user }) {
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.filter(item => hasRole(item.roles)).map((item) => (
-                 <SidebarMenuItem key={item.title}>
-                   {item.items ? (
-                     <CollapsibleMenu item={item} location={location} />
-                   ) : (
-                     <SidebarMenuButton 
-                       asChild 
-                       isActive={location.pathname === createPageUrl(item.url)}
-                       tooltip={item.title}
-                     >
-                       <a href={createPageUrl(item.url)} onClick={(e) => { e.preventDefault(); navigate(createPageUrl(item.url)); }}>
-                         <item.icon />
-                         <span>{item.title}</span>
-                       </a>
-                     </SidebarMenuButton>
-                   )}
-                 </SidebarMenuItem>
-              ))}
+              <CollapsibleMenu 
+                item={{
+                  title: "Main Menu",
+                  icon: LayoutDashboard,
+                  items: navItems
+                }}
+                location={location}
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -219,22 +209,16 @@ export function AppSidebar({ whitelabelSettings, user }) {
         <SidebarGroup>
           <SidebarGroupLabel>Settings</SidebarGroupLabel>
           <SidebarGroupContent>
-             <SidebarMenu>
-               {settingsItems.map((item) => (
-                 <SidebarMenuItem key={item.title}>
-                   <SidebarMenuButton 
-                     asChild 
-                     isActive={location.pathname === createPageUrl(item.url)}
-                     tooltip={item.title}
-                   >
-                     <a href={createPageUrl(item.url)} onClick={(e) => { e.preventDefault(); navigate(createPageUrl(item.url)); }}>
-                       <item.icon />
-                       <span>{item.title}</span>
-                     </a>
-                   </SidebarMenuButton>
-                 </SidebarMenuItem>
-               ))}
-             </SidebarMenu>
+            <SidebarMenu>
+              <CollapsibleMenu 
+                item={{
+                  title: "User Settings",
+                  icon: Settings,
+                  items: settingsItems
+                }}
+                location={location}
+              />
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
