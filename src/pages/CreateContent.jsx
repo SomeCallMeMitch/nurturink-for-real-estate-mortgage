@@ -273,27 +273,25 @@ export default function CreateContent() {
       }
       
       console.log('📡 Step 6: Loading note style profiles...');
-      const [personalProfiles, orgWideProfiles] = await Promise.all([
-        base44.entities.NoteStyleProfile.filter({
-          userId: currentUser.id,
-          orgId: currentUser.orgId
-        }),
-        base44.entities.NoteStyleProfile.filter({
-          isOrgWide: true,
-          orgId: currentUser.orgId
-        })
-      ]);
-      
-      const allProfiles = [...personalProfiles, ...orgWideProfiles];
-      console.log('✅ Note style profiles loaded:', {
-        personal: personalProfiles.length,
-        orgWide: orgWideProfiles.length,
-        total: allProfiles.length
+      const allOrgProfiles = await base44.entities.NoteStyleProfile.filter({
+        orgId: currentUser.orgId
       });
-      setNoteStyleProfiles(allProfiles);
       
-      if (!batchData.selectedNoteStyleProfileId && allProfiles.length > 0) {
-        const defaultProfile = allProfiles.find(p => p.isDefault) || allProfiles[0];
+      // Filter to only personal (user's own) and org-wide profiles
+      const relevantProfiles = allOrgProfiles.filter(p => 
+        p.userId === currentUser.id || p.isOrgWide === true
+      );
+      
+      console.log('✅ Note style profiles loaded:', {
+        total: allOrgProfiles.length,
+        relevant: relevantProfiles.length,
+        personal: relevantProfiles.filter(p => p.userId === currentUser.id).length,
+        orgWide: relevantProfiles.filter(p => p.isOrgWide === true).length
+      });
+      setNoteStyleProfiles(relevantProfiles);
+      
+      if (!batchData.selectedNoteStyleProfileId && relevantProfiles.length > 0) {
+        const defaultProfile = relevantProfiles.find(p => p.isDefault) || relevantProfiles[0];
         setLocalSelectedNoteStyleProfileId(defaultProfile.id);
         console.log('✅ Auto-selected default note style profile:', defaultProfile.name);
       }
