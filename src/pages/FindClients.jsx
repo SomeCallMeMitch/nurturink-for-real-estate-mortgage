@@ -59,17 +59,30 @@ export default function FindClients() {
       setLoading(true);
       setError(null);
 
-      const currentUser = await base44.auth.me(); // Renamed to avoid conflict with state 'user' during initial fetch
-      setUser(currentUser); // Set the user state
-      if (currentUser.organization) { // Check if organization data is nested in user
-        setOrganization(currentUser.organization); // Set the organization state
+      const currentUser = await base44.auth.me();
+      console.log('🔍 FindClients: Current user:', currentUser);
+      console.log('🔍 FindClients: User orgId:', currentUser.orgId);
+      console.log('🔍 FindClients: User appRole:', currentUser.appRole);
+      
+      setUser(currentUser);
+      if (currentUser.organization) {
+        setOrganization(currentUser.organization);
       }
 
-      // Load clients and favorites in parallel
+      // Load clients - for super_admin, load ALL clients, otherwise filter by orgId
+      const clientQuery = currentUser.appRole === 'super_admin' 
+        ? {} 
+        : { orgId: currentUser.orgId };
+      
+      console.log('🔍 FindClients: Client query:', clientQuery);
+
       const [clientList, favoritesList] = await Promise.all([
-        base44.entities.Client.filter({ orgId: currentUser.orgId }), // Use currentUser.orgId
-        base44.entities.FavoriteClient.filter({ userId: currentUser.id }) // Use currentUser.id
+        base44.entities.Client.filter(clientQuery),
+        base44.entities.FavoriteClient.filter({ userId: currentUser.id })
       ]);
+
+      console.log('🔍 FindClients: Clients loaded:', clientList.length);
+      console.log('🔍 FindClients: First 3 clients:', clientList.slice(0, 3));
 
       setClients(clientList);
 
