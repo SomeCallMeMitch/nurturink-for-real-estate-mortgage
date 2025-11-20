@@ -273,14 +273,27 @@ export default function CreateContent() {
       }
       
       console.log('📡 Step 6: Loading note style profiles...');
-      const profileList = await base44.entities.NoteStyleProfile.filter({
-        orgId: currentUser.orgId
-      });
-      console.log('✅ Note style profiles loaded:', profileList.length);
-      setNoteStyleProfiles(profileList);
+      const [personalProfiles, orgWideProfiles] = await Promise.all([
+        base44.entities.NoteStyleProfile.filter({
+          userId: currentUser.id,
+          orgId: currentUser.orgId
+        }),
+        base44.entities.NoteStyleProfile.filter({
+          isOrgWide: true,
+          orgId: currentUser.orgId
+        })
+      ]);
       
-      if (!batchData.selectedNoteStyleProfileId && profileList.length > 0) {
-        const defaultProfile = profileList.find(p => p.isDefault) || profileList[0];
+      const allProfiles = [...personalProfiles, ...orgWideProfiles];
+      console.log('✅ Note style profiles loaded:', {
+        personal: personalProfiles.length,
+        orgWide: orgWideProfiles.length,
+        total: allProfiles.length
+      });
+      setNoteStyleProfiles(allProfiles);
+      
+      if (!batchData.selectedNoteStyleProfileId && allProfiles.length > 0) {
+        const defaultProfile = allProfiles.find(p => p.isDefault) || allProfiles[0];
         setLocalSelectedNoteStyleProfileId(defaultProfile.id);
         console.log('✅ Auto-selected default note style profile:', defaultProfile.name);
       }
