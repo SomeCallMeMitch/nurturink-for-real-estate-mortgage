@@ -156,6 +156,10 @@ export function AppSidebar({ whitelabelSettings, user }) {
     { title: "Envelope Layout", url: "AdminEnvelopeLayout", icon: Mail },
   ];
 
+  const whitelabelItems = [
+    { title: "Whitelabel Settings", url: "SuperAdminWhitelabel", icon: Palette },
+  ];
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -234,25 +238,36 @@ export function AppSidebar({ whitelabelSettings, user }) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Always show Admin items in this specific Sidebar since it's now Super Admin specific */}
+        {/* Collapsible Super Admin Section */}
         <SidebarGroup>
           <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {adminItems.map((item) => (
-                 <SidebarMenuItem key={item.title}>
-                   <SidebarMenuButton 
-                     asChild 
-                     isActive={location.pathname === createPageUrl(item.url)}
-                     tooltip={item.title}
-                   >
-                     <a href={createPageUrl(item.url)} onClick={(e) => { e.preventDefault(); navigate(createPageUrl(item.url)); }}>
-                       <item.icon />
-                       <span>{item.title}</span>
-                     </a>
-                   </SidebarMenuButton>
-                 </SidebarMenuItem>
-              ))}
+              <CollapsibleMenu 
+                item={{
+                  title: "Platform Admin",
+                  icon: Shield,
+                  items: adminItems
+                }}
+                location={location}
+              />
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Collapsible Whitelabel Section */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Whitelabel</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <CollapsibleMenu 
+                item={{
+                  title: "Whitelabel Partner",
+                  icon: Building,
+                  items: whitelabelItems
+                }}
+                location={location}
+              />
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
