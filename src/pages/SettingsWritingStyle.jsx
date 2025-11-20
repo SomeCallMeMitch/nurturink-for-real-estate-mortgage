@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Loader2, Code2, Info } from "lucide-react";
+import { Plus, Edit, Trash2, Loader2, Code2, Info, MessageSquare } from "lucide-react";
 
 export default function SettingsWritingStyle() {
   const [profiles, setProfiles] = useState([]);
