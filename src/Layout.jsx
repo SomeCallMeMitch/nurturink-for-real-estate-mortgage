@@ -2,10 +2,14 @@ import React, { useEffect, useState } from "react";
 import MainLayout from "./components/layout/MainLayout";
 import { Toaster } from "@/components/ui/toaster";
 import { base44 } from "@/api/base44Client";
+import { useLocation } from "react-router-dom";
 
 export default function Layout({ children, currentPageName }) {
+  const location = useLocation();
+  
   // DEBUG: See what page we're actually on
-  console.log('🔍 Layout.js - currentPageName:', currentPageName);
+  console.log('🔍 Layout.js - currentPageName prop:', currentPageName);
+  console.log('🔍 Layout.js - actual pathname:', location.pathname);
   
   const [whitelabelSettings, setWhitelabelSettings] = useState(null);
 
@@ -37,13 +41,14 @@ export default function Layout({ children, currentPageName }) {
     loadWhitelabelSettings();
   }, []);
 
-  // Pages that should NOT use MainLayout (no sidebar)
-  const noLayoutPages = ["lp", "Lp", "LandingPage"];
+  // Check actual path instead of unreliable currentPageName prop
+  // Landing page is the ONLY page that should bypass MainLayout
+  const isLandingPage = location.pathname === '/' || 
+                        location.pathname === '/lp' || 
+                        location.pathname.toLowerCase().includes('landing');
   
-  // Check if current page should bypass MainLayout
-  const shouldBypassLayout = noLayoutPages.includes(currentPageName);
-  
-  console.log('🔍 Layout.js - shouldBypassLayout:', shouldBypassLayout);
+  console.log('🔍 Layout.js - isLandingPage:', isLandingPage);
+  console.log('🔍 Layout.js - will use MainLayout:', !isLandingPage);
   
   return (
     <>
@@ -68,8 +73,8 @@ export default function Layout({ children, currentPageName }) {
         }
       `}</style>
       
-      {shouldBypassLayout ? (
-        // Landing page and other no-layout pages render directly
+      {isLandingPage ? (
+        // Landing page renders directly without sidebar
         children
       ) : (
         // All other pages get MainLayout with sidebar
