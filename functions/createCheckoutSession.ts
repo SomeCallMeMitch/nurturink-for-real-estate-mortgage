@@ -1,6 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 import Stripe from 'npm:stripe@14.11.0';
 
+// Helper to get team size
+async function getTeamSize(base44, orgId) {
+  try {
+    const teamMembers = await base44.entities.User.filter({ orgId });
+    return teamMembers?.length || 0;
+  } catch {
+    return 0;
+  }
+}
+
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
   apiVersion: '2023-10-16',
 });
@@ -361,6 +371,32 @@ Deno.serve(async (req) => {
         
         console.log(`✅ Simulated organization purchase complete: ${credits} credits added`);
         
+        // Send receipt email
+        try {
+          const orderNumber = `SIM-ORG-${Date.now().toString(36).toUpperCase()}`;
+          
+          await base44.asServiceRole.functions.invoke('sendOrgCreditPurchaseReceipt', {
+            admin_firstName: user.full_name?.split(' ')[0] || 'there',
+            admin_email: user.email,
+            organization_name: organization.name,
+            order_number: orderNumber,
+            transaction_id: transaction.id,
+            purchase_date: new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            credits_purchased: credits,
+            price_paid: finalPriceInCents,
+            original_price: tier.priceInCents,
+            discount_amount: discountApplied,
+            coupon_code: validatedCoupon?.code,
+            payment_method: 'TEST',
+            new_org_pool_balance: newBalance,
+            team_size: await getTeamSize(base44, organization.id)
+          });
+          
+          console.log('✅ Organization receipt email sent');
+        } catch (emailError) {
+          console.error('⚠️ Failed to send receipt email:', emailError.message);
+        }
+        
       } else {
         // Individual user purchase - goes to user.personalPurchasedCredits
         console.log('👤 Processing user purchase...');
@@ -425,6 +461,30 @@ Deno.serve(async (req) => {
         }
         
         console.log(`✅ Simulated user purchase complete: ${credits} credits added (personalPurchasedCredits)`);
+        
+        // Send receipt email
+        try {
+          const orderNumber = `SIM-USR-${Date.now().toString(36).toUpperCase()}`;
+          
+          await base44.asServiceRole.functions.invoke('sendPersonalCreditPurchaseReceipt', {
+            user_firstName: user.full_name?.split(' ')[0] || 'there',
+            user_email: user.email,
+            order_number: orderNumber,
+            transaction_id: transaction.id,
+            purchase_date: new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+            credits_purchased: credits,
+            price_paid: finalPriceInCents,
+            original_price: tier.priceInCents,
+            discount_amount: discountApplied,
+            coupon_code: validatedCoupon?.code,
+            payment_method: 'TEST',
+            new_balance: newPersonalPurchased
+          });
+          
+          console.log('✅ Personal receipt email sent');
+        } catch (emailError) {
+          console.error('⚠️ Failed to send receipt email:', emailError.message);
+        }
       }
       
       console.log('========================================');
