@@ -322,6 +322,10 @@ Deno.serve(async (req) => {
         
         // Create transaction record
         const transaction = await base44.asServiceRole.entities.Transaction.create({
+          fromAccountId: null,
+          fromAccountType: 'platform',
+          toAccountId: organization.id,
+          toAccountType: 'company',
           orgId: organization.id,
           userId: user.id,
           type: 'purchase_org',
@@ -382,6 +386,10 @@ Deno.serve(async (req) => {
         
         // Create transaction record
         const transaction = await base44.asServiceRole.entities.Transaction.create({
+          fromAccountId: null,
+          fromAccountType: 'platform',
+          toAccountId: user.id,
+          toAccountType: 'user',
           orgId: user.orgId || '',
           userId: user.id,
           type: 'purchase_user',
