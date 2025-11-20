@@ -248,6 +248,7 @@ export default function Onboarding() {
           </motion.div>
         )}
       </div>
+    </div>
     </RequireAuth>
   );
 }
