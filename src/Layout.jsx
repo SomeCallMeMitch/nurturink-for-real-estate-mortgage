@@ -43,10 +43,11 @@ export default function Layout({ children, currentPageName }) {
 
   // Check actual path instead of unreliable currentPageName prop
   // Landing pages bypass MainLayout (no sidebar)
-  const isLandingPage = location.pathname === '/' || 
-                        location.pathname === '/Welcome' ||
-                        location.pathname === '/lp' || 
-                        location.pathname.toLowerCase().includes('landing');
+  const normalizedPath = location.pathname.toLowerCase();
+  const isLandingPage = normalizedPath === '/' || 
+                        normalizedPath === '/welcome' ||
+                        normalizedPath === '/lp' || 
+                        normalizedPath.includes('landing');
 
   console.log('🔍 Layout.js - isLandingPage:', isLandingPage);
   console.log('🔍 Layout.js - will use MainLayout:', !isLandingPage);
