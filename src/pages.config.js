@@ -35,6 +35,7 @@ import UpdateUserRole from './pages/UpdateUserRole';
 import SidebarDemo from './pages/SidebarDemo';
 import Onboarding from './pages/Onboarding';
 import TestEmail from './pages/TestEmail';
+import Welcome from './pages/Welcome';
 import __Layout from './Layout.jsx';
 
 
@@ -76,6 +77,7 @@ export const PAGES = {
     "SidebarDemo": SidebarDemo,
     "Onboarding": Onboarding,
     "TestEmail": TestEmail,
+    "Welcome": Welcome,
 }
 
 export const pagesConfig = {
