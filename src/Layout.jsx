@@ -2,19 +2,48 @@ import React, { useEffect, useState } from "react";
 import MainLayout from "./components/layout/MainLayout";
 import { Toaster } from "@/components/ui/toaster";
 import { base44 } from "@/api/base44Client";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
-  
-  // DEBUG: See what page we're actually on
-  console.log('🔍 Layout.js - currentPageName prop:', currentPageName);
-  console.log('🔍 Layout.js - actual pathname:', location.pathname);
+  const navigate = useNavigate();
   
   const [whitelabelSettings, setWhitelabelSettings] = useState(null);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Check authentication and handle redirects
   useEffect(() => {
-    // Load whitelabel settings for favicon
+    const checkAuthAndRedirect = async () => {
+      try {
+        const authenticated = await base44.auth.isAuthenticated();
+        setIsAuthenticated(authenticated);
+        setIsAuthChecked(true);
+        
+        const normalizedPath = location.pathname.toLowerCase();
+        const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome';
+        
+        // Redirect logged-in users away from Welcome page to Home
+        if (authenticated && isWelcomePage) {
+          navigate('/Home', { replace: true });
+        }
+        
+        // Redirect non-logged-in users to Welcome page if they try to access other pages
+        if (!authenticated && !isWelcomePage) {
+          navigate('/Welcome', { replace: true });
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsAuthChecked(true);
+        setIsAuthenticated(false);
+      }
+    };
+    
+    checkAuthAndRedirect();
+  }, [location.pathname, navigate]);
+
+  // Load whitelabel settings for favicon
+  useEffect(() => {
     const loadWhitelabelSettings = async () => {
       try {
         const response = await base44.functions.invoke('getWhitelabelSettings');
@@ -41,16 +70,18 @@ export default function Layout({ children, currentPageName }) {
     loadWhitelabelSettings();
   }, []);
 
-  // Check actual path instead of unreliable currentPageName prop
-  // Landing pages bypass MainLayout (no sidebar)
-  const normalizedPath = location.pathname.toLowerCase();
-  const isLandingPage = normalizedPath === '/' || 
-                        normalizedPath === '/welcome' ||
-                        normalizedPath === '/lp' || 
-                        normalizedPath.includes('landing');
+  // Show loading state while checking auth
+  if (!isAuthChecked) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
-  console.log('🔍 Layout.js - isLandingPage:', isLandingPage);
-  console.log('🔍 Layout.js - will use MainLayout:', !isLandingPage);
+  // Check actual path - Welcome page should never show sidebar
+  const normalizedPath = location.pathname.toLowerCase();
+  const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome';
   
   return (
     <>
@@ -72,16 +103,16 @@ export default function Layout({ children, currentPageName }) {
         }
         .font-patrick {
           font-family: 'Patrick Hand', cursive;
-        }
-      `}</style>
-      
-      {isLandingPage ? (
-        // Landing page renders directly without sidebar
-        children
-      ) : (
-        // All other pages get MainLayout with sidebar
-        <MainLayout whitelabelSettings={whitelabelSettings}>{children}</MainLayout>
-      )}
+          }
+          `}</style>
+
+          {isWelcomePage ? (
+          // Welcome page renders directly without sidebar (unauthenticated users only)
+          children
+          ) : (
+          // All other pages get MainLayout with sidebar (authenticated users only)
+          <MainLayout whitelabelSettings={whitelabelSettings}>{children}</MainLayout>
+          )}
       
       {/* Global Toaster - will auto-dismiss after 3 seconds */}
       <Toaster />
