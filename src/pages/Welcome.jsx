@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -52,6 +54,7 @@ const scrollToSection = (id) => {
 // Header Component
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   const logoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/2bfa9a29f_RoofScribeLogo.png';
 
   const navLinks = [
@@ -60,6 +63,15 @@ const Header = () => {
     { name: 'Samples', id: 'sample-gallery' },
     { name: 'Contact', id: 'footer' },
   ];
+
+  const handleLoginClick = async () => {
+    const isAuthenticated = await base44.auth.isAuthenticated();
+    if (isAuthenticated) {
+      navigate('/Home');
+    } else {
+      base44.auth.redirectToLogin();
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white shadow-md border-b">
@@ -79,6 +91,12 @@ const Header = () => {
                 {link.name}
               </button>
             ))}
+            <button
+              onClick={handleLoginClick}
+              className="text-gray-700 hover:text-blue-600 font-medium transition-colors duration-200 text-lg"
+            >
+              Login
+            </button>
             <Button onClick={() => scrollToSection('free-sample-cta')} className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md text-lg">
               Get Free Samples
             </Button>
@@ -107,6 +125,15 @@ const Header = () => {
                 {link.name}
               </button>
             ))}
+            <button
+              onClick={() => {
+                handleLoginClick();
+                setIsOpen(false);
+              }}
+              className="block w-full text-left py-3 text-lg text-gray-700 hover:text-blue-600"
+            >
+              Login
+            </button>
             <Button onClick={() => {
                 scrollToSection('free-sample-cta');
                 setIsOpen(false);
