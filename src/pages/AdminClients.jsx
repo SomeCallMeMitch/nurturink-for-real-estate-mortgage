@@ -24,6 +24,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { 
   Plus, 
   Search, 
@@ -38,7 +45,8 @@ import {
   ChevronUp,
   ChevronDown,
   Calendar,
-  Mail
+  Mail,
+  Check
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -328,7 +336,7 @@ export default function AdminClients() {
             </div>
             <Button
               onClick={() => navigate(createPageUrl('AdminClientEdit?id=new'))}
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="bg-amber-600 hover:bg-amber-700"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add New Client
@@ -338,7 +346,7 @@ export default function AdminClients() {
           {/* Search, Filter, and Sort Controls */}
           <Card className="mb-6">
             <CardContent className="pt-6 space-y-4">
-              {/* Row 1: Search, Favorites, Refresh */}
+              {/* Row 1: Search, Tags Dropdown, Favorites, Refresh */}
               <div className="flex gap-3">
                 {/* Search */}
                 <div className="flex-1 relative">
@@ -350,6 +358,49 @@ export default function AdminClients() {
                     className="pl-10"
                   />
                 </div>
+                
+                {/* Tags Dropdown */}
+                {availableTags.length > 0 && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="gap-2">
+                        <Tag className="w-4 h-4" />
+                        Tags
+                        {selectedTags.length > 0 && (
+                          <Badge className="ml-1 bg-amber-50 text-amber-700 border-amber-200">
+                            {selectedTags.length}
+                          </Badge>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      {availableTags.map(tag => {
+                        const isSelected = selectedTags.includes(tag);
+                        return (
+                          <DropdownMenuItem
+                            key={tag}
+                            onClick={() => handleToggleTag(tag)}
+                            className="flex items-center justify-between cursor-pointer"
+                          >
+                            <span>{tag}</span>
+                            {isSelected && <Check className="w-4 h-4 text-amber-700" />}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                      {selectedTags.length > 0 && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => setSelectedTags([])}
+                            className="text-amber-700 cursor-pointer"
+                          >
+                            Clear tag filters
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 
                 {/* Favorites Toggle */}
                 <Button
@@ -372,41 +423,18 @@ export default function AdminClients() {
                 </Button>
               </div>
 
-              {/* Row 2: Tags Filter */}
-              {availableTags.length > 0 && (
-                <div className="flex items-center gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Tag className="w-4 h-4" />
-                    <span className="font-medium">Tags:</span>
-                  </div>
-                  {availableTags.map(tag => {
-                    const isSelected = selectedTags.includes(tag);
-                    return (
-                      <Badge
-                        key={tag}
-                        variant={isSelected ? "default" : "outline"}
-                        className={`cursor-pointer transition-colors ${
-                          isSelected 
-                            ? 'bg-indigo-600 hover:bg-indigo-700' 
-                            : 'hover:bg-gray-100'
-                        }`}
-                        onClick={() => handleToggleTag(tag)}
-                      >
-                        {tag}
-                      </Badge>
-                    );
-                  })}
-                </div>
-              )}
-
               {/* Active Filters Summary & Clear Button */}
               {hasActiveFilters && (
                 <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 flex-wrap">
                     <span className="font-medium">Active filters:</span>
                     {searchQuery && <Badge variant="secondary">Search: "{searchQuery}"</Badge>}
                     {showFavoritesOnly && <Badge variant="secondary">Favorites Only</Badge>}
-                    {selectedTags.length > 0 && <Badge variant="secondary">{selectedTags.length} Tag{selectedTags.length > 1 ? 's' : ''}</Badge>}
+                    {selectedTags.length > 0 && (
+                      <Badge className="bg-amber-50 text-amber-700 border-amber-200">
+                        {selectedTags.length} Tag{selectedTags.length > 1 ? 's' : ''}: {selectedTags.join(', ')}
+                      </Badge>
+                    )}
                     {sortColumn !== 'fullName' && <Badge variant="secondary">Sorted by {sortColumn}</Badge>}
                   </div>
                   <Button
