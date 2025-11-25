@@ -63,28 +63,37 @@ function AvatarCircle({ user }) {
     : 'U';
 
   return (
-    <div className="relative rounded-full shrink-0 size-8 bg-blue-100 text-blue-600 border border-blue-200 flex items-center justify-center overflow-hidden select-none">
+    <div className="relative rounded-full shrink-0 size-8 bg-amber-100 text-amber-700 border border-amber-200 flex items-center justify-center overflow-hidden select-none">
         <span className="text-xs font-medium">{initials}</span>
     </div>
   );
 }
 
 function CollapsibleMenu({ item, location }) {
-  const [isOpen, setIsOpen] = useState(false);
+  // Persist state in localStorage
+  const storageKey = `sidebar_${item.title.toLowerCase().replace(/\s+/g, '_')}_expanded`;
+  const [isOpen, setIsOpen] = useState(() => {
+    const saved = localStorage.getItem(storageKey);
+    return saved ? JSON.parse(saved) : false;
+  });
   
-  // Auto expand if child is active
+  // Save to localStorage when changed
   useEffect(() => {
-    if (item.items?.some(sub => location.pathname === createPageUrl(sub.url))) {
-      setIsOpen(true);
-    }
-  }, [location.pathname, item.items]);
+    localStorage.setItem(storageKey, JSON.stringify(isOpen));
+  }, [isOpen, storageKey]);
+  
+  // Check if any child is active
+  const hasActiveChild = item.items?.some(sub => location.pathname === createPageUrl(sub.url));
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="group/collapsible">
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton tooltip={item.title}>
-            <item.icon />
+          <SidebarMenuButton 
+            tooltip={item.title}
+            className={`text-[17px] py-1 font-bold ${hasActiveChild ? 'bg-amber-50 text-amber-700' : 'hover:bg-amber-50 hover:text-amber-700'}`}
+          >
+            <item.icon className={hasActiveChild ? 'text-amber-700' : ''} />
             <span>{item.title}</span>
             <ChevronDown className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-180" />
           </SidebarMenuButton>
@@ -96,8 +105,10 @@ function CollapsibleMenu({ item, location }) {
                 <SidebarMenuSubButton 
                   asChild 
                   isActive={location.pathname === createPageUrl(subItem.url)}
+                  className="text-[15px] py-0.5 font-semibold data-[active=true]:font-bold data-[active=true]:bg-amber-50 data-[active=true]:text-amber-700 hover:bg-amber-50 hover:text-amber-700"
                 >
                   <a href={createPageUrl(subItem.url)}>
+                    {subItem.icon && <subItem.icon className="w-4 h-4 data-[active=true]:text-amber-700" />}
                     <span>{subItem.title}</span>
                   </a>
                 </SidebarMenuSubButton>
@@ -128,9 +139,9 @@ export function AppSidebar({ whitelabelSettings, user }) {
   };
 
   const navItems = [
-    { title: "App Home", url: "Home", icon: Home },
-    { title: "Send a Card", url: "FindClients", icon: Mail },
+    { title: "Dashboard", url: "Home", icon: Home },
     { title: "Clients", url: "AdminClients", icon: Users },
+    { title: "Send a Card", url: "FindClients", icon: Mail },
     { title: "Templates", url: "Templates", icon: FileText },
     { title: "Credits", url: "Credits", icon: DollarSign },
     { title: "Team", url: "TeamManagement", icon: UsersRound },
@@ -190,29 +201,35 @@ export function AppSidebar({ whitelabelSettings, user }) {
       </SidebarHeader>
       
       <SidebarContent>
+        {/* Main Navigation Items - Non-collapsible */}
         <SidebarGroup>
-          <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <CollapsibleMenu 
-                item={{
-                  title: "Main Menu",
-                  icon: LayoutDashboard,
-                  items: navItems
-                }}
-                location={location}
-              />
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton 
+                    asChild
+                    isActive={location.pathname === createPageUrl(item.url)}
+                    className="text-[17px] py-1 font-semibold data-[active=true]:font-extrabold data-[active=true]:bg-amber-50 data-[active=true]:text-amber-700 hover:bg-amber-50 hover:text-amber-700"
+                  >
+                    <a href={createPageUrl(item.url)}>
+                      <item.icon className="data-[active=true]:text-amber-700" />
+                      <span>{item.title}</span>
+                    </a>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Settings Collapsible Section */}
         <SidebarGroup>
-          <SidebarGroupLabel>Settings</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <CollapsibleMenu 
                 item={{
-                  title: "User Settings",
+                  title: "Settings",
                   icon: Settings,
                   items: settingsItems
                 }}
@@ -222,14 +239,13 @@ export function AppSidebar({ whitelabelSettings, user }) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Collapsible Super Admin Section */}
+        {/* Admin Portal Collapsible Section */}
         <SidebarGroup>
-          <SidebarGroupLabel>Super Admin</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <CollapsibleMenu 
                 item={{
-                  title: "Platform Admin",
+                  title: "Admin Portal",
                   icon: Shield,
                   items: adminItems
                 }}
@@ -239,14 +255,13 @@ export function AppSidebar({ whitelabelSettings, user }) {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Collapsible Whitelabel Section */}
+        {/* Whitelabel Collapsible Section */}
         <SidebarGroup>
-          <SidebarGroupLabel>Whitelabel</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <CollapsibleMenu 
                 item={{
-                  title: "Whitelabel Partner",
+                  title: "Whitelabel",
                   icon: Building,
                   items: whitelabelItems
                 }}
@@ -265,7 +280,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                  className="data-[state=open]:bg-amber-50 hover:bg-amber-50"
                 >
                   <AvatarCircle user={user} />
                   <div className="grid flex-1 text-left text-sm leading-tight">
