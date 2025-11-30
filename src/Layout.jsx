@@ -23,10 +23,10 @@ export default function Layout({ children, currentPageName }) {
         const normalizedPath = location.pathname.toLowerCase();
         const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome';
 
-        // TEMPORARILY DISABLED: Redirect logged-in users away from Welcome page to Home
-        // if (authenticated && isWelcomePage) {
-        //   navigate('/Home', { replace: true });
-        // }
+        // Redirect logged-in users away from Welcome page to Home
+        if (authenticated && isWelcomePage) {
+          navigate('/Home', { replace: true });
+        }
 
         // Redirect non-logged-in users to Welcome page if they try to access other pages
         if (!authenticated && !isWelcomePage) {
