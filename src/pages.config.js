@@ -36,6 +36,7 @@ import SidebarDemo from './pages/SidebarDemo';
 import Onboarding from './pages/Onboarding';
 import TestEmail from './pages/TestEmail';
 import Welcome from './pages/Welcome';
+import AdminEmailTesting from './pages/AdminEmailTesting';
 import __Layout from './Layout.jsx';
 
 
@@ -78,6 +79,7 @@ export const PAGES = {
     "Onboarding": Onboarding,
     "TestEmail": TestEmail,
     "Welcome": Welcome,
+    "AdminEmailTesting": AdminEmailTesting,
 }
 
 export const pagesConfig = {
