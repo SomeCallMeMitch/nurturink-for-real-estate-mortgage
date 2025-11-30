@@ -42,9 +42,14 @@ export default function Layout({ children, currentPageName }) {
     checkAuthAndRedirect();
   }, [location.pathname, navigate]);
 
-  // Load whitelabel settings for favicon
+  // Load whitelabel settings for favicon (only after auth is confirmed)
   useEffect(() => {
     const loadWhitelabelSettings = async () => {
+      // Only load whitelabel settings if user is authenticated
+      if (!isAuthenticated) {
+        return;
+      }
+      
       try {
         const response = await base44.functions.invoke('getWhitelabelSettings');
         setWhitelabelSettings(response.data.settings);
@@ -68,7 +73,7 @@ export default function Layout({ children, currentPageName }) {
     };
     
     loadWhitelabelSettings();
-  }, []);
+  }, [isAuthenticated]);
 
   // Show loading state while checking auth
   if (!isAuthChecked) {
