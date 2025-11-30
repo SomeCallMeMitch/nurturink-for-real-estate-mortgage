@@ -165,6 +165,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
     { title: "Preview Layout", url: "AdminCardLayout", icon: Shield },
     { title: "Content Layout", url: "AdminCreateContentLayout", icon: PenTool },
     { title: "Envelope Layout", url: "AdminEnvelopeLayout", icon: Mail },
+    { title: "Email Testing", url: "AdminEmailTesting", icon: Mail },
   ];
 
   const whitelabelItems = [
