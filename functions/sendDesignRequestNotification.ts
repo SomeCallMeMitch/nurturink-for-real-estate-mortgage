@@ -1,5 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { Resend } from 'npm:resend@3.0.0';
+import { Resend } from 'npm:resend@2.0.0';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -128,12 +127,6 @@ Review Request: ${props.design_request_url}
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const data = await req.json();
 
     const emailData = {
