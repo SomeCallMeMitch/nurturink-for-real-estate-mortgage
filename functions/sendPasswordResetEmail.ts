@@ -1,5 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
-import { Resend } from 'npm:resend@3.0.0';
+import { Resend } from 'npm:resend@2.0.0';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -143,9 +142,6 @@ Need help? Contact our support team: ${support_url}
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClientFromRequest(req);
-    
-    // Password reset can be triggered without auth
     const {
       user_firstName,
       user_email,
