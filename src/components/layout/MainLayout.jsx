@@ -17,7 +17,8 @@ export default function MainLayout({ children, whitelabelSettings }) {
         setUser(u);
       } catch (e) {
         console.error('MainLayout: Failed to fetch user:', e);
-        // Don't set loading false here, let the page redirect if needed
+        // Set user to empty object to prevent white screen - layout will still render
+        setUser({});
       } finally {
         setLoading(false);
       }
