@@ -20,8 +20,24 @@ import {
   X,
   ChevronsUpDown,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Check
 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -215,7 +231,7 @@ export default function FindClients() {
         });
         break;
 
-      case "name":
+      case "fullName":
         result.sort((a, b) => {
           const aName = (a.fullName || '').toLowerCase();
           const bName = (b.fullName || '').toLowerCase();
@@ -231,11 +247,19 @@ export default function FindClients() {
         });
         break;
 
-      case "location":
+      case "city":
         result.sort((a, b) => {
-          const aLoc = `${a.city || ''}, ${a.state || ''}`.toLowerCase();
-          const bLoc = `${b.city || ''}, ${b.state || ''}`.toLowerCase();
-          return direction * aLoc.localeCompare(bLoc);
+          const aCity = (a.city || '').toLowerCase();
+          const bCity = (b.city || '').toLowerCase();
+          return direction * aCity.localeCompare(bCity);
+        });
+        break;
+
+      case "state":
+        result.sort((a, b) => {
+          const aState = (a.state || '').toLowerCase();
+          const bState = (b.state || '').toLowerCase();
+          return direction * aState.localeCompare(bState);
         });
         break;
 
@@ -355,15 +379,15 @@ export default function FindClients() {
       return <ChevronsUpDown className="w-5 h-5 opacity-30 group-hover:opacity-60 transition-opacity" />;
     }
     return sortDirection === 'asc'
-      ? <ChevronUp className="w-5 h-5 text-blue-600 font-bold" />
-      : <ChevronDown className="w-5 h-5 text-blue-600 font-bold" />;
+      ? <ChevronUp className="w-5 h-5 text-amber-700 font-bold" />
+      : <ChevronDown className="w-5 h-5 text-amber-700 font-bold" />;
   };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <Users className="w-12 h-12 text-blue-600 mx-auto mb-4 animate-pulse" />
+          <Users className="w-12 h-12 text-amber-600 mx-auto mb-4 animate-pulse" />
           <p className="text-gray-600">Loading clients...</p>
         </div>
       </div>
@@ -391,7 +415,7 @@ export default function FindClients() {
         {/* Search, Filter, and Sort Controls */}
         <Card className="mb-6">
           <CardContent className="pt-6 space-y-4">
-            {/* Row 1: Search, Favorites, Refresh */}
+            {/* Row 1: Search, Tags Dropdown, Favorites, Refresh */}
             <div className="flex gap-3">
               {/* Search */}
               <div className="flex-1 relative">
@@ -403,6 +427,54 @@ export default function FindClients() {
                   className="pl-10"
                 />
               </div>
+
+              {/* Tags Dropdown - moved next to search bar */}
+              {availableTags.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`gap-2 ${selectedTags.length > 0 ? 'border-amber-500 bg-amber-50 text-amber-700' : ''}`}
+                    >
+                      <Tag className="w-4 h-4" />
+                      Tags
+                      {selectedTags.length > 0 && (
+                        <Badge variant="secondary" className="ml-1 bg-amber-100 text-amber-700">
+                          {selectedTags.length}
+                        </Badge>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {availableTags.map(tag => {
+                      const isSelected = selectedTags.includes(tag);
+                      return (
+                        <DropdownMenuItem
+                          key={tag}
+                          onClick={() => handleToggleTag(tag)}
+                          className="cursor-pointer"
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <span>{tag}</span>
+                            {isSelected && <Check className="w-4 h-4 text-amber-600" />}
+                          </div>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                    {selectedTags.length > 0 && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => setSelectedTags([])}
+                          className="text-gray-500 cursor-pointer"
+                        >
+                          Clear tag filters
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               {/* Favorites Toggle */}
               <Button
@@ -424,33 +496,6 @@ export default function FindClients() {
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
             </div>
-
-            {/* Row 2: Tags Filter */}
-            {availableTags.length > 0 && (
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Tag className="w-4 h-4" />
-                  <span className="font-medium">Tags:</span>
-                </div>
-                {availableTags.map(tag => {
-                  const isSelected = selectedTags.includes(tag);
-                  return (
-                    <Badge
-                      key={tag}
-                      variant={isSelected ? "default" : "outline"}
-                      className={`cursor-pointer transition-colors ${
-                        isSelected
-                          ? 'bg-blue-600 hover:bg-blue-700'
-                          : 'hover:bg-gray-100'
-                      }`}
-                      onClick={() => handleToggleTag(tag)}
-                    >
-                      {tag}
-                    </Badge>
-                  );
-                })}
-              </div>
-            )}
 
             {/* Active Filters Summary & Clear Button */}
             {hasActiveFilters && (
@@ -512,7 +557,7 @@ export default function FindClients() {
                 <Button
                   onClick={handleContinue}
                   disabled={selectedClientIds.length === 0 || initializing}
-                  className="bg-blue-600 hover:bg-blue-700 gap-2"
+                  className="bg-amber-600 hover:bg-amber-700 gap-2"
                 >
                   {initializing ? 'Initializing...' : 'Continue to Content'}
                   {!initializing && <ArrowRight className="w-4 h-4" />}
@@ -542,143 +587,192 @@ export default function FindClients() {
                 )}
               </div>
             ) : (
-              <div className="space-y-2">
-                {/* Sortable Column Headers */}
-                <div className="flex items-center gap-4 px-4 py-3 bg-gray-50 rounded-t-lg border-b-2 border-gray-200">
-                  {/* Checkbox column - no sort */}
-                  <div className="w-6"></div>
-
-                  {/* Name column - sortable */}
-                  <button
-                    onClick={() => handleSort('name')}
-                    className="flex-1 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors group"
-                  >
-                    <span>Name / Company</span>
-                    {getSortIcon('name')}
-                  </button>
-
-                  {/* Location column - sortable */}
-                  <button
-                    onClick={() => handleSort('location')}
-                    className="w-40 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors group"
-                  >
-                    <span>Location</span>
-                    {getSortIcon('location')}
-                  </button>
-
-                  {/* Notes column - sortable */}
-                  <button
-                    onClick={() => handleSort('notes')}
-                    className="w-32 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors group"
-                  >
-                    <Mail className="w-4 h-4" />
-                    <span>Notes</span>
-                    {getSortIcon('notes')}
-                  </button>
-
-                  {/* Last Note column - sortable */}
-                  <button
-                    onClick={() => handleSort('lastNote')}
-                    className="w-40 flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600 transition-colors group"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    <span>Last Note</span>
-                    {getSortIcon('lastNote')}
-                  </button>
-
-                  {/* Favorite column - no sort */}
-                  <div className="w-10"></div>
-                </div>
-
-                {/* Client Rows */}
-                {processedClients.map((client, index) => {
-                  const isSelected = selectedClientIds.includes(client.id);
-                  const isFavorited = favoriteClientIds.has(client.id);
-                  const totalNotes = client.totalNotesSent || 0;
-                  const lastNoteDate = formatDate(client.lastNoteSentDate);
-
-                  return (
-                    <motion.div
-                      key={client.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2, delay: index * 0.03 }}
-                      whileHover={{ scale: 1.01 }}
-                      onClick={() => handleToggleClient(client.id)}
-                      className={`flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                        isSelected
-                          ? 'border-blue-600 bg-blue-50 shadow-md'
-                          : 'border-gray-200 hover:border-blue-300 bg-white hover:shadow-sm'
-                      }`}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    {/* Checkbox column */}
+                    <TableHead className="w-10"></TableHead>
+                    
+                    {/* Full Name column - sortable */}
+                    <TableHead 
+                      onClick={() => handleSort('fullName')}
+                      className="cursor-pointer hover:text-amber-700 transition-colors"
                     >
-                      {/* Checkbox */}
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={() => handleToggleClient(client.id)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-
-                      {/* Name / Company Column */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-medium text-gray-900 truncate">
-                            {client.fullName || 'Unnamed Client'}
-                          </h3>
-                          {totalNotes === 0 && (
-                            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
-                              No notes sent
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          {client.company && (
-                            <span className="truncate">{client.company}</span>
-                          )}
-                        </div>
-                        {client.tags && client.tags.length > 0 && (
-                          <div className="flex items-center gap-1 mt-2">
-                            {client.tags.map(tag => (
-                              <Badge key={tag} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
+                      <div className="flex items-center gap-2">
+                        <span>Full Name</span>
+                        {getSortIcon('fullName')}
                       </div>
-
-                      {/* Location Column */}
-                      <div className="w-40 text-sm text-gray-600">
-                        {client.city && client.state ? (
-                          <span>{client.city}, {client.state}</span>
-                        ) : (
-                          <span className="text-gray-400">No location</span>
-                        )}
+                    </TableHead>
+                    
+                    {/* Company column - sortable */}
+                    <TableHead 
+                      onClick={() => handleSort('company')}
+                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Company</span>
+                        {getSortIcon('company')}
                       </div>
-
-                      {/* Notes Count Column */}
-                      <div className="w-32 flex items-center gap-2 text-sm text-gray-600">
-                        <span className="font-medium">{totalNotes}</span>
-                        <span className="text-gray-400">note{totalNotes !== 1 ? 's' : ''}</span>
+                    </TableHead>
+                    
+                    {/* City column - sortable */}
+                    <TableHead 
+                      onClick={() => handleSort('city')}
+                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>City</span>
+                        {getSortIcon('city')}
                       </div>
-
-                      {/* Last Note Date Column */}
-                      <div className="w-40 text-sm text-gray-600">
-                        <span className="font-medium">{lastNoteDate}</span>
+                    </TableHead>
+                    
+                    {/* State column - sortable */}
+                    <TableHead 
+                      onClick={() => handleSort('state')}
+                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>State</span>
+                        {getSortIcon('state')}
                       </div>
+                    </TableHead>
+                    
+                    {/* Notes column - sortable */}
+                    <TableHead 
+                      onClick={() => handleSort('notes')}
+                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        <span>Notes</span>
+                        {getSortIcon('notes')}
+                      </div>
+                    </TableHead>
+                    
+                    {/* Last Note column - sortable */}
+                    <TableHead 
+                      onClick={() => handleSort('lastNote')}
+                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>Last Note</span>
+                        {getSortIcon('lastNote')}
+                      </div>
+                    </TableHead>
+                    
+                    {/* Tags column */}
+                    <TableHead>Tags</TableHead>
+                    
+                    {/* Favorite column */}
+                    <TableHead className="w-10">Favorite</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {processedClients.map((client) => {
+                    const isSelected = selectedClientIds.includes(client.id);
+                    const isFavorited = favoriteClientIds.has(client.id);
+                    const totalNotes = client.totalNotesSent || 0;
+                    const lastNoteDate = formatDate(client.lastNoteSentDate);
+                    const clientTags = client.tags || [];
 
-                      {/* Favorite Button */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => handleToggleFavorite(client.id, e)}
-                        className={`w-10 ${isFavorited ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'}`}
+                    return (
+                      <TableRow
+                        key={client.id}
+                        onClick={() => handleToggleClient(client.id)}
+                        className={`cursor-pointer transition-all ${
+                          isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+                        }`}
                       >
-                        <Star className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
-                      </Button>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                        {/* Checkbox */}
+                        <TableCell>
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => handleToggleClient(client.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </TableCell>
+
+                        {/* Full Name - BOLD */}
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-gray-900">
+                              {client.fullName || 'Unnamed Client'}
+                            </span>
+                            {totalNotes === 0 && (
+                              <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                                No notes sent
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        {/* Company */}
+                        <TableCell className="text-gray-600">
+                          {client.company || <span className="text-gray-400">—</span>}
+                        </TableCell>
+
+                        {/* City */}
+                        <TableCell className="text-gray-600">
+                          {client.city || <span className="text-gray-400">—</span>}
+                        </TableCell>
+
+                        {/* State */}
+                        <TableCell className="text-gray-600">
+                          {client.state || <span className="text-gray-400">—</span>}
+                        </TableCell>
+
+                        {/* Notes Count */}
+                        <TableCell className="text-gray-600">
+                          <span className="font-medium">{totalNotes}</span>
+                          <span className="text-gray-400 ml-1">note{totalNotes !== 1 ? 's' : ''}</span>
+                        </TableCell>
+
+                        {/* Last Note Date */}
+                        <TableCell className="text-gray-600">
+                          <span className="font-medium">{lastNoteDate}</span>
+                        </TableCell>
+
+                        {/* Tags */}
+                        <TableCell>
+                          {clientTags.length > 0 ? (
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {clientTags.slice(0, 2).map(tag => (
+                                <Badge 
+                                  key={tag} 
+                                  variant="outline" 
+                                  className="text-xs bg-amber-50 text-amber-700 border-amber-200"
+                                >
+                                  {tag}
+                                </Badge>
+                              ))}
+                              {clientTags.length > 2 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  +{clientTags.length - 2}
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </TableCell>
+
+                        {/* Favorite Button */}
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => handleToggleFavorite(client.id, e)}
+                            className={`w-10 ${isFavorited ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'}`}
+                          >
+                            <Star className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             )}
           </CardContent>
         </Card>
