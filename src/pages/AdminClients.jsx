@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import ClientImportModal from "@/components/client/ClientImportModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,12 +53,14 @@ import {
   ChevronDown,
   Calendar,
   Mail,
-  Check
+  Check,
+  Upload
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function AdminClients() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   
   const [clients, setClients] = useState([]);
@@ -72,9 +75,22 @@ export default function AdminClients() {
   const [deleteDialog, setDeleteDialog] = useState({ open: false, client: null });
   const [deleting, setDeleting] = useState(false);
   
+  // Import modal state
+  const [showImportModal, setShowImportModal] = useState(false);
+  
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
+
+  // Check for ?import=true query param to auto-open import modal
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('import') === 'true') {
+      setShowImportModal(true);
+      // Clean up URL
+      navigate(createPageUrl('AdminClients'), { replace: true });
+    }
+  }, [location.search, navigate]);
 
   useEffect(() => {
     loadClients();
@@ -367,13 +383,23 @@ export default function AdminClients() {
                 Manage your client database
               </p>
             </div>
-            <Button
-              onClick={() => navigate(createPageUrl('AdminClientEdit?id=new'))}
-              className="bg-amber-600 hover:bg-amber-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Client
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowImportModal(true)}
+                className="gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                Import CSV
+              </Button>
+              <Button
+                onClick={() => navigate(createPageUrl('AdminClientEdit?id=new'))}
+                className="bg-amber-600 hover:bg-amber-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add New Client
+              </Button>
+            </div>
           </div>
 
           {/* Search, Filter, and Sort Controls */}
@@ -678,6 +704,20 @@ export default function AdminClients() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Client Import Modal */}
+      <ClientImportModal
+        open={showImportModal}
+        onOpenChange={setShowImportModal}
+        onImportComplete={(results) => {
+          loadClients();
+          toast({
+            title: 'Import Complete',
+            description: `Successfully imported ${results.summary.imported} clients`,
+            className: 'bg-green-50 border-green-200 text-green-900'
+          });
+        }}
+      />
     </div>
   );
 }
