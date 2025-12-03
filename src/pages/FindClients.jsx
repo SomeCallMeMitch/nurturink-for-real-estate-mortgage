@@ -3,6 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -71,6 +78,7 @@ export default function FindClients() {
   const [sortDirection, setSortDirection] = useState("asc"); // 'asc' or 'desc'
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
+  const [uploadedFilter, setUploadedFilter] = useState("all"); // 'all', 'today', '7days', '30days', 'manual'
 
   useEffect(() => {
     loadData();
@@ -214,6 +222,27 @@ export default function FindClients() {
       });
     }
 
+    // Apply uploaded date filter
+    if (uploadedFilter !== 'all') {
+      const now = new Date();
+      result = result.filter(client => {
+        if (uploadedFilter === 'manual') {
+          return client.source === 'manual' || !client.source;
+        }
+        if (!client.uploadedAt) return false;
+        
+        const uploadDate = new Date(client.uploadedAt);
+        const daysDiff = (now - uploadDate) / (1000 * 60 * 60 * 24);
+        
+        switch (uploadedFilter) {
+          case 'today': return daysDiff < 1;
+          case '7days': return daysDiff <= 7;
+          case '30days': return daysDiff <= 30;
+          default: return true;
+        }
+      });
+    }
+
     // Apply sorting
     const direction = sortDirection === 'asc' ? 1 : -1;
 
@@ -322,7 +351,7 @@ export default function FindClients() {
     }
 
     return result;
-  }, [clients, searchQuery, sortColumn, sortDirection, showFavoritesOnly, selectedTags, favoriteClientIds]);
+  }, [clients, searchQuery, sortColumn, sortDirection, showFavoritesOnly, selectedTags, favoriteClientIds, uploadedFilter]);
 
   // Handle individual checkbox toggle
   const handleToggleClient = (clientId) => {
@@ -387,13 +416,15 @@ export default function FindClients() {
     setSortDirection("asc");
     setShowFavoritesOnly(false);
     setSelectedTags([]);
+    setUploadedFilter("all");
   };
 
   // Check if any filters are active
   const hasActiveFilters = searchQuery.trim() ||
                           showFavoritesOnly ||
                           selectedTags.length > 0 ||
-                          sortColumn !== "no_notes_first";
+                          sortColumn !== "no_notes_first" ||
+                          uploadedFilter !== "all";
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -523,6 +554,20 @@ export default function FindClients() {
                 </DropdownMenu>
               )}
 
+              {/* Uploaded Date Filter */}
+              <Select value={uploadedFilter} onValueChange={setUploadedFilter}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="All Clients" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Clients</SelectItem>
+                  <SelectItem value="today">Imported Today</SelectItem>
+                  <SelectItem value="7days">Imported Last 7 Days</SelectItem>
+                  <SelectItem value="30days">Imported Last 30 Days</SelectItem>
+                  <SelectItem value="manual">Manual Entry Only</SelectItem>
+                </SelectContent>
+              </Select>
+
               {/* Favorites Toggle */}
               <Button
                 variant={showFavoritesOnly ? "default" : "outline"}
@@ -553,6 +598,11 @@ export default function FindClients() {
                   {showFavoritesOnly && <Badge variant="secondary">Favorites Only</Badge>}
                   {selectedTags.length > 0 && <Badge variant="secondary">{selectedTags.length} Tag{selectedTags.length > 1 ? 's' : ''}</Badge>}
                   {sortColumn !== "no_notes_first" && <Badge variant="secondary">Sorted by {sortColumn}</Badge>}
+                  {uploadedFilter !== "all" && <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200">
+                    {uploadedFilter === 'today' ? 'Imported Today' : 
+                     uploadedFilter === '7days' ? 'Last 7 Days' : 
+                     uploadedFilter === '30days' ? 'Last 30 Days' : 'Manual Only'}
+                  </Badge>}
                 </div>
                 <Button
                   variant="ghost"
