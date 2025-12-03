@@ -254,12 +254,30 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
       setFileType(extension);
 
       // Get initial file info
-      const response = await base44.functions.invoke("validateImportFile", {
+      console.log("Calling validateImportFile with:", {
         fileUrl: uploadResult.file_url,
         fileType: extension,
-        fieldMapping: {},
-        options: {},
       });
+      
+      let response;
+      try {
+        response = await base44.functions.invoke("validateImportFile", {
+          fileUrl: uploadResult.file_url,
+          fileType: extension,
+          fieldMapping: {},
+          options: {},
+        });
+        console.log("validateImportFile response:", response);
+      } catch (funcError) {
+        console.error("validateImportFile function call failed:", funcError);
+        console.error("Error details:", {
+          status: funcError.response?.status,
+          statusText: funcError.response?.statusText,
+          data: funcError.response?.data,
+          message: funcError.message,
+        });
+        throw funcError;
+      }
 
       if (!response.data.success) {
         toast({
