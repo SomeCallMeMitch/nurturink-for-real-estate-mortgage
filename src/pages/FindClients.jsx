@@ -469,20 +469,29 @@ export default function FindClients() {
               {/* Tags Dropdown - moved next to search bar */}
               {availableTags.length > 0 && (
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={`gap-2 ${selectedTags.length > 0 ? 'border-amber-500 bg-amber-50 text-amber-700' : ''}`}
-                    >
-                      <Tag className="w-4 h-4" />
-                      Tags
-                      {selectedTags.length > 0 && (
-                        <Badge variant="secondary" className="ml-1 bg-amber-100 text-amber-700">
-                          {selectedTags.length}
-                        </Badge>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={`gap-2 ${selectedTags.length > 0 ? 'border-amber-500 bg-amber-50 text-amber-700' : ''}`}
+                          >
+                            <Tag className="w-4 h-4" />
+                            Tags
+                            {selectedTags.length > 0 && (
+                              <Badge variant="secondary" className="ml-1 bg-amber-100 text-amber-700">
+                                {selectedTags.length}
+                              </Badge>
+                            )}
+                          </Button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Filter by tags</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <DropdownMenuContent align="end" className="w-48">
                     {availableTags.map(tag => {
                       const isSelected = selectedTags.includes(tag);

@@ -31,6 +31,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { 
   Plus, 
   Search, 
@@ -389,17 +395,26 @@ export default function AdminClients() {
                 {/* Tags Dropdown */}
                 {availableTags.length > 0 && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="gap-2">
-                        <Tag className="w-4 h-4" />
-                        Tags
-                        {selectedTags.length > 0 && (
-                          <Badge className="ml-1 bg-amber-50 text-amber-700 border-amber-200">
-                            {selectedTags.length}
-                          </Badge>
-                        )}
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="gap-2">
+                              <Tag className="w-4 h-4" />
+                              Tags
+                              {selectedTags.length > 0 && (
+                                <Badge className="ml-1 bg-amber-50 text-amber-700 border-amber-200">
+                                  {selectedTags.length}
+                                </Badge>
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Filter by tags</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                     <DropdownMenuContent align="start" className="w-56">
                       {availableTags.map(tag => {
                         const isSelected = selectedTags.includes(tag);
