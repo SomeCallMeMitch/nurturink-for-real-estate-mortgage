@@ -38,6 +38,12 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -232,10 +238,17 @@ export default function FindClients() {
         break;
 
       case "fullName":
+        // Sort by last name (lastName field from Client entity)
         result.sort((a, b) => {
-          const aName = (a.fullName || '').toLowerCase();
-          const bName = (b.fullName || '').toLowerCase();
-          return direction * aName.localeCompare(bName);
+          const aLastName = (a.lastName || '').toLowerCase();
+          const bLastName = (b.lastName || '').toLowerCase();
+          // If last names are equal, sort by first name
+          if (aLastName === bLastName) {
+            const aFirstName = (a.firstName || '').toLowerCase();
+            const bFirstName = (b.firstName || '').toLowerCase();
+            return direction * aFirstName.localeCompare(bFirstName);
+          }
+          return direction * aLastName.localeCompare(bLastName);
         });
         break;
 
@@ -276,6 +289,31 @@ export default function FindClients() {
           const aDate = a.lastNoteSentDate ? new Date(a.lastNoteSentDate) : new Date(0);
           const bDate = b.lastNoteSentDate ? new Date(b.lastNoteSentDate) : new Date(0);
           return direction * (aDate - bDate);
+        });
+        break;
+
+      case "tags":
+        // Sort by number of tags, then alphabetically by first tag
+        result.sort((a, b) => {
+          const aTags = a.tags || [];
+          const bTags = b.tags || [];
+          // First compare by tag count
+          if (aTags.length !== bTags.length) {
+            return direction * (aTags.length - bTags.length);
+          }
+          // If same count, compare by first tag alphabetically
+          const aFirstTag = (aTags[0] || '').toLowerCase();
+          const bFirstTag = (bTags[0] || '').toLowerCase();
+          return direction * aFirstTag.localeCompare(bFirstTag);
+        });
+        break;
+
+      case "favorite":
+        // Sort favorites first (or last depending on direction)
+        result.sort((a, b) => {
+          const aFav = favoriteClientIds.has(a.id) ? 1 : 0;
+          const bFav = favoriteClientIds.has(b.id) ? 1 : 0;
+          return direction * (bFav - aFav); // Favorites first when ascending
         });
         break;
 
@@ -553,15 +591,28 @@ export default function FindClients() {
                   </div>
                 )}
 
-                {/* Continue Button */}
-                <Button
-                  onClick={handleContinue}
-                  disabled={selectedClientIds.length === 0 || initializing}
-                  className="bg-amber-600 hover:bg-amber-700 gap-2"
-                >
-                  {initializing ? 'Initializing...' : 'Continue to Content'}
-                  {!initializing && <ArrowRight className="w-4 h-4" />}
-                </Button>
+                {/* Continue Button with Tooltip */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span tabIndex={selectedClientIds.length === 0 ? 0 : -1}>
+                        <Button
+                          onClick={handleContinue}
+                          disabled={selectedClientIds.length === 0 || initializing}
+                          className="bg-amber-600 hover:bg-amber-700 gap-2"
+                        >
+                          {initializing ? 'Initializing...' : 'Continue to Content'}
+                          {!initializing && <ArrowRight className="w-4 h-4" />}
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {selectedClientIds.length === 0 && (
+                      <TooltipContent>
+                        <p>You must select at least one recipient before continuing.</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               </div>
             </div>
           </CardHeader>
@@ -661,11 +712,28 @@ export default function FindClients() {
                       </div>
                     </TableHead>
                     
-                    {/* Tags column */}
-                    <TableHead>Tags</TableHead>
+                    {/* Tags column - sortable */}
+                    <TableHead 
+                      onClick={() => handleSort('tags')}
+                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Tag className="w-4 h-4" />
+                        <span>Tags</span>
+                        {getSortIcon('tags')}
+                      </div>
+                    </TableHead>
                     
-                    {/* Favorite column */}
-                    <TableHead className="w-10">Favorite</TableHead>
+                    {/* Favorite column - sortable */}
+                    <TableHead 
+                      onClick={() => handleSort('favorite')}
+                      className="w-10 cursor-pointer hover:text-amber-700 transition-colors"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Star className="w-4 h-4" />
+                        {getSortIcon('favorite')}
+                      </div>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
