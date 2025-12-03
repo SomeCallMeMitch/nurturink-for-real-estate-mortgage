@@ -107,11 +107,14 @@ const FIELD_OPTIONS = [
   { value: "state", label: "State *", required: true },
   { value: "zipCode", label: "ZIP Code *", required: true },
   { value: "tags", label: "Tags" },
+  { value: "notes", label: "Notes" },
 ];
 
 // Auto-map fields based on column names
 const autoMapFields = (columns) => {
   const mapping = {};
+  const usedFields = new Set(); // Track which fields have been mapped
+  
   const fieldMatchers = {
     firstName: ["first_name", "firstname", "first", "fname"],
     lastName: ["last_name", "lastname", "last", "lname"],
@@ -124,13 +127,18 @@ const autoMapFields = (columns) => {
     state: ["state", "province", "region"],
     zipCode: ["zip", "zipcode", "zip_code", "postal", "postal_code"],
     tags: ["tags", "tag", "category", "categories"],
+    notes: ["notes", "note", "comments", "comment", "description"],
   };
 
   columns.forEach((col) => {
     const colLower = col.toLowerCase().replace(/[^a-z0-9]/g, "");
     for (const [field, matchers] of Object.entries(fieldMatchers)) {
+      // Skip if this field has already been mapped (prevent duplicates)
+      if (usedFields.has(field)) continue;
+      
       if (matchers.some((m) => colLower.includes(m.replace(/[^a-z0-9]/g, "")))) {
         mapping[col] = field;
+        usedFields.add(field);
         break;
       }
     }
@@ -458,6 +466,26 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
     return requiredFields.every((f) => mappedFields.includes(f));
   }, [fieldMapping]);
 
+  // Check for duplicate field mappings (same field mapped to multiple columns)
+  const duplicateMappings = useMemo(() => {
+    const fieldCounts = {};
+    const duplicates = [];
+    
+    Object.values(fieldMapping).forEach((field) => {
+      if (field && field !== "skip") {
+        fieldCounts[field] = (fieldCounts[field] || 0) + 1;
+      }
+    });
+    
+    for (const [field, count] of Object.entries(fieldCounts)) {
+      if (count > 1) {
+        duplicates.push(field);
+      }
+    }
+    
+    return duplicates;
+  }, [fieldMapping]);
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -735,6 +763,18 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
                 </div>
               </div>
 
+              {/* Duplicate Mappings Warning */}
+              {duplicateMappings.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <div className="flex items-center gap-3">
+                    <XCircle className="w-5 h-5 text-red-600" />
+                    <p className="text-red-800 text-sm">
+                      <strong>Duplicate mappings detected:</strong> The following fields are mapped to multiple columns: {duplicateMappings.join(", ")}. Each field can only be mapped once.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Required Fields Warning */}
               {!requiredFieldsMapped && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
@@ -823,6 +863,7 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
                         <TableHead>Company</TableHead>
                         <TableHead>City</TableHead>
                         <TableHead>State</TableHead>
+                        <TableHead>Issue</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -854,6 +895,13 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
                           <TableCell>{row.data.company || "-"}</TableCell>
                           <TableCell>{row.data.city || "-"}</TableCell>
                           <TableCell>{row.data.state || "-"}</TableCell>
+                          <TableCell className="text-xs max-w-[150px] truncate">
+                            {row.reason && (
+                              <span className={row.status === "error" ? "text-red-600" : "text-amber-600"}>
+                                {row.reason}
+                              </span>
+                            )}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -1002,7 +1050,7 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
             {currentStep === 2 && (
               <Button
                 onClick={handleValidate}
-                disabled={!requiredFieldsMapped || isProcessing}
+                disabled={!requiredFieldsMapped || isProcessing || duplicateMappings.length > 0}
                 className="bg-amber-500 hover:bg-amber-600"
               >
                 {isProcessing ? (

@@ -28,8 +28,11 @@ import {
   ChevronsUpDown,
   ChevronUp,
   ChevronDown,
-  Check
+  Check,
+  Upload,
+  Plus
 } from "lucide-react";
+import ClientImportModal from "@/components/client/ClientImportModal";
 import {
   Table,
   TableBody,
@@ -79,6 +82,9 @@ export default function FindClients() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [uploadedFilter, setUploadedFilter] = useState("all"); // 'all', 'today', '7days', '30days', 'manual'
+  
+  // Import modal state
+  const [showImportModal, setShowImportModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -587,6 +593,26 @@ export default function FindClients() {
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
+
+              {/* Quick Actions */}
+              <div className="border-l pl-3 flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowImportModal(true)}
+                  className="gap-2"
+                >
+                  <Upload className="w-4 h-4" />
+                  Import
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(createPageUrl('AdminClientEdit?id=new'))}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Client
+                </Button>
+              </div>
             </div>
 
             {/* Active Filters Summary & Clear Button */}
@@ -904,6 +930,20 @@ export default function FindClients() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Client Import Modal */}
+      <ClientImportModal
+        open={showImportModal}
+        onOpenChange={setShowImportModal}
+        onImportComplete={(results) => {
+          loadData();
+          toast({
+            title: 'Import Complete',
+            description: `Successfully imported ${results.summary.imported} clients`,
+            className: 'bg-green-50 border-green-200 text-green-900'
+          });
+        }}
+      />
     </div>
   );
 }

@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Save, Loader2, Star, X, Tag } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Star, X, Tag, Upload, Calendar, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
 
 export default function AdminClientEdit() {
   const navigate = useNavigate();
@@ -45,6 +46,9 @@ export default function AdminClientEdit() {
     state: '',
     zipCode: ''
   });
+  
+  // Import metadata (read-only display for imported clients)
+  const [importMetadata, setImportMetadata] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -98,6 +102,15 @@ export default function AdminClientEdit() {
         
         // Set favorite status
         setIsFavorited(favoritesList.length > 0);
+        
+        // Set import metadata if client was imported
+        if (client.source === 'file_upload' || client.source === 'csv_import') {
+          setImportMetadata({
+            source: client.source,
+            uploadedAt: client.uploadedAt,
+            importBatchId: client.importBatchId
+          });
+        }
       }
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -420,6 +433,44 @@ export default function AdminClientEdit() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Import Metadata Card (only for imported clients) */}
+            {importMetadata && (
+              <Card className="bg-blue-50 border-blue-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-blue-900">
+                    <FileSpreadsheet className="w-5 h-5" />
+                    Import Information
+                  </CardTitle>
+                  <CardDescription className="text-blue-700">
+                    This client was added via file import
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-blue-700 font-medium">Source:</span>
+                      <p className="text-blue-900 capitalize">{importMetadata.source?.replace('_', ' ') || 'File Upload'}</p>
+                    </div>
+                    <div>
+                      <span className="text-blue-700 font-medium">Imported:</span>
+                      <p className="text-blue-900 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {importMetadata.uploadedAt 
+                          ? format(new Date(importMetadata.uploadedAt), 'MMM d, yyyy h:mm a')
+                          : 'Unknown'}
+                      </p>
+                    </div>
+                    {importMetadata.importBatchId && (
+                      <div className="col-span-2">
+                        <span className="text-blue-700 font-medium">Batch ID:</span>
+                        <p className="text-blue-900 font-mono text-xs">{importMetadata.importBatchId}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Tags Card */}
             <Card>

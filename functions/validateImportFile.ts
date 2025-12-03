@@ -102,6 +102,9 @@ const mapRowToClient = (rawRow, fieldMapping, options) => {
         mapped[fieldName] = tagValues;
       } else if (fieldName === 'state') {
         mapped[fieldName] = value.toUpperCase();
+      } else if (fieldName === 'notes') {
+        // Notes field - preserve as-is but trim
+        mapped[fieldName] = value;
       } else {
         mapped[fieldName] = value;
       }
