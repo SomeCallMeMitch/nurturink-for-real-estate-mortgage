@@ -153,8 +153,8 @@ export default function AdminClients() {
       return <ChevronsUpDown className="w-5 h-5 opacity-30 group-hover:opacity-60 transition-opacity" />;
     }
     return sortDirection === 'asc' 
-      ? <ChevronUp className="w-5 h-5 text-indigo-600 font-bold" />
-      : <ChevronDown className="w-5 h-5 text-indigo-600 font-bold" />;
+      ? <ChevronUp className="w-5 h-5 text-amber-700 font-bold" />
+      : <ChevronDown className="w-5 h-5 text-amber-700 font-bold" />;
   };
 
   // Filter and sort clients
@@ -195,6 +195,16 @@ export default function AdminClients() {
       
       switch (sortColumn) {
         case 'fullName':
+          // Sort by last name, then first name
+          const aLastName = (a.lastName || '').toLowerCase();
+          const bLastName = (b.lastName || '').toLowerCase();
+          if (aLastName === bLastName) {
+            const aFirstName = (a.firstName || '').toLowerCase();
+            const bFirstName = (b.firstName || '').toLowerCase();
+            return direction * aFirstName.localeCompare(bFirstName);
+          }
+          return direction * aLastName.localeCompare(bLastName);
+          
         case 'company':
         case 'email':
         case 'phone':
@@ -213,6 +223,23 @@ export default function AdminClients() {
           aVal = a.lastNoteSentDate ? new Date(a.lastNoteSentDate) : new Date(0);
           bVal = b.lastNoteSentDate ? new Date(b.lastNoteSentDate) : new Date(0);
           return direction * (aVal - bVal);
+          
+        case 'tags':
+          // Sort by number of tags, then alphabetically by first tag
+          const aTags = a.tags || [];
+          const bTags = b.tags || [];
+          if (aTags.length !== bTags.length) {
+            return direction * (aTags.length - bTags.length);
+          }
+          const aFirstTag = (aTags[0] || '').toLowerCase();
+          const bFirstTag = (bTags[0] || '').toLowerCase();
+          return direction * aFirstTag.localeCompare(bFirstTag);
+          
+        case 'favorite':
+          // Sort favorites first (or last depending on direction)
+          const aFav = favoriteClientIds.has(a.id) ? 1 : 0;
+          const bFav = favoriteClientIds.has(b.id) ? 1 : 0;
+          return direction * (bFav - aFav);
           
         default:
           return 0;
@@ -303,12 +330,12 @@ export default function AdminClients() {
 
   const SortableHeader = ({ label, sortKey, icon }) => (
     <TableHead
-      className="cursor-pointer hover:bg-gray-100 select-none transition-colors"
+      className="cursor-pointer hover:text-amber-700 select-none transition-colors"
       onClick={() => handleSort(sortKey)}
     >
       <div className="flex items-center gap-2 group">
         {icon && icon}
-        <span>{label}</span>
+        {label && <span>{label}</span>}
         {getSortIcon(sortKey)}
       </div>
     </TableHead>
@@ -317,7 +344,7 @@ export default function AdminClients() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+        <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
       </div>
     );
   }
@@ -495,8 +522,8 @@ export default function AdminClients() {
                         <SortableHeader label="State" sortKey="state" />
                         <SortableHeader label="Notes" sortKey="notes" icon={<Mail className="w-4 h-4" />} />
                         <SortableHeader label="Last Note" sortKey="lastNote" icon={<Calendar className="w-4 h-4" />} />
-                        <TableHead>Tags</TableHead>
-                        <TableHead>Favorite</TableHead>
+                        <SortableHeader label="Tags" sortKey="tags" icon={<Tag className="w-4 h-4" />} />
+                        <SortableHeader label="" sortKey="favorite" icon={<Star className="w-4 h-4" />} />
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -508,9 +535,11 @@ export default function AdminClients() {
                         
                         return (
                           <TableRow key={client.id}>
-                            <TableCell className="font-medium">
+                            <TableCell>
                               <div className="flex items-center gap-2">
-                                {client.fullName || 'Unnamed Client'}
+                                <span className="font-bold text-gray-900">
+                                  {client.fullName || 'Unnamed Client'}
+                                </span>
                                 {totalNotes === 0 && (
                                   <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
                                     No notes
@@ -518,9 +547,9 @@ export default function AdminClients() {
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell>{client.company || '-'}</TableCell>
-                            <TableCell>{client.city || '-'}</TableCell>
-                            <TableCell>{client.state || '-'}</TableCell>
+                            <TableCell className="text-gray-600">{client.company || <span className="text-gray-400">—</span>}</TableCell>
+                            <TableCell className="text-gray-600">{client.city || <span className="text-gray-400">—</span>}</TableCell>
+                            <TableCell className="text-gray-600">{client.state || <span className="text-gray-400">—</span>}</TableCell>
                             <TableCell>
                               <span className="font-medium">{totalNotes}</span>
                             </TableCell>
@@ -531,7 +560,7 @@ export default function AdminClients() {
                               {client.tags && client.tags.length > 0 ? (
                                 <div className="flex flex-wrap gap-1">
                                   {client.tags.slice(0, 2).map(tag => (
-                                    <Badge key={tag} variant="secondary" className="text-xs">
+                                    <Badge key={tag} variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
                                       {tag}
                                     </Badge>
                                   ))}
@@ -542,7 +571,7 @@ export default function AdminClients() {
                                   )}
                                 </div>
                               ) : (
-                                <span className="text-gray-400 text-sm">-</span>
+                                <span className="text-gray-400 text-sm">—</span>
                               )}
                             </TableCell>
                             <TableCell>
