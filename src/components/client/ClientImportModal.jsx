@@ -285,9 +285,11 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
         description: `${response.data.totalRows} rows detected`,
       });
     } catch (error) {
+      console.error("Import upload error:", error);
+      const errorMessage = error.response?.data?.error || error.message || "Please try again";
       toast({
         title: "Upload failed",
-        description: error.message || "Please try again",
+        description: errorMessage,
         variant: "destructive",
       });
       setFileUrl(null);
@@ -342,9 +344,11 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
       setValidationResults(response.data);
       setCurrentStep(3);
     } catch (error) {
+      console.error("Validation error:", error);
+      const errorMessage = error.response?.data?.error || error.message || "Validation failed";
       toast({
         title: "Validation failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -379,9 +383,11 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
       // Notify parent
       onImportComplete?.(response.data);
     } catch (error) {
+      console.error("Import error:", error);
+      const errorMessage = error.response?.data?.error || error.message || "Import failed";
       toast({
         title: "Import failed",
-        description: error.message,
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
