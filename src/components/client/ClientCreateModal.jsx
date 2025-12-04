@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Save, Loader2, X, Tag, Plus, UserPlus } from "lucide-react";
+import { Save, Loader2, X, Tag, Plus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,7 +34,6 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
   const { toast } = useToast();
   
   const [saving, setSaving] = useState(false);
-  const [savingAndAdd, setSavingAndAdd] = useState(false);
   const [user, setUser] = useState(null);
   const [showAddAnotherDialog, setShowAddAnotherDialog] = useState(false);
   
@@ -176,7 +175,7 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
     return newClient;
   };
 
-  // Save and close
+  // Save client and show "add another" prompt
   const handleSave = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -185,27 +184,7 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
       setSaving(true);
       const newClient = await createClient();
       onClientCreated?.(newClient);
-      handleOpenChange(false);
-    } catch (err) {
-      console.error('Failed to save client:', err);
-      toast({
-        title: 'Failed to Create Client',
-        description: err.message || 'Please try again',
-        variant: 'destructive'
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // Save and prompt to add another
-  const handleSaveAndPrompt = async () => {
-    if (!validateForm()) return;
-    
-    try {
-      setSavingAndAdd(true);
-      const newClient = await createClient();
-      onClientCreated?.(newClient);
+      // Show "add another" dialog after successful save
       setShowAddAnotherDialog(true);
     } catch (err) {
       console.error('Failed to save client:', err);
@@ -215,7 +194,7 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
         variant: 'destructive'
       });
     } finally {
-      setSavingAndAdd(false);
+      setSaving(false);
     }
   };
 
@@ -424,21 +403,23 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
                 </div>
               )}
 
-              {/* Tag Dropdown */}
-              {availableTags.length > 0 && (
-                <div>
-                  <Label className="text-xs text-gray-500 mb-1.5 block">Add Existing Tag</Label>
-                  <Select
-                    value=""
-                    onValueChange={(tagName) => {
-                      if (tagName) handleAddTag(tagName);
-                    }}
-                  >
-                    <SelectTrigger className="w-full h-9 text-sm">
-                      <SelectValue placeholder="Select a tag..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableTags
+              {/* Tag Dropdown - Add Existing Tag */}
+              <div>
+                <Label className="text-xs text-gray-500 mb-1.5 block">Add Existing Tag</Label>
+                <Select
+                  value=""
+                  onValueChange={(tagName) => {
+                    if (tagName) handleAddTag(tagName);
+                  }}
+                >
+                  <SelectTrigger className="w-full h-9 text-sm">
+                    <SelectValue placeholder="Select a tag..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTags.length === 0 ? (
+                      <SelectItem value="_none" disabled>No tags available</SelectItem>
+                    ) : (
+                      availableTags
                         .filter(tag => !selectedTags.includes(tag.name))
                         .map(tag => (
                           <SelectItem key={tag.id} value={tag.name}>
@@ -450,11 +431,11 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
                               {tag.name}
                             </span>
                           </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+                        ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Custom Tag Input */}
               <div>
@@ -488,32 +469,13 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
-              disabled={saving || savingAndAdd}
+              disabled={saving}
             >
               Cancel
             </Button>
             <Button
-              type="button"
-              variant="outline"
-              onClick={handleSaveAndPrompt}
-              disabled={saving || savingAndAdd}
-              className="gap-2"
-            >
-              {savingAndAdd ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4" />
-                  Add Client
-                </>
-              )}
-            </Button>
-            <Button
               type="submit"
-              disabled={saving || savingAndAdd}
+              disabled={saving}
               className="bg-amber-600 hover:bg-amber-700"
             >
               {saving ? (
@@ -524,7 +486,7 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Save & Close
+                  Save
                 </>
               )}
             </Button>
@@ -535,20 +497,20 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
         <AlertDialog open={showAddAnotherDialog} onOpenChange={setShowAddAnotherDialog}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Add Another Client?</AlertDialogTitle>
+              <AlertDialogTitle>Client Saved!</AlertDialogTitle>
               <AlertDialogDescription>
-                Client was created successfully. Would you like to add another client?
+                Would you like to add another client?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel onClick={() => handleAddAnotherResponse(false)}>
-                No, I'm Done
+                No
               </AlertDialogCancel>
               <AlertDialogAction 
                 onClick={() => handleAddAnotherResponse(true)}
                 className="bg-amber-600 hover:bg-amber-700"
               >
-                Yes, Add Another
+                Yes
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
