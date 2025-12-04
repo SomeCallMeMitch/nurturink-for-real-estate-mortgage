@@ -30,14 +30,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 
-export default function ClientCreateModal({ open, onOpenChange, onClientCreated }) {
+export default function ClientCreateModal({ open, onOpenChange, onClientCreated, availableTagsFromParent = [] }) {
   const { toast } = useToast();
   
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState(null);
   const [showAddAnotherDialog, setShowAddAnotherDialog] = useState(false);
   
-  // Tags state
+  // Tags state - use tags passed from parent (extracted from clients, same as FindClients page)
   const [availableTags, setAvailableTags] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [customTagInput, setCustomTagInput] = useState('');
@@ -68,23 +68,26 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // Load available tags from Tag entity - try multiple approaches
-      let tags = [];
-      try {
-        // First try filtering by orgId
-        if (currentUser.orgId) {
-          tags = await base44.entities.Tag.filter({ orgId: currentUser.orgId });
+      // Use tags passed from parent if available (same source as FindClients page)
+      // These are extracted from existing clients' tags arrays
+      if (availableTagsFromParent && availableTagsFromParent.length > 0) {
+        setAvailableTags(availableTagsFromParent);
+      } else {
+        // Fallback: extract tags from all clients (same approach as FindClients)
+        try {
+          const clients = await base44.entities.Client.filter({ orgId: currentUser.orgId });
+          const tagsSet = new Set();
+          clients.forEach(client => {
+            if (client.tags && Array.isArray(client.tags)) {
+              client.tags.forEach(tag => tagsSet.add(tag));
+            }
+          });
+          setAvailableTags(Array.from(tagsSet).sort());
+        } catch (err) {
+          console.error('Failed to load tags from clients:', err);
+          setAvailableTags([]);
         }
-        // If no tags found, try listing all (user may have personal tags)
-        if (!tags || tags.length === 0) {
-          tags = await base44.entities.Tag.list();
-        }
-      } catch (tagErr) {
-        console.error('Failed to load tags:', tagErr);
-        // Fallback to list all
-        tags = await base44.entities.Tag.list();
       }
-      setAvailableTags(tags || []);
     } catch (err) {
       console.error('Failed to load initial data:', err);
     }
@@ -424,7 +427,7 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
                 <Select
                   value=""
                   onValueChange={(tagName) => {
-                    if (tagName) handleAddTag(tagName);
+                    if (tagName && tagName !== "_none") handleAddTag(tagName);
                   }}
                 >
                   <SelectTrigger className="w-full h-9 text-sm">
@@ -435,16 +438,10 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
                       <SelectItem value="_none" disabled>No tags available</SelectItem>
                     ) : (
                       availableTags
-                        .filter(tag => !selectedTags.includes(tag.name))
-                        .map(tag => (
-                          <SelectItem key={tag.id} value={tag.name}>
-                            <span className="flex items-center gap-2">
-                              <span
-                                className="w-2.5 h-2.5 rounded-full"
-                                style={{ backgroundColor: tag.color || "#3B82F6" }}
-                              />
-                              {tag.name}
-                            </span>
+                        .filter(tag => !selectedTags.includes(tag))
+                        .map((tag, index) => (
+                          <SelectItem key={`tag-${index}-${tag}`} value={tag}>
+                            {tag}
                           </SelectItem>
                         ))
                     )}
