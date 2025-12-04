@@ -558,6 +558,80 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
     setIsProcessing(true);
     
     try {
+      // If using client-side fallback, import directly via entity SDK
+      if (useClientSideFallback && rawFileData.length > 0) {
+        console.log("Importing with client-side fallback...");
+        
+        const user = await base44.auth.me();
+        const orgId = user.orgId;
+        const importBatchId = `${new Date().toISOString().replace(/[-:T.]/g, '').slice(0, 15)}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+        
+        const clientsToCreate = [];
+        const errors = [];
+        let skippedErrors = 0;
+        let skippedDuplicates = 0;
+        
+        for (let i = 0; i < rawFileData.length; i++) {
+          const mappedRow = mapRowToClientLocal(rawFileData[i], fieldMapping, options);
+          const validation = validateRowClientSide(mappedRow, i);
+          
+          if (validation.status === 'error') {
+            skippedErrors++;
+            errors.push({ row: i + 1, reason: validation.reason, data: mappedRow });
+            continue;
+          }
+          
+          // Build client record
+          const client = {
+            orgId,
+            firstName: mappedRow.firstName || '',
+            lastName: mappedRow.lastName || '',
+            fullName: `${mappedRow.firstName || ''} ${mappedRow.lastName || ''}`.trim(),
+            email: mappedRow.email || null,
+            phone: mappedRow.phone || null,
+            company: mappedRow.company || null,
+            street: mappedRow.street || '',
+            address2: mappedRow.address2 || null,
+            city: mappedRow.city || '',
+            state: mappedRow.state || '',
+            zipCode: mappedRow.zipCode || '',
+            tags: [...(mappedRow.tags || []), ...options.tagsToApply],
+            notes: mappedRow.notes || null,
+            source: 'csv_import',
+            importBatchId,
+            uploadedAt: new Date().toISOString(),
+          };
+          
+          clientsToCreate.push(client);
+        }
+        
+        // Bulk create in batches of 50
+        let imported = 0;
+        for (let i = 0; i < clientsToCreate.length; i += 50) {
+          const batch = clientsToCreate.slice(i, i + 50);
+          await base44.entities.Client.bulkCreate(batch);
+          imported += batch.length;
+        }
+        
+        const results = {
+          success: true,
+          importBatchId,
+          summary: {
+            totalRows: rawFileData.length,
+            imported,
+            skippedErrors,
+            skippedDuplicates,
+          },
+          errors,
+        };
+        
+        setImportResults(results);
+        setCurrentStep(4);
+        onImportComplete?.(results);
+        return;
+      }
+
+      // Try backend import
       const response = await base44.functions.invoke("uploadClients", {
         fileUrl,
         fileType,
