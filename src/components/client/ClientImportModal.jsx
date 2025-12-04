@@ -227,9 +227,7 @@ const mapRowToClientLocal = (rawRow, fieldMapping, options) => {
         value = value.toLowerCase().split(/[\s-]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
       }
       
-      if (fieldName === 'tags') {
-        mapped[fieldName] = value.split(',').map(t => t.trim()).filter(t => t);
-      } else if (fieldName === 'state') {
+      if (fieldName === 'state') {
         mapped[fieldName] = value.toUpperCase();
       } else {
         mapped[fieldName] = value;
