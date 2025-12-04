@@ -349,6 +349,8 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
     setValidationResults(null);
     setPreviewFilter("all");
     setImportResults(null);
+    setRawFileData([]);
+    setUseClientSideFallback(false);
   }, []);
 
   // Handle modal close
