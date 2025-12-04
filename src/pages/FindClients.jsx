@@ -566,16 +566,15 @@ export default function FindClients() {
 
                     {/* Spacer for tags when no tags available */}
 
-              {/* Added Date Filter */}
-              <Select value={uploadedFilter} onValueChange={setUploadedFilter}>
-                <SelectTrigger className="w-40">
-                  <SelectValue placeholder="All Clients" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Clients</SelectItem>
-                  <SelectItem value="today">Added Today</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Added Today Toggle */}
+              <Button
+                variant={uploadedFilter === "today" ? "default" : "outline"}
+                onClick={() => setUploadedFilter(uploadedFilter === "today" ? "all" : "today")}
+                className={`gap-2 ${uploadedFilter === "today" ? 'bg-amber-500 hover:bg-amber-600' : ''}`}
+              >
+                <Calendar className="w-4 h-4" />
+                Added Today
+              </Button>
 
               {/* Favorites Toggle */}
               <Button
@@ -601,7 +600,7 @@ export default function FindClients() {
               <div className="border-l pl-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="gap-2">
+                    <Button className="gap-2 bg-gray-900 hover:bg-gray-800 text-white">
                       <Plus className="w-4 h-4" />
                       Add Client
                       <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
