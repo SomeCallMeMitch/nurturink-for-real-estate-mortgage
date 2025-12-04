@@ -33,6 +33,7 @@ import {
   Plus
 } from "lucide-react";
 import ClientImportModal from "@/components/client/ClientImportModal";
+import ClientCreateModal from "@/components/client/ClientCreateModal";
 import {
   Table,
   TableBody,
@@ -85,6 +86,9 @@ export default function FindClients() {
   
   // Import modal state
   const [showImportModal, setShowImportModal] = useState(false);
+  
+  // Add client modal state
+  const [showAddClientModal, setShowAddClientModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -606,7 +610,7 @@ export default function FindClients() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => navigate(createPageUrl('AdminClientEdit?id=new'))}
+                  onClick={() => setShowAddClientModal(true)}
                   className="gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -942,6 +946,15 @@ export default function FindClients() {
             description: `Successfully imported ${results.summary.imported} clients`,
             className: 'bg-green-50 border-green-200 text-green-900'
           });
+        }}
+      />
+
+      {/* Add Client Modal */}
+      <ClientCreateModal
+        open={showAddClientModal}
+        onOpenChange={setShowAddClientModal}
+        onClientCreated={() => {
+          loadData();
         }}
       />
     </div>
