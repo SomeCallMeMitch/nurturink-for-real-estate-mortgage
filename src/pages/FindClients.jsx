@@ -501,7 +501,7 @@ export default function FindClients() {
 
         {/* Search, Filter, and Sort Controls */}
         <Card className="mb-6">
-          <CardContent className="pt-6 space-y-4">
+          <CardContent className="pt-3 space-y-2">
             {/* Row 1: Search, Client Count, Tags Dropdown, Favorites, Refresh */}
             <div className="flex gap-3">
               {/* Search */}
@@ -656,8 +656,8 @@ export default function FindClients() {
         </Card>
 
         {/* Client List */}
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="mt-3">
+          <CardHeader className="pb-1 pt-2">
             {/* Selected count badge - only shown when clients are selected */}
             {selectedClientIds.length > 0 && (
               <Badge variant="secondary" className="w-fit">
