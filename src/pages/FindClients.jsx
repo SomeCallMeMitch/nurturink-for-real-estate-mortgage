@@ -30,7 +30,8 @@ import {
   ChevronDown,
   Check,
   Upload,
-  Plus
+  Plus,
+  ChevronDown as ChevronDownIcon
 } from "lucide-react";
 import ClientImportModal from "@/components/client/ClientImportModal";
 import ClientCreateModal from "@/components/client/ClientCreateModal";
@@ -518,29 +519,21 @@ export default function FindClients() {
               {/* Tags Dropdown - moved next to search bar */}
               {availableTags.length > 0 && (
                 <DropdownMenu>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className={`gap-2 ${selectedTags.length > 0 ? 'border-amber-500 bg-amber-50 text-amber-700' : ''}`}
-                          >
-                            <Tag className="w-4 h-4" />
-                            Tags
-                            {selectedTags.length > 0 && (
-                              <Badge variant="secondary" className="ml-1 bg-amber-100 text-amber-700">
-                                {selectedTags.length}
-                              </Badge>
-                            )}
-                          </Button>
-                        </DropdownMenuTrigger>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Filter by tags</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={`gap-2 ${selectedTags.length > 0 ? 'border-amber-500 bg-amber-50 text-amber-700' : ''}`}
+                    >
+                      <Tag className="w-4 h-4" />
+                      Tags
+                      {selectedTags.length > 0 && (
+                        <Badge variant="secondary" className="ml-1 bg-amber-100 text-amber-700">
+                          {selectedTags.length}
+                        </Badge>
+                      )}
+                      <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     {availableTags.map(tag => {
                       const isSelected = selectedTags.includes(tag);
@@ -574,15 +567,12 @@ export default function FindClients() {
 
               {/* Added Date Filter */}
               <Select value={uploadedFilter} onValueChange={setUploadedFilter}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-40">
                   <SelectValue placeholder="All Clients" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Clients</SelectItem>
                   <SelectItem value="today">Added Today</SelectItem>
-                  <SelectItem value="7days">Added Last 7 Days</SelectItem>
-                  <SelectItem value="30days">Added Last 30 Days</SelectItem>
-                  <SelectItem value="manual">Manual Entry Only</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -593,7 +583,7 @@ export default function FindClients() {
                 className={`gap-2 ${showFavoritesOnly ? 'bg-yellow-500 hover:bg-yellow-600' : ''}`}
               >
                 <Star className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-                Favorites Only
+                Favorites
               </Button>
 
               {/* Refresh Button */}
@@ -606,24 +596,27 @@ export default function FindClients() {
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
 
-              {/* Quick Actions */}
-              <div className="border-l pl-3 flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowImportModal(true)}
-                  className="gap-2"
-                >
-                  <Upload className="w-4 h-4" />
-                  Import
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAddClientModal(true)}
-                  className="gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Client
-                </Button>
+              {/* Add Client Dropdown */}
+              <div className="border-l pl-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="gap-2">
+                      <Plus className="w-4 h-4" />
+                      Add Client
+                      <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setShowAddClientModal(true)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Client
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowImportModal(true)}>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Import CSV
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
