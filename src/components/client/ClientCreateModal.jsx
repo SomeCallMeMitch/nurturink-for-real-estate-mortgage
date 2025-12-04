@@ -18,16 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Save, Loader2, X, Tag, Plus } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+
 import { useToast } from "@/components/ui/use-toast";
 
 export default function ClientCreateModal({ open, onOpenChange, onClientCreated, availableTagsFromParent = [] }) {
@@ -35,7 +26,6 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
   
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState(null);
-  const [showAddAnotherDialog, setShowAddAnotherDialog] = useState(false);
   
   // Tags state - use tags passed from parent (extracted from clients, same as FindClients page)
   const [availableTags, setAvailableTags] = useState([]);
@@ -192,7 +182,7 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
     return newClient;
   };
 
-  // Save client and show "add another" prompt
+  // Save client and close modal
   const handleSave = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -201,8 +191,7 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
       setSaving(true);
       const newClient = await createClient();
       onClientCreated?.(newClient);
-      // Show "add another" dialog after successful save
-      setShowAddAnotherDialog(true);
+      handleOpenChange(false);
     } catch (err) {
       console.error('Failed to save client:', err);
       toast({
@@ -215,21 +204,8 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
     }
   };
 
-  // Handle "Add Another" dialog response
-  const handleAddAnotherResponse = (addAnother) => {
-    setShowAddAnotherDialog(false);
-    if (addAnother) {
-      // Reset form but keep modal open
-      resetForm();
-    } else {
-      // Close modal
-      handleOpenChange(false);
-    }
-  };
-
   return (
-    <>
-      <Dialog open={open && !showAddAnotherDialog} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -396,7 +372,7 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
                 <h3 className="font-medium text-gray-900 text-sm">Tags</h3>
               </div>
 
-              {/* Selected Tags Display */}
+              {/* Selected Tags Display - styled like FindClients page */}
               {selectedTags.length > 0 && (
                 <div>
                   <Label className="text-xs text-gray-500 mb-2 block">Selected</Label>
@@ -404,14 +380,14 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
                     {selectedTags.map(tag => (
                       <Badge 
                         key={tag} 
-                        variant="default"
-                        className="bg-amber-600 hover:bg-amber-700 gap-1 pr-1.5 text-xs"
+                        variant="outline"
+                        className="text-xs bg-amber-50 text-amber-700 border-amber-200 gap-1 pr-1"
                       >
                         {tag}
                         <button
                           type="button"
                           onClick={() => handleRemoveTag(tag)}
-                          className="hover:bg-amber-800 rounded-full p-0.5"
+                          className="hover:bg-amber-100 rounded-full p-0.5 ml-0.5"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -506,30 +482,6 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
         </form>
 
         </DialogContent>
-      </Dialog>
-
-      {/* Add Another Dialog - Outside main dialog to avoid z-index issues */}
-      <AlertDialog open={showAddAnotherDialog} onOpenChange={setShowAddAnotherDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Client Saved!</AlertDialogTitle>
-            <AlertDialogDescription>
-              Would you like to add another client?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => handleAddAnotherResponse(false)}>
-              No
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={() => handleAddAnotherResponse(true)}
-              className="bg-amber-600 hover:bg-amber-700"
-            >
-              Yes
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+    </Dialog>
   );
 }
