@@ -970,7 +970,10 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
                               <SelectContent>
                                 {FIELD_OPTIONS.map((opt) => (
                                   <SelectItem key={opt.value} value={opt.value}>
-                                    {opt.label}
+                                    <span className="flex items-center gap-1">
+                                      {opt.label}
+                                      {opt.required && <span className="text-red-500 font-medium">*</span>}
+                                    </span>
                                   </SelectItem>
                                 ))}
                               </SelectContent>
