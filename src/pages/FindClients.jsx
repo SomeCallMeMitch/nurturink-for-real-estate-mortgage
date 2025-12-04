@@ -502,7 +502,7 @@ export default function FindClients() {
         {/* Search, Filter, and Sort Controls */}
         <Card className="mb-6">
           <CardContent className="pt-6 space-y-4">
-            {/* Row 1: Search, Tags Dropdown, Favorites, Refresh */}
+            {/* Row 1: Search, Client Count, Tags Dropdown, Favorites, Refresh */}
             <div className="flex gap-3">
               {/* Search */}
               <div className="flex-1 relative">
@@ -513,6 +513,12 @@ export default function FindClients() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
+              </div>
+
+              {/* Client Count - MOVED HERE from CardHeader */}
+              <div className="flex items-center px-3 bg-gray-100 rounded-lg">
+                <span className="font-semibold text-gray-900">{processedClients.length}</span>
+                <span className="text-gray-500 ml-1">{processedClients.length === 1 ? 'Client' : 'Clients'}</span>
               </div>
 
               {/* Tags Dropdown - moved next to search bar */}
@@ -651,60 +657,13 @@ export default function FindClients() {
 
         {/* Client List */}
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <span>{processedClients.length} {processedClients.length === 1 ? 'Client' : 'Clients'}</span>
-                {selectedClientIds.length > 0 && (
-                  <Badge variant="secondary" className="ml-2">
-                    {selectedClientIds.length} selected
-                  </Badge>
-                )}
-              </CardTitle>
-
-              {/* Continue Button and Select All Checkbox */}
-              <div className="flex items-center gap-4">
-                {/* Select All Checkbox */}
-                {processedClients.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="select-all"
-                      checked={allSelected}
-                      onCheckedChange={handleSelectAll}
-                    />
-                    <label
-                      htmlFor="select-all"
-                      className="text-sm font-medium cursor-pointer"
-                    >
-                      Select All
-                    </label>
-                  </div>
-                )}
-
-                {/* Continue Button with Tooltip */}
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span tabIndex={selectedClientIds.length === 0 ? 0 : -1}>
-                        <Button
-                          onClick={handleContinue}
-                          disabled={selectedClientIds.length === 0 || initializing}
-                          className="bg-amber-600 hover:bg-amber-700 gap-2"
-                        >
-                          {initializing ? 'Initializing...' : 'Continue to Content'}
-                          {!initializing && <ArrowRight className="w-4 h-4" />}
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    {selectedClientIds.length === 0 && (
-                      <TooltipContent>
-                        <p>You must select at least one recipient before continuing.</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-            </div>
+          <CardHeader className="pb-2">
+            {/* Selected count badge - only shown when clients are selected */}
+            {selectedClientIds.length > 0 && (
+              <Badge variant="secondary" className="w-fit">
+                {selectedClientIds.length} selected
+              </Badge>
+            )}
           </CardHeader>
 
           <CardContent>
@@ -731,8 +690,16 @@ export default function FindClients() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {/* Checkbox column */}
-                    <TableHead className="w-10"></TableHead>
+                    {/* Select All Checkbox column - ADDED: Standard practice placement */}
+                    <TableHead className="w-10">
+                      {processedClients.length > 0 && (
+                        <Checkbox
+                          checked={allSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all clients"
+                        />
+                      )}
+                    </TableHead>
                     
                     {/* Full Name column - sortable */}
                     <TableHead 
@@ -959,6 +926,34 @@ export default function FindClients() {
         }}
         availableTagsFromParent={availableTags}
       />
-    </div>
-  );
-}
+
+      {/* ADDED: Floating Action Bar - appears when clients are selected */}
+      {selectedClientIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+          <div className="bg-gray-900 text-white rounded-full px-6 py-3 shadow-xl flex items-center gap-6">
+            {/* Selected Count */}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center font-bold text-sm">
+                {selectedClientIds.length}
+              </div>
+              <div className="flex flex-col">
+                <span className="font-semibold">Clients Selected</span>
+                <span className="text-xs text-gray-400">Ready for next step</span>
+              </div>
+            </div>
+
+            {/* Continue Button */}
+            <Button
+              onClick={handleContinue}
+              disabled={initializing}
+              className="bg-white text-gray-900 hover:bg-gray-100 rounded-full px-5"
+            >
+              {initializing ? 'Initializing...' : 'Continue to Content'}
+              {!initializing && <ArrowRight className="w-4 h-4 ml-2" />}
+            </Button>
+          </div>
+        </div>
+      )}
+      </div>
+      );
+      }
