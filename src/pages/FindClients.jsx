@@ -104,8 +104,14 @@ export default function FindClients() {
       console.log('🔍 FindClients: User orgId:', currentUser.orgId);
       
       setUser(currentUser);
-      if (currentUser.organization) {
-        setOrganization(currentUser.organization);
+      
+      // Explicitly fetch Organization entity to get accurate creditBalance
+      if (currentUser.orgId) {
+        const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
+        if (orgList && orgList.length > 0) {
+          setOrganization(orgList[0]);
+          console.log('🔍 FindClients: Organization loaded:', orgList[0].name, 'creditBalance:', orgList[0].creditBalance);
+        }
       }
 
       const [clientList, favoritesList] = await Promise.all([
