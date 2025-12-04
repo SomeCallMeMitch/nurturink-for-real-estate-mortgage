@@ -617,7 +617,7 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
             city: mappedRow.city || '',
             state: mappedRow.state || '',
             zipCode: mappedRow.zipCode || '',
-            tags: [...(mappedRow.tags || []), ...options.tagsToApply],
+            tags: [...options.tagsToApply],
             notes: mappedRow.notes || null,
             source: 'csv_import',
             importBatchId,
