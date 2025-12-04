@@ -30,8 +30,7 @@ import {
   ChevronDown,
   Check,
   Upload,
-  Plus,
-  ChevronDown as ChevronDownIcon
+  Plus
 } from "lucide-react";
 import ClientImportModal from "@/components/client/ClientImportModal";
 import ClientCreateModal from "@/components/client/ClientCreateModal";
