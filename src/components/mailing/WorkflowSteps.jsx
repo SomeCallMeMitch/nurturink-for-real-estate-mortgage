@@ -80,11 +80,11 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
 
                 {/* Step indicator - Active State */}
                 {state === 'active' && (
-                  <div className="flex items-center gap-2 bg-amber-50 rounded-full pl-1 pr-4 py-1">
-                    <div className="w-7 h-7 rounded-full bg-orange-500 text-white text-sm font-semibold flex items-center justify-center">
+                  <div className="flex items-center gap-2 bg-amber-50 border border-amber-600 rounded-full pl-1 pr-4 py-1">
+                    <div className="w-7 h-7 rounded-full bg-amber-600 text-white text-sm font-semibold flex items-center justify-center">
                       {step.number}
                     </div>
-                    <span className="font-semibold text-gray-900 whitespace-nowrap">{step.label}</span>
+                    <span className="font-semibold text-amber-600 whitespace-nowrap">{step.label}</span>
                   </div>
                 )}
 
