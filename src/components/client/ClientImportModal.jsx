@@ -489,6 +489,39 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
     setIsProcessing(true);
     
     try {
+      // If using client-side fallback, validate locally
+      if (useClientSideFallback && rawFileData.length > 0) {
+        console.log("Validating with client-side fallback...");
+        
+        const validationCounts = { valid: 0, warnings: 0, errors: 0 };
+        const previewRows = [];
+        
+        for (let i = 0; i < rawFileData.length; i++) {
+          const mappedRow = mapRowToClientLocal(rawFileData[i], fieldMapping, options);
+          const validation = validateRowClientSide(mappedRow, i);
+          
+          if (validation.status === 'valid') validationCounts.valid++;
+          else if (validation.status === 'warning') validationCounts.warnings++;
+          else validationCounts.errors++;
+          
+          if (i < 50) {
+            previewRows.push({ ...validation, data: mappedRow });
+          }
+        }
+        
+        setValidationResults({
+          success: true,
+          totalRows: rawFileData.length,
+          columns,
+          sampleData,
+          validation: validationCounts,
+          previewRows
+        });
+        setCurrentStep(3);
+        return;
+      }
+
+      // Try backend validation
       const response = await base44.functions.invoke("validateImportFile", {
         fileUrl,
         fileType,
