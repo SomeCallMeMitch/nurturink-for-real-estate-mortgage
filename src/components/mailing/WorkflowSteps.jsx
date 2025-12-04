@@ -19,8 +19,22 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
     { number: 4, label: 'Review & Send' }
   ];
 
+  // Determine step state
+  const getStepState = (stepNumber) => {
+    if (stepNumber < currentStep) return 'completed';
+    if (stepNumber === currentStep) return 'active';
+    return 'upcoming';
+  };
+
+  // Determine credit indicator color based on amount
+  const getCreditDotColor = () => {
+    if (creditsLeft < 10) return 'bg-red-500';
+    if (creditsLeft < 50) return 'bg-amber-500';
+    return 'bg-green-500';
+  };
+
   return (
-    <div className="bg-white border-b border-gray-200 py-4 px-6">
+    <div className="sticky top-0 z-20 bg-white border-b border-gray-200 py-4 px-6 shadow-sm">
       <div className="max-w-[1600px] mx-auto flex items-center justify-between">
         {/* Left: Back Button + Page Title */}
         <div className="flex items-center gap-4 min-w-[200px]">
@@ -41,60 +55,60 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
         </div>
 
         {/* Center: Steps */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           {steps.map((step, index) => {
-            const isActive = step.number === currentStep;
-            const isCompleted = step.number < currentStep;
-            const isUpcoming = step.number > currentStep;
+            const state = getStepState(step.number);
 
             return (
-              <React.Fragment key={step.number}>
-                {/* Step Circle */}
-                <div className="flex items-center gap-3">
-                  <div className={`
-                    flex items-center justify-center w-8 h-8 rounded-full font-semibold text-sm
-                    ${isActive ? 'bg-orange-500 text-white' : ''}
-                    ${isCompleted ? 'bg-green-500 text-white' : ''}
-                    ${isUpcoming ? 'bg-gray-200 text-gray-500' : ''}
-                  `}>
-                    {isCompleted ? (
-                      <Check className="w-5 h-5" />
-                    ) : (
-                      step.number
-                    )}
-                  </div>
-                  
-                  {/* Step Label */}
-                  <span className={`
-                    text-sm font-medium whitespace-nowrap
-                    ${isActive ? 'text-gray-900' : ''}
-                    ${isCompleted ? 'text-gray-700' : ''}
-                    ${isUpcoming ? 'text-gray-400' : ''}
-                  `}>
-                    {step.label}
-                  </span>
-                </div>
-
-                {/* Connector Line */}
-                {index < steps.length - 1 && (
-                  <div className={`
-                    h-0.5 w-12 mx-2
-                    ${step.number < currentStep ? 'bg-green-500' : 'bg-gray-200'}
-                  `} />
+              <div key={step.number} className="flex items-center">
+                {/* Connector Line (before step, except first) */}
+                {index > 0 && (
+                  <div className={`h-0.5 w-12 mx-3 ${
+                    step.number <= currentStep ? 'bg-green-500' : 'bg-gray-200'
+                  }`} />
                 )}
-              </React.Fragment>
+
+                {/* Step indicator - Completed State */}
+                {state === 'completed' && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center">
+                      <Check className="w-4 h-4" />
+                    </div>
+                    <span className="font-medium text-green-700 whitespace-nowrap">{step.label}</span>
+                  </div>
+                )}
+
+                {/* Step indicator - Active State */}
+                {state === 'active' && (
+                  <div className="flex items-center gap-2 bg-amber-50 rounded-full pl-1 pr-4 py-1">
+                    <div className="w-7 h-7 rounded-full bg-orange-500 text-white text-sm font-semibold flex items-center justify-center">
+                      {step.number}
+                    </div>
+                    <span className="font-semibold text-gray-900 whitespace-nowrap">{step.label}</span>
+                  </div>
+                )}
+
+                {/* Step indicator - Upcoming State */}
+                {state === 'upcoming' && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-gray-200 text-gray-500 text-sm font-medium flex items-center justify-center">
+                      {step.number}
+                    </div>
+                    <span className="font-medium text-gray-400 whitespace-nowrap">{step.label}</span>
+                  </div>
+                )}
+              </div>
             );
           })}
         </div>
 
-        {/* Right: Credits */}
-        <div className="flex items-center gap-2 text-sm min-w-[200px] justify-end">
-          <div className="w-6 h-6 bg-gray-100 rounded flex items-center justify-center">
-            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+        {/* Right: Credits Display */}
+        <div className="flex items-center justify-end min-w-[200px]">
+          <div className="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
+            <div className={`w-2.5 h-2.5 rounded-full ${getCreditDotColor()}`} />
+            <span className="font-semibold text-gray-900">{creditsLeft.toLocaleString()}</span>
+            <span className="text-gray-500">credits left</span>
           </div>
-          <span className="font-medium text-gray-900">{creditsLeft} Credits Left</span>
         </div>
       </div>
     </div>
