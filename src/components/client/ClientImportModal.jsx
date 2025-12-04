@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-// Step indicator component
+// Step indicator component - matches WorkflowSteps design
 const StepIndicator = ({ currentStep }) => {
   const steps = [
     { num: 1, label: "Upload File" },
@@ -56,36 +56,41 @@ const StepIndicator = ({ currentStep }) => {
     <div className="flex items-center justify-center gap-2 mb-6">
       {steps.map((step, index) => (
         <React.Fragment key={step.num}>
-          <div className="flex items-center gap-2">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-                currentStep > step.num
-                  ? "bg-green-500 text-white"
-                  : currentStep === step.num
-                  ? "bg-amber-500 text-white"
-                  : "bg-gray-200 text-gray-500"
-              }`}
-            >
-              {currentStep > step.num ? (
-                <CheckCircle2 className="w-5 h-5" />
-              ) : (
-                step.num
-              )}
+          {/* Connector Line (before step, except first) */}
+          {index > 0 && (
+            <div className={`h-0.5 w-8 mx-1 ${
+              step.num <= currentStep ? 'bg-green-500' : 'bg-gray-200'
+            }`} />
+          )}
+
+          {/* Completed State */}
+          {currentStep > step.num && (
+            <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-full pl-1 pr-3 py-1">
+              <div className="w-6 h-6 rounded-full bg-green-500 text-white flex items-center justify-center">
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+              <span className="font-medium text-green-700 text-sm whitespace-nowrap">{step.label}</span>
             </div>
-            <span
-              className={`text-sm ${
-                currentStep >= step.num ? "text-gray-900" : "text-gray-400"
-              }`}
-            >
-              {step.label}
-            </span>
-          </div>
-          {index < steps.length - 1 && (
-            <div
-              className={`w-12 h-0.5 ${
-                currentStep > step.num ? "bg-green-500" : "bg-gray-200"
-              }`}
-            />
+          )}
+
+          {/* Active State */}
+          {currentStep === step.num && (
+            <div className="flex items-center gap-2 bg-amber-50 border border-amber-600 rounded-full pl-1 pr-3 py-1">
+              <div className="w-6 h-6 rounded-full bg-amber-600 text-white text-xs font-semibold flex items-center justify-center">
+                {step.num}
+              </div>
+              <span className="font-semibold text-amber-600 text-sm whitespace-nowrap">{step.label}</span>
+            </div>
+          )}
+
+          {/* Upcoming State */}
+          {currentStep < step.num && (
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-full bg-gray-200 text-gray-500 text-xs font-medium flex items-center justify-center">
+                {step.num}
+              </div>
+              <span className="font-medium text-gray-400 text-sm whitespace-nowrap">{step.label}</span>
+            </div>
           )}
         </React.Fragment>
       ))}
