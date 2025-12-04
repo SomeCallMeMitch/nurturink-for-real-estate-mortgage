@@ -94,6 +94,7 @@ const StepIndicator = ({ currentStep }) => {
 };
 
 // Field mapping options - only fields that can be imported
+// Note: "tags" removed - users apply tags during import via the tag selector instead
 const FIELD_OPTIONS = [
   { value: "skip", label: "-- Skip this column --", required: false },
   { value: "firstName", label: "First Name", required: true },
@@ -106,7 +107,6 @@ const FIELD_OPTIONS = [
   { value: "city", label: "City", required: true },
   { value: "state", label: "State", required: true },
   { value: "zipCode", label: "ZIP Code", required: true },
-  { value: "tags", label: "Tags", required: false },
   { value: "notes", label: "Notes", required: false },
 ];
 
