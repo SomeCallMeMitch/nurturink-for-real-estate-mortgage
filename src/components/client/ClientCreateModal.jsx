@@ -17,14 +17,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Save, Loader2, X, Tag, Plus } from "lucide-react";
+import { Save, Loader2, X, Tag, Plus, UserPlus } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function ClientCreateModal({ open, onOpenChange, onClientCreated }) {
   const { toast } = useToast();
   
   const [saving, setSaving] = useState(false);
+  const [savingAndAdd, setSavingAndAdd] = useState(false);
   const [user, setUser] = useState(null);
+  const [showAddAnotherDialog, setShowAddAnotherDialog] = useState(false);
   
   // Tags state
   const [availableTags, setAvailableTags] = useState([]);
@@ -122,17 +134,14 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
     }
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    
-    // Validation
+  const validateForm = () => {
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
       toast({
         title: 'Missing Required Fields',
         description: 'First name and last name are required',
         variant: 'destructive'
       });
-      return;
+      return false;
     }
     
     if (!formData.street.trim() || !formData.city.trim() || !formData.state.trim() || !formData.zipCode.trim()) {
@@ -141,33 +150,42 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
         description: 'Address fields (street, city, state, ZIP) are required',
         variant: 'destructive'
       });
-      return;
+      return false;
     }
+    return true;
+  };
+
+  const createClient = async () => {
+    const clientData = {
+      ...formData,
+      fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+      orgId: user.orgId,
+      ownerId: user.id,
+      tags: selectedTags,
+      source: 'manual'
+    };
+    
+    const newClient = await base44.entities.Client.create(clientData);
+    
+    toast({
+      title: 'Client Created',
+      description: `${clientData.fullName} has been added successfully`,
+      className: 'bg-green-50 border-green-200 text-green-900'
+    });
+    
+    return newClient;
+  };
+
+  // Save and close
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
     
     try {
       setSaving(true);
-      
-      const clientData = {
-        ...formData,
-        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
-        orgId: user.orgId,
-        ownerId: user.id,
-        tags: selectedTags,
-        source: 'manual'
-      };
-      
-      const newClient = await base44.entities.Client.create(clientData);
-      
-      toast({
-        title: 'Client Created',
-        description: `${clientData.fullName} has been added successfully`,
-        className: 'bg-green-50 border-green-200 text-green-900'
-      });
-      
-      // Notify parent and close modal
+      const newClient = await createClient();
       onClientCreated?.(newClient);
       handleOpenChange(false);
-      
     } catch (err) {
       console.error('Failed to save client:', err);
       toast({
@@ -177,6 +195,39 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
       });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // Save and prompt to add another
+  const handleSaveAndPrompt = async () => {
+    if (!validateForm()) return;
+    
+    try {
+      setSavingAndAdd(true);
+      const newClient = await createClient();
+      onClientCreated?.(newClient);
+      setShowAddAnotherDialog(true);
+    } catch (err) {
+      console.error('Failed to save client:', err);
+      toast({
+        title: 'Failed to Create Client',
+        description: err.message || 'Please try again',
+        variant: 'destructive'
+      });
+    } finally {
+      setSavingAndAdd(false);
+    }
+  };
+
+  // Handle "Add Another" dialog response
+  const handleAddAnotherResponse = (addAnother) => {
+    setShowAddAnotherDialog(false);
+    if (addAnother) {
+      // Reset form but keep modal open
+      resetForm();
+    } else {
+      // Close modal
+      handleOpenChange(false);
     }
   };
 
@@ -437,13 +488,32 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
               type="button"
               variant="outline"
               onClick={() => handleOpenChange(false)}
-              disabled={saving}
+              disabled={saving || savingAndAdd}
             >
               Cancel
             </Button>
             <Button
+              type="button"
+              variant="outline"
+              onClick={handleSaveAndPrompt}
+              disabled={saving || savingAndAdd}
+              className="gap-2"
+            >
+              {savingAndAdd ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4" />
+                  Add Client
+                </>
+              )}
+            </Button>
+            <Button
               type="submit"
-              disabled={saving}
+              disabled={saving || savingAndAdd}
               className="bg-amber-600 hover:bg-amber-700"
             >
               {saving ? (
@@ -454,12 +524,35 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
               ) : (
                 <>
                   <Save className="w-4 h-4 mr-2" />
-                  Create Client
+                  Save & Close
                 </>
               )}
             </Button>
           </div>
         </form>
+
+        {/* Add Another Dialog */}
+        <AlertDialog open={showAddAnotherDialog} onOpenChange={setShowAddAnotherDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Add Another Client?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Client was created successfully. Would you like to add another client?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => handleAddAnotherResponse(false)}>
+                No, I'm Done
+              </AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => handleAddAnotherResponse(true)}
+                className="bg-amber-600 hover:bg-amber-700"
+              >
+                Yes, Add Another
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );
