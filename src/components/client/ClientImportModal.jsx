@@ -274,8 +274,8 @@ const autoMapFields = (columns) => {
     city: ["city", "town"],
     state: ["state", "province", "region"],
     zipCode: ["zip", "zipcode", "zip_code", "postal", "postal_code"],
-    tags: ["tags", "tag", "category", "categories"],
     notes: ["notes", "note", "comments", "comment", "description"],
+    // Note: tags removed from auto-mapping - users apply tags via the tag selector during import
   };
 
   columns.forEach((col) => {
