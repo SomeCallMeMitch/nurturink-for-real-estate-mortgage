@@ -561,9 +561,11 @@ export default function FindClients() {
                         </DropdownMenuItem>
                       </>
                     )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+                    </DropdownMenuContent>
+                    </DropdownMenu>
+                    )}
+
+                    {/* Spacer for tags when no tags available */}
 
               {/* Added Date Filter */}
               <Select value={uploadedFilter} onValueChange={setUploadedFilter}>
