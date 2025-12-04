@@ -378,61 +378,76 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
     setIsProcessing(true);
     
     try {
-      // Upload file
+      // Upload file first
       const uploadResult = await base44.integrations.Core.UploadFile({ file });
       setFileUrl(uploadResult.file_url);
       setFileName(file.name);
       setFileType(extension);
 
-      // Get initial file info
-      console.log("Calling validateImportFile with:", {
-        fileUrl: uploadResult.file_url,
-        fileType: extension,
-      });
+      // Try backend function first
+      let backendSuccess = false;
+      console.log("Attempting validateImportFile backend function...");
       
-      let response;
       try {
-        response = await base44.functions.invoke("validateImportFile", {
+        const response = await base44.functions.invoke("validateImportFile", {
           fileUrl: uploadResult.file_url,
           fileType: extension,
           fieldMapping: {},
           options: {},
         });
         console.log("validateImportFile response:", response);
+
+        if (response.data.success) {
+          backendSuccess = true;
+          setUseClientSideFallback(false);
+          setColumns(response.data.columns);
+          setSampleData(response.data.sampleData);
+          setRawFileData([]); // Not needed when backend works
+
+          const autoMapping = autoMapFields(response.data.columns);
+          setFieldMapping(autoMapping);
+          setAutoMappedCount(Object.keys(autoMapping).length);
+
+          toast({
+            title: "File uploaded",
+            description: `${response.data.totalRows} rows detected`,
+          });
+        }
       } catch (funcError) {
-        console.error("validateImportFile function call failed:", funcError);
-        console.error("Error details:", {
-          status: funcError.response?.status,
-          statusText: funcError.response?.statusText,
-          data: funcError.response?.data,
-          message: funcError.message,
-        });
-        throw funcError;
+        console.warn("Backend function unavailable, using client-side parsing:", funcError.message);
       }
 
-      if (!response.data.success) {
-        toast({
-          title: "Error reading file",
-          description: response.data.error || "Unable to parse file",
-          variant: "destructive",
-        });
-        setFileUrl(null);
-        setFileName("");
-        return;
+      // Fallback to client-side parsing if backend failed
+      if (!backendSuccess) {
+        console.log("Using client-side CSV parsing fallback...");
+        setUseClientSideFallback(true);
+        
+        try {
+          const parsed = await parseFileClientSide(file);
+          setColumns(parsed.columns);
+          setSampleData(parsed.data.slice(0, 3));
+          setRawFileData(parsed.data);
+
+          const autoMapping = autoMapFields(parsed.columns);
+          setFieldMapping(autoMapping);
+          setAutoMappedCount(Object.keys(autoMapping).length);
+
+          toast({
+            title: "File uploaded (local parsing)",
+            description: `${parsed.totalRows} rows detected. Using local validation.`,
+          });
+        } catch (parseError) {
+          console.error("Client-side parsing failed:", parseError);
+          toast({
+            title: "Error reading file",
+            description: "Unable to parse file. Please ensure it's a valid CSV.",
+            variant: "destructive",
+          });
+          setFileUrl(null);
+          setFileName("");
+          return;
+        }
       }
-
-      setColumns(response.data.columns);
-      setSampleData(response.data.sampleData);
-
-      // Auto-map fields
-      const autoMapping = autoMapFields(response.data.columns);
-      setFieldMapping(autoMapping);
-      setAutoMappedCount(Object.keys(autoMapping).length);
-
-      toast({
-        title: "File uploaded",
-        description: `${response.data.totalRows} rows detected`,
-      });
     } catch (error) {
       console.error("Import upload error:", error);
       const errorMessage = error.response?.data?.error || error.message || "Please try again";
