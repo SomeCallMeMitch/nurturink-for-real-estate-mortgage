@@ -954,58 +954,60 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {columns.map((column) => {
-                      const mappedField = fieldMapping[column];
-                      const isMapped = mappedField && mappedField !== "skip";
-                      const sampleValues = sampleData
-                        .map((row) => row[column])
-                        .filter(Boolean)
-                        .slice(0, 3)
-                        .join(", ");
+                    {columns
+                      .filter((column) => !isSystemColumn(column))
+                      .map((column) => {
+                        const mappedField = fieldMapping[column];
+                        const isMapped = mappedField && mappedField !== "skip";
+                        const sampleValues = sampleData
+                          .map((row) => row[column])
+                          .filter(Boolean)
+                          .slice(0, 3)
+                          .join(", ");
 
-                      return (
-                        <TableRow key={column}>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              {isMapped ? (
-                                <CheckCircle2 className="w-4 h-4 text-green-500" />
-                              ) : (
-                                <AlertTriangle className="w-4 h-4 text-amber-500" />
-                              )}
-                              {column}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <ArrowRight className="w-4 h-4 text-gray-400" />
-                          </TableCell>
-                          <TableCell>
-                            <Select
-                              value={mappedField || "skip"}
-                              onValueChange={(value) =>
-                                handleMappingChange(column, value)
-                              }
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {FIELD_OPTIONS.map((opt) => (
-                                  <SelectItem key={opt.value} value={opt.value}>
-                                    <span className="flex items-center gap-1">
-                                      {opt.label}
-                                      {opt.required && <span className="text-red-500 font-medium">*</span>}
-                                    </span>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                          <TableCell className="text-gray-500 text-sm truncate max-w-xs">
-                            {sampleValues || "-"}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
+                        return (
+                          <TableRow key={column}>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                {isMapped ? (
+                                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                                ) : (
+                                  <AlertTriangle className="w-4 h-4 text-amber-500" />
+                                )}
+                                {column}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <ArrowRight className="w-4 h-4 text-gray-400" />
+                            </TableCell>
+                            <TableCell>
+                              <Select
+                                value={mappedField || "skip"}
+                                onValueChange={(value) =>
+                                  handleMappingChange(column, value)
+                                }
+                              >
+                                <SelectTrigger className="w-full">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {FIELD_OPTIONS.map((opt) => (
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                      <span className="flex items-center gap-1">
+                                        {opt.label}
+                                        {opt.required && <span className="text-red-500 font-medium">*</span>}
+                                      </span>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell className="text-gray-500 text-sm truncate max-w-xs">
+                              {sampleValues || "-"}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                   </TableBody>
                 </Table>
               </div>
