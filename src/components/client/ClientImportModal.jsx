@@ -240,6 +240,24 @@ const mapRowToClientLocal = (rawRow, fieldMapping, options) => {
   return mapped;
 };
 
+// System/internal columns that should be hidden from the mapping UI
+const SYSTEM_COLUMNS = [
+  "id", "orgid", "org_id", "created_date", "createddate", "updated_date", "updateddate",
+  "created_by", "createdby", "created_by_id", "createdbyid", "source", "projecttype", 
+  "project_type", "dealvalue", "deal_value", "ghlcontactid", "ghl_contact_id",
+  "totalnotes", "totalnotessent", "total_notes_sent", "lastnotesentdate", "last_note_sent_date",
+  "is_sample", "issample", "addressvalidationstatus", "address_validation_status",
+  "addressriskflags", "address_risk_flags", "uploadedat", "uploaded_at",
+  "importbatchid", "import_batch_id", "ownerid", "owner_id", "assigneddate", "assigned_date",
+  "createdat", "created_at", "updatedat", "updated_at", "tagids", "tag_ids"
+];
+
+// Check if a column is a system field that should be filtered out
+const isSystemColumn = (columnName) => {
+  const colLower = columnName.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return SYSTEM_COLUMNS.some(sys => colLower === sys.replace(/[^a-z0-9]/g, ""));
+};
+
 // Auto-map fields based on column names
 const autoMapFields = (columns) => {
   const mapping = {};
@@ -261,6 +279,9 @@ const autoMapFields = (columns) => {
   };
 
   columns.forEach((col) => {
+    // Skip system columns entirely
+    if (isSystemColumn(col)) return;
+    
     const colLower = col.toLowerCase().replace(/[^a-z0-9]/g, "");
     for (const [field, matchers] of Object.entries(fieldMatchers)) {
       // Skip if this field has already been mapped (prevent duplicates)
