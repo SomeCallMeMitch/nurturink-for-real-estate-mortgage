@@ -27,12 +27,14 @@ export default function TemplateFilterControls({ filters, setFilters, categories
 
   const hasActiveFilters = filters.search || filters.viewMode !== 'all' || filters.categoryId;
 
+  // Favorites is now a separate toggle button, not part of view modes
   const viewModes = [
-    { id: 'favorites', label: 'Favorites', icon: Star },
     { id: 'my', label: 'My Templates', icon: User },
     { id: 'org', label: 'Organization', icon: Users },
     { id: 'all', label: 'All', icon: Grid }
   ];
+
+  const isFavoritesActive = filters.viewMode === 'favorites';
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
@@ -84,7 +86,7 @@ export default function TemplateFilterControls({ filters, setFilters, categories
         )}
       </div>
 
-      {/* View Mode Tabs */}
+      {/* View Mode Tabs + Favorites Toggle */}
       <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
         {viewModes.map((mode) => {
           const Icon = mode.icon;
@@ -96,7 +98,7 @@ export default function TemplateFilterControls({ filters, setFilters, categories
               onClick={() => handleViewModeChange(mode.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-indigo-600 text-white shadow-md'
+                  ? 'bg-amber-600 text-white shadow-md'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
@@ -105,14 +107,27 @@ export default function TemplateFilterControls({ filters, setFilters, categories
             </button>
           );
         })}
+
+        {/* Favorites Toggle Button - Separate from view modes */}
+        <button
+          onClick={() => handleViewModeChange(isFavoritesActive ? 'all' : 'favorites')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            isFavoritesActive
+              ? 'bg-yellow-500 text-white shadow-md'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          <Star className={`w-4 h-4 ${isFavoritesActive ? 'fill-current' : ''}`} />
+          Favorites
+        </button>
       </div>
 
       {/* Active Filter Summary */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
           {filters.viewMode !== 'all' && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">
-              {viewModes.find(m => m.id === filters.viewMode)?.label}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm">
+              {filters.viewMode === 'favorites' ? 'Favorites' : viewModes.find(m => m.id === filters.viewMode)?.label}
             </span>
           )}
           {filters.categoryId && (

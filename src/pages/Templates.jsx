@@ -199,7 +199,7 @@ export default function TemplatesPage() {
                 </div>
                 <Button
                     onClick={() => navigate(createPageUrl('EditTemplate?id=new'))}
-                    className="bg-indigo-600 hover:bg-indigo-700"
+                    className="bg-gray-900 hover:bg-gray-800"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     New Template
