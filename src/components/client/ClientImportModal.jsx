@@ -93,22 +93,25 @@ const StepIndicator = ({ currentStep }) => {
   );
 };
 
-// Field mapping options
+// Field mapping options - only fields that can be imported
 const FIELD_OPTIONS = [
-  { value: "skip", label: "-- Skip this column --" },
-  { value: "firstName", label: "First Name *", required: true },
-  { value: "lastName", label: "Last Name *", required: true },
-  { value: "company", label: "Company" },
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "street", label: "Street Address *", required: true },
-  { value: "address2", label: "Address Line 2" },
-  { value: "city", label: "City *", required: true },
-  { value: "state", label: "State *", required: true },
-  { value: "zipCode", label: "ZIP Code *", required: true },
-  { value: "tags", label: "Tags" },
-  { value: "notes", label: "Notes" },
+  { value: "skip", label: "-- Skip this column --", required: false },
+  { value: "firstName", label: "First Name", required: true },
+  { value: "lastName", label: "Last Name", required: true },
+  { value: "company", label: "Company", required: false },
+  { value: "email", label: "Email", required: false },
+  { value: "phone", label: "Phone", required: false },
+  { value: "street", label: "Street Address", required: true },
+  { value: "address2", label: "Address Line 2", required: false },
+  { value: "city", label: "City", required: true },
+  { value: "state", label: "State", required: true },
+  { value: "zipCode", label: "ZIP Code", required: true },
+  { value: "tags", label: "Tags", required: false },
+  { value: "notes", label: "Notes", required: false },
 ];
+
+// Valid importable field values (excludes system fields)
+const IMPORTABLE_FIELDS = FIELD_OPTIONS.map(f => f.value);
 
 // Client-side file parsing fallback when backend function is unavailable
 const parseFileClientSide = async (file) => {
