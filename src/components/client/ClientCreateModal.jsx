@@ -68,8 +68,22 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // Load available tags from Tag entity
-      const tags = await base44.entities.Tag.filter({ orgId: currentUser.orgId });
+      // Load available tags from Tag entity - try multiple approaches
+      let tags = [];
+      try {
+        // First try filtering by orgId
+        if (currentUser.orgId) {
+          tags = await base44.entities.Tag.filter({ orgId: currentUser.orgId });
+        }
+        // If no tags found, try listing all (user may have personal tags)
+        if (!tags || tags.length === 0) {
+          tags = await base44.entities.Tag.list();
+        }
+      } catch (tagErr) {
+        console.error('Failed to load tags:', tagErr);
+        // Fallback to list all
+        tags = await base44.entities.Tag.list();
+      }
       setAvailableTags(tags || []);
     } catch (err) {
       console.error('Failed to load initial data:', err);
@@ -211,16 +225,17 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Plus className="w-5 h-5" />
-            Add New Client
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open && !showAddAnotherDialog} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Add New Client
+            </DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSave} className="flex-1 overflow-y-auto">
+          <form onSubmit={handleSave} className="flex-1 overflow-y-auto">
           {/* Two-column layout: Form on left, Tags on right */}
           <div className="grid grid-cols-3 gap-6">
             
@@ -493,29 +508,31 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated 
           </div>
         </form>
 
-        {/* Add Another Dialog */}
-        <AlertDialog open={showAddAnotherDialog} onOpenChange={setShowAddAnotherDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Client Saved!</AlertDialogTitle>
-              <AlertDialogDescription>
-                Would you like to add another client?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => handleAddAnotherResponse(false)}>
-                No
-              </AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={() => handleAddAnotherResponse(true)}
-                className="bg-amber-600 hover:bg-amber-700"
-              >
-                Yes
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Another Dialog - Outside main dialog to avoid z-index issues */}
+      <AlertDialog open={showAddAnotherDialog} onOpenChange={setShowAddAnotherDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Client Saved!</AlertDialogTitle>
+            <AlertDialogDescription>
+              Would you like to add another client?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => handleAddAnotherResponse(false)}>
+              No
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => handleAddAnotherResponse(true)}
+              className="bg-amber-600 hover:bg-amber-700"
+            >
+              Yes
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
