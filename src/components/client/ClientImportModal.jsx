@@ -1258,9 +1258,47 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
                     </Badge>
                   ))}
                 </div>
+                
+                {/* Existing Tags Dropdown */}
+                {availableTags.length > 0 && (
+                  <div className="mb-3">
+                    <Select
+                      value=""
+                      onValueChange={(tagName) => {
+                        if (tagName && !options.tagsToApply.includes(tagName)) {
+                          setOptions((prev) => ({
+                            ...prev,
+                            tagsToApply: [...prev.tagsToApply, tagName],
+                          }));
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select an existing tag..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTags
+                          .filter((tag) => !options.tagsToApply.includes(tag.name))
+                          .map((tag) => (
+                            <SelectItem key={tag.id} value={tag.name}>
+                              <span className="flex items-center gap-2">
+                                <span
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: tag.color || "#3B82F6" }}
+                                />
+                                {tag.name}
+                              </span>
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                {/* Create New Tag */}
                 <div className="flex gap-2">
                   <Input
-                    placeholder="Type a tag name and press Enter..."
+                    placeholder="Or type a new tag name..."
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={(e) => {
