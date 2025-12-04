@@ -70,7 +70,7 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
 
                 {/* Step indicator - Completed State */}
                 {state === 'completed' && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-full pl-1 pr-4 py-1">
                     <div className="w-7 h-7 rounded-full bg-green-500 text-white flex items-center justify-center">
                       <Check className="w-4 h-4" />
                     </div>
