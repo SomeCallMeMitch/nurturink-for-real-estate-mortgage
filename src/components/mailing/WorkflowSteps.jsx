@@ -40,10 +40,10 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
         <div className="flex items-center gap-4 min-w-[200px]">
           {onBackClick && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={onBackClick}
-              className="gap-2"
+              className="gap-2 text-gray-600 hover:text-amber-700 hover:border-amber-300 hover:bg-amber-50 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back
