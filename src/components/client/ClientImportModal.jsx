@@ -378,6 +378,23 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
     setUseClientSideFallback(false);
   }, []);
 
+  // Fetch available tags when modal opens
+  React.useEffect(() => {
+    const fetchTags = async () => {
+      if (open) {
+        try {
+          const user = await base44.auth.me();
+          const tags = await base44.entities.Tag.filter({ orgId: user.orgId });
+          setAvailableTags(tags || []);
+        } catch (error) {
+          console.error("Failed to fetch tags:", error);
+          setAvailableTags([]);
+        }
+      }
+    };
+    fetchTags();
+  }, [open]);
+
   // Handle modal close
   const handleOpenChange = (isOpen) => {
     if (!isOpen) {
