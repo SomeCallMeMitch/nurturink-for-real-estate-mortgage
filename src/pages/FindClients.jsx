@@ -958,6 +958,7 @@ export default function FindClients() {
         onClientCreated={() => {
           loadData();
         }}
+        availableTagsFromParent={availableTags}
       />
     </div>
   );
