@@ -303,6 +303,8 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
   const [fileType, setFileType] = useState("");
   const [columns, setColumns] = useState([]);
   const [sampleData, setSampleData] = useState([]);
+  const [rawFileData, setRawFileData] = useState([]); // Store parsed data for client-side fallback
+  const [useClientSideFallback, setUseClientSideFallback] = useState(false);
   
   // Mapping state
   const [fieldMapping, setFieldMapping] = useState({});
