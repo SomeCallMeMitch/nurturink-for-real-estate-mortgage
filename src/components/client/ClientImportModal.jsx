@@ -348,6 +348,9 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
   
   // Import results state
   const [importResults, setImportResults] = useState(null);
+  
+  // Available tags state (fetched from database)
+  const [availableTags, setAvailableTags] = useState([]);
 
   // Reset modal state
   const resetModal = useCallback(() => {
