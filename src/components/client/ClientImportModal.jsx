@@ -110,6 +110,133 @@ const FIELD_OPTIONS = [
   { value: "notes", label: "Notes" },
 ];
 
+// Client-side file parsing fallback when backend function is unavailable
+const parseFileClientSide = async (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target.result;
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length === 0) {
+          reject(new Error('File is empty'));
+          return;
+        }
+        
+        // Parse CSV (simple parser - handles basic cases)
+        const parseCSVLine = (line) => {
+          const result = [];
+          let current = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              result.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          result.push(current.trim());
+          return result;
+        };
+        
+        const headers = parseCSVLine(lines[0]);
+        const rows = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = parseCSVLine(lines[i]);
+          if (values.length > 0 && values.some(v => v)) {
+            const row = {};
+            headers.forEach((header, index) => {
+              row[header] = values[index] || '';
+            });
+            rows.push(row);
+          }
+        }
+        
+        resolve({
+          columns: headers,
+          data: rows,
+          totalRows: rows.length
+        });
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsText(file);
+  });
+};
+
+// Client-side validation fallback
+const validateRowClientSide = (row, rowIndex) => {
+  const errors = [];
+  const warnings = [];
+  
+  const requiredFields = ['firstName', 'lastName', 'street', 'city', 'state', 'zipCode'];
+  for (const field of requiredFields) {
+    if (!row[field] || String(row[field]).trim() === '') {
+      errors.push(`Missing required field: ${field}`);
+    }
+  }
+  
+  if (row.email && row.email.trim()) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(row.email.trim())) {
+      warnings.push('Invalid email format');
+    }
+  }
+  
+  if (row.state && row.state.trim()) {
+    const stateVal = row.state.trim().toUpperCase();
+    if (stateVal.length !== 2 || !/^[A-Z]{2}$/.test(stateVal)) {
+      warnings.push('State should be 2-letter code');
+    }
+  }
+  
+  let status = 'valid';
+  if (errors.length > 0) status = 'error';
+  else if (warnings.length > 0) status = 'warning';
+  
+  return {
+    row: rowIndex + 1,
+    status,
+    errors,
+    warnings,
+    reason: errors[0] || warnings[0] || null
+  };
+};
+
+// Map raw row to client fields (client-side)
+const mapRowToClientLocal = (rawRow, fieldMapping, options) => {
+  const mapped = {};
+  
+  for (const [columnName, fieldName] of Object.entries(fieldMapping)) {
+    if (fieldName && fieldName !== 'skip' && rawRow[columnName] !== undefined) {
+      let value = String(rawRow[columnName] || '');
+      if (options.trimWhitespace) value = value.trim();
+      
+      if (options.autoCapitalize && ['firstName', 'lastName', 'city'].includes(fieldName)) {
+        value = value.toLowerCase().split(/[\s-]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+      
+      if (fieldName === 'tags') {
+        mapped[fieldName] = value.split(',').map(t => t.trim()).filter(t => t);
+      } else if (fieldName === 'state') {
+        mapped[fieldName] = value.toUpperCase();
+      } else {
+        mapped[fieldName] = value;
+      }
+    }
+  }
+  
+  return mapped;
+};
+
 // Auto-map fields based on column names
 const autoMapFields = (columns) => {
   const mapping = {};
