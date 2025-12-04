@@ -232,17 +232,19 @@ export default function FindClients() {
       });
     }
 
-    // Apply uploaded date filter
+    // Apply added date filter - uses created_date for all clients (manual and imported)
     if (uploadedFilter !== 'all') {
       const now = new Date();
       result = result.filter(client => {
         if (uploadedFilter === 'manual') {
           return client.source === 'manual' || !client.source;
         }
-        if (!client.uploadedAt) return false;
         
-        const uploadDate = new Date(client.uploadedAt);
-        const daysDiff = (now - uploadDate) / (1000 * 60 * 60 * 24);
+        // Use created_date (built-in field) for date filtering - works for all clients
+        const addedDate = client.created_date ? new Date(client.created_date) : null;
+        if (!addedDate) return false;
+        
+        const daysDiff = (now - addedDate) / (1000 * 60 * 60 * 24);
         
         switch (uploadedFilter) {
           case 'today': return daysDiff < 1;
@@ -564,16 +566,16 @@ export default function FindClients() {
                 </DropdownMenu>
               )}
 
-              {/* Uploaded Date Filter */}
+              {/* Added Date Filter */}
               <Select value={uploadedFilter} onValueChange={setUploadedFilter}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="All Clients" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Clients</SelectItem>
-                  <SelectItem value="today">Imported Today</SelectItem>
-                  <SelectItem value="7days">Imported Last 7 Days</SelectItem>
-                  <SelectItem value="30days">Imported Last 30 Days</SelectItem>
+                  <SelectItem value="today">Added Today</SelectItem>
+                  <SelectItem value="7days">Added Last 7 Days</SelectItem>
+                  <SelectItem value="30days">Added Last 30 Days</SelectItem>
                   <SelectItem value="manual">Manual Entry Only</SelectItem>
                 </SelectContent>
               </Select>
@@ -629,9 +631,9 @@ export default function FindClients() {
                   {selectedTags.length > 0 && <Badge variant="secondary">{selectedTags.length} Tag{selectedTags.length > 1 ? 's' : ''}</Badge>}
                   {sortColumn !== "no_notes_first" && <Badge variant="secondary">Sorted by {sortColumn}</Badge>}
                   {uploadedFilter !== "all" && <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200">
-                    {uploadedFilter === 'today' ? 'Imported Today' : 
-                     uploadedFilter === '7days' ? 'Last 7 Days' : 
-                     uploadedFilter === '30days' ? 'Last 30 Days' : 'Manual Only'}
+                    {uploadedFilter === 'today' ? 'Added Today' : 
+                     uploadedFilter === '7days' ? 'Added Last 7 Days' : 
+                     uploadedFilter === '30days' ? 'Added Last 30 Days' : 'Manual Only'}
                   </Badge>}
                 </div>
                 <Button
