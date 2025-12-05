@@ -97,7 +97,8 @@ Deno.serve(async (req) => {
           role: role,
           role_display: roleDisplay,
           invitation_token: '', // Not applicable for existing users
-          invitation_expires: 'N/A' // Not applicable
+          invitation_expires: 'N/A', // Not applicable
+          app_logo_url: logoUrl // Pass the whitelabel logo
         });
       } catch (emailError) {
         console.error('Failed to send notification email:', emailError);
@@ -132,6 +133,15 @@ Deno.serve(async (req) => {
     });
     const organization = organizations.length > 0 ? organizations[0] : null;
     
+    // Load whitelabel settings for logo
+    let logoUrl = null;
+    try {
+      const whitelabelResponse = await base44.functions.invoke('getWhitelabelSettings');
+      logoUrl = whitelabelResponse.data?.settings?.logoUrl || null;
+    } catch (error) {
+      console.error('Failed to load whitelabel settings for logo:', error);
+    }
+    
     // Generate unique token
     const token = crypto.randomUUID();
     
@@ -165,7 +175,8 @@ Deno.serve(async (req) => {
         role: role,
         role_display: roleDisplay,
         invitation_token: token,
-        invitation_expires: `${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}`
+        invitation_expires: `${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}`,
+        app_logo_url: logoUrl // Pass the whitelabel logo
       });
     } catch (emailError) {
       console.error('Failed to send invitation email:', emailError);

@@ -26,11 +26,19 @@ const createInvitationEmailHTML = ({
         <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; max-width: 100%;">
           
           <!-- Header -->
+          ${app_logo_url ? `
           <tr>
             <td style="background-color: #ffffff; padding: 40px; text-align: center;">
               <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; max-width: 200px;" />
             </td>
           </tr>
+          ` : `
+          <tr>
+            <td style="background-color: #ffffff; padding: 40px; text-align: center;">
+              <h1 style="margin: 0; font-size: 28px; font-weight: bold; color: #FF7A00;">RoofScribe</h1>
+            </td>
+          </tr>
+          `}
           
           <!-- Personal Invitation -->
           <tr>
@@ -197,7 +205,7 @@ Deno.serve(async (req) => {
       is_admin,
       accept_url,
       invitation_expires: invitation_expires || '7 days',
-      app_logo_url: app_logo_url || `${Deno.env.get("APP_URL") || "https://app.base44.com"}/logo.png`
+      app_logo_url: app_logo_url || null // Only use logo if explicitly provided
     };
 
     const result = await resend.emails.send({
