@@ -22,6 +22,16 @@ export default function Layout({ children, currentPageName }) {
         
         const normalizedPath = location.pathname.toLowerCase();
         const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome';
+        
+        // Check if user is on AcceptInvitation page (handle ?page= query param)
+        const searchParams = new URLSearchParams(location.search);
+        const pageName = searchParams.get('page');
+        const isAcceptInvitationPage = pageName?.toLowerCase() === 'acceptinvitation';
+        
+        // Skip redirects for AcceptInvitation page - it handles its own auth flow
+        if (isAcceptInvitationPage) {
+          return;
+        }
 
         // Redirect logged-in users away from Welcome page to Home
         if (authenticated && isWelcomePage) {
@@ -40,7 +50,7 @@ export default function Layout({ children, currentPageName }) {
     };
     
     checkAuthAndRedirect();
-  }, [location.pathname, navigate]);
+  }, [location.pathname, location.search, navigate]);
 
   // Load whitelabel settings for favicon (only after auth is confirmed)
   useEffect(() => {
