@@ -68,21 +68,29 @@ const createInvitationEmailHTML = ({
           </tr>
           
           <!-- Primary CTA -->
+          ${accept_url ? `
           <tr>
             <td style="padding: 0 40px 30px; text-align: center;">
               <a href="${accept_url}" style="display: inline-block; background-color: #FF7A00; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: bold;">Accept Invitation</a>
             </td>
           </tr>
+          ` : ''}
           
           <!-- What Happens Next -->
           <tr>
             <td style="padding: 0 40px 30px;">
               <h2 style="margin: 0 0 15px; font-size: 20px; font-weight: bold; color: #1f2937;">What happens next?</h2>
-              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">If you already have a RoofScribe account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.</p>
+              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">
+                ${accept_url 
+                  ? `If you already have a RoofScribe account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
+                  : `You've been added to ${organization_name}. Log in to your RoofScribe account to access your organization's features.`
+                }
+              </p>
             </td>
           </tr>
           
           <!-- Expiration Notice -->
+          ${accept_url && invitation_expires !== 'N/A' ? `
           <tr>
             <td style="padding: 0 40px 40px;">
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px;">
@@ -94,6 +102,7 @@ const createInvitationEmailHTML = ({
               </table>
             </td>
           </tr>
+          ` : ''}
           
           <!-- Footer -->
           <tr>
@@ -135,12 +144,15 @@ ${is_admin
   : `As a Member, you'll be able to send handwritten notes on behalf of ${organization_name}.`
 }
 
-Accept Invitation: ${accept_url}
+${accept_url ? `Accept Invitation: ${accept_url}` : ''}
 
 WHAT HAPPENS NEXT?
-If you already have a RoofScribe account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.
+${accept_url 
+  ? `If you already have a RoofScribe account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
+  : `You've been added to ${organization_name}. Log in to your RoofScribe account to access your organization's features.`
+}
 
-⏰ This invitation expires in ${invitation_expires}. Accept soon to join the team!
+${accept_url && invitation_expires !== 'N/A' ? `⏰ This invitation expires in ${invitation_expires}. Accept soon to join the team!` : ''}
 
 Questions? Contact us at support@roofscribe.com
 
@@ -168,7 +180,14 @@ Deno.serve(async (req) => {
     }
 
     const is_admin = role === 'organization_owner' || role === 'admin';
-    const accept_url = `${Deno.env.get("APP_URL") || "https://app.base44.com"}/accept-invitation?token=${invitation_token}`;
+    
+    // Build accept URL - handle both new invitations and existing user additions
+    let accept_url = '';
+    if (invitation_token) {
+      const baseUrl = Deno.env.get("APP_URL") || "https://app.base44.com";
+      // For Base44 apps, use ?page= query parameter format
+      accept_url = `${baseUrl}?page=AcceptInvitation&token=${invitation_token}`;
+    }
 
     const emailData = {
       inviter_firstName,
