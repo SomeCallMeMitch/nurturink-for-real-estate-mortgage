@@ -37,6 +37,7 @@ import Onboarding from './pages/Onboarding';
 import TestEmail from './pages/TestEmail';
 import Welcome from './pages/Welcome';
 import AdminEmailTesting from './pages/AdminEmailTesting';
+import AcceptInvitation from './pages/AcceptInvitation';
 import __Layout from './Layout.jsx';
 
 
@@ -80,6 +81,7 @@ export const PAGES = {
     "TestEmail": TestEmail,
     "Welcome": Welcome,
     "AdminEmailTesting": AdminEmailTesting,
+    "AcceptInvitation": AcceptInvitation,
 }
 
 export const pagesConfig = {
