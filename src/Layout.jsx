@@ -96,7 +96,14 @@ export default function Layout({ children, currentPageName }) {
 
   // Check actual path - Welcome page should never show sidebar
   const normalizedPath = location.pathname.toLowerCase();
-  const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome';
+  const searchParams = new URLSearchParams(location.search);
+  const pageParam = searchParams.get('page');
+  
+  // Check if this is AcceptInvitation page via query param
+  const isAcceptInvitationPageCheck = pageParam?.toLowerCase() === 'acceptinvitation';
+  
+  // Check if this is Welcome page (root path without AcceptInvitation query param)
+  const isWelcomePage = (normalizedPath === '/' || normalizedPath === '/welcome') && !isAcceptInvitationPageCheck;
   
   return (
     <>
@@ -121,8 +128,8 @@ export default function Layout({ children, currentPageName }) {
           }
           `}</style>
 
-          {isWelcomePage ? (
-          // Welcome page renders directly without sidebar (unauthenticated users only)
+          {(isWelcomePage || isAcceptInvitationPageCheck) ? (
+          // Welcome and AcceptInvitation pages render directly without sidebar
           children
           ) : (
           // All other pages get MainLayout with sidebar (authenticated users only)
