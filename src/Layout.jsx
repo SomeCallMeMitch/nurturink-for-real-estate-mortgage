@@ -3,6 +3,7 @@ import MainLayout from "./components/layout/MainLayout";
 import { Toaster } from "@/components/ui/toaster";
 import { base44 } from "@/api/base44Client";
 import { useLocation, useNavigate } from "react-router-dom";
+import AcceptInvitation from "./pages/AcceptInvitation";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -128,8 +129,12 @@ export default function Layout({ children, currentPageName }) {
           }
           `}</style>
 
-          {(isWelcomePage || isAcceptInvitationPageCheck) ? (
-          // Welcome and AcceptInvitation pages render directly without sidebar
+          {isAcceptInvitationPageCheck ? (
+          // WORKAROUND: Explicitly render AcceptInvitation when ?page=AcceptInvitation
+          // This bypasses the Base44 router's default behavior of rendering the landing page for "/"
+          <AcceptInvitation />
+          ) : isWelcomePage ? (
+          // Welcome page renders directly without sidebar
           children
           ) : (
           // All other pages get MainLayout with sidebar (authenticated users only)
