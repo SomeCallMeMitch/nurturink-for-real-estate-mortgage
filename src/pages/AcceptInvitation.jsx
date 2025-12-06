@@ -53,9 +53,39 @@ export default function AcceptInvitation() {
         if (result.data?.isValid) {
           setInvitationData(result.data);
           
-          // If user is authenticated and email matches, we're ready to accept
-          // But don't auto-accept - let them click the button
-          setState('invitation');
+          // AUTO-ACCEPT: If user is authenticated and email matches, automatically accept
+          if (authStatus && user && user.email?.toLowerCase() === result.data.invitation?.email?.toLowerCase()) {
+            console.log('Auto-accepting invitation - user authenticated with matching email');
+            setAccepting(true);
+            try {
+              const acceptResult = await base44.functions.invoke('acceptInvitation', { token });
+              
+              if (acceptResult.data?.success) {
+                setInvitationData(prev => ({
+                  ...prev,
+                  organizationName: acceptResult.data.organizationName
+                }));
+                setState('success');
+                // Redirect to SettingsProfile instead of Home
+                setTimeout(() => navigate('/SettingsProfile'), 2000);
+              } else {
+                setError(acceptResult.data);
+                setState('error');
+              }
+            } catch (acceptErr) {
+              console.error('Auto-acceptance error:', acceptErr);
+              setError({ 
+                errorType: 'network', 
+                errorMessage: 'Failed to complete invitation acceptance. Please try again.' 
+              });
+              setState('error');
+            } finally {
+              setAccepting(false);
+            }
+          } else {
+            // User not authenticated or email mismatch - show invitation screen
+            setState('invitation');
+          }
         } else {
           setError(result.data);
           setState('error');
@@ -71,7 +101,7 @@ export default function AcceptInvitation() {
     };
 
     init();
-  }, [token]);
+  }, [token, navigate]);
 
   // Handle Accept button click
   const handleAcceptClick = async () => {
@@ -105,7 +135,8 @@ export default function AcceptInvitation() {
           organizationName: result.data.organizationName
         }));
         setState('success');
-        setTimeout(() => navigate('/Home'), 2000);
+        // Redirect to SettingsProfile to complete account details
+        setTimeout(() => navigate('/SettingsProfile'), 2000);
       } else {
         setError(result.data);
         setState('error');

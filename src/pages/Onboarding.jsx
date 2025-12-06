@@ -122,7 +122,7 @@ export default function Onboarding() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid md:grid-cols-3 gap-6"
+            className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto"
           >
             <RoleCard 
               icon={User}
@@ -139,14 +139,6 @@ export default function Onboarding() {
               description="I manage a team of reps and want centralized billing."
               features={["Manage team members", "Allocate credits to reps", "Shared or private pools"]}
               onClick={() => handleRoleSelect('company')}
-            />
-            <RoleCard 
-              icon={Crown}
-              color="purple"
-              title="Whitelabel Partner"
-              description="I want to resell this platform under my own brand."
-              features={["Custom branding & domain", "Wholesale credit pricing", "Manage multiple clients"]}
-              onClick={() => handleRoleSelect('whitelabel')}
             />
           </motion.div>
         )}
