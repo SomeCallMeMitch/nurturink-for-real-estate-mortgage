@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -24,6 +23,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import TeamMemberDetailsModal from '@/components/team/TeamMemberDetailsModal';
 import {
   Dialog,
   DialogContent,
@@ -75,6 +75,10 @@ export default function TeamManagement() {
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState(null);
   const [removing, setRemoving] = useState(false);
+  
+  // Team member details modal state
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedMemberForDetails, setSelectedMemberForDetails] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -305,6 +309,11 @@ export default function TeamManagement() {
     }
   };
 
+  const handleOpenDetails = (member) => {
+    setSelectedMemberForDetails(member);
+    setDetailsModalOpen(true);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -520,6 +529,7 @@ export default function TeamManagement() {
                                   variant="ghost"
                                   size="icon"
                                   className="h-8 w-8 text-gray-600 hover:text-indigo-600"
+                                  onClick={() => handleOpenDetails(member)}
                                   title="View Details"
                                 >
                                   <Eye className="w-4 h-4" />
@@ -730,6 +740,14 @@ export default function TeamManagement() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Team Member Details Modal */}
+        <TeamMemberDetailsModal
+          open={detailsModalOpen}
+          onOpenChange={setDetailsModalOpen}
+          member={selectedMemberForDetails}
+          onUpdate={loadData}
+        />
       </div>
     </div>
   );
