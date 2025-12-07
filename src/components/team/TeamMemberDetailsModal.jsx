@@ -199,7 +199,7 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold text-lg">
+            <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-semibold text-lg">
               {member?.initials || <User className="w-6 h-6" />}
             </div>
             <div>
@@ -214,7 +214,7 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+            <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
           </div>
         ) : (
           <div className="space-y-6">
@@ -237,8 +237,8 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
               <Card>
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Calendar className="w-5 h-5 text-blue-600" />
+                    <div className="p-2 bg-gray-100 rounded-lg">
+                      <Calendar className="w-5 h-5 text-gray-600" />
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Last Sent</p>
@@ -251,8 +251,8 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
               <Card>
                 <CardContent className="pt-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <TrendingUp className="w-5 h-5 text-green-600" />
+                    <div className="p-2 bg-orange-100 rounded-lg">
+                      <TrendingUp className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Company Credits Used</p>
@@ -274,15 +274,15 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
               
               <div className="space-y-4">
                 {/* Current Balance Display */}
-                <Card className="bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200">
+                <Card className="bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200">
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-gray-700 mb-1">Current Credit Balance</p>
-                        <p className="text-3xl font-bold text-indigo-900">{member?.credits || 0}</p>
+                        <p className="text-3xl font-bold text-orange-900">{member?.credits || 0}</p>
                       </div>
-                      <div className="p-3 bg-indigo-200 rounded-lg">
-                        <DollarSign className="w-8 h-8 text-indigo-700" />
+                      <div className="p-3 bg-orange-200 rounded-lg">
+                        <DollarSign className="w-8 h-8 text-orange-700" />
                       </div>
                     </div>
                   </CardContent>
@@ -304,7 +304,7 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
                     <Button
                       onClick={handleAllocateCredits}
                       disabled={allocating || !creditsToAllocate}
-                      className="bg-indigo-600 hover:bg-indigo-700"
+                      className="bg-orange-500 hover:bg-orange-600"
                     >
                       {allocating ? (
                         <>
@@ -326,8 +326,8 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${poolAccess ? 'bg-green-200' : 'bg-gray-200'}`}>
-                          <Zap className={`w-5 h-5 ${poolAccess ? 'text-green-700' : 'text-gray-600'}`} />
+                        <div className={`p-2 rounded-lg ${poolAccess ? 'bg-green-200' : 'bg-orange-100'}`}>
+                          <Zap className={`w-5 h-5 ${poolAccess ? 'text-green-700' : 'text-orange-600'}`} />
                         </div>
                         <div>
                           <p className="font-semibold text-gray-900">Company Credit Pool Access</p>
@@ -392,9 +392,9 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
                             </div>
                             <p className="text-sm text-gray-600 line-clamp-2 mb-2">{note.message}</p>
                             {note.outcomeDetails && (
-                              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-lg">
-                                <p className="text-xs font-semibold text-blue-900 mb-1">Rep Notes:</p>
-                                <p className="text-xs text-blue-800">{note.outcomeDetails}</p>
+                              <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                                <p className="text-xs font-semibold text-orange-900 mb-1">Rep Notes:</p>
+                                <p className="text-xs text-orange-800">{note.outcomeDetails}</p>
                               </div>
                             )}
                           </div>
