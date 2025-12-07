@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ import { Separator } from '@/components/ui/separator';
 
 export default function TeamMemberDetailsModal({ open, onOpenChange, member, onUpdate }) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
@@ -40,7 +42,7 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
   const [allocating, setAllocating] = useState(false);
   
   // Pool access state
-  const [poolAccess, setPoolAccess] = useState(member?.canAccessCompanyPool ?? true);
+  const [poolAccess, setPoolAccess] = useState(false);
   const [updatingPoolAccess, setUpdatingPoolAccess] = useState(false);
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
     if (member?.canAccessCompanyPool !== undefined) {
       setPoolAccess(member.canAccessCompanyPool);
     }
-  }, [member]);
+  }, [member?.canAccessCompanyPool]);
 
   const loadMemberDetails = async () => {
     try {
@@ -118,7 +120,7 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
     try {
       setAllocating(true);
       
-      await base44.functions.invoke('allocateCredits', {
+      const response = await base44.functions.invoke('allocateCredits', {
         allocations: {
           [member.userId]: amount
         }
@@ -131,8 +133,10 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
       });
       
       setCreditsToAllocate('');
-      await loadMemberDetails();
-      if (onUpdate) onUpdate();
+      if (response.data.allocations && response.data.allocations.length > 0) {
+        const updatedUser = response.data.allocations[0].updatedUser;
+        if (onUpdate) onUpdate(updatedUser);
+      }
       
     } catch (error) {
       console.error('Failed to allocate credits:', error);
@@ -150,8 +154,8 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
     try {
       setUpdatingPoolAccess(true);
       
-      // Update user's pool access
-      await base44.asServiceRole.entities.User.update(member.userId, {
+      const response = await base44.functions.invoke('updateUserPoolAccess', {
+        userId: member.userId,
         canAccessCompanyPool: !poolAccess
       });
       
@@ -163,7 +167,7 @@ export default function TeamMemberDetailsModal({ open, onOpenChange, member, onU
         className: 'bg-green-50 border-green-200 text-green-900'
       });
       
-      if (onUpdate) onUpdate();
+      if (onUpdate) onUpdate(response.data.user);
       
     } catch (error) {
       console.error('Failed to update pool access:', error);

@@ -80,6 +80,30 @@ export default function TeamManagement() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedMemberForDetails, setSelectedMemberForDetails] = useState(null);
 
+  const handleModalUpdate = async (updatedUser) => {
+    if (updatedUser) {
+      setMembers(prevMembers => prevMembers.map(m => 
+        m.userId === updatedUser.id ? {
+          ...m,
+          credits: (updatedUser.companyAllocatedCredits || 0) + (updatedUser.personalPurchasedCredits || 0),
+          companyAllocatedCredits: updatedUser.companyAllocatedCredits || 0,
+          personalPurchasedCredits: updatedUser.personalPurchasedCredits || 0,
+          canAccessCompanyPool: updatedUser.canAccessCompanyPool
+        } : m
+      ));
+      if (selectedMemberForDetails && selectedMemberForDetails.userId === updatedUser.id) {
+        setSelectedMemberForDetails(prev => ({ 
+          ...prev,
+          credits: (updatedUser.companyAllocatedCredits || 0) + (updatedUser.personalPurchasedCredits || 0),
+          companyAllocatedCredits: updatedUser.companyAllocatedCredits || 0,
+          personalPurchasedCredits: updatedUser.personalPurchasedCredits || 0,
+          canAccessCompanyPool: updatedUser.canAccessCompanyPool
+        }));
+      }
+    }
+    await loadData();
+  };
+
   useEffect(() => {
     loadData();
   }, []);
@@ -746,7 +770,7 @@ export default function TeamManagement() {
           open={detailsModalOpen}
           onOpenChange={setDetailsModalOpen}
           member={selectedMemberForDetails}
-          onUpdate={loadData}
+          onUpdate={handleModalUpdate}
         />
       </div>
     </div>

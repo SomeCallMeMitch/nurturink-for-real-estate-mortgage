@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
       // Update user's company-allocated credit balance
       const newCompanyAllocated = (teamMember.companyAllocatedCredits || 0) + amount;
       
-      await base44.asServiceRole.entities.User.update(userId, {
+      const updatedUser = await base44.asServiceRole.entities.User.update(userId, {
         companyAllocatedCredits: newCompanyAllocated
       });
       
@@ -150,7 +150,8 @@ Deno.serve(async (req) => {
         userName: teamMember.full_name || teamMember.email,
         success: true,
         amount: amount,
-        newBalance: newCompanyAllocated
+        newBalance: newCompanyAllocated,
+        updatedUser: updatedUser
       });
     }
     
