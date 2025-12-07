@@ -148,11 +148,36 @@ Deno.serve(async (req) => {
       allocationResults.push({
         userId: userId,
         userName: teamMember.full_name || teamMember.email,
+        userEmail: teamMember.email,
         success: true,
         amount: amount,
         newBalance: newCompanyAllocated,
         updatedUser: updatedUser
       });
+      
+      // Send email notification to the team member
+      try {
+        await base44.functions.invoke('sendCreditsAllocatedEmail', {
+          member_firstName: teamMember.full_name?.split(' ')[0] || teamMember.email,
+          member_email: teamMember.email,
+          admin_name: user.full_name || user.email,
+          credits_allocated: amount,
+          allocation_date: new Date().toLocaleString('en-US', { 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          new_personal_balance: newCompanyAllocated,
+          org_pool_available: newOrgBalance,
+          send_note_url: `${Deno.env.get("APP_URL")}/FindClients`,
+          app_logo_url: `${Deno.env.get("APP_URL")}/logo.png`
+        });
+      } catch (emailError) {
+        console.error(`Failed to send allocation email to ${teamMember.email}:`, emailError);
+        // Don't fail the allocation if email fails
+      }
     }
     
     // Update organization balance
@@ -179,6 +204,50 @@ Deno.serve(async (req) => {
         allocations: allocations
       }
     });
+    
+    // Send summary email to the allocating admin
+    const successfulAllocations = allocationResults.filter(r => r.success);
+    if (successfulAllocations.length > 0) {
+      try {
+        // Get other admins in the organization for notification (optional)
+        const allAdmins = await base44.asServiceRole.entities.User.filter({
+          orgId: user.orgId,
+          isOrgOwner: true
+        });
+        
+        const otherAdminEmails = allAdmins
+          .filter(admin => admin.id !== user.id)
+          .map(admin => admin.email);
+        
+        // Prepare allocation summary for email
+        const allocationsSummary = successfulAllocations.map(result => ({
+          member_name: result.userName,
+          credits_allocated: result.amount
+        }));
+        
+        // Send to allocating admin
+        await base44.functions.invoke('sendCreditAllocationTeamNotif', {
+          other_admins_emails: [user.email, ...otherAdminEmails],
+          admin_firstNames: [user.full_name?.split(' ')[0] || 'Admin', ...otherAdminEmails.map(() => 'Admin')],
+          allocating_admin_name: user.full_name || user.email,
+          organization_name: organization.name,
+          allocations: allocationsSummary,
+          remaining_org_pool: newOrgBalance,
+          allocation_date: new Date().toLocaleString('en-US', { 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }),
+          team_management_url: `${Deno.env.get("APP_URL")}/TeamManagement`,
+          app_logo_url: `${Deno.env.get("APP_URL")}/logo.png`
+        });
+      } catch (emailError) {
+        console.error('Failed to send admin summary email:', emailError);
+        // Don't fail the allocation if email fails
+      }
+    }
     
     return Response.json({
       success: true,
