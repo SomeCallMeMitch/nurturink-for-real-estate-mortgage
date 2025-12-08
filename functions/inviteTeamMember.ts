@@ -134,12 +134,15 @@ Deno.serve(async (req) => {
     const organization = organizations.length > 0 ? organizations[0] : null;
     
     // Load whitelabel settings for logo
-    let logoUrl = null;
+    let logoUrl = `${Deno.env.get("APP_URL")}/logo.png`;
     try {
-      const whitelabelResponse = await base44.functions.invoke('getWhitelabelSettings');
-      logoUrl = whitelabelResponse.data?.settings?.logoUrl || null;
+      const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
+      if (whitelabelSettings.length > 0 && whitelabelSettings[0].logoUrl) {
+        logoUrl = whitelabelSettings[0].logoUrl;
+      }
     } catch (error) {
       console.error('Failed to load whitelabel settings for logo:', error);
+      // Continue with default logo URL
     }
     
     // Generate unique token
