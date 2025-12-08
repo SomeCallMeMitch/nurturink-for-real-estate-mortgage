@@ -371,6 +371,17 @@ Deno.serve(async (req) => {
         
         console.log(`✅ Simulated organization purchase complete: ${credits} credits added`);
         
+        // Fetch whitelabel logo for receipt email
+        let logoUrl = `${Deno.env.get("APP_URL")}/logo.png`;
+        try {
+          const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
+          if (whitelabelSettings.length > 0 && whitelabelSettings[0].logoUrl) {
+            logoUrl = whitelabelSettings[0].logoUrl;
+          }
+        } catch (error) {
+          console.error('Failed to fetch whitelabel logo:', error);
+        }
+        
         // Send receipt email
         try {
           const orderNumber = `SIM-ORG-${Date.now().toString(36).toUpperCase()}`;
@@ -389,7 +400,8 @@ Deno.serve(async (req) => {
             coupon_code: validatedCoupon?.code,
             payment_method: 'TEST',
             new_org_pool_balance: newBalance,
-            team_size: await getTeamSize(base44, organization.id)
+            team_size: await getTeamSize(base44, organization.id),
+            app_logo_url: logoUrl
           });
           
           console.log('✅ Organization receipt email sent');
@@ -462,6 +474,17 @@ Deno.serve(async (req) => {
         
         console.log(`✅ Simulated user purchase complete: ${credits} credits added (personalPurchasedCredits)`);
         
+        // Fetch whitelabel logo for receipt email
+        let userLogoUrl = `${Deno.env.get("APP_URL")}/logo.png`;
+        try {
+          const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
+          if (whitelabelSettings.length > 0 && whitelabelSettings[0].logoUrl) {
+            userLogoUrl = whitelabelSettings[0].logoUrl;
+          }
+        } catch (error) {
+          console.error('Failed to fetch whitelabel logo:', error);
+        }
+        
         // Send receipt email
         try {
           const orderNumber = `SIM-USR-${Date.now().toString(36).toUpperCase()}`;
@@ -478,7 +501,8 @@ Deno.serve(async (req) => {
             discount_amount: discountApplied,
             coupon_code: validatedCoupon?.code,
             payment_method: 'TEST',
-            new_balance: newPersonalPurchased
+            new_balance: newPersonalPurchased,
+            app_logo_url: userLogoUrl
           });
           
           console.log('✅ Personal receipt email sent');
