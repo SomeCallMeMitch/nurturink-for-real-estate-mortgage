@@ -85,6 +85,18 @@ Deno.serve(async (req) => {
       );
     }
     
+    // Fetch whitelabel settings for logo
+    let logoUrl = `${Deno.env.get("APP_URL")}/logo.png`;
+    try {
+      const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
+      if (whitelabelSettings.length > 0 && whitelabelSettings[0].logoUrl) {
+        logoUrl = whitelabelSettings[0].logoUrl;
+      }
+    } catch (error) {
+      console.error('Failed to fetch whitelabel settings for logo:', error);
+      // Continue with default logo URL
+    }
+    
     // Process allocations
     const allocationResults = [];
     
@@ -172,7 +184,7 @@ Deno.serve(async (req) => {
           new_personal_balance: newCompanyAllocated,
           org_pool_available: newOrgBalance,
           send_note_url: `${Deno.env.get("APP_URL")}/FindClients`,
-          app_logo_url: `${Deno.env.get("APP_URL")}/logo.png`
+          app_logo_url: logoUrl
         });
       } catch (emailError) {
         console.error(`Failed to send allocation email to ${teamMember.email}:`, emailError);
@@ -241,7 +253,7 @@ Deno.serve(async (req) => {
             minute: '2-digit'
           }),
           team_management_url: `${Deno.env.get("APP_URL")}/TeamManagement`,
-          app_logo_url: `${Deno.env.get("APP_URL")}/logo.png`
+          app_logo_url: logoUrl
         });
       } catch (emailError) {
         console.error('Failed to send admin summary email:', emailError);
