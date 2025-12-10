@@ -244,33 +244,40 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
 
   // Filter menu items based on the user's role
   const visibleMainMenuItems = mainMenuItems.filter(item => {
+    console.log(`\n=== LeftSidebar Filter Check for "${item.label}" ===`);
+    console.log(`- Item roles:`, item.roles);
+    console.log(`- User object:`, user);
+    console.log(`- User appRole:`, user?.appRole);
+    console.log(`- User role:`, user?.role);
+    
     // If no roles defined, show to everyone
     if (!item.roles || item.roles.length === 0) {
-      console.log(`LeftSidebar: Item '${item.label}' has no roles, showing to everyone`);
+      console.log(`✅ Item '${item.label}' has no roles, showing to everyone`);
       return true;
     }
     
     // If user not logged in (or not loaded), hide items requiring roles
     if (!user) {
-      console.log(`LeftSidebar: Item '${item.label}' hidden - no user logged in`);
+      console.log(`❌ Item '${item.label}' hidden - no user logged in`);
       return false;
     }
 
     const userRole = user?.appRole || user?.role;
+    console.log(`- Computed userRole:`, userRole);
     
     // Check specific roles
     if (userRole && item.roles.includes(userRole)) {
-      console.log(`LeftSidebar: Item '${item.label}' visible - user role '${userRole}' matches allowed roles [${item.roles}]`);
+      console.log(`✅ Item '${item.label}' visible - user role '${userRole}' matches allowed roles [${item.roles.join(', ')}]`);
       return true;
     }
 
     // Fallback: If item allows 'user' role, show it to any logged-in user
     if (item.roles.includes('user') && user) {
-      console.log(`LeftSidebar: Item '${item.label}' visible - fallback 'user' role matched`);
+      console.log(`✅ Item '${item.label}' visible - fallback 'user' role matched`);
       return true;
     }
 
-    console.log(`LeftSidebar: Item '${item.label}' hidden - user role '${userRole}' NOT in allowed roles [${item.roles}]`);
+    console.log(`❌ Item '${item.label}' hidden - user role '${userRole}' NOT in allowed roles [${item.roles.join(', ')}]`);
     return false;
   });
 
