@@ -811,105 +811,12 @@ export default function SuperAdminCardManagement() {
                 </div>
               </div>
 
-              {/* Physical Card Images (5.5" x 4" ratio) - NEWLY ADDED FOR QUICK SEND REVIEW */}
-              <div>
-                <Label className="text-base font-semibold mb-3 block">Physical Card Images (For Quick Send Review)</Label>
-                <p className="text-xs text-gray-500 mb-3">These images show the actual physical card layout (5.5" width x 4" height ratio)</p>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Front Image */}
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Front Image (5.5" x 4" ratio)</p>
-                    {designForm.frontImageUrl ? (
-                      <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden" style={{ aspectRatio: '5.5/4' }}>
-                        <img
-                          src={designForm.frontImageUrl}
-                          alt="Front"
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          onClick={() => setDesignForm({ ...designForm, frontImageUrl: '' })}
-                          className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                        <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                          Front
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors flex flex-col justify-center items-center" style={{ aspectRatio: '5.5/4' }}>
-                        <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-600 mb-2 font-medium">Physical Front</p>
-                        <label className="cursor-pointer">
-                          <span className="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-sm">
-                            {uploadingFront ? <><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Uploading...</> : 'Choose File'}
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleFrontImageUpload(file);
-                            }}
-                            disabled={uploadingFront}
-                          />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Back Image */}
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">Back Image (5.5" x 4" ratio)</p>
-                    {designForm.backImageUrl ? (
-                      <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden" style={{ aspectRatio: '5.5/4' }}>
-                        <img
-                          src={designForm.backImageUrl}
-                          alt="Back"
-                          className="w-full h-full object-cover"
-                        />
-                        <button
-                          onClick={() => setDesignForm({ ...designForm, backImageUrl: '' })}
-                          className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                        <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
-                          Back
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-indigo-400 transition-colors flex flex-col justify-center items-center" style={{ aspectRatio: '5.5/4' }}>
-                        <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                        <p className="text-sm text-gray-600 mb-2 font-medium">Physical Back</p>
-                        <label className="cursor-pointer">
-                          <span className="px-3 py-1.5 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-sm">
-                            {uploadingBack ? <><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Uploading...</> : 'Choose File'}
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleBackImageUpload(file);
-                            }}
-                            disabled={uploadingBack}
-                          />
-                        </label>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Section: Categories and Settings */}
-              <div className="grid grid-cols-2 gap-6 pt-4 border-t">
-                {/* Left: Categories */}
+              {/* Bottom Section: 3 Columns - Categories, Settings, Physical Card Images */}
+              <div className="grid grid-cols-3 gap-6 pt-4 border-t">
+                {/* Column 1: Categories */}
                 <div>
                   <Label className="mb-2 block">Categories</Label>
-                  <div className="border border-gray-200 rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                  <div className="border border-gray-200 rounded-lg p-3 max-h-[400px] overflow-y-auto space-y-2">
                     {categories.length === 0 ? (
                       <p className="text-sm text-gray-500">No categories available.</p>
                     ) : (
@@ -929,7 +836,7 @@ export default function SuperAdminCardManagement() {
                   </div>
                 </div>
 
-                {/* Right: Print-Ready URLs and Checkboxes */}
+                {/* Column 2: Print-Ready URLs and Settings */}
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="front-url" className="text-sm">Print-Ready Front URL</Label>
@@ -963,6 +870,91 @@ export default function SuperAdminCardManagement() {
                     <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
                       Set as default design
                     </label>
+                  </div>
+                </div>
+
+                {/* Column 3: Physical Card Images (For Quick Send Review) */}
+                <div>
+                  <Label className="text-sm font-semibold mb-2 block">Physical Card Images</Label>
+                  <p className="text-xs text-gray-500 mb-3">5.5" x 4" ratio for Quick Send</p>
+                  <div className="space-y-3">
+                    {/* Front Image */}
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1 font-medium">Front</p>
+                      {designForm.frontImageUrl ? (
+                        <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden" style={{ aspectRatio: '5.5/4' }}>
+                          <img
+                            src={designForm.frontImageUrl}
+                            alt="Front"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => setDesignForm({ ...designForm, frontImageUrl: '' })}
+                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center hover:border-indigo-400 transition-colors" style={{ aspectRatio: '5.5/4' }}>
+                          <Upload className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                          <label className="cursor-pointer">
+                            <span className="px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-xs">
+                              {uploadingFront ? <><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Uploading...</> : 'Upload'}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFrontImageUpload(file);
+                              }}
+                              disabled={uploadingFront}
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Back Image */}
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1 font-medium">Back</p>
+                      {designForm.backImageUrl ? (
+                        <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden" style={{ aspectRatio: '5.5/4' }}>
+                          <img
+                            src={designForm.backImageUrl}
+                            alt="Back"
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={() => setDesignForm({ ...designForm, backImageUrl: '' })}
+                            className="absolute top-1 right-1 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center hover:border-indigo-400 transition-colors" style={{ aspectRatio: '5.5/4' }}>
+                          <Upload className="w-6 h-6 text-gray-400 mx-auto mb-1" />
+                          <label className="cursor-pointer">
+                            <span className="px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700 inline-block text-xs">
+                              {uploadingBack ? <><Loader2 className="w-3 h-3 animate-spin inline mr-1" />Uploading...</> : 'Upload'}
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleBackImageUpload(file);
+                              }}
+                              disabled={uploadingBack}
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
