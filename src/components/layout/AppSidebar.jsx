@@ -25,7 +25,8 @@ import {
   Phone,
   Link as LinkIcon,
   Building,
-  Home
+  Home,
+  Zap
 } from "lucide-react";
 
 import {
@@ -143,6 +144,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
     { title: "Clients", url: "AdminClients", icon: Users },
     { title: "Send a Card", url: "FindClients", icon: Mail },
     { title: "Templates", url: "Templates", icon: FileText },
+    { title: "Quick Send Templates", url: "QuickSendTemplates", icon: Zap },
     { title: "Credits", url: "Credits", icon: DollarSign },
     { title: "Team", url: "TeamManagement", icon: UsersRound },
     { title: "Analytics", url: "Analytics", icon: BarChart3 },
