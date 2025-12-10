@@ -33,9 +33,29 @@ import {
   FileText,
   Palette,
   Zap
-} from 'lucide-react';
+  } from 'lucide-react';
 
-export default function EditQuickSendTemplate() {
+  // Default settings fallback to prevent crashes if DB is missing data
+  const DEFAULT_PREVIEW_SETTINGS = {
+  fontSize: 22,
+  lineHeight: 1,
+  baseTextWidth: 360,
+  baseMarginLeft: 40,
+  shortCardMaxLines: 13,
+  maxPreviewLines: 19,
+  topHalfPaddingTop: 345,
+  longCardTopPadding: 110,
+  gapAboveFold: 14,
+  gapBelowFold: 14,
+  maxIndent: 16,
+  indentAmplitude: 6,
+  indentNoise: 2,
+  indentFrequency: 0.35,
+  frameWidth: 412,
+  frameHeight: 600
+  };
+
+  export default function EditQuickSendTemplate() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
@@ -67,7 +87,7 @@ export default function EditQuickSendTemplate() {
   const [templates, setTemplates] = useState([]);
   const [noteStyles, setNoteStyles] = useState([]);
   const [cardDesigns, setCardDesigns] = useState([]);
-  const [cardPreviewSettings, setCardPreviewSettings] = useState(null);
+  const [cardPreviewSettings, setCardPreviewSettings] = useState(DEFAULT_PREVIEW_SETTINGS);
   
   // Modal states
   const [templateSelectorOpen, setTemplateSelectorOpen] = useState(false);
@@ -76,26 +96,6 @@ export default function EditQuickSendTemplate() {
   // Search states
   const [templateSearch, setTemplateSearch] = useState('');
   const [designSearch, setDesignSearch] = useState('');
-
-  // Default settings fallback to prevent crashes if DB is missing data
-  const DEFAULT_PREVIEW_SETTINGS = {
-    fontSize: 22,
-    lineHeight: 1,
-    baseTextWidth: 360,
-    baseMarginLeft: 40,
-    shortCardMaxLines: 13,
-    maxPreviewLines: 19,
-    topHalfPaddingTop: 345,
-    longCardTopPadding: 110,
-    gapAboveFold: 14,
-    gapBelowFold: 14,
-    maxIndent: 16,
-    indentAmplitude: 6,
-    indentNoise: 2,
-    indentFrequency: 0.35,
-    frameWidth: 412,
-    frameHeight: 600
-  };
 
   useEffect(() => {
     loadData();
@@ -575,28 +575,46 @@ export default function EditQuickSendTemplate() {
               <CardTitle>Live Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              {selectedTemplate && selectedCardDesign && cardPreviewSettings ? (
-                <CardPreview
-                  message={selectedTemplate.content}
-                  cardDesign={selectedCardDesign}
-                  noteStyleProfile={selectedNoteStyle}
-                  includeGreeting={formData.includeGreeting}
-                  includeSignature={formData.includeSignature}
-                  cardPreviewSettings={cardPreviewSettings}
-                />
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Palette className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>
-                    {!cardPreviewSettings 
-                      ? 'Loading preview settings...' 
-                      : !selectedTemplate
-                      ? 'Select a message template'
-                      : 'Select a card design'
-                    }
-                  </p>
-                </div>
-              )}
+              {(() => {
+                // Debug logging to diagnose crash
+                if (selectedTemplate && selectedCardDesign && cardPreviewSettings) {
+                  console.log('✅ Passing to CardPreview:', {
+                    messageLength: selectedTemplate.content?.length,
+                    designName: selectedCardDesign.name,
+                    hasSettings: !!cardPreviewSettings,
+                    settingsKeys: Object.keys(cardPreviewSettings)
+                  });
+                  return (
+                    <CardPreview
+                      message={selectedTemplate.content}
+                      cardDesign={selectedCardDesign}
+                      noteStyleProfile={selectedNoteStyle}
+                      includeGreeting={formData.includeGreeting}
+                      includeSignature={formData.includeSignature}
+                      cardPreviewSettings={cardPreviewSettings}
+                    />
+                  );
+                } else {
+                  console.log('⏳ Waiting for data:', { 
+                    hasTemplate: !!selectedTemplate, 
+                    hasDesign: !!selectedCardDesign, 
+                    hasSettings: !!cardPreviewSettings 
+                  });
+                  return (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Palette className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>
+                        {!cardPreviewSettings 
+                          ? 'Loading preview settings...' 
+                          : !selectedTemplate
+                          ? 'Select a message template'
+                          : 'Select a card design'
+                        }
+                      </p>
+                    </div>
+                  );
+                }
+              })()}
             </CardContent>
           </Card>
         </div>
