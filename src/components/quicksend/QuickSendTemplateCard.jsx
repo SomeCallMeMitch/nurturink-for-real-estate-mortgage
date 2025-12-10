@@ -177,5 +177,4 @@ export default function QuickSendTemplateCard({
   );
 }
 
-// Export configs for use elsewhere
-export { PURPOSE_CONFIG, TYPE_CONFIG };
+// Configs imported from centralized constants file
