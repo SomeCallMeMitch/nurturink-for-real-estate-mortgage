@@ -9,19 +9,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Search, X, Star, User, Users, Grid } from 'lucide-react';
-
-// Purpose options for filter
-const PURPOSE_OPTIONS = [
-  { value: 'thank_you', label: 'Thank You' },
-  { value: 'referral_request', label: 'Referral Request' },
-  { value: 'review_request', label: 'Review Request' },
-  { value: 'review_and_referral', label: 'Review & Referral' },
-  { value: 'birthday', label: 'Birthday' },
-  { value: 'anniversary', label: 'Anniversary' },
-  { value: 'holiday', label: 'Holiday' },
-  { value: 'just_because', label: 'Just Because' },
-  { value: 'custom', label: 'Custom' }
-];
+import { PURPOSE_OPTIONS } from '@/components/utils/quickSendConstants';
 
 /**
  * QuickSendFilterControls Component

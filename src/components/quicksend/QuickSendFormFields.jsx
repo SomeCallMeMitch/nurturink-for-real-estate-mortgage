@@ -12,19 +12,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { FileText, Search } from 'lucide-react';
-
-// Purpose options with labels
-export const PURPOSE_OPTIONS = [
-  { value: 'thank_you', label: 'Thank You' },
-  { value: 'referral_request', label: 'Referral Request' },
-  { value: 'review_request', label: 'Review Request' },
-  { value: 'review_and_referral', label: 'Review & Referral' },
-  { value: 'birthday', label: 'Birthday' },
-  { value: 'anniversary', label: 'Anniversary' },
-  { value: 'holiday', label: 'Holiday' },
-  { value: 'just_because', label: 'Just Because' },
-  { value: 'custom', label: 'Custom' }
-];
+import { PURPOSE_OPTIONS } from '@/components/utils/quickSendConstants';
 
 // Return address options
 const RETURN_ADDRESS_OPTIONS = [
