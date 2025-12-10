@@ -23,7 +23,8 @@ import {
   Link as LinkIcon,
   PenTool,
   Briefcase,
-  Ticket
+  Ticket,
+  Zap
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -94,6 +95,13 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       label: 'Templates',
       icon: FileText,
       path: 'Templates',
+      roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
+    },
+    {
+      id: 'quick-send-templates',
+      label: 'Quick Send Templates',
+      icon: Zap,
+      path: 'QuickSendTemplates',
       roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
     },
     {
