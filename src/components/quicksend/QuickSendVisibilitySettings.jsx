@@ -9,7 +9,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { PURPOSE_OPTIONS } from './QuickSendFormFields';
+import { PURPOSE_OPTIONS } from '@/components/utils/quickSendConstants';
 
 /**
  * QuickSendVisibilitySettings Component
