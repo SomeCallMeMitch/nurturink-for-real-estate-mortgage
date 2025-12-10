@@ -10,36 +10,9 @@ import {
   Copy, 
   Trash, 
   Zap,
-  Gift,
-  MessageSquare,
-  ThumbsUp,
-  Users,
-  Calendar,
-  Heart,
-  Sparkles,
-  Star,
-  HelpCircle
+  Star
 } from 'lucide-react';
-
-// Purpose configuration with icons and colors
-const PURPOSE_CONFIG = {
-  thank_you: { label: 'Thank You', icon: ThumbsUp, bgColor: 'bg-green-100', textColor: 'text-green-700' },
-  referral_request: { label: 'Referral Request', icon: Users, bgColor: 'bg-blue-100', textColor: 'text-blue-700' },
-  review_request: { label: 'Review Request', icon: Star, bgColor: 'bg-yellow-100', textColor: 'text-yellow-700' },
-  review_and_referral: { label: 'Review & Referral', icon: MessageSquare, bgColor: 'bg-purple-100', textColor: 'text-purple-700' },
-  birthday: { label: 'Birthday', icon: Gift, bgColor: 'bg-pink-100', textColor: 'text-pink-700' },
-  anniversary: { label: 'Anniversary', icon: Heart, bgColor: 'bg-red-100', textColor: 'text-red-700' },
-  holiday: { label: 'Holiday', icon: Sparkles, bgColor: 'bg-indigo-100', textColor: 'text-indigo-700' },
-  just_because: { label: 'Just Because', icon: Calendar, bgColor: 'bg-teal-100', textColor: 'text-teal-700' },
-  custom: { label: 'Custom', icon: HelpCircle, bgColor: 'bg-gray-100', textColor: 'text-gray-700' }
-};
-
-// Type badge configuration
-const TYPE_CONFIG = {
-  personal: { label: 'Personal', bgColor: 'bg-purple-100', textColor: 'text-purple-700' },
-  organization: { label: 'Organization', bgColor: 'bg-blue-100', textColor: 'text-blue-700' },
-  platform: { label: 'Platform', bgColor: 'bg-green-100', textColor: 'text-green-700' }
-};
+import { PURPOSE_CONFIG, TYPE_CONFIG } from '@/components/utils/quickSendConstants';
 
 /**
  * QuickSendTemplateCard Component

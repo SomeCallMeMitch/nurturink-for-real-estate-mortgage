@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PURPOSE_OPTIONS } from '@/utils/quickSendConstants';
+import { PURPOSE_OPTIONS } from '@/components/utils/quickSendConstants';
 
 /**
  * TemplatePickerModal Component

@@ -63,9 +63,13 @@ export default function ClientFilterControls({
   onAddClient,
   onImportCSV,
   hasActiveFilters,
-  onClearFilters,
-  sortColumn
+  onClearFilters
 }) {
+  
+  // Helper to clear tag filters
+  const handleClearTags = () => {
+    selectedTags.forEach(tag => onToggleTag(tag));
+  };
   return (
     <Card className="mb-6">
       <CardContent className="pt-3 space-y-2">
@@ -126,7 +130,7 @@ export default function ClientFilterControls({
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={onClearTags}
+                      onClick={handleClearTags}
                       className="text-gray-500 cursor-pointer"
                     >
                       Clear tag filters

@@ -29,7 +29,7 @@ import {
   Check,
   ArrowRight
 } from 'lucide-react';
-import { PURPOSE_CONFIG, PURPOSE_OPTIONS } from '@/utils/quickSendConstants';
+import { PURPOSE_CONFIG, PURPOSE_OPTIONS } from '@/components/utils/quickSendConstants';
 
 /**
  * QuickSendPickerModal Component
