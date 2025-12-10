@@ -67,6 +67,7 @@ export default function EditQuickSendTemplate() {
   const [templates, setTemplates] = useState([]);
   const [noteStyles, setNoteStyles] = useState([]);
   const [cardDesigns, setCardDesigns] = useState([]);
+  const [cardPreviewSettings, setCardPreviewSettings] = useState(null);
   
   // Modal states
   const [templateSelectorOpen, setTemplateSelectorOpen] = useState(false);
@@ -88,16 +89,22 @@ export default function EditQuickSendTemplate() {
       const user = await base44.auth.me();
       setCurrentUser(user);
       
-      // Load available options
-      const [templatesData, stylesData, designsData] = await Promise.all([
+      // Load available options and settings
+      const [templatesData, stylesData, designsData, settingsData] = await Promise.all([
         base44.entities.Template.list(),
         base44.entities.NoteStyleProfile.list(),
-        base44.entities.CardDesign.list()
+        base44.entities.CardDesign.list(),
+        base44.entities.InstanceSettings.list()
       ]);
       
       setTemplates(templatesData);
       setNoteStyles(stylesData);
       setCardDesigns(designsData);
+      
+      // Load card preview settings
+      if (settingsData && settingsData.length > 0) {
+        setCardPreviewSettings(settingsData[0].cardPreviewSettings);
+      }
       
       // Check if editing existing template
       const params = new URLSearchParams(location.search);
@@ -173,6 +180,19 @@ export default function EditQuickSendTemplate() {
           setFormData(prev => ({ ...prev, type: 'platform' }));
         } else if (user.appRole === 'organization_owner' || user.isOrgOwner) {
           setFormData(prev => ({ ...prev, type: 'organization' }));
+        }
+        
+        // Set default template and card design for preview
+        if (templatesData.length > 0) {
+          const defaultTemplate = templatesData[0];
+          setSelectedTemplate(defaultTemplate);
+          setFormData(prev => ({ ...prev, templateId: defaultTemplate.id }));
+        }
+        
+        if (designsData.length > 0) {
+          const defaultDesign = designsData.find(d => d.isDefault) || designsData[0];
+          setSelectedCardDesign(defaultDesign);
+          setFormData(prev => ({ ...prev, cardDesignId: defaultDesign.id }));
         }
       }
       
@@ -529,18 +549,24 @@ export default function EditQuickSendTemplate() {
               <CardTitle>Live Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              {selectedTemplate && selectedCardDesign ? (
+              {selectedTemplate && selectedCardDesign && cardPreviewSettings ? (
                 <CardPreview
                   message={selectedTemplate.content}
                   cardDesign={selectedCardDesign}
                   noteStyleProfile={selectedNoteStyle}
                   includeGreeting={formData.includeGreeting}
                   includeSignature={formData.includeSignature}
+                  cardPreviewSettings={cardPreviewSettings}
                 />
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <Palette className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Select a message and card design to see preview</p>
+                  <p>
+                    {!cardPreviewSettings 
+                      ? 'Loading preview settings...' 
+                      : 'Select a message and card design to see preview'
+                    }
+                  </p>
                 </div>
               )}
             </CardContent>
