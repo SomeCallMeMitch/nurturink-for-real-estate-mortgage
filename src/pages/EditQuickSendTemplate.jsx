@@ -102,8 +102,12 @@ export default function EditQuickSendTemplate() {
       setCardDesigns(designsData);
       
       // Load card preview settings
+      console.log('🔧 EditQuickSendTemplate: InstanceSettings data:', settingsData);
       if (settingsData && settingsData.length > 0) {
+        console.log('🔧 EditQuickSendTemplate: cardPreviewSettings from DB:', settingsData[0].cardPreviewSettings);
         setCardPreviewSettings(settingsData[0].cardPreviewSettings);
+      } else {
+        console.warn('⚠️ EditQuickSendTemplate: No InstanceSettings found in database!');
       }
       
       // Check if editing existing template
@@ -209,6 +213,7 @@ export default function EditQuickSendTemplate() {
   };
 
   const handleSelectTemplate = (template) => {
+    console.log('📝 EditQuickSendTemplate: Selected template:', template.name, template.id);
     setSelectedTemplate(template);
     setFormData(prev => ({ ...prev, templateId: template.id }));
     setTemplateSelectorOpen(false);
@@ -221,6 +226,7 @@ export default function EditQuickSendTemplate() {
   };
 
   const handleSelectCardDesign = (design) => {
+    console.log('🎨 EditQuickSendTemplate: Selected card design:', design.name, design.id);
     setSelectedCardDesign(design);
     setFormData(prev => ({ ...prev, cardDesignId: design.id }));
     setDesignSelectorOpen(false);
@@ -549,26 +555,46 @@ export default function EditQuickSendTemplate() {
               <CardTitle>Live Preview</CardTitle>
             </CardHeader>
             <CardContent>
-              {selectedTemplate && selectedCardDesign && cardPreviewSettings ? (
-                <CardPreview
-                  message={selectedTemplate.content}
-                  cardDesign={selectedCardDesign}
-                  noteStyleProfile={selectedNoteStyle}
-                  includeGreeting={formData.includeGreeting}
-                  includeSignature={formData.includeSignature}
-                  cardPreviewSettings={cardPreviewSettings}
-                />
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Palette className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>
-                    {!cardPreviewSettings 
-                      ? 'Loading preview settings...' 
-                      : 'Select a message and card design to see preview'
-                    }
-                  </p>
-                </div>
-              )}
+              {(() => {
+                console.log('🖼️ EditQuickSendTemplate Preview Render Check:', {
+                  hasTemplate: !!selectedTemplate,
+                  hasDesign: !!selectedCardDesign,
+                  hasSettings: !!cardPreviewSettings,
+                  settingsValue: cardPreviewSettings
+                });
+                
+                if (selectedTemplate && selectedCardDesign && cardPreviewSettings) {
+                  console.log('✅ EditQuickSendTemplate: Rendering CardPreview with:', {
+                    message: selectedTemplate.content?.substring(0, 50) + '...',
+                    design: selectedCardDesign.name,
+                    settings: cardPreviewSettings
+                  });
+                  return (
+                    <CardPreview
+                      message={selectedTemplate.content}
+                      cardDesign={selectedCardDesign}
+                      noteStyleProfile={selectedNoteStyle}
+                      includeGreeting={formData.includeGreeting}
+                      includeSignature={formData.includeSignature}
+                      cardPreviewSettings={cardPreviewSettings}
+                    />
+                  );
+                } else {
+                  return (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Palette className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>
+                        {!cardPreviewSettings 
+                          ? 'Loading preview settings...' 
+                          : !selectedTemplate
+                          ? 'Select a message template'
+                          : 'Select a card design'
+                        }
+                      </p>
+                    </div>
+                  );
+                }
+              })()}
             </CardContent>
           </Card>
         </div>
