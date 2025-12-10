@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import ClientImportModal from "@/components/client/ClientImportModal";
 import ClientCreateModal from "@/components/client/ClientCreateModal";
+import QuickSendPickerModal from "@/components/quicksend/QuickSendPickerModal";
 import {
   Table,
   TableBody,
@@ -89,6 +90,9 @@ export default function FindClients() {
   
   // Add client modal state
   const [showAddClientModal, setShowAddClientModal] = useState(false);
+
+  // Quick Send modal state
+  const [showQuickSendModal, setShowQuickSendModal] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -395,7 +399,7 @@ export default function FindClients() {
   const allSelected = processedClients.length > 0 &&
     processedClients.every(client => selectedClientIds.includes(client.id));
 
-  // Handle continue button
+  // Handle continue button (Custom Message flow)
   const handleContinue = async () => {
     try {
       setInitializing(true);
@@ -412,6 +416,29 @@ export default function FindClients() {
     } catch (err) {
       console.error('Failed to initialize mailing batch:', err);
       setError(err.response?.data?.error || 'Failed to start workflow. Please try again.');
+      setInitializing(false);
+    }
+  };
+
+  // Handle Quick Send template selection
+  const handleQuickSendSelect = async (template) => {
+    try {
+      setInitializing(true);
+      setError(null);
+
+      const response = await base44.functions.invoke('initializeMailingBatch', {
+        clientIds: selectedClientIds,
+        quickSendTemplateId: template.id
+      });
+
+      const { mailingBatchId } = response.data;
+
+      // Navigate to CreateContent with mailingBatchId (Quick Send flow)
+      navigate(createPageUrl(`CreateContent?mailingBatchId=${mailingBatchId}&quickSend=true`));
+
+    } catch (err) {
+      console.error('Failed to initialize Quick Send batch:', err);
+      setError(err.response?.data?.error || 'Failed to start Quick Send. Please try again.');
       setInitializing(false);
     }
   };
@@ -927,7 +954,7 @@ export default function FindClients() {
         availableTagsFromParent={availableTags}
       />
 
-      {/* ADDED: Floating Action Bar - appears when clients are selected */}
+      {/* Floating Action Bar - appears when clients are selected */}
       {selectedClientIds.length > 0 && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <div className="bg-gray-900 text-white rounded-full px-6 py-3 shadow-xl flex items-center gap-6">
@@ -937,23 +964,66 @@ export default function FindClients() {
                 {selectedClientIds.length}
               </div>
               <div className="flex flex-col">
-                <span className="font-semibold">Clients Selected</span>
-                <span className="text-xs text-gray-400">Ready for next step</span>
+                <span className="font-semibold">{selectedClientIds.length} Client{selectedClientIds.length > 1 ? 's' : ''} Selected</span>
+                <span className="text-xs text-gray-400">Choose your sending method</span>
               </div>
             </div>
 
-            {/* Continue Button */}
-            <Button
-              onClick={handleContinue}
-              disabled={initializing}
-              className="bg-white text-gray-900 hover:bg-gray-100 rounded-full px-5"
-            >
-              {initializing ? 'Initializing...' : 'Continue to Content'}
-              {!initializing && <ArrowRight className="w-4 h-4 ml-2" />}
-            </Button>
+            <div className="flex items-center gap-3 border-l border-gray-700 pl-6">
+              {/* Quick Send Button */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={() => setShowQuickSendModal(true)}
+                      disabled={initializing}
+                      className="bg-amber-500 text-white hover:bg-amber-600 rounded-full px-5 gap-2"
+                    >
+                      <Star className="w-4 h-4 fill-current" />
+                      Quick Send
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Use a pre-configured template</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              {/* Custom Message Button */}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      onClick={handleContinue}
+                      disabled={initializing}
+                      className="bg-white text-gray-900 hover:bg-gray-100 rounded-full px-5 gap-2"
+                    >
+                      {initializing ? 'Initializing...' : (
+                        <>
+                          <Mail className="w-4 h-4" />
+                          Custom Message
+                        </>
+                      )}
+                      {!initializing && <ArrowRight className="w-4 h-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Create a custom message from scratch</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Quick Send Picker Modal */}
+      <QuickSendPickerModal
+        open={showQuickSendModal}
+        onOpenChange={setShowQuickSendModal}
+        onSelectTemplate={handleQuickSendSelect}
+        user={user}
+      />
       </div>
       );
       }
