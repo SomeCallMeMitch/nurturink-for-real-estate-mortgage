@@ -38,6 +38,8 @@ import TestEmail from './pages/TestEmail';
 import Welcome from './pages/Welcome';
 import AdminEmailTesting from './pages/AdminEmailTesting';
 import AcceptInvitation from './pages/AcceptInvitation';
+import QuickSendTemplates from './pages/QuickSendTemplates';
+import EditQuickSendTemplate from './pages/EditQuickSendTemplate';
 import __Layout from './Layout.jsx';
 
 
@@ -82,6 +84,8 @@ export const PAGES = {
     "Welcome": Welcome,
     "AdminEmailTesting": AdminEmailTesting,
     "AcceptInvitation": AcceptInvitation,
+    "QuickSendTemplates": QuickSendTemplates,
+    "EditQuickSendTemplate": EditQuickSendTemplate,
 }
 
 export const pagesConfig = {
