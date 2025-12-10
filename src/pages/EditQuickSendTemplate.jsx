@@ -566,8 +566,14 @@ export default function EditQuickSendTemplate() {
                 if (selectedTemplate && selectedCardDesign && cardPreviewSettings) {
                   console.log('✅ EditQuickSendTemplate: Rendering CardPreview with:', {
                     message: selectedTemplate.content?.substring(0, 50) + '...',
+                    messageLength: selectedTemplate.content?.length,
                     design: selectedCardDesign.name,
-                    settings: cardPreviewSettings
+                    designObj: selectedCardDesign,
+                    noteStyle: selectedNoteStyle,
+                    settings: cardPreviewSettings,
+                    settingsKeys: Object.keys(cardPreviewSettings || {}),
+                    includeGreeting: formData.includeGreeting,
+                    includeSignature: formData.includeSignature
                   });
                   return (
                     <CardPreview
