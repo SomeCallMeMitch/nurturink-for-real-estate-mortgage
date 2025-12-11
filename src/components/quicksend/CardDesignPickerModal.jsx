@@ -202,7 +202,7 @@ export default function CardDesignPickerModal({
                     )}
                     
                     {/* Card Image - Front only, back on hover */}
-                    <div className="relative aspect-[3/4] bg-gray-50">
+                    <div className="relative aspect-[11/8] bg-gray-50">
                       <img
                         src={displayImageUrl}
                         alt={design.name}
