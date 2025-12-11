@@ -42,8 +42,8 @@ export default function PhysicalCardDisplay({ selectedCardDesign }) {
             </div>
           </div>
 
-          {/* Card image display */}
-          <div className="relative w-full bg-gray-50 rounded-lg overflow-hidden" style={{ aspectRatio: '5.5/4' }}>
+          {/* Card image display - wider aspect ratio for better proportions */}
+          <div className="relative w-full bg-gray-50 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
             {displayImageUrl ? (
               <img
                 src={displayImageUrl}

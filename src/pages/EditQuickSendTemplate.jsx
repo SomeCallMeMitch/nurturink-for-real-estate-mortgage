@@ -23,6 +23,8 @@ import QuickSendPreviewPanel from '@/components/quicksend/QuickSendPreviewPanel'
 import TemplatePickerModal from '@/components/quicksend/TemplatePickerModal';
 import CardDesignPickerModal from '@/components/quicksend/CardDesignPickerModal';
 import PhysicalCardDisplay from '@/components/quicksend/PhysicalCardDisplay.jsx';
+import CardDesignSelector from '@/components/quicksend/CardDesignSelector.jsx';
+import ReturnAddressSelector from '@/components/quicksend/ReturnAddressSelector.jsx';
 
 // Default form state
 const DEFAULT_FORM_DATA = {
@@ -358,8 +360,8 @@ export default function EditQuickSendTemplate() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-6 max-w-7xl">
-      {/* Header */}
+    <div className="container mx-auto py-8 px-6 max-w-[1600px]">
+      {/* Header with Action Buttons */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
           <Button
@@ -383,9 +385,29 @@ export default function EditQuickSendTemplate() {
             </div>
           </div>
         </div>
+        
+        {/* Action Buttons - Moved from footer */}
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving} className="gap-2 bg-orange-500 hover:bg-orange-600">
+            {saving ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4" />
+                {isNew || isDuplicate ? 'Create' : 'Update'} Template
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Column 1: Template Info & Settings */}
         <div className="space-y-6">
           <QuickSendFormFields
@@ -405,8 +427,18 @@ export default function EditQuickSendTemplate() {
           />
         </div>
 
-        {/* Column 2: Card Design & Physical Card Preview */}
+        {/* Column 2: Card Design, Return Address & Physical Card Preview */}
         <div className="space-y-6">
+          <CardDesignSelector 
+            selectedDesign={selectedCardDesign}
+            onOpenPicker={() => setShowDesignPicker(true)}
+          />
+          
+          <ReturnAddressSelector 
+            returnAddressMode={formData.returnAddressMode}
+            onChange={(value) => updateFormData({ returnAddressMode: value })}
+          />
+          
           <PhysicalCardDisplay 
             selectedCardDesign={selectedCardDesign}
           />
@@ -424,28 +456,6 @@ export default function EditQuickSendTemplate() {
             user={user}
             organization={organization}
           />
-        </div>
-      </div>
-
-      {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t p-4 shadow-lg">
-        <div className="container mx-auto max-w-7xl flex justify-between items-center">
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={saving} className="gap-2 bg-orange-500 hover:bg-orange-600">
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4" />
-                {isNew || isDuplicate ? 'Create' : 'Update'} Template
-              </>
-            )}
-          </Button>
         </div>
       </div>
 

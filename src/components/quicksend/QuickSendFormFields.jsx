@@ -122,52 +122,6 @@ export default function QuickSendFormFields({
           </Select>
         </div>
 
-        {/* Card Design Selector */}
-        <div>
-          <Label>Card Design *</Label>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full justify-between mt-1"
-            onClick={onOpenDesignPicker}
-          >
-            <span className="flex items-center gap-2">
-              {selectedDesign ? (
-                <>
-                  <img 
-                    src={selectedDesign.outsideImageUrl || selectedDesign.imageUrl} 
-                    alt="" 
-                    className="w-8 h-10 object-cover rounded flex-shrink-0"
-                  />
-                  <span className="text-gray-900 truncate">{selectedDesign.name}</span>
-                </>
-              ) : (
-                <span className="text-gray-400">Select a card design...</span>
-              )}
-            </span>
-            <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          </Button>
-        </div>
-
-        {/* Return Address Mode - Button Group */}
-        <div>
-          <Label>Return Address</Label>
-          <div className="flex gap-2 mt-1">
-            {RETURN_ADDRESS_OPTIONS.map(opt => (
-              <Button
-                key={opt.value}
-                type="button"
-                variant={formData.returnAddressMode === opt.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => updateFormData({ returnAddressMode: opt.value })}
-                className="flex-1"
-              >
-                {opt.label}
-              </Button>
-            ))}
-          </div>
-        </div>
-
         {/* Include Greeting / Signature */}
         <div className="flex gap-6">
           <div className="flex items-center space-x-2">

@@ -76,7 +76,7 @@ export default function QuickSendPreviewPanel({
         
         <div className="flex justify-center">
           {canShowPreview ? (
-            <div className="w-full max-w-[400px]">
+            <div className="w-full max-w-[500px]">
               <CardPreview
                 message={selectedTemplate.content || ''}
                 client={SAMPLE_CLIENT}
