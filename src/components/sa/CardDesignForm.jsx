@@ -179,7 +179,7 @@ export default function CardDesignForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[1100px] p-0 gap-0">
+      <DialogContent className="max-w-[1210px] p-0 gap-0">
         {/* Header with Actions */}
         <DialogHeader className="px-6 py-4 border-b flex-row items-center justify-between space-y-0">
           <div>
