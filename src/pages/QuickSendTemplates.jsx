@@ -213,15 +213,15 @@ export default function QuickSendTemplates() {
 
   return (
     <TooltipProvider>
-      <div className="container mx-auto py-8 px-6 max-w-7xl">
+      <div className="container mx-auto py-4 px-6 max-w-7xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-100 rounded-lg">
-              <Zap className="w-8 h-8 text-orange-600" />
+            <div className="p-2 bg-amber-100 rounded-lg">
+              <Zap className="w-6 h-6 text-amber-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Quick Send Templates</h1>
+              <h1 className="text-2xl font-bold text-foreground">Quick Send Templates</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Pre-configured card bundles for fast sending. Skip the wizard and send in seconds.
               </p>
@@ -229,7 +229,7 @@ export default function QuickSendTemplates() {
           </div>
           <Button
             onClick={() => navigate(createPageUrl('EditQuickSendTemplate?id=new'))}
-            className="bg-orange-500 hover:bg-orange-600"
+            className="bg-amber-500 hover:bg-amber-600"
           >
             <Plus className="w-5 h-5 mr-2" />
             New Quick Send Template
@@ -268,7 +268,7 @@ export default function QuickSendTemplates() {
             {filters.viewMode === 'all' && filters.purpose === 'all' && !filters.search && (
               <Button
                 onClick={() => navigate(createPageUrl('EditQuickSendTemplate?id=new'))}
-                className="bg-orange-500 hover:bg-orange-600"
+                className="bg-amber-500 hover:bg-amber-600"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Create Your First Template
