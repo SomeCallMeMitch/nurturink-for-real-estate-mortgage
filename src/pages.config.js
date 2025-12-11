@@ -40,6 +40,10 @@ import AdminEmailTesting from './pages/AdminEmailTesting';
 import AcceptInvitation from './pages/AcceptInvitation';
 import QuickSendTemplates from './pages/QuickSendTemplates';
 import EditQuickSendTemplate from './pages/EditQuickSendTemplate';
+import MobileHome from './pages/MobileHome';
+import MobileClients from './pages/MobileClients';
+import MobileProfile from './pages/MobileProfile';
+import MobileSend from './pages/MobileSend';
 import __Layout from './Layout.jsx';
 
 
@@ -86,6 +90,10 @@ export const PAGES = {
     "AcceptInvitation": AcceptInvitation,
     "QuickSendTemplates": QuickSendTemplates,
     "EditQuickSendTemplate": EditQuickSendTemplate,
+    "MobileHome": MobileHome,
+    "MobileClients": MobileClients,
+    "MobileProfile": MobileProfile,
+    "MobileSend": MobileSend,
 }
 
 export const pagesConfig = {
