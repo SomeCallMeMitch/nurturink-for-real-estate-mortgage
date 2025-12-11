@@ -216,7 +216,7 @@ export default function CardDesignPickerModal({
                         {design.name}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        {isHovered ? 'Inside view' : 'Outside view'}
+                        {isHovered ? 'Back view' : 'Front view'}
                       </p>
                     </div>
                   </div>
