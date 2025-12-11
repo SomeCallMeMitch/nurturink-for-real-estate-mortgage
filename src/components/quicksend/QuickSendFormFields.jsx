@@ -59,7 +59,7 @@ export default function QuickSendFormFields({
 
         {/* Purpose */}
         <div>
-          <Label>Purpose *</Label>
+          <Label>Select Purpose *</Label>
           <Select 
             value={formData.purpose} 
             onValueChange={(value) => updateFormData({ purpose: value })}
@@ -79,7 +79,7 @@ export default function QuickSendFormFields({
 
         {/* Message Template Selector */}
         <div>
-          <Label>Message Template *</Label>
+          <Label>Select Message Template *</Label>
           <Button
             type="button"
             variant="outline"
@@ -103,7 +103,7 @@ export default function QuickSendFormFields({
 
         {/* Writing Style */}
         <div>
-          <Label>Writing Style *</Label>
+          <Label>Select Writing Style *</Label>
           <Select 
             value={formData.noteStyleProfileId} 
             onValueChange={(value) => updateFormData({ noteStyleProfileId: value })}

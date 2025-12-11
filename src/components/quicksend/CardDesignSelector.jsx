@@ -16,7 +16,7 @@ export default function CardDesignSelector({ selectedDesign, onOpenPicker }) {
     <Card>
       <CardContent className="pt-6">
         <div>
-          <Label>Card Design *</Label>
+          <Label>Select Card Design *</Label>
           <Button
             type="button"
             variant="outline"

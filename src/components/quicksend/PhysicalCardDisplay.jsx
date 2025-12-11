@@ -23,7 +23,7 @@ export default function PhysicalCardDisplay({ selectedCardDesign }) {
         <div className="space-y-4">
           {/* Header with toggle buttons */}
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900">Physical Card</h3>
+            <h3 className="font-semibold text-gray-900">Card Design Preview</h3>
             <div className="flex gap-2">
               <Button
                 variant={showFront ? "default" : "outline"}
@@ -42,8 +42,8 @@ export default function PhysicalCardDisplay({ selectedCardDesign }) {
             </div>
           </div>
 
-          {/* Card image display - wider aspect ratio for better proportions */}
-          <div className="relative w-full bg-gray-50 rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+          {/* Card image display - 11:8 aspect ratio matches physical card dimensions (5.5" x 4") */}
+          <div className="relative w-full bg-gray-50 rounded-lg overflow-hidden" style={{ aspectRatio: '11/8' }}>
             {displayImageUrl ? (
               <img
                 src={displayImageUrl}
