@@ -86,7 +86,7 @@ export default function CardDesignPickerModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Select Card Design</DialogTitle>
           <DialogDescription>
@@ -129,7 +129,7 @@ export default function CardDesignPickerModal({
             onClick={() => setActiveTab('all')}
             className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'all'
-                ? 'border-orange-500 text-orange-600'
+                ? 'border-amber-500 text-amber-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -139,7 +139,7 @@ export default function CardDesignPickerModal({
             onClick={() => setActiveTab('favorites')}
             className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
               activeTab === 'favorites'
-                ? 'border-orange-500 text-orange-600'
+                ? 'border-amber-500 text-amber-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
@@ -147,7 +147,7 @@ export default function CardDesignPickerModal({
           </button>
         </div>
         
-        {/* Design Grid - reuses pattern from SelectDesign */}
+        {/* Design Grid - 3 columns, 2 rows visible, scrollable after */}
         <div className="flex-1 overflow-y-auto mt-2">
           {filteredDesigns.length === 0 ? (
             <div className="text-center py-12">
@@ -160,11 +160,12 @@ export default function CardDesignPickerModal({
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-6">
               {filteredDesigns.map(design => {
                 const isSelected = design.id === selectedId;
                 const isFavorite = favoriteIds.includes(design.id);
                 const isHovered = hoveredDesignId === design.id;
+                // Show front (outside) by default, back (inside) on hover
                 const displayImageUrl = isHovered 
                   ? (design.insideImageUrl || design.imageUrl)
                   : (design.outsideImageUrl || design.imageUrl);
@@ -175,16 +176,16 @@ export default function CardDesignPickerModal({
                     onClick={() => handleSelect(design)}
                     onMouseEnter={() => setHoveredDesignId(design.id)}
                     onMouseLeave={() => setHoveredDesignId(null)}
-                    className={`relative cursor-pointer rounded-lg overflow-hidden transition-all ${
+                    className={`relative cursor-pointer rounded-lg overflow-hidden transition-all bg-white ${
                       isSelected
-                        ? 'ring-2 ring-orange-500 ring-offset-2'
-                        : 'hover:shadow-lg'
+                        ? 'ring-2 ring-amber-500 ring-offset-2'
+                        : 'hover:shadow-xl hover:scale-[1.02]'
                     }`}
                   >
                     {/* Selected Indicator */}
                     {isSelected && (
-                      <div className="absolute top-2 left-2 z-10 bg-orange-500 text-white rounded-full p-1">
-                        <Check className="w-4 h-4" />
+                      <div className="absolute top-2 left-2 z-10 bg-amber-500 text-white rounded-full p-1.5">
+                        <Check className="w-5 h-5" />
                       </div>
                     )}
                     
@@ -192,7 +193,7 @@ export default function CardDesignPickerModal({
                     {onToggleFavorite && (
                       <button
                         onClick={(e) => handleToggleFavorite(e, design.id)}
-                        className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 hover:bg-white rounded-full transition-colors"
+                        className="absolute top-2 right-2 z-10 p-1.5 bg-white/90 hover:bg-white rounded-full transition-colors shadow-sm"
                       >
                         <Star 
                           className={`w-4 h-4 ${isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400'}`}
@@ -200,15 +201,17 @@ export default function CardDesignPickerModal({
                       </button>
                     )}
                     
-                    {/* Card Image */}
-                    <img
-                      src={displayImageUrl}
-                      alt={design.name}
-                      className="w-full h-48 object-cover"
-                    />
+                    {/* Card Image - Front only, back on hover */}
+                    <div className="relative aspect-[3/4] bg-gray-50">
+                      <img
+                        src={displayImageUrl}
+                        alt={design.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                     
-                    {/* Card Name */}
-                    <div className="p-3 bg-white">
+                    {/* Card Name and View Status */}
+                    <div className="p-3 border-t border-gray-100">
                       <p className="font-medium text-sm text-gray-900 truncate">
                         {design.name}
                       </p>
