@@ -29,7 +29,7 @@ export default function CardDesignSelector({ selectedDesign, onOpenPicker }) {
                   <img 
                     src={selectedDesign.frontImageUrl || selectedDesign.outsideImageUrl || selectedDesign.imageUrl} 
                     alt="" 
-                    className="w-10 h-12 object-cover rounded flex-shrink-0"
+                    className="w-14 aspect-[11/8] object-cover rounded flex-shrink-0"
                   />
                   <span className="text-gray-900 truncate">{selectedDesign.name}</span>
                 </>
