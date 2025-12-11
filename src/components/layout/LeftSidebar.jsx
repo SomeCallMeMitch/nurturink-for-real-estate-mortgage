@@ -99,7 +99,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
     },
     {
       id: 'quick-send-templates',
-      label: 'Quick Send Templates',
+      label: 'QuickSends',
       icon: Zap,
       path: 'QuickSendTemplates',
       roles: ['sales_rep', 'organization_owner', 'whitelabel_partner', 'super_admin', 'user']
