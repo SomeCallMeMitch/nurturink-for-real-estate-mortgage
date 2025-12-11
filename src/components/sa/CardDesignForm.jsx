@@ -188,7 +188,7 @@ export default function CardDesignForm({
               {editingDesign ? 'Update card design details' : 'Create a new platform-wide card design'}
             </p>
           </div>
-          <div className="flex gap-3 ml-4">
+          <div className="flex gap-3 ml-12">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
