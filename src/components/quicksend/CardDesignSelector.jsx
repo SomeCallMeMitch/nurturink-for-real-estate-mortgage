@@ -27,7 +27,7 @@ export default function CardDesignSelector({ selectedDesign, onOpenPicker }) {
               {selectedDesign ? (
                 <>
                   <img 
-                    src={selectedDesign.outsideImageUrl || selectedDesign.imageUrl} 
+                    src={selectedDesign.frontImageUrl || selectedDesign.outsideImageUrl || selectedDesign.imageUrl} 
                     alt="" 
                     className="w-10 h-12 object-cover rounded flex-shrink-0"
                   />
