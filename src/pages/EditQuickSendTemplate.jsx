@@ -22,7 +22,7 @@ import QuickSendVisibilitySettings from '@/components/quicksend/QuickSendVisibil
 import QuickSendPreviewPanel from '@/components/quicksend/QuickSendPreviewPanel';
 import TemplatePickerModal from '@/components/quicksend/TemplatePickerModal';
 import CardDesignPickerModal from '@/components/quicksend/CardDesignPickerModal';
-import PhysicalCardDisplay from '@/components/quicksend/PhysicalCardDisplay';
+import PhysicalCardDisplay from '@/components/quicksend/PhysicalCardDisplay.jsx';
 
 // Default form state
 const DEFAULT_FORM_DATA = {
