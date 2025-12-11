@@ -1,8 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
-import MobileLayout from '@/components/mobile/MobileLayout';
-import { Search, Send, Loader2, CheckCircle } from 'lucide-react';
+import { Search, Send, Loader2, X, ChevronLeft } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
+function ProgressStep({ step, number, label, isActive, isCompleted }) {
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <div
+        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
+          isCompleted
+            ? 'bg-green-500 text-white'
+            : isActive
+            ? 'bg-[#c87533] text-white'
+            : 'bg-gray-200 text-gray-500'
+        }`}
+      >
+        {isCompleted ? '✓' : number}
+      </div>
+      <span className={`text-xs font-medium text-center leading-tight ${
+        isActive || isCompleted ? 'text-gray-900' : 'text-gray-400'
+      }`}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function FilterPill({ label, active, count, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
+        active 
+          ? 'bg-gray-900 text-white' 
+          : 'bg-gray-100 text-gray-600 active:bg-gray-200'
+      }`}
+    >
+      {label}
+      {count !== undefined && (
+        <span className={`ml-1 ${active ? 'text-gray-300' : 'text-gray-400'}`}>
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
 
 export default function MobileSend() {
   const { toast } = useToast();
@@ -13,7 +61,9 @@ export default function MobileSend() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
-  const [step, setStep] = useState(1); // 1: Select clients, 2: Select template, 3: Confirm
+  const [step, setStep] = useState(1);
+  const [previewTemplate, setPreviewTemplate] = useState(null);
+  const [activeFilter, setActiveFilter] = useState('all');
 
   useEffect(() => {
     loadData();
@@ -23,8 +73,8 @@ export default function MobileSend() {
     try {
       setLoading(true);
       const [clientList, templateList] = await Promise.all([
-        base44.entities.Client.filter({}, '-created_date', 100),
-        base44.entities.QuickSendTemplate.filter({}, '-created_date', 50)
+        base44.entities.Client.filter({}, '-createdAt', 100),
+        base44.entities.QuickSendTemplate.filter({}, '-createdAt', 50)
       ]);
       
       setClients(clientList);
@@ -90,222 +140,292 @@ export default function MobileSend() {
     }
   };
 
-  const filteredClients = clients.filter(client => {
-    if (!searchQuery.trim()) return true;
+  const filteredClients = useMemo(() => {
+    let result = clients;
     
-    const query = searchQuery.toLowerCase();
-    return (
-      client.fullName?.toLowerCase().includes(query) ||
-      client.email?.toLowerCase().includes(query) ||
-      client.city?.toLowerCase().includes(query)
-    );
-  });
+    if (activeFilter === 'selected') {
+      result = result.filter(c => selectedClients.includes(c.id));
+    }
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(c => 
+        c.firstName?.toLowerCase().includes(query) ||
+        c.lastName?.toLowerCase().includes(query) ||
+        c.city?.toLowerCase().includes(query)
+      );
+    }
+    
+    result.sort((a, b) => {
+      const nameA = `${a.firstName || ''} ${a.lastName || ''}`.trim().toLowerCase();
+      const nameB = `${b.firstName || ''} ${b.lastName || ''}`.trim().toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+    
+    return result;
+  }, [clients, searchQuery, activeFilter, selectedClients]);
 
   if (loading) {
     return (
-      <MobileLayout>
-        <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      </MobileLayout>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 text-[#c87533] animate-spin" />
+      </div>
     );
   }
 
   return (
-    <MobileLayout>
-      <div className="p-4">
-        {/* Header */}
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Send Notes</h1>
-          <p className="text-gray-600">Select clients and a template</p>
+    <div className="min-h-screen bg-gray-50 pb-24">
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+        {step > 1 && (
+          <button
+            onClick={() => setStep(step - 1)}
+            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-600" />
+          </button>
+        )}
+        <div className="flex-1">
+          <h1 className="text-lg font-bold text-gray-900">Send Notes</h1>
+          <p className="text-xs text-gray-500">Select clients and a template</p>
         </div>
+      </div>
 
-        {/* Progress Steps */}
-        <div className="flex items-center justify-between mb-6 bg-white rounded-lg shadow p-4">
-          <div className={`flex-1 text-center ${step >= 1 ? 'text-blue-600' : 'text-gray-400'}`}>
-            <div className={`w-8 h-8 rounded-full mx-auto mb-1 flex items-center justify-center ${
-              step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'
-            }`}>
-              {selectedClients.length > 0 ? <CheckCircle className="w-5 h-5" /> : '1'}
-            </div>
-            <span className="text-xs font-medium">Clients</span>
-          </div>
-
-          <div className={`flex-1 text-center ${step >= 2 ? 'text-blue-600' : 'text-gray-400'}`}>
-            <div className={`w-8 h-8 rounded-full mx-auto mb-1 flex items-center justify-center ${
-              step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'
-            }`}>
-              {selectedTemplate ? <CheckCircle className="w-5 h-5" /> : '2'}
-            </div>
-            <span className="text-xs font-medium">Template</span>
-          </div>
-
-          <div className={`flex-1 text-center ${step >= 3 ? 'text-blue-600' : 'text-gray-400'}`}>
-            <div className={`w-8 h-8 rounded-full mx-auto mb-1 flex items-center justify-center ${
-              step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200'
-            }`}>
-              3
-            </div>
-            <span className="text-xs font-medium">Send</span>
-          </div>
+      <div className="bg-white border-b border-gray-200 px-4 py-4">
+        <div className="flex items-center justify-between gap-2">
+          <ProgressStep 
+            step={1}
+            number="1"
+            label="Clients"
+            isActive={step === 1}
+            isCompleted={selectedClients.length > 0}
+          />
+          
+          <div className={`flex-1 h-1 rounded-full ${
+            selectedClients.length > 0 ? 'bg-green-500' : 'bg-gray-200'
+          }`}></div>
+          
+          <ProgressStep 
+            step={2}
+            number="2"
+            label="Template"
+            isActive={step === 2}
+            isCompleted={selectedTemplate !== null}
+          />
+          
+          <div className={`flex-1 h-1 rounded-full ${
+            selectedTemplate && step >= 3 ? 'bg-green-500' : 'bg-gray-200'
+          }`}></div>
+          
+          <ProgressStep 
+            step={3}
+            number="3"
+            label="Send"
+            isActive={step === 3}
+            isCompleted={false}
+          />
         </div>
+      </div>
 
-        {/* Step 1: Select Clients */}
+      <div className="px-4 pt-4 pb-20">
         {step === 1 && (
           <>
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search clients..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full pl-9 pr-8 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533] focus:border-[#c87533]"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5"
+                >
+                  <X className="w-4 h-4 text-gray-400" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex gap-2 mb-3">
+              <FilterPill 
+                label="All" 
+                active={activeFilter === 'all'} 
+                count={clients.length}
+                onClick={() => setActiveFilter('all')} 
+              />
+              <FilterPill 
+                label="Selected" 
+                active={activeFilter === 'selected'} 
+                count={selectedClients.length}
+                onClick={() => setActiveFilter('selected')} 
               />
             </div>
 
-            {selectedClients.length > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-blue-800">
-                  {selectedClients.length} client{selectedClients.length > 1 ? 's' : ''} selected
-                </p>
-              </div>
-            )}
-
-            <div className="space-y-2 mb-4">
-              {filteredClients.map((client) => (
-                <div
-                  key={client.id}
-                  onClick={() => toggleClientSelection(client.id)}
-                  className={`bg-white rounded-lg shadow p-4 cursor-pointer transition-all ${
-                    selectedClients.includes(client.id)
-                      ? 'ring-2 ring-blue-500 bg-blue-50'
-                      : ''
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{client.fullName}</h3>
-                      <p className="text-sm text-gray-600">
-                        {client.city}, {client.state}
-                      </p>
+            <div className="space-y-1.5">
+              {filteredClients.map((client) => {
+                const isSelected = selectedClients.includes(client.id);
+                const displayName = [client.firstName, client.lastName].filter(Boolean).join(' ') || 'Unnamed';
+                const cityState = [client.city, client.state].filter(Boolean).join(', ');
+                
+                return (
+                  <div
+                    key={client.id}
+                    onClick={() => toggleClientSelection(client.id)}
+                    className={`bg-white rounded-lg border p-2.5 cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-[#c87533] bg-orange-50'
+                        : 'border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-gray-900 text-sm truncate">{displayName}</div>
+                        {cityState && (
+                          <div className="text-xs text-gray-500 truncate">{cityState}</div>
+                        )}
+                      </div>
+                      {isSelected && (
+                        <div className="w-5 h-5 rounded-full bg-[#c87533] text-white flex items-center justify-center flex-shrink-0 ml-2">
+                          <span className="text-xs font-bold">✓</span>
+                        </div>
+                      )}
                     </div>
-                    {selectedClients.includes(client.id) && (
-                      <CheckCircle className="w-6 h-6 text-blue-600" />
-                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-
-            <button
-              onClick={() => setStep(2)}
-              disabled={selectedClients.length === 0}
-              className="w-full bg-blue-600 text-white rounded-lg py-3 font-medium disabled:opacity-50"
-            >
-              Continue to Templates
-            </button>
           </>
         )}
 
-        {/* Step 2: Select Template */}
         {step === 2 && (
           <>
-            <div className="space-y-3 mb-4">
-              {templates.map((template) => (
-                <div
-                  key={template.id}
-                  onClick={() => setSelectedTemplate(template)}
-                  className={`bg-white rounded-lg shadow p-4 cursor-pointer transition-all ${
-                    selectedTemplate?.id === template.id
-                      ? 'ring-2 ring-blue-500 bg-blue-50'
-                      : ''
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-semibold text-gray-900">{template.name}</h3>
-                    {selectedTemplate?.id === template.id && (
-                      <CheckCircle className="w-6 h-6 text-blue-600 flex-shrink-0" />
-                    )}
+            <div className="space-y-2">
+              {templates.map((template) => {
+                const isSelected = selectedTemplate?.id === template.id;
+                
+                return (
+                  <div
+                    key={template.id}
+                    onClick={() => setSelectedTemplate(template)}
+                    className={`bg-white rounded-lg border p-3 cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-[#c87533] bg-orange-50'
+                        : 'border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-gray-900 text-sm flex-1">{template.name}</h3>
+                      {isSelected && (
+                        <div className="w-5 h-5 rounded-full bg-[#c87533] text-white flex items-center justify-center flex-shrink-0">
+                          <span className="text-xs font-bold">✓</span>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-600 line-clamp-2 mb-2">
+                      {template.globalMessage || 'No preview available'}
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewTemplate(template);
+                      }}
+                      className="text-xs text-[#c87533] font-medium hover:underline"
+                    >
+                      Preview
+                    </button>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2">
-                    {template.globalMessage || 'No preview available'}
-                  </p>
-                  {template.purpose && (
-                    <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                      {template.purpose}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(1)}
-                className="flex-1 bg-gray-100 text-gray-700 rounded-lg py-3 font-medium"
-              >
-                Back
-              </button>
-              <button
-                onClick={() => setStep(3)}
-                disabled={!selectedTemplate}
-                className="flex-1 bg-blue-600 text-white rounded-lg py-3 font-medium disabled:opacity-50"
-              >
-                Review
-              </button>
+                );
+              })}
             </div>
           </>
         )}
 
-        {/* Step 3: Confirm and Send */}
         {step === 3 && (
           <>
-            <div className="space-y-4 mb-4">
-              <div className="bg-white rounded-lg shadow p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Recipients</h3>
-                <p className="text-gray-600">
-                  {selectedClients.length} client{selectedClients.length > 1 ? 's' : ''} selected
-                </p>
+            <div className="space-y-3">
+              <div className="bg-white rounded-lg border border-gray-200 p-3">
+                <h3 className="font-semibold text-gray-900 text-sm mb-2">Recipients</h3>
+                <div className="space-y-1">
+                  {clients.filter(c => selectedClients.includes(c.id)).map(client => {
+                    const displayName = [client.firstName, client.lastName].filter(Boolean).join(' ');
+                    return (
+                      <div key={client.id} className="text-sm text-gray-600 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#c87533]"></span>
+                        {displayName}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              <div className="bg-white rounded-lg shadow p-4">
-                <h3 className="font-semibold text-gray-900 mb-2">Template</h3>
-                <p className="text-gray-900 font-medium">{selectedTemplate?.name}</p>
-                <p className="text-sm text-gray-600 mt-1 line-clamp-3">
+              <div className="bg-white rounded-lg border border-gray-200 p-3">
+                <h3 className="font-semibold text-gray-900 text-sm mb-2">Template</h3>
+                <p className="text-sm text-gray-900 font-medium mb-1">{selectedTemplate?.name}</p>
+                <p className="text-xs text-gray-600 line-clamp-3">
                   {selectedTemplate?.globalMessage}
                 </p>
               </div>
             </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(2)}
-                className="flex-1 bg-gray-100 text-gray-700 rounded-lg py-3 font-medium"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleSend}
-                disabled={sending}
-                className="flex-1 bg-blue-600 text-white rounded-lg py-3 font-medium flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {sending ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-5 h-5" />
-                    Send Notes
-                  </>
-                )}
-              </button>
-            </div>
           </>
         )}
       </div>
-    </MobileLayout>
+
+      <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-20">
+        {step === 1 && (
+          <button
+            onClick={() => setStep(2)}
+            disabled={selectedClients.length === 0}
+            className="w-full bg-[#c87533] text-white rounded-lg py-3 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#b5682e] active:bg-[#a55a28] transition-colors"
+          >
+            Continue to QuickCard
+          </button>
+        )}
+
+        {step === 2 && (
+          <button
+            onClick={() => setStep(3)}
+            disabled={!selectedTemplate}
+            className="w-full bg-[#c87533] text-white rounded-lg py-3 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#b5682e] active:bg-[#a55a28] transition-colors"
+          >
+            Review and Send
+          </button>
+        )}
+
+        {step === 3 && (
+          <button
+            onClick={handleSend}
+            disabled={sending}
+            className="w-full bg-[#c87533] text-white rounded-lg py-3 font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-[#b5682e] active:bg-[#a55a28] transition-colors"
+          >
+            {sending ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Send className="w-5 h-5" />
+                Send Notes
+              </>
+            )}
+          </button>
+        )}
+      </div>
+
+      <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{previewTemplate?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <p className="text-sm text-gray-800 whitespace-pre-wrap">
+              {previewTemplate?.globalMessage || 'No content available'}
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
