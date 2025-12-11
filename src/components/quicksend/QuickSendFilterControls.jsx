@@ -40,7 +40,7 @@ export default function QuickSendFilterControls({ filters, setFilters }) {
 
   const viewModes = [
     { id: 'all', label: 'All', icon: Grid },
-    { id: 'my', label: 'My Templates', icon: User },
+    { id: 'my', label: 'My QuickSends', icon: User },
     { id: 'org', label: 'Organization', icon: Users },
     { id: 'platform', label: 'Platform', icon: Star }
   ];
@@ -53,7 +53,7 @@ export default function QuickSendFilterControls({ filters, setFilters }) {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
-            placeholder="Search Quick Send Templates..."
+            placeholder="Search QuickSends..."
             value={filters.search}
             onChange={handleSearchChange}
             className="pl-9"

@@ -38,7 +38,7 @@ export default function QuickSendVisibilitySettings({
         
         {/* Template Visibility (Type) */}
         <div>
-          <Label>Template Visibility</Label>
+          <Label>QuickSend Visibility</Label>
           <Select 
             value={formData.type} 
             onValueChange={(value) => updateFormData({ type: value })}
@@ -57,9 +57,9 @@ export default function QuickSendVisibilitySettings({
             </SelectContent>
           </Select>
           <p className="mt-1 text-xs text-gray-500">
-            {formData.type === 'personal' && 'Only you can see and use this template'}
-            {formData.type === 'organization' && 'All members of your organization can use this template'}
-            {formData.type === 'platform' && 'All users across the platform can use this template'}
+            {formData.type === 'personal' && 'Only you can see and use this QuickSend'}
+            {formData.type === 'organization' && 'All members of your organization can use this QuickSend'}
+            {formData.type === 'platform' && 'All users across the platform can use this QuickSend'}
           </p>
         </div>
 
@@ -86,10 +86,10 @@ export default function QuickSendVisibilitySettings({
               onCheckedChange={(checked) => updateFormData({ isActive: checked })}
             />
             <label htmlFor="isActive" className="text-sm font-medium cursor-pointer">
-              Template is active
+              QuickSend is active
             </label>
             <span className="text-xs text-gray-500 ml-2">
-              (Inactive templates are hidden from selection)
+              (Inactive QuickSends are hidden from selection)
             </span>
           </div>
         )}
