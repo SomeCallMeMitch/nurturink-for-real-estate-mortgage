@@ -179,7 +179,7 @@ export default function CardDesignForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[1210px] p-0 gap-0">
+      <DialogContent className="max-w-[1330px] p-0 gap-0">
         {/* Header with Actions */}
         <DialogHeader className="px-6 py-4 border-b flex-row items-center justify-between space-y-0">
           <div>
@@ -188,7 +188,7 @@ export default function CardDesignForm({
               {editingDesign ? 'Update card design details' : 'Create a new platform-wide card design'}
             </p>
           </div>
-          <div className="flex gap-3">
+          <div className="flex gap-3 ml-4">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
