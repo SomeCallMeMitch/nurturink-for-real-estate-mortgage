@@ -165,10 +165,10 @@ export default function CardDesignPickerModal({
                 const isSelected = design.id === selectedId;
                 const isFavorite = favoriteIds.includes(design.id);
                 const isHovered = hoveredDesignId === design.id;
-                // Show front (outside) by default, back (inside) on hover
+                // Show front by default, back on hover (smaller physical card images)
                 const displayImageUrl = isHovered 
-                  ? (design.insideImageUrl || design.imageUrl)
-                  : (design.outsideImageUrl || design.imageUrl);
+                  ? (design.backImageUrl || design.insideImageUrl || design.imageUrl)
+                  : (design.frontImageUrl || design.outsideImageUrl || design.imageUrl);
                 
                 return (
                   <div
