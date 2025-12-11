@@ -360,9 +360,9 @@ export default function EditQuickSendTemplate() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-6 max-w-[1600px]">
+    <div className="container mx-auto py-4 px-6 max-w-[1600px]">
       {/* Header with Action Buttons */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -376,7 +376,7 @@ export default function EditQuickSendTemplate() {
               <Zap className="w-6 h-6 text-orange-600" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
+              <h1 className="text-2xl font-bold text-foreground">
                 {isNew ? (isDuplicate ? 'Duplicate' : 'Create') : 'Edit'} Quick Send Template
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
@@ -391,7 +391,7 @@ export default function EditQuickSendTemplate() {
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving} className="gap-2 bg-orange-500 hover:bg-orange-600">
+          <Button onClick={handleSave} disabled={saving} className="gap-2 bg-amber-500 hover:bg-amber-600">
             {saving ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
