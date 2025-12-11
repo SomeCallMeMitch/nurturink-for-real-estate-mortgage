@@ -22,6 +22,7 @@ import QuickSendVisibilitySettings from '@/components/quicksend/QuickSendVisibil
 import QuickSendPreviewPanel from '@/components/quicksend/QuickSendPreviewPanel';
 import TemplatePickerModal from '@/components/quicksend/TemplatePickerModal';
 import CardDesignPickerModal from '@/components/quicksend/CardDesignPickerModal';
+import PhysicalCardDisplay from '@/components/quicksend/PhysicalCardDisplay';
 
 // Default form state
 const DEFAULT_FORM_DATA = {
@@ -384,8 +385,8 @@ export default function EditQuickSendTemplate() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column - Form */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Column 1: Template Info & Settings */}
         <div className="space-y-6">
           <QuickSendFormFields
             formData={formData}
@@ -404,7 +405,14 @@ export default function EditQuickSendTemplate() {
           />
         </div>
 
-        {/* Right Column - Preview */}
+        {/* Column 2: Card Design & Physical Card Preview */}
+        <div className="space-y-6">
+          <PhysicalCardDisplay 
+            selectedCardDesign={selectedCardDesign}
+          />
+        </div>
+
+        {/* Column 3: Card Inside Preview */}
         <div className="lg:sticky lg:top-8 lg:self-start">
           <QuickSendPreviewPanel
             selectedTemplate={selectedTemplate}
