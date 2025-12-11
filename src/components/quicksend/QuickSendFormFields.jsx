@@ -149,24 +149,23 @@ export default function QuickSendFormFields({
           </Button>
         </div>
 
-        {/* Return Address Mode */}
+        {/* Return Address Mode - Button Group */}
         <div>
           <Label>Return Address</Label>
-          <Select 
-            value={formData.returnAddressMode} 
-            onValueChange={(value) => updateFormData({ returnAddressMode: value })}
-          >
-            <SelectTrigger className="mt-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {RETURN_ADDRESS_OPTIONS.map(opt => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <div className="flex gap-2 mt-1">
+            {RETURN_ADDRESS_OPTIONS.map(opt => (
+              <Button
+                key={opt.value}
+                type="button"
+                variant={formData.returnAddressMode === opt.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => updateFormData({ returnAddressMode: opt.value })}
+                className="flex-1"
+              >
+                {opt.label}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {/* Include Greeting / Signature */}
