@@ -78,7 +78,7 @@ export default function QuickSendTemplateCard({
                       <Pencil className="w-4 h-4 text-indigo-600" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent>Edit template</TooltipContent>
+                  <TooltipContent>Edit QuickSend</TooltipContent>
                 </Tooltip>
               )}
               
@@ -92,7 +92,7 @@ export default function QuickSendTemplateCard({
                     <Copy className="w-4 h-4 text-blue-600" />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>Duplicate template</TooltipContent>
+                <TooltipContent>Duplicate QuickSend</TooltipContent>
               </Tooltip>
               
               {/* Delete */}
@@ -106,7 +106,7 @@ export default function QuickSendTemplateCard({
                       <Trash className="w-4 h-4 text-red-600" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent>Delete template</TooltipContent>
+                  <TooltipContent>Delete QuickSend</TooltipContent>
                 </Tooltip>
               )}
             </div>

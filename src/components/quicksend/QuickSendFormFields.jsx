@@ -47,7 +47,7 @@ export default function QuickSendFormFields({
       <CardContent className="pt-6 space-y-5">
         {/* Name */}
         <div>
-          <Label htmlFor="name">Template Name *</Label>
+          <Label htmlFor="name">QuickSend Name *</Label>
           <Input
             id="name"
             value={formData.name}

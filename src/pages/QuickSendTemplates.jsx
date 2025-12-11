@@ -94,8 +94,8 @@ export default function QuickSendTemplates() {
       }
       
     } catch (err) {
-      console.error('Failed to fetch Quick Send Templates:', err);
-      setError('Could not load Quick Send Templates. Please try again.');
+      console.error('Failed to fetch QuickSends:', err);
+      setError('Could not load QuickSends. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -198,8 +198,8 @@ export default function QuickSendTemplates() {
       await base44.entities.QuickSendTemplate.delete(templateToDelete.id);
       setQuickSendTemplates(prev => prev.filter(t => t.id !== templateToDelete.id));
       toast({
-        title: 'Template deleted',
-        description: 'The Quick Send Template has been permanently deleted.',
+        title: 'QuickSend deleted',
+        description: 'The QuickSend has been permanently deleted.',
         className: 'bg-green-50 border-green-200 text-green-900',
       });
     } catch (err) {
@@ -221,7 +221,7 @@ export default function QuickSendTemplates() {
               <Zap className="w-6 h-6 text-amber-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Quick Send Templates</h1>
+              <h1 className="text-2xl font-bold text-foreground">QuickSends</h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Pre-configured card bundles for fast sending. Skip the wizard and send in seconds.
               </p>
@@ -232,7 +232,7 @@ export default function QuickSendTemplates() {
             className="bg-amber-500 hover:bg-amber-600"
           >
             <Plus className="w-5 h-5 mr-2" />
-            New Quick Send Template
+            New QuickSend
           </Button>
         </div>
 
@@ -259,11 +259,11 @@ export default function QuickSendTemplates() {
         {!isLoading && !error && filteredTemplates.length === 0 && (
           <div className="mt-8 text-center py-12 bg-gray-50 rounded-lg">
             <Zap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Quick Send Templates</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No QuickSends</h3>
             <p className="text-gray-600 mb-6">
               {filters.search || filters.viewMode !== 'all' || filters.purpose !== 'all'
-                ? 'No templates match your filters.'
-                : 'Create your first Quick Send Template to start sending cards faster.'}
+                ? 'No QuickSends match your filters.'
+                : 'Create your first QuickSend to start sending cards faster.'}
             </p>
             {filters.viewMode === 'all' && filters.purpose === 'all' && !filters.search && (
               <Button
@@ -271,7 +271,7 @@ export default function QuickSendTemplates() {
                 className="bg-amber-500 hover:bg-amber-600"
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Create Your First Template
+                Create Your First QuickSend
               </Button>
             )}
           </div>
@@ -281,7 +281,7 @@ export default function QuickSendTemplates() {
         {!isLoading && !error && filteredTemplates.length > 0 && (
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Templates ({filteredTemplates.length})
+              QuickSends ({filteredTemplates.length})
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredTemplates.map((template) => (
@@ -304,7 +304,7 @@ export default function QuickSendTemplates() {
         <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete Quick Send Template?</AlertDialogTitle>
+              <AlertDialogTitle>Delete QuickSend?</AlertDialogTitle>
               <AlertDialogDescription>
                 Are you sure you want to delete "{templateToDelete?.name}"? This action cannot be undone.
               </AlertDialogDescription>

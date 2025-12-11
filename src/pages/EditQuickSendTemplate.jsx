@@ -251,7 +251,7 @@ export default function EditQuickSendTemplate() {
         setFormData(loadedData);
         setInitialFormData(loadedData);
       } else {
-        toast({ title: 'Template not found', variant: 'destructive' });
+        toast({ title: 'QuickSend not found', variant: 'destructive' });
         navigate(createPageUrl('QuickSendTemplates'));
       }
     }
@@ -282,7 +282,7 @@ export default function EditQuickSendTemplate() {
   const handleSave = async () => {
     // Validation
     if (!formData.name.trim()) {
-      toast({ title: 'Name required', description: 'Please enter a template name.', variant: 'destructive' });
+      toast({ title: 'Name required', description: 'Please enter a QuickSend name.', variant: 'destructive' });
       return;
     }
     if (!formData.templateId) {
@@ -321,17 +321,17 @@ export default function EditQuickSendTemplate() {
 
       if (isNew || isDuplicate) {
         await base44.entities.QuickSendTemplate.create(saveData);
-        toast({ title: 'Template created', className: 'bg-green-50 border-green-200 text-green-900' });
+        toast({ title: 'QuickSend created', className: 'bg-green-50 border-green-200 text-green-900' });
       } else {
         await base44.entities.QuickSendTemplate.update(templateId, saveData);
-        toast({ title: 'Template updated', className: 'bg-green-50 border-green-200 text-green-900' });
+        toast({ title: 'QuickSend updated', className: 'bg-green-50 border-green-200 text-green-900' });
       }
 
       navigate(createPageUrl('QuickSendTemplates'));
 
     } catch (err) {
-      console.error('Failed to save template:', err);
-      toast({ title: 'Error', description: 'Failed to save template.', variant: 'destructive' });
+      console.error('Failed to save QuickSend:', err);
+      toast({ title: 'Error', description: 'Failed to save QuickSend.', variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -377,7 +377,7 @@ export default function EditQuickSendTemplate() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">
-                {isNew ? (isDuplicate ? 'Duplicate' : 'Create') : 'Edit'} Quick Send Template
+                {isNew ? (isDuplicate ? 'Duplicate' : 'Create') : 'Edit'} QuickSend
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
                 Bundle message, style, and design into a reusable preset
@@ -393,14 +393,14 @@ export default function EditQuickSendTemplate() {
           </Button>
           <Button onClick={handleSave} disabled={saving} className="gap-2 bg-amber-500 hover:bg-amber-600">
             {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Saving...
-              </>
+            <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Saving...
+            </>
             ) : (
-              <>
-                <Save className="w-4 h-4" />
-                {isNew || isDuplicate ? 'Create' : 'Update'} Template
+            <>
+            <Save className="w-4 h-4" />
+            {isNew || isDuplicate ? 'Create' : 'Update'} QuickSend
               </>
             )}
           </Button>

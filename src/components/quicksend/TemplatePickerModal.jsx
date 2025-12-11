@@ -105,7 +105,7 @@ export default function TemplatePickerModal({
         <DialogHeader>
           <DialogTitle>Select Message Template</DialogTitle>
           <DialogDescription>
-            Choose the message content for this Quick Send Template
+            Choose the message content for this QuickSend
           </DialogDescription>
         </DialogHeader>
         

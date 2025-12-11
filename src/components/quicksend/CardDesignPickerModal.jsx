@@ -90,7 +90,7 @@ export default function CardDesignPickerModal({
         <DialogHeader>
           <DialogTitle>Select Card Design</DialogTitle>
           <DialogDescription>
-            Choose the card artwork for this Quick Send Template
+            Choose the card artwork for this QuickSend
           </DialogDescription>
         </DialogHeader>
         
