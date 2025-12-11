@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import MainLayout from "./components/layout/MainLayout";
+import MobileLayout from "./components/mobile/MobileLayout";
 import { Toaster } from "@/components/ui/toaster";
 import { base44 } from "@/api/base44Client";
 import { useLocation, useNavigate } from "react-router-dom";
 import AcceptInvitation from "./pages/AcceptInvitation";
+import { useIsMobile } from "./components/hooks/use-mobile";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
   const [whitelabelSettings, setWhitelabelSettings] = useState(null);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
@@ -34,9 +37,13 @@ export default function Layout({ children, currentPageName }) {
           return;
         }
 
-        // Redirect logged-in users away from Welcome page to Home
+        // Redirect logged-in users away from Welcome page to Home (mobile or desktop)
         if (authenticated && isWelcomePage) {
-          navigate('/Home', { replace: true });
+          if (isMobile) {
+            navigate('/MobileHome', { replace: true });
+          } else {
+            navigate('/Home', { replace: true });
+          }
         }
 
         // Redirect non-logged-in users to Welcome page if they try to access other pages
@@ -51,7 +58,7 @@ export default function Layout({ children, currentPageName }) {
     };
     
     checkAuthAndRedirect();
-  }, [location.pathname, location.search, navigate]);
+  }, [location.pathname, location.search, navigate, isMobile]);
 
   // Load whitelabel settings for favicon (only after auth is confirmed)
   useEffect(() => {
@@ -136,8 +143,11 @@ export default function Layout({ children, currentPageName }) {
           ) : isWelcomePage ? (
           // Welcome page renders directly without sidebar
           children
+          ) : isMobile ? (
+          // Mobile users get MobileLayout with bottom navigation
+          <MobileLayout>{children}</MobileLayout>
           ) : (
-          // All other pages get MainLayout with sidebar (authenticated users only)
+          // Desktop users get MainLayout with sidebar
           <MainLayout whitelabelSettings={whitelabelSettings}>{children}</MainLayout>
           )}
       
