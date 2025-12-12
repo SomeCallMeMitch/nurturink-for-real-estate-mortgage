@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import MobileLayout from '@/components/mobile/MobileLayout';
-import { Search, Send, Loader2, CheckCircle, X } from 'lucide-react';
+import { Search, Send, Loader2, CheckCircle, X, Star } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function MobileSend() {
@@ -15,6 +15,9 @@ export default function MobileSend() {
   const [sending, setSending] = useState(false);
   const [step, setStep] = useState(1); // 1: Select clients, 2: Select template, 3: Confirm
   const [whitelabelSettings, setWhitelabelSettings] = useState(null);
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [favoriteClientIds, setFavoriteClientIds] = useState([]);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -24,6 +27,10 @@ export default function MobileSend() {
     try {
       setLoading(true);
       
+      // Load current user
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      
       // Load whitelabel settings for logo
       try {
         const settings = await base44.entities.WhitelabelSettings.filter({});
@@ -32,6 +39,14 @@ export default function MobileSend() {
         }
       } catch (wlError) {
         console.error('Failed to load whitelabel settings:', wlError);
+      }
+      
+      // Load favorite clients
+      try {
+        const favorites = await base44.entities.FavoriteClient.filter({ userId: currentUser.id });
+        setFavoriteClientIds(favorites.map(f => f.clientId));
+      } catch (favError) {
+        console.error('Failed to load favorites:', favError);
       }
       
       const [clientList, templateList] = await Promise.all([
@@ -103,6 +118,12 @@ export default function MobileSend() {
   };
 
   const filteredClients = clients.filter(client => {
+    // Filter by favorites if toggle is on
+    if (showFavorites && !favoriteClientIds.includes(client.id)) {
+      return false;
+    }
+    
+    // Filter by search query
     if (!searchQuery.trim()) return true;
     
     const query = searchQuery.toLowerCase();
@@ -125,10 +146,10 @@ export default function MobileSend() {
 
   return (
     <MobileLayout>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header with Logo */}
-        <div className="bg-white border-b border-gray-200 px-4 py-3">
-          <div className="flex items-center gap-3 mb-2">
+      <div className="min-h-screen bg-gray-50 pb-24">
+        {/* Header with Logo - Sticky */}
+        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-1.5">
+          <div className="flex items-center gap-3">
             {whitelabelSettings?.logoUrl ? (
               <img 
                 src={whitelabelSettings.logoUrl} 
@@ -147,40 +168,40 @@ export default function MobileSend() {
           </div>
         </div>
 
-        {/* Progress Steps - Horizontal with lines */}
-        <div className="bg-white border-b border-gray-200 px-4 py-4">
+        {/* Progress Steps - Horizontal with inline labels - Sticky */}
+        <div className="sticky top-[52px] z-40 bg-white border-b border-gray-200 px-4 py-2">
           <div className="flex items-center justify-between max-w-md mx-auto">
             <div className="flex-1 flex items-center">
-              <div className={`flex flex-col items-center ${step >= 1 ? 'text-[#d32f2f]' : 'text-gray-400'}`}>
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm ${
-                  step > 1 ? 'bg-green-500 text-white' : step === 1 ? 'bg-[#d32f2f] text-white' : 'bg-gray-200 text-gray-600'
+              <div className={`flex items-center gap-1.5 ${step >= 1 ? 'text-[#c87533]' : 'text-gray-400'}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-semibold text-xs ${
+                  step > 1 ? 'bg-green-500 text-white' : step === 1 ? 'bg-[#c87533] text-white' : 'bg-gray-200 text-gray-600'
                 }`}>
-                  {step > 1 ? <CheckCircle className="w-5 h-5" /> : '1'}
+                  {step > 1 ? <CheckCircle className="w-4 h-4" /> : '1'}
                 </div>
-                <span className="text-xs font-medium mt-1">Clients</span>
+                <span className="text-xs font-semibold whitespace-nowrap">Clients</span>
               </div>
               <div className={`flex-1 h-0.5 mx-2 ${step > 1 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
             </div>
 
             <div className="flex-1 flex items-center">
-              <div className={`flex flex-col items-center ${step >= 2 ? 'text-[#d32f2f]' : 'text-gray-400'}`}>
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm ${
-                  step > 2 ? 'bg-green-500 text-white' : step === 2 ? 'bg-[#d32f2f] text-white' : 'bg-gray-200 text-gray-600'
+              <div className={`flex items-center gap-1.5 ${step >= 2 ? 'text-[#c87533]' : 'text-gray-400'}`}>
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center font-semibold text-xs ${
+                  step > 2 ? 'bg-green-500 text-white' : step === 2 ? 'bg-[#c87533] text-white' : 'bg-gray-200 text-gray-600'
                 }`}>
-                  {step > 2 ? <CheckCircle className="w-5 h-5" /> : '2'}
+                  {step > 2 ? <CheckCircle className="w-4 h-4" /> : '2'}
                 </div>
-                <span className="text-xs font-medium mt-1">QuickCard</span>
+                <span className="text-xs font-semibold whitespace-nowrap">QuickCard</span>
               </div>
               <div className={`flex-1 h-0.5 mx-2 ${step > 2 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
             </div>
 
-            <div className={`flex flex-col items-center ${step >= 3 ? 'text-[#d32f2f]' : 'text-gray-400'}`}>
-              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm ${
-                step === 3 ? 'bg-[#d32f2f] text-white' : 'bg-gray-200 text-gray-600'
+            <div className={`flex items-center gap-1.5 ${step >= 3 ? 'text-[#c87533]' : 'text-gray-400'}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center font-semibold text-xs ${
+                step === 3 ? 'bg-[#c87533] text-white' : 'bg-gray-200 text-gray-600'
               }`}>
                 3
               </div>
-              <span className="text-xs font-medium mt-1">Send</span>
+              <span className="text-xs font-semibold whitespace-nowrap">Send</span>
             </div>
           </div>
         </div>
@@ -190,23 +211,35 @@ export default function MobileSend() {
         {/* Step 1: Select Clients */}
         {step === 1 && (
           <>
-            <div className="relative mb-2">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search clients..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#d32f2f]"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1"
-                >
-                  <X className="w-4 h-4 text-gray-400" />
-                </button>
-              )}
+            <div className="flex gap-2 mb-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search clients..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1"
+                  >
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setShowFavorites(!showFavorites)}
+                className={`px-3 py-3 rounded-lg border transition-colors ${
+                  showFavorites 
+                    ? 'bg-[#c87533] border-[#c87533] text-white' 
+                    : 'bg-white border-gray-300 text-gray-600'
+                }`}
+              >
+                <Star className={`w-5 h-5 ${showFavorites ? 'fill-current' : ''}`} />
+              </button>
             </div>
 
             {selectedClients.length > 0 && (
@@ -217,7 +250,7 @@ export default function MobileSend() {
               </div>
             )}
 
-            <div className="space-y-1.5 mb-4">
+            <div className="space-y-1.5 mb-24">
               {filteredClients.map((client) => {
                 const cityState = [client.city, client.state].filter(Boolean).join(', ');
                 const isSelected = selectedClients.includes(client.id);
@@ -227,7 +260,7 @@ export default function MobileSend() {
                     key={client.id}
                     onClick={() => toggleClientSelection(client.id)}
                     className={`bg-white rounded-lg shadow p-2.5 cursor-pointer transition-all ${
-                      isSelected ? 'ring-2 ring-[#d32f2f] bg-[#fff8f8]' : ''
+                      isSelected ? 'ring-2 ring-green-500 bg-green-50' : ''
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -245,21 +278,13 @@ export default function MobileSend() {
                         )}
                       </div>
                       {isSelected && (
-                        <CheckCircle className="w-5 h-5 text-[#d32f2f] flex-shrink-0 ml-2" />
+                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 ml-2" />
                       )}
                     </div>
                   </div>
                 );
               })}
             </div>
-
-            <button
-              onClick={() => setStep(2)}
-              disabled={selectedClients.length === 0}
-              className="w-full bg-[#c87533] text-white rounded-xl py-3.5 font-semibold disabled:opacity-50"
-            >
-              Continue to QuickCards
-            </button>
           </>
         )}
 
@@ -275,13 +300,13 @@ export default function MobileSend() {
                     key={template.id}
                     onClick={() => setSelectedTemplate(template)}
                     className={`bg-white rounded-lg shadow p-3 cursor-pointer transition-all ${
-                      isSelected ? 'ring-2 ring-[#d32f2f] bg-[#fff8f8]' : ''
+                      isSelected ? 'ring-2 ring-green-500 bg-green-50' : ''
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <h3 className="font-semibold text-gray-900 text-base flex-1">{template.name}</h3>
                       {isSelected && (
-                        <CheckCircle className="w-5 h-5 text-[#d32f2f] flex-shrink-0" />
+                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                       )}
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-2">
@@ -372,6 +397,18 @@ export default function MobileSend() {
                 )}
               </button>
             </div>
+          </div>
+        )}
+        
+        {/* Sticky Continue Button - Only on Step 1 when clients are selected */}
+        {step === 1 && selectedClients.length > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
+            <button
+              onClick={() => setStep(2)}
+              className="w-full bg-[#c87533] text-white rounded-xl py-3.5 font-semibold"
+            >
+              Continue to QuickCards
+            </button>
           </div>
         )}
       </div>
