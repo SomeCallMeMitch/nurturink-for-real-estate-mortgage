@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import MobileLayout from '@/components/mobile/MobileLayout';
-import { CreditCard, Users, Send, TrendingUp } from 'lucide-react';
+import { createPageUrl } from '@/utils';
+import { CreditCard, Users, Send, TrendingUp, Zap } from 'lucide-react';
+
+/**
+ * MobileHome Component
+ * 
+ * Dashboard view showing:
+ * - RoofScribe logo + welcome message in header
+ * - Credits card (burnt orange) with Personal/Organization breakdown
+ * - 3-column stats grid: Clients, Notes Sent, Credits Used
+ * - Quick Actions: Send a QuickCard, View Clients
+ */
 
 export default function MobileHome() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
   const [stats, setStats] = useState({
@@ -24,23 +36,38 @@ export default function MobileHome() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      if (currentUser.orgId) {
-        const orgs = await base44.entities.Organization.filter({ 
-          id: currentUser.orgId 
-        });
-        if (orgs.length > 0) {
-          setOrganization(orgs[0]);
+      // Load organization if user belongs to one
+      if (currentUser.organizationId) {
+        try {
+          const orgs = await base44.entities.Organization.filter({ 
+            id: currentUser.organizationId 
+          });
+          if (orgs.length > 0) {
+            setOrganization(orgs[0]);
+          }
+        } catch (orgError) {
+          console.error('Failed to load organization:', orgError);
         }
       }
 
-      const clients = await base44.entities.Client.filter({});
-      const notes = await base44.entities.Note.filter({ userId: currentUser.id });
-      
-      setStats({
-        clientCount: clients.length,
-        notesSent: notes.length,
-        creditsUsed: notes.length
-      });
+      // Load stats
+      try {
+        const [clients, notes] = await Promise.all([
+          base44.entities.Client.filter({}),
+          base44.entities.Note.filter({ userId: currentUser.id })
+        ]);
+        
+        // Sum creditCost from notes (each note has creditCost field, default 1.0)
+        const totalCreditsUsed = notes.reduce((sum, note) => sum + (note.creditCost || 1), 0);
+        
+        setStats({
+          clientCount: clients.length,
+          notesSent: notes.length,
+          creditsUsed: totalCreditsUsed
+        });
+      } catch (statsError) {
+        console.error('Failed to load stats:', statsError);
+      }
 
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -49,92 +76,109 @@ export default function MobileHome() {
     }
   };
 
-  const personalCredits = user?.personalPurchasedCredits || 0;
-  const allocatedCredits = user?.companyAllocatedCredits || 0;
-  const totalPersonalCredits = personalCredits + allocatedCredits;
+  // Calculate credits - using personalCredits field
+  const personalCredits = user?.personalCredits || 0;
   const companyPoolCredits = organization?.creditBalance || 0;
+  
+  // Extract first name from full_name
+  const firstName = user?.full_name?.split(' ')[0] || 'User';
 
   if (loading) {
     return (
-      <MobileLayout>
-        <div className="flex items-center justify-center h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        </div>
-      </MobileLayout>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-3 border-gray-200 border-t-[#c87533]"></div>
+      </div>
     );
   }
 
   return (
-    <MobileLayout>
-      <div className="p-4 space-y-4">
-        {/* Welcome Header */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Welcome back, {user?.firstName || user?.full_name?.split(' ')[0] || 'User'}!
-          </h1>
-          <p className="text-gray-600 mt-1">Here's your overview</p>
+    <div className="min-h-screen bg-gray-50 pb-24">
+      {/* Header with Logo and Welcome */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-[#c87533] rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">RS</span>
+            </div>
+            <span className="text-lg font-bold text-[#c87533]">RoofScribe</span>
+          </div>
         </div>
+        <div className="mt-2">
+          <h1 className="text-xl font-bold text-gray-900">
+            Welcome back, {firstName}!
+          </h1>
+          <p className="text-sm text-gray-500">Here's your overview</p>
+        </div>
+      </div>
 
-        {/* Credits Card */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-5 text-white">
+      {/* Credits Card - Burnt Orange */}
+      <div className="px-4 pt-4">
+        <div className="bg-[#c87533] rounded-xl shadow-md p-4 text-white">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">Your Credits</h2>
-            <CreditCard className="w-6 h-6" />
+            <h2 className="text-base font-semibold">Your Credits</h2>
+            <CreditCard className="w-5 h-5 opacity-80" />
           </div>
           <div className="space-y-2">
-            <div className="flex justify-between items-baseline">
-              <span className="text-blue-100">Personal Balance:</span>
-              <span className="text-2xl font-bold">{totalPersonalCredits}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-orange-100 text-sm">Personal Balance:</span>
+              <span className="text-2xl font-bold">{personalCredits}</span>
             </div>
-            {organization && companyPoolCredits > 0 && (
-              <div className="flex justify-between items-baseline pt-2 border-t border-blue-400">
-                <span className="text-blue-100">Company Pool:</span>
-                <span className="text-xl font-semibold">{companyPoolCredits}</span>
+            {organization && (
+              <div className="flex justify-between items-center pt-2 border-t border-orange-400/50">
+                <span className="text-orange-100 text-sm">Company Pool:</span>
+                <span className="text-xl font-bold">{companyPoolCredits}</span>
               </div>
             )}
           </div>
         </div>
+      </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="w-5 h-5 text-green-600" />
-              <span className="text-sm text-gray-600">Clients</span>
-            </div>
+      {/* Stats Grid - 3 Columns */}
+      <div className="px-4 pt-4">
+        <div className="grid grid-cols-3 gap-3">
+          {/* Clients Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 text-center">
+            <Users className="w-5 h-5 text-gray-400 mx-auto mb-2" />
+            <p className="text-xs text-gray-500 mb-1">Clients</p>
             <p className="text-2xl font-bold text-gray-900">{stats.clientCount}</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Send className="w-5 h-5 text-blue-600" />
-              <span className="text-sm text-gray-600">Notes Sent</span>
-            </div>
+          {/* Notes Sent Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 text-center">
+            <Send className="w-5 h-5 text-gray-400 mx-auto mb-2" />
+            <p className="text-xs text-gray-500 mb-1 leading-tight">Notes Sent</p>
             <p className="text-2xl font-bold text-gray-900">{stats.notesSent}</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4 col-span-2">
-            <div className="flex items-center gap-2 mb-2">
-              <TrendingUp className="w-5 h-5 text-orange-600" />
-              <span className="text-sm text-gray-600">Credits Used</span>
-            </div>
+          {/* Credits Used Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 text-center">
+            <TrendingUp className="w-5 h-5 text-[#c87533] mx-auto mb-2" />
+            <p className="text-xs text-gray-500 mb-1">Credits Used</p>
             <p className="text-2xl font-bold text-gray-900">{stats.creditsUsed}</p>
           </div>
         </div>
+      </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-4">
-          <h3 className="font-semibold text-gray-900 mb-3">Quick Actions</h3>
-          <div className="space-y-2">
-            <button className="w-full bg-blue-600 text-white rounded-lg py-3 font-medium">
-              Send a Note
-            </button>
-            <button className="w-full bg-gray-100 text-gray-700 rounded-lg py-3 font-medium">
-              View Clients
-            </button>
-          </div>
+      {/* Quick Actions */}
+      <div className="px-4 pt-6">
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Quick Actions</h3>
+        <div className="space-y-3">
+          <button
+            onClick={() => window.location.href = createPageUrl('MobileSend')}
+            className="w-full bg-[#c87533] text-white rounded-xl py-3.5 font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#b5682e] active:bg-[#a55a28] transition-colors shadow-sm"
+          >
+            <Zap className="w-5 h-5" />
+            Send a QuickCard
+          </button>
+          
+          <button
+            onClick={() => window.location.href = createPageUrl('MobileClients')}
+            className="w-full bg-white text-gray-900 border border-gray-200 rounded-xl py-3.5 font-semibold text-base hover:bg-gray-50 active:bg-gray-100 transition-colors"
+          >
+            View Clients
+          </button>
         </div>
       </div>
-    </MobileLayout>
+    </div>
   );
 }
