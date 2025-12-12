@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import MobileLayout from '@/components/mobile/MobileLayout';
-import { Search, MapPin, Phone, Mail, User } from 'lucide-react';
+import { Search, User } from 'lucide-react';
 
 export default function MobileClients() {
   const [clients, setClients] = useState([]);
@@ -50,13 +50,13 @@ export default function MobileClients() {
     <MobileLayout>
       <div className="p-4">
         {/* Header */}
-        <div className="mb-4">
+        <div className="mb-2">
           <h1 className="text-2xl font-bold text-gray-900">Clients</h1>
           <p className="text-gray-600">Manage your client list</p>
         </div>
 
         {/* Search Bar */}
-        <div className="relative mb-4">
+        <div className="relative mb-2">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
@@ -76,47 +76,25 @@ export default function MobileClients() {
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {filteredClients.map((client) => (
-              <div key={client.id} className="bg-white rounded-lg shadow p-4">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">
-                      {client.fullName}
-                    </h3>
-                    {client.company && (
-                      <p className="text-sm text-gray-500">{client.company}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  {client.email && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Mail className="w-4 h-4 flex-shrink-0" />
-                      <span className="truncate">{client.email}</span>
-                    </div>
-                  )}
-
-                  {client.phone && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Phone className="w-4 h-4 flex-shrink-0" />
-                      <span>{client.phone}</span>
-                    </div>
-                  )}
-
-                  {(client.street || client.city) && (
-                    <div className="flex items-start gap-2 text-sm text-gray-600">
-                      <MapPin className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                      <span className="break-words">
-                        {client.street && <>{client.street}<br /></>}
-                        {client.city && `${client.city}, ${client.state} ${client.zipCode}`}
+          <div className="space-y-1.5">
+            {filteredClients.map((client) => {
+              const cityState = [client.city, client.state].filter(Boolean).join(', ');
+              return (
+                <div key={client.id} className="bg-white rounded-lg shadow p-2.5">
+                  <h3 className="font-semibold text-gray-900 text-base">
+                    {client.fullName}
+                    {cityState && (
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        {cityState}
                       </span>
-                    </div>
+                    )}
+                  </h3>
+                  {client.company && (
+                    <p className="text-sm text-gray-500 mt-0.5">{client.company}</p>
                   )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
