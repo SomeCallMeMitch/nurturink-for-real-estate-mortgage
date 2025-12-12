@@ -163,7 +163,7 @@ export default function MobileSend() {
             )}
             <div>
               <h1 className="text-xl font-bold text-gray-900">Send a QuickCard</h1>
-              <p className="text-sm text-gray-500">Select Recipients and a QuickCard to send</p>
+              <p className="text-sm text-gray-500">Select Recipient & QuickCard</p>
             </div>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default function MobileSend() {
               }`}>
                 3
               </div>
-              <span className="text-xs font-semibold whitespace-nowrap">Send</span>
+              <span className="text-xs font-semibold whitespace-nowrap">Review & Send</span>
             </div>
           </div>
         </div>
@@ -250,7 +250,7 @@ export default function MobileSend() {
               </div>
             )}
 
-            <div className="space-y-1.5 mb-24">
+            <div className="space-y-1.5 mb-32">
               {filteredClients.map((client) => {
                 const cityState = [client.city, client.state].filter(Boolean).join(', ');
                 const isSelected = selectedClients.includes(client.id);
@@ -402,10 +402,10 @@ export default function MobileSend() {
         
         {/* Sticky Continue Button - Only on Step 1 when clients are selected */}
         {step === 1 && selectedClients.length > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
+          <div className="fixed bottom-20 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-2 z-45">
             <button
               onClick={() => setStep(2)}
-              className="w-full bg-[#c87533] text-white rounded-xl py-3.5 font-semibold"
+              className="w-full bg-[#c87533] text-white rounded-xl py-2 font-semibold"
             >
               Continue to QuickCards
             </button>
