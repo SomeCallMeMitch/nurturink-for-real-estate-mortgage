@@ -48,10 +48,10 @@ export default function MobileHome() {
       }
 
       // Load organization if user belongs to one
-      if (currentUser.organizationId) {
+      if (currentUser.orgId) {
         try {
           const orgs = await base44.entities.Organization.filter({ 
-            id: currentUser.organizationId 
+            id: currentUser.orgId 
           });
           if (orgs.length > 0) {
             setOrganization(orgs[0]);
@@ -87,8 +87,8 @@ export default function MobileHome() {
     }
   };
 
-  // Calculate credits - using personalCredits field
-  const personalCredits = user?.personalCredits || 0;
+  // Calculate credits - sum of allocated and purchased credits
+  const personalCredits = (user?.companyAllocatedCredits || 0) + (user?.personalPurchasedCredits || 0);
   const companyPoolCredits = organization?.creditBalance || 0;
   
   // Extract first name from full_name and capitalize first letter
