@@ -320,7 +320,6 @@ export default function MobileSend() {
         {/* Step 3: Confirm and Send */}
         {step === 3 && (
           <div className="p-4">
-          <>
             <div className="space-y-3 mb-4">
               <div className="bg-white rounded-xl border border-gray-200 p-4">
                 <h3 className="font-semibold text-gray-900 mb-3">Recipients ({selectedClients.length})</h3>
