@@ -18,6 +18,9 @@ export default function MobileSend() {
   const [showFavorites, setShowFavorites] = useState(false);
   const [favoriteClientIds, setFavoriteClientIds] = useState([]);
   const [user, setUser] = useState(null);
+  const [cardDesigns, setCardDesigns] = useState([]);
+  const [templateSearchQuery, setTemplateSearchQuery] = useState('');
+  const [showFavoriteTemplates, setShowFavoriteTemplates] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -49,13 +52,15 @@ export default function MobileSend() {
         console.error('Failed to load favorites:', favError);
       }
       
-      const [clientList, templateList] = await Promise.all([
+      const [clientList, templateList, designList] = await Promise.all([
         base44.entities.Client.filter({}, '-created_date', 100),
-        base44.entities.QuickSendTemplate.filter({}, '-created_date', 50)
+        base44.entities.QuickSendTemplate.filter({}, '-created_date', 50),
+        base44.entities.CardDesign.filter({}, '-created_date', 200)
       ]);
       
       setClients(clientList);
       setTemplates(templateList);
+      setCardDesigns(designList);
     } catch (error) {
       console.error('Failed to load data:', error);
       toast({
@@ -178,7 +183,7 @@ export default function MobileSend() {
                 }`}>
                   {step > 1 ? <CheckCircle className="w-4 h-4" /> : '1'}
                 </div>
-                <span className="text-xs font-semibold whitespace-nowrap">Clients</span>
+                <span className={`text-xs font-semibold whitespace-nowrap ${step > 1 ? 'text-green-500' : ''}`}>Clients</span>
               </div>
               <div className={`flex-1 h-0.5 mx-2 ${step > 1 ? 'bg-green-500' : 'bg-gray-200'}`}></div>
             </div>
@@ -292,35 +297,99 @@ export default function MobileSend() {
         {/* Step 2: Select Template */}
         {step === 2 && (
           <>
-            <div className="space-y-1.5 mb-4">
-              {templates.map((template) => {
-                const isSelected = selectedTemplate?.id === template.id;
-                
-                return (
-                  <div
-                    key={template.id}
-                    onClick={() => setSelectedTemplate(template)}
-                    className={`bg-white rounded-lg shadow p-3 cursor-pointer transition-all ${
-                      isSelected ? 'ring-2 ring-green-500 bg-green-50' : ''
-                    }`}
+            {/* Search and Filters */}
+            <div className="flex gap-2 mb-2 mt-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search QuickCards..."
+                  value={templateSearchQuery}
+                  onChange={(e) => setTemplateSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                />
+                {templateSearchQuery && (
+                  <button
+                    onClick={() => setTemplateSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1"
                   >
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <h3 className="font-semibold text-gray-900 text-base flex-1">{template.name}</h3>
-                      {isSelected && (
-                        <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                      )}
+                    <X className="w-4 h-4 text-gray-400" />
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setShowFavoriteTemplates(!showFavoriteTemplates)}
+                className={`px-3 py-3 rounded-lg border transition-colors ${
+                  showFavoriteTemplates 
+                    ? 'bg-[#c87533] border-[#c87533] text-white' 
+                    : 'bg-white border-gray-300 text-gray-600'
+                }`}
+              >
+                <Star className={`w-5 h-5 ${showFavoriteTemplates ? 'fill-current' : ''}`} />
+              </button>
+            </div>
+
+            <div className="space-y-1.5 mb-4">
+              {templates
+                .filter(template => {
+                  // Filter by search query
+                  if (templateSearchQuery.trim()) {
+                    const query = templateSearchQuery.toLowerCase();
+                    return (
+                      template.name?.toLowerCase().includes(query) ||
+                      template.globalMessage?.toLowerCase().includes(query) ||
+                      template.purpose?.toLowerCase().includes(query)
+                    );
+                  }
+                  return true;
+                })
+                .map((template) => {
+                  const isSelected = selectedTemplate?.id === template.id;
+                  
+                  // Find the card design for this template
+                  const cardDesign = cardDesigns.find(d => d.id === template.selectedCardDesignId);
+                  
+                  return (
+                    <div
+                      key={template.id}
+                      onClick={() => setSelectedTemplate(template)}
+                      className={`bg-white rounded-lg shadow p-3 cursor-pointer transition-all ${
+                        isSelected ? 'ring-2 ring-green-500 bg-green-50' : ''
+                      }`}
+                    >
+                      <div className="flex items-start gap-3">
+                        {/* Card Image Preview */}
+                        {cardDesign?.frontImageUrl && (
+                          <div className="w-16 h-20 flex-shrink-0 rounded overflow-hidden border border-gray-200">
+                            <img 
+                              src={cardDesign.frontImageUrl} 
+                              alt="Card preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        
+                        {/* Template Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h3 className="font-semibold text-gray-900 text-base">{template.name}</h3>
+                            {isSelected && (
+                              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {template.globalMessage || 'No preview available'}
+                          </p>
+                          {template.purpose && (
+                            <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                              {template.purpose}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">
-                      {template.globalMessage || 'No preview available'}
-                    </p>
-                    {template.purpose && (
-                      <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                        {template.purpose}
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
 
             <div className="flex gap-3">
