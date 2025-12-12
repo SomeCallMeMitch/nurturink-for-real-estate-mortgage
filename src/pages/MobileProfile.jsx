@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import MobileLayout from '@/components/mobile/MobileLayout';
 import { User, Mail, Phone, MapPin, CreditCard, Building2, Save, Loader2, LogOut } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function MobileProfile() {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
@@ -104,203 +103,209 @@ export default function MobileProfile() {
   const handleLogout = async () => {
     try {
       await base44.auth.logout();
-      navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
   const personalCredits = user?.personalPurchasedCredits || 0;
-  const orgCredits = organization?.creditBalance || 0;
-  const totalCredits = personalCredits + orgCredits;
+  const allocatedCredits = user?.companyAllocatedCredits || 0;
+  const totalPersonalCredits = personalCredits + allocatedCredits;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 text-[#c87533] animate-spin" />
-      </div>
+      <MobileLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <h1 className="text-lg font-bold text-gray-900">My Profile</h1>
-        <p className="text-xs text-gray-500">Manage your account information</p>
-      </div>
+    <MobileLayout>
+      <div className="p-4 space-y-4">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+          <p className="text-gray-600">Manage your account information</p>
+        </div>
 
-      <div className="px-4 space-y-3 pt-4">
-        <div className="bg-[#c87533] rounded-lg shadow-md p-4 text-white">
+        {/* Credits Overview */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-5 text-white">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold">Your Credits</h2>
-            <CreditCard className="w-5 h-5" />
+            <h2 className="text-lg font-semibold">Your Credits</h2>
+            <CreditCard className="w-6 h-6" />
           </div>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-orange-100">Total Balance:</span>
-              <span className="text-2xl font-bold">{totalCredits}</span>
+          <div className="space-y-2">
+            <div className="flex justify-between items-baseline">
+              <span className="text-blue-100">Total Balance:</span>
+              <span className="text-3xl font-bold">{totalPersonalCredits}</span>
             </div>
-            <div className="flex justify-between text-xs text-orange-100 pt-2 border-t border-orange-400">
-              <span>Personal:</span>
-              <span>{personalCredits}</span>
-            </div>
-            {organization && orgCredits > 0 && (
-              <div className="flex justify-between text-xs text-orange-100">
-                <span>Organization:</span>
-                <span>{orgCredits}</span>
+            <div className="pt-2 border-t border-blue-400 space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-blue-100">Allocated:</span>
+                <span className="font-semibold">{allocatedCredits}</span>
               </div>
-            )}
+              <div className="flex justify-between text-sm">
+                <span className="text-blue-100">Purchased:</span>
+                <span className="font-semibold">{personalCredits}</span>
+              </div>
+            </div>
           </div>
         </div>
 
+        {/* Organization Info */}
         {organization && (
-          <div className="bg-white rounded-lg border border-gray-200 p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Building2 className="w-4 h-4 text-gray-600" />
-              <h2 className="font-semibold text-gray-900 text-sm">Organization</h2>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Building2 className="w-5 h-5 text-gray-600" />
+              <h2 className="font-semibold text-gray-900">Organization</h2>
             </div>
-            <p className="text-sm text-gray-700">{organization.name}</p>
+            <p className="text-gray-700">{organization.name}</p>
             {organization.creditBalance > 0 && (
-              <p className="text-xs text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 mt-1">
                 Company Pool: {organization.creditBalance} credits
               </p>
             )}
           </div>
         )}
 
-        <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-3">
-          <h2 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
-            <User className="w-4 h-4" />
+        {/* Profile Form */}
+        <div className="bg-white rounded-lg shadow p-4 space-y-4">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <User className="w-5 h-5" />
             Personal Information
           </h2>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 First Name
               </label>
               <input
                 type="text"
                 value={formData.firstName}
                 onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="John"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Last Name
               </label>
               <input
                 type="text"
                 value={formData.lastName}
                 onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Smith"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Full Name <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name *
               </label>
               <input
                 type="text"
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="John Smith"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                <Phone className="w-3 h-3" />
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                <Phone className="w-4 h-4" />
                 Phone Number
               </label>
               <input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="(555) 123-4567"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1 flex items-center gap-1">
-                <Mail className="w-3 h-3" />
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
+                <Mail className="w-4 h-4" />
                 Email Address
               </label>
               <input
                 type="email"
                 value={user?.email || ''}
                 disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
               />
               <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-3">
-          <h2 className="font-semibold text-gray-900 text-sm flex items-center gap-2">
-            <MapPin className="w-4 h-4" />
+        {/* Address Form */}
+        <div className="bg-white rounded-lg shadow p-4 space-y-4">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <MapPin className="w-5 h-5" />
             Address
           </h2>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Street Address
               </label>
               <input
                 type="text"
                 value={formData.street}
                 onChange={(e) => setFormData({ ...formData, street: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="123 Main Street"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Address Line 2
               </label>
               <input
                 type="text"
                 value={formData.address2}
                 onChange={(e) => setFormData({ ...formData, address2: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Apt 4B"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   City
                 </label>
                 <input
                   type="text"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="San Francisco"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   State
                 </label>
                 <input
                   type="text"
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="CA"
                   maxLength={2}
                 />
@@ -308,25 +313,26 @@ export default function MobileProfile() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 ZIP Code
               </label>
               <input
                 type="text"
                 value={formData.zipCode}
                 onChange={(e) => setFormData({ ...formData, zipCode: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="94102"
               />
             </div>
           </div>
         </div>
 
-        <div className="space-y-2 pb-4">
+        {/* Action Buttons */}
+        <div className="space-y-3 pb-4">
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full bg-[#c87533] text-white rounded-lg py-3 font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-[#b5682e] active:bg-[#a55a28] transition-colors"
+            className="w-full bg-blue-600 text-white rounded-lg py-3 font-medium flex items-center justify-center gap-2 disabled:opacity-50"
           >
             {saving ? (
               <>
@@ -343,13 +349,13 @@ export default function MobileProfile() {
 
           <button
             onClick={handleLogout}
-            className="w-full bg-gray-100 text-gray-700 rounded-lg py-3 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-gray-200 active:bg-gray-300 transition-colors"
+            className="w-full bg-gray-100 text-gray-700 rounded-lg py-3 font-medium flex items-center justify-center gap-2"
           >
             <LogOut className="w-5 h-5" />
             Log Out
           </button>
         </div>
       </div>
-    </div>
+    </MobileLayout>
   );
 }
