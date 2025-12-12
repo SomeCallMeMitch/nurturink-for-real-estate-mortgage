@@ -18,6 +18,7 @@ export default function MobileHome() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
+  const [whitelabelSettings, setWhitelabelSettings] = useState(null);
   const [stats, setStats] = useState({
     clientCount: 0,
     notesSent: 0,
@@ -35,6 +36,16 @@ export default function MobileHome() {
       
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+
+      // Load whitelabel settings
+      try {
+        const settings = await base44.entities.WhitelabelSettings.filter({});
+        if (settings.length > 0) {
+          setWhitelabelSettings(settings[0]);
+        }
+      } catch (wlError) {
+        console.error('Failed to load whitelabel settings:', wlError);
+      }
 
       // Load organization if user belongs to one
       if (currentUser.organizationId) {
@@ -80,8 +91,9 @@ export default function MobileHome() {
   const personalCredits = user?.personalCredits || 0;
   const companyPoolCredits = organization?.creditBalance || 0;
   
-  // Extract first name from full_name
-  const firstName = user?.full_name?.split(' ')[0] || 'User';
+  // Extract first name from full_name and capitalize first letter
+  const rawFirstName = user?.full_name?.split(' ')[0] || 'User';
+  const firstName = rawFirstName.charAt(0).toUpperCase() + rawFirstName.slice(1);
 
   if (loading) {
     return (
@@ -95,19 +107,27 @@ export default function MobileHome() {
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header with Logo and Welcome */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#c87533] rounded-lg flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          {/* Logo */}
+          {whitelabelSettings?.logoUrl ? (
+            <img 
+              src={whitelabelSettings.logoUrl} 
+              alt="RoofScribe"
+              className="h-10 w-auto object-contain"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-[#c87533] rounded-lg flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-sm">RS</span>
             </div>
-            <span className="text-lg font-bold text-[#c87533]">RoofScribe</span>
+          )}
+          
+          {/* Welcome Message */}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-bold text-gray-900 truncate">
+              Welcome back, {firstName}!
+            </h1>
+            <p className="text-xs text-gray-500">Here's your overview</p>
           </div>
-        </div>
-        <div className="mt-2">
-          <h1 className="text-xl font-bold text-gray-900">
-            Welcome back, {firstName}!
-          </h1>
-          <p className="text-sm text-gray-500">Here's your overview</p>
         </div>
       </div>
 
