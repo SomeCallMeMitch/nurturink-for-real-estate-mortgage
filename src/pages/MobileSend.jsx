@@ -147,8 +147,8 @@ export default function MobileSend() {
   return (
     <MobileLayout>
       <div className="min-h-screen bg-gray-50 pb-24">
-        {/* Header with Logo - Sticky */}
-        <div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-1.5">
+        {/* Header with Logo - Fixed */}
+        <div className="fixed top-0 left-0 right-0 z-[60] bg-white border-b border-gray-200 px-4 py-1.5">
           <div className="flex items-center gap-3">
             {whitelabelSettings?.logoUrl ? (
               <img 
@@ -168,8 +168,8 @@ export default function MobileSend() {
           </div>
         </div>
 
-        {/* Progress Steps - Horizontal with inline labels - Sticky */}
-        <div className="sticky top-[52px] z-40 bg-white border-b border-gray-200 px-4 py-2">
+        {/* Progress Steps - Horizontal with inline labels - Fixed */}
+        <div className="fixed top-[60px] left-0 right-0 z-[55] bg-white border-b border-gray-200 px-4 py-2">
           <div className="flex items-center justify-between max-w-md mx-auto">
             <div className="flex-1 flex items-center">
               <div className={`flex items-center gap-1.5 ${step >= 1 ? 'text-[#c87533]' : 'text-gray-400'}`}>
@@ -206,7 +206,8 @@ export default function MobileSend() {
           </div>
         </div>
 
-        <div className="p-4">
+        {/* Main Content - Padding for fixed header + progress */}
+        <div className="pt-[104px] p-4">
 
         {/* Step 1: Select Clients */}
         {step === 1 && (
@@ -402,10 +403,10 @@ export default function MobileSend() {
         
         {/* Sticky Continue Button - Only on Step 1 when clients are selected */}
         {step === 1 && selectedClients.length > 0 && (
-          <div className="fixed bottom-20 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-2 z-45">
+          <div className="fixed bottom-20 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-2 z-[45]">
             <button
               onClick={() => setStep(2)}
-              className="w-full bg-[#c87533] text-white rounded-xl py-2 font-semibold"
+              className="max-w-md mx-auto block bg-[#c87533] text-white rounded-xl py-2 font-semibold"
             >
               Continue to QuickCards
             </button>
