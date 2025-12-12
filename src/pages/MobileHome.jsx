@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { CreditCard, Users, Send, TrendingUp, Zap } from 'lucide-react';
+import MobileLayout from '@/components/mobile/MobileLayout';
+import { CreditCard, Users, Send, TrendingUp } from 'lucide-react';
 
 export default function MobileHome() {
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
   const [stats, setStats] = useState({
@@ -25,9 +24,9 @@ export default function MobileHome() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      if (currentUser.organizationId) {
+      if (currentUser.orgId) {
         const orgs = await base44.entities.Organization.filter({ 
-          id: currentUser.organizationId 
+          id: currentUser.orgId 
         });
         if (orgs.length > 0) {
           setOrganization(orgs[0]);
@@ -50,99 +49,92 @@ export default function MobileHome() {
     }
   };
 
-  const personalCredits = user?.personalCredits || 0;
-  const orgCredits = organization?.creditBalance || 0;
-  const totalCredits = personalCredits + orgCredits;
+  const personalCredits = user?.personalPurchasedCredits || 0;
+  const allocatedCredits = user?.companyAllocatedCredits || 0;
+  const totalPersonalCredits = personalCredits + allocatedCredits;
+  const companyPoolCredits = organization?.creditBalance || 0;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c87533]"></div>
-      </div>
+      <MobileLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </MobileLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Header with Logo and Welcome */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex-1">
-          <h1 className="text-sm font-bold text-[#c87533]">RoofScribe</h1>
+    <MobileLayout>
+      <div className="p-4 space-y-4">
+        {/* Welcome Header */}
+        <div className="bg-white rounded-lg shadow p-4">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Welcome back, {user?.firstName || user?.full_name?.split(' ')[0] || 'User'}!
+          </h1>
+          <p className="text-gray-600 mt-1">Here's your overview</p>
         </div>
-        <div className="flex-1 text-right">
-          <p className="text-xs text-gray-500">Welcome back, {user?.firstName || 'User'}!</p>
-          <p className="text-xs text-gray-400">Here's your overview</p>
-        </div>
-      </div>
 
-      {/* Credits Card */}
-      <div className="px-4 pt-4">
-        <div className="bg-[#c87533] rounded-lg shadow-md p-4 text-white">
+        {/* Credits Card */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-5 text-white">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold">Your Credits</h2>
-            <CreditCard className="w-5 h-5" />
+            <h2 className="text-lg font-semibold">Your Credits</h2>
+            <CreditCard className="w-6 h-6" />
           </div>
-          <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-orange-100">Personal:</span>
-              <span className="font-bold">{personalCredits}</span>
+          <div className="space-y-2">
+            <div className="flex justify-between items-baseline">
+              <span className="text-blue-100">Personal Balance:</span>
+              <span className="text-2xl font-bold">{totalPersonalCredits}</span>
             </div>
-            {organization && orgCredits > 0 && (
-              <div className="flex justify-between">
-                <span className="text-orange-100">Organization:</span>
-                <span className="font-bold">{orgCredits}</span>
+            {organization && companyPoolCredits > 0 && (
+              <div className="flex justify-between items-baseline pt-2 border-t border-blue-400">
+                <span className="text-blue-100">Company Pool:</span>
+                <span className="text-xl font-semibold">{companyPoolCredits}</span>
               </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Stats Grid - 3 Columns */}
-      <div className="px-4 pt-4 space-y-3">
-        <div className="grid grid-cols-3 gap-2">
-          {/* Clients Card */}
-          <div className="bg-white rounded-lg shadow p-3 text-center">
-            <Users className="w-4 h-4 text-gray-400 mx-auto mb-1.5" />
-            <p className="text-xs text-gray-500 mb-1">Clients</p>
-            <p className="text-xl font-bold text-gray-900">{stats.clientCount}</p>
-          </div>
-
-          {/* Notes Sent Card */}
-          <div className="bg-white rounded-lg shadow p-3 text-center">
-            <Send className="w-4 h-4 text-gray-400 mx-auto mb-1.5" />
-            <div className="text-xs text-gray-500 mb-1 leading-tight">
-              <div>Notes</div>
-              <div>Sent</div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-5 h-5 text-green-600" />
+              <span className="text-sm text-gray-600">Clients</span>
             </div>
-            <p className="text-xl font-bold text-gray-900">{stats.notesSent}</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.clientCount}</p>
           </div>
 
-          {/* Credits Used Card */}
-          <div className="bg-white rounded-lg shadow p-3 text-center">
-            <TrendingUp className="w-4 h-4 text-gray-400 mx-auto mb-1.5" />
-            <p className="text-xs text-gray-500 mb-1">Credits</p>
-            <p className="text-xl font-bold text-gray-900">{stats.creditsUsed}</p>
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Send className="w-5 h-5 text-blue-600" />
+              <span className="text-sm text-gray-600">Notes Sent</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{stats.notesSent}</p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-4 col-span-2">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-5 h-5 text-orange-600" />
+              <span className="text-sm text-gray-600">Credits Used</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900">{stats.creditsUsed}</p>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="space-y-2 pt-2">
-          <button
-            onClick={() => navigate('/MobileSend')}
-            className="w-full bg-[#c87533] text-white rounded-lg py-3 font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#b5682e] active:bg-[#a55a28] transition-colors"
-          >
-            <Zap className="w-4 h-4" />
-            Send a QuickCard
-          </button>
-          
-          <button
-            onClick={() => navigate('/MobileClients')}
-            className="w-full bg-white text-gray-900 border border-gray-200 rounded-lg py-3 font-semibold text-sm hover:bg-gray-50 active:bg-gray-100 transition-colors"
-          >
-            View Clients
-          </button>
+        <div className="bg-white rounded-lg shadow p-4">
+          <h3 className="font-semibold text-gray-900 mb-3">Quick Actions</h3>
+          <div className="space-y-2">
+            <button className="w-full bg-blue-600 text-white rounded-lg py-3 font-medium">
+              Send a Note
+            </button>
+            <button className="w-full bg-gray-100 text-gray-700 rounded-lg py-3 font-medium">
+              View Clients
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </MobileLayout>
   );
 }
