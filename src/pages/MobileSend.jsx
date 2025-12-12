@@ -212,7 +212,7 @@ export default function MobileSend() {
         {/* Step 1: Select Clients */}
         {step === 1 && (
           <>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-2 mt-3">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -408,7 +408,7 @@ export default function MobileSend() {
               onClick={() => setStep(2)}
               className="max-w-md mx-auto block bg-[#c87533] text-white rounded-xl py-2 font-semibold"
             >
-              Continue to QuickCards
+              Continue
             </button>
           </div>
         )}
