@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, User, Building2, XCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, User, Building2, XCircle, X } from 'lucide-react';
 
 // Replace placeholders in text with actual values (from CardPreview.jsx)
 const replacePlaceholders = (text, client, user, organization) => {
@@ -85,6 +85,7 @@ const composeCompleteMessage = (greeting, message, signature, client, user, orga
  * @param {Array} allClients - All clients for looking up data
  * @param {Object} user - Current user
  * @param {Object} organization - Current organization
+ * @param {Function} onClose - Close modal callback
  */
 export default function MobileQuickSendPreviewPanel({
   selectedTemplate,
@@ -93,7 +94,8 @@ export default function MobileQuickSendPreviewPanel({
   selectedClients,
   allClients,
   user,
-  organization
+  organization,
+  onClose
 }) {
   const [currentClientIndex, setCurrentClientIndex] = useState(0);
 
@@ -154,30 +156,39 @@ export default function MobileQuickSendPreviewPanel({
   }
 
   return (
-    <div className="space-y-1.5 mt-2">
-      {/* Recipient Navigation */}
-      <div className="flex items-center justify-between bg-gray-50 rounded-lg p-1.5 shadow-md">
-        <button
-          onClick={handlePrevClient}
-          disabled={currentClientIndex === 0}
-          className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        
-        <div className="text-center flex-1 px-2">
-          <p className="font-semibold text-gray-900 text-sm">{currentClient.fullName}</p>
-          <p className="text-xs text-gray-500">
-            {currentClientIndex + 1} of {selectedClients.length}
-          </p>
+    <div className="space-y-1.5 mt-6">
+      {/* Recipient Navigation with Close Button */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between bg-gray-50 rounded-lg p-1.5 shadow-md flex-1" style={{ maxWidth: '90%' }}>
+          <button
+            onClick={handlePrevClient}
+            disabled={currentClientIndex === 0}
+            className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          
+          <div className="text-center flex-1 px-2">
+            <p className="font-semibold text-gray-900 text-sm">{currentClient.fullName}</p>
+            <p className="text-xs text-gray-500">
+              {currentClientIndex + 1} of {selectedClients.length}
+            </p>
+          </div>
+          
+          <button
+            onClick={handleNextClient}
+            disabled={currentClientIndex === selectedClients.length - 1}
+            className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
         
         <button
-          onClick={handleNextClient}
-          disabled={currentClientIndex === selectedClients.length - 1}
-          className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
+          onClick={onClose}
+          className="p-2 rounded-lg hover:bg-gray-100 transition-colors flex-shrink-0"
         >
-          <ChevronRight className="w-5 h-5" />
+          <X className="w-5 h-5 text-gray-500" />
         </button>
       </div>
 
