@@ -156,7 +156,7 @@ export default function MobileQuickSendPreviewPanel({
   }
 
   return (
-    <div className="space-y-1.5 mt-6">
+    <div className="space-y-1.5 mt-2">
       {/* Recipient Navigation with Close Button */}
       <div className="flex items-center gap-2">
         <div className="flex items-center justify-between bg-gray-50 rounded-lg p-1.5 shadow-md flex-1" style={{ maxWidth: '90%' }}>
