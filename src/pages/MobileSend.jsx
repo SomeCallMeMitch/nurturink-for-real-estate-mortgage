@@ -125,18 +125,16 @@ export default function MobileSend() {
     try {
       setSending(true);
 
-      const response = await base44.functions.invoke('initializeMailingBatch', {
+      const response = await base44.functions.invoke('processMobileQuickSend', {
         clientIds: selectedClients,
         quickSendTemplateId: selectedTemplate.id
       });
 
       if (response.data.success) {
-        toast({
-          title: 'Success!',
-          description: `Notes queued for ${selectedClients.length} client${selectedClients.length > 1 ? 's' : ''}`,
-          duration: 3000
-        });
+        // Navigate to success page with details
+        navigate(createPageUrl('MobileSendSuccess') + `?numClients=${response.data.clientCount}&templateName=${encodeURIComponent(response.data.templateName)}`);
 
+        // Reset state for next send
         setSelectedClients([]);
         setSelectedTemplate(null);
         setStep(1);
