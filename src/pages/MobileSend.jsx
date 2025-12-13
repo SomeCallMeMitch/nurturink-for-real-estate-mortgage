@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import QuickSendPreviewPanel from '@/components/quicksend/QuickSendPreviewPanel';
+import MobileQuickSendPreviewPanel from '@/components/quicksend/MobileQuickSendPreviewPanel';
 
 export default function MobileSend() {
   const { toast } = useToast();
@@ -538,7 +538,7 @@ export default function MobileSend() {
             <DialogTitle>Card Preview</DialogTitle>
           </DialogHeader>
           {previewingTemplate && (
-            <QuickSendPreviewPanel
+            <MobileQuickSendPreviewPanel
               selectedTemplate={messageTemplates.find(t => t.id === previewingTemplate.templateId)}
               selectedNoteStyleProfile={noteStyleProfiles.find(p => p.id === previewingTemplate.noteStyleProfileId)}
               selectedCardDesign={cardDesigns.find(d => d.id === previewingTemplate.cardDesignId)}
