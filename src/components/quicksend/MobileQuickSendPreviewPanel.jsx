@@ -1,118 +1,204 @@
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Zap } from 'lucide-react';
-import CardPreview from '@/components/preview/CardPreview';
+import React, { useState, useMemo } from 'react';
+import { ChevronLeft, ChevronRight, User, Building2, XCircle } from 'lucide-react';
 
-// Mobile-specific preview settings - 25% smaller than desktop
-const MOBILE_PREVIEW_SETTINGS = {
-  fontSize: 16.5,
-  lineHeight: 1,
-  baseTextWidth: 270,
-  baseMarginLeft: 30,
-  shortCardMaxLines: 13,
-  maxPreviewLines: 19,
-  topHalfPaddingTop: 258.75,
-  longCardTopPadding: 82.5,
-  gapAboveFold: 10.5,
-  gapBelowFold: 10.5,
-  maxIndent: 12,
-  indentAmplitude: 4.5,
-  indentNoise: 1.5,
-  indentFrequency: 0.35,
-  frameWidth: 309,
-  frameHeight: 450
+// Replace placeholders in text with actual values (from CardPreview.jsx)
+const replacePlaceholders = (text, client, user, organization) => {
+  if (!text) return '';
+  
+  let result = text;
+  
+  // Client placeholders
+  if (client) {
+    result = result.replace(/\{\{client\.firstName\}\}/g, client.firstName || '');
+    result = result.replace(/\{\{client\.lastName\}\}/g, client.lastName || '');
+    result = result.replace(/\{\{client\.fullName\}\}/g, client.fullName || '');
+    result = result.replace(/\{\{client\.initials\}\}/g, 
+      client.firstName && client.lastName 
+        ? `${client.firstName[0]}${client.lastName[0]}` 
+        : ''
+    );
+    result = result.replace(/\{\{client\.email\}\}/g, client.email || '');
+    result = result.replace(/\{\{client\.phone\}\}/g, client.phone || '');
+    result = result.replace(/\{\{client\.street\}\}/g, client.street || '');
+    result = result.replace(/\{\{client\.city\}\}/g, client.city || '');
+    result = result.replace(/\{\{client\.state\}\}/g, client.state || '');
+    result = result.replace(/\{\{client\.zipCode\}\}/g, client.zipCode || '');
+    result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
+  }
+  
+  // User placeholders
+  if (user) {
+    result = result.replace(/\{\{user\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
+    result = result.replace(/\{\{user\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
+    result = result.replace(/\{\{user\.fullName\}\}/g, user.full_name || '');
+    result = result.replace(/\{\{user\.email\}\}/g, user.email || '');
+    result = result.replace(/\{\{user\.phone\}\}/g, user.phone || '');
+    result = result.replace(/\{\{user\.title\}\}/g, user.title || '');
+    result = result.replace(/\{\{user\.companyName\}\}/g, user.companyName || '');
+    result = result.replace(/\{\{user\.street\}\}/g, user.street || '');
+    result = result.replace(/\{\{user\.city\}\}/g, user.city || '');
+    result = result.replace(/\{\{user\.state\}\}/g, user.state || '');
+    result = result.replace(/\{\{user\.zipCode\}\}/g, user.zipCode || '');
+  }
+  
+  // Organization placeholders
+  if (organization) {
+    result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
+    result = result.replace(/\{\{org\.website\}\}/g, organization.website || '');
+    result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
+    result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
+  }
+  
+  return result;
 };
 
-// Sample client for preview
-const SAMPLE_CLIENT = {
-  firstName: "John",
-  lastName: "Smith",
-  fullName: "John Smith",
-  company: "ABC Roofing",
-  email: "john@abcroofing.com",
-  phone: "(555) 123-4567",
-  street: "123 Main Street",
-  city: "Denver",
-  state: "CO",
-  zipCode: "80202"
+// Compose complete message with greeting, body, and signature
+const composeCompleteMessage = (greeting, message, signature, client, user, organization) => {
+  const parts = [];
+  
+  if (greeting) {
+    const processedGreeting = replacePlaceholders(greeting, client, user, organization);
+    if (processedGreeting) parts.push(processedGreeting);
+  }
+  
+  if (message) {
+    const processedMessage = replacePlaceholders(message, client, user, organization);
+    if (processedMessage) parts.push(processedMessage);
+  }
+  
+  if (signature) {
+    const processedSignature = replacePlaceholders(signature, client, user, organization);
+    if (processedSignature) parts.push(processedSignature);
+  }
+  
+  return parts.join('\n\n');
 };
 
 /**
  * MobileQuickSendPreviewPanel Component
- * Mobile-optimized preview panel for Quick Send Template
- * 25% smaller than desktop version for better mobile fit
+ * Shows text-based preview of QuickCard with recipient navigation
  * 
- * @param {Object} selectedTemplate - Selected Template object (for message content)
- * @param {Object} selectedNoteStyleProfile - Selected NoteStyleProfile object
- * @param {Object} selectedCardDesign - Selected CardDesign object
- * @param {Object} instanceSettings - Instance settings (not used, mobile has fixed settings)
- * @param {boolean} includeGreeting - Whether to show greeting
- * @param {boolean} includeSignature - Whether to show signature
+ * @param {Object} selectedTemplate - Template object with content
+ * @param {Object} selectedNoteStyleProfile - Note style with greeting/signature
+ * @param {Object} previewingTemplate - QuickSendTemplate with settings
+ * @param {Array} selectedClients - Array of Client objects for navigation
+ * @param {Array} allClients - All clients for looking up data
  * @param {Object} user - Current user
  * @param {Object} organization - Current organization
  */
 export default function MobileQuickSendPreviewPanel({
   selectedTemplate,
   selectedNoteStyleProfile,
-  selectedCardDesign,
-  instanceSettings,
-  includeGreeting,
-  includeSignature,
+  previewingTemplate,
+  selectedClients,
+  allClients,
   user,
   organization
 }) {
-  const canShowPreview = selectedTemplate && selectedNoteStyleProfile && selectedCardDesign;
+  const [currentClientIndex, setCurrentClientIndex] = useState(0);
 
-  // Use mobile-specific settings (ignore instanceSettings for consistent mobile experience)
-  const previewSettings = MOBILE_PREVIEW_SETTINGS;
+  // Get current client for preview
+  const currentClient = useMemo(() => {
+    if (!selectedClients || selectedClients.length === 0) return null;
+    const clientId = selectedClients[currentClientIndex];
+    return allClients?.find(c => c.id === clientId);
+  }, [selectedClients, currentClientIndex, allClients]);
+
+  // Compose message with placeholders replaced
+  const composedMessage = useMemo(() => {
+    if (!selectedTemplate || !selectedNoteStyleProfile || !currentClient) return '';
+    
+    return composeCompleteMessage(
+      previewingTemplate?.includeGreeting ? (selectedNoteStyleProfile.defaultGreeting || '') : '',
+      selectedTemplate.content || '',
+      previewingTemplate?.includeSignature ? (selectedNoteStyleProfile.signatureText || '') : '',
+      currentClient,
+      user,
+      organization
+    );
+  }, [selectedTemplate, selectedNoteStyleProfile, previewingTemplate, currentClient, user, organization]);
+
+  // Get return address display
+  const getReturnAddressDisplay = () => {
+    const mode = previewingTemplate?.returnAddressMode || 'company';
+    
+    switch (mode) {
+      case 'rep':
+        return { icon: User, label: 'Rep Return Address', color: 'text-blue-600' };
+      case 'company':
+        return { icon: Building2, label: 'Company Return Address', color: 'text-green-600' };
+      case 'none':
+        return { icon: XCircle, label: 'No Return Address', color: 'text-gray-500' };
+      default:
+        return { icon: Building2, label: 'Company Return Address', color: 'text-green-600' };
+    }
+  };
+
+  const returnAddressInfo = getReturnAddressDisplay();
+  const ReturnAddressIcon = returnAddressInfo.icon;
+
+  const handlePrevClient = () => {
+    setCurrentClientIndex(prev => Math.max(0, prev - 1));
+  };
+
+  const handleNextClient = () => {
+    setCurrentClientIndex(prev => Math.min(selectedClients.length - 1, prev + 1));
+  };
+
+  if (!selectedTemplate || !selectedNoteStyleProfile || !currentClient) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <p className="text-sm">Unable to load preview data</p>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <div className="flex justify-center">
-        {canShowPreview ? (
-          <div className="w-full max-w-[309px]">
-            <CardPreview
-              message={selectedTemplate.content || ''}
-              client={SAMPLE_CLIENT}
-              user={user}
-              organization={organization}
-              noteStyleProfile={selectedNoteStyleProfile}
-              selectedDesign={selectedCardDesign}
-              previewSettings={previewSettings}
-              includeGreeting={includeGreeting}
-              includeSignature={includeSignature}
-              randomIndentEnabled={true}
-              showLineCounter={false}
-            />
-          </div>
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            <Zap className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm">
-              {!selectedTemplate 
-                ? 'Select a template to see preview'
-                : !selectedNoteStyleProfile
-                ? 'Select a style to see preview'
-                : 'Select a card design to see preview'}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Preview Info */}
-      {canShowPreview && (
-        <div className="mt-3 p-2 bg-gray-50 rounded-lg">
-          <p className="text-xs text-gray-600">
-            <strong>Preview uses sample data:</strong>
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {SAMPLE_CLIENT.fullName} • {SAMPLE_CLIENT.company}
+    <div className="space-y-4">
+      {/* Recipient Navigation */}
+      <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+        <button
+          onClick={handlePrevClient}
+          disabled={currentClientIndex === 0}
+          className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        
+        <div className="text-center flex-1">
+          <p className="font-semibold text-gray-900">{currentClient.fullName}</p>
+          <p className="text-xs text-gray-500">
+            {currentClientIndex + 1} of {selectedClients.length}
           </p>
         </div>
-      )}
+        
+        <button
+          onClick={handleNextClient}
+          disabled={currentClientIndex === selectedClients.length - 1}
+          className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Message Content */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Message Content</h4>
+        <div className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed">
+          {composedMessage}
+        </div>
+      </div>
+
+      {/* Return Address */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Return Address</h4>
+        <div className="flex items-center gap-2">
+          <ReturnAddressIcon className={`w-5 h-5 ${returnAddressInfo.color}`} />
+          <span className={`text-sm font-medium ${returnAddressInfo.color}`}>
+            {returnAddressInfo.label}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
-
-// Export SAMPLE_CLIENT for potential reuse
-export { SAMPLE_CLIENT };

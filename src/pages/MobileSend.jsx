@@ -535,16 +535,15 @@ export default function MobileSend() {
       <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Card Preview</DialogTitle>
+            <DialogTitle>QuickCard Details</DialogTitle>
           </DialogHeader>
           {previewingTemplate && (
             <MobileQuickSendPreviewPanel
               selectedTemplate={messageTemplates.find(t => t.id === previewingTemplate.templateId)}
               selectedNoteStyleProfile={noteStyleProfiles.find(p => p.id === previewingTemplate.noteStyleProfileId)}
-              selectedCardDesign={cardDesigns.find(d => d.id === previewingTemplate.cardDesignId)}
-              instanceSettings={instanceSettings}
-              includeGreeting={previewingTemplate.includeGreeting}
-              includeSignature={previewingTemplate.includeSignature}
+              previewingTemplate={previewingTemplate}
+              selectedClients={selectedClients}
+              allClients={clients}
               user={user}
               organization={organization}
             />
