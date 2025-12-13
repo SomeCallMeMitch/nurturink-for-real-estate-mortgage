@@ -9,6 +9,7 @@ export default function MobileProfile() {
   const { toast } = useToast();
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
+  const [whitelabelSettings, setWhitelabelSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -36,9 +37,19 @@ export default function MobileProfile() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
 
-      if (currentUser.organizationId) {
+      // Load whitelabel settings
+      try {
+        const settings = await base44.entities.WhitelabelSettings.filter({});
+        if (settings.length > 0) {
+          setWhitelabelSettings(settings[0]);
+        }
+      } catch (wlError) {
+        console.error('Failed to load whitelabel settings:', wlError);
+      }
+
+      if (currentUser.orgId) {
         try {
-          const orgs = await base44.entities.Organization.filter({ id: currentUser.organizationId });
+          const orgs = await base44.entities.Organization.filter({ id: currentUser.orgId });
           if (orgs.length > 0) setOrganization(orgs[0]);
         } catch (e) { console.error('Failed to load org:', e); }
       }
@@ -101,7 +112,8 @@ export default function MobileProfile() {
     } catch (e) { console.error('Logout failed:', e); }
   };
 
-  const personalCredits = user?.personalCredits || user?.personalPurchasedCredits || 0;
+  // Calculate credits - sum of allocated and purchased credits (matching MobileHome)
+  const personalCredits = (user?.companyAllocatedCredits || 0) + (user?.personalPurchasedCredits || 0);
   const companyPoolCredits = organization?.creditBalance || 0;
 
   if (loading) {
@@ -114,28 +126,47 @@ export default function MobileProfile() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-28">
-      <div className="bg-white border-b border-gray-200 px-4 py-3">
-        <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
-        <p className="text-sm text-gray-500">Manage your account</p>
+      {/* Sticky Header with Logo */}
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-white border-b border-gray-200 px-4 py-1.5">
+        <div className="flex items-center gap-3">
+          {whitelabelSettings?.logoUrl ? (
+            <img 
+              src={whitelabelSettings.logoUrl} 
+              alt="Logo"
+              className="h-10 w-auto object-contain"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-[#c87533] rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-sm">RS</span>
+            </div>
+          )}
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
+            <p className="text-sm text-gray-500">Manage your account</p>
+          </div>
+        </div>
       </div>
 
-      <div className="px-4 space-y-4 pt-4">
-        {/* Credits Card */}
-        <div className="bg-[#c87533] rounded-xl shadow-md p-4 text-white">
+      {/* Content with padding for fixed header */}
+      <div className="pt-[60px] px-4 space-y-4">
+        {/* Credits Card - Matching MobileHome */}
+        <div className="bg-[#c87533] rounded-xl shadow-md p-4 text-white mt-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold">Your Credits</h2>
             <CreditCard className="w-5 h-5 opacity-80" />
           </div>
-          <div className="flex justify-between items-center">
-            <span className="text-orange-100">Personal:</span>
-            <span className="text-2xl font-bold">{personalCredits}</span>
-          </div>
-          {organization && companyPoolCredits > 0 && (
-            <div className="flex justify-between items-center pt-2 mt-2 border-t border-orange-400/50">
-              <span className="text-orange-100">Company Pool:</span>
-              <span className="text-xl font-bold">{companyPoolCredits}</span>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-orange-100 text-sm">Personal Balance:</span>
+              <span className="text-2xl font-bold">{personalCredits}</span>
             </div>
-          )}
+            {organization && (
+              <div className="flex justify-between items-center pt-2 border-t border-orange-400/50">
+                <span className="text-orange-100 text-sm">Company Pool:</span>
+                <span className="text-xl font-bold">{companyPoolCredits}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Organization */}
