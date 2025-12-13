@@ -345,10 +345,10 @@ export default function MobileSend() {
                 })
                 .map((template) => {
                   const isSelected = selectedTemplate?.id === template.id;
-                  
-                  // Find the card design for this template
-                  const cardDesign = cardDesigns.find(d => d.id === template.selectedCardDesignId);
-                  
+
+                  // FIXED: Use correct field name from QuickSendTemplate entity schema
+                  const cardDesign = cardDesigns.find(d => d.id === template.cardDesignId);
+
                   return (
                     <div
                       key={template.id}
@@ -368,7 +368,7 @@ export default function MobileSend() {
                             />
                           </div>
                         )}
-                        
+
                         {/* Template Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-2 mb-1">
@@ -377,17 +377,10 @@ export default function MobileSend() {
                               <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                             )}
                           </div>
-                          
-                          {/* TEMP DIAGNOSTIC CODE - REMOVE AFTER DEBUGGING */}
-                          <div className="text-xs bg-yellow-50 border border-yellow-300 rounded p-2 mb-2 space-y-1">
-                            <div><span className="font-bold">selectedCardDesignId:</span> {template.selectedCardDesignId || 'NULL/UNDEFINED'}</div>
-                            <div><span className="font-bold">cardDesign found:</span> {cardDesign ? 'YES' : 'NO'}</div>
-                            <div><span className="font-bold">frontImageUrl:</span> {cardDesign?.frontImageUrl || 'NULL/UNDEFINED'}</div>
-                            <div><span className="font-bold">globalMessage:</span> {template.globalMessage ? `"${template.globalMessage.substring(0, 30)}..."` : 'NULL/UNDEFINED'}</div>
-                          </div>
-                          
+
+                          {/* FIXED: Use previewSnippet field from QuickSendTemplate entity */}
                           <p className="text-sm text-gray-600 line-clamp-2">
-                            {template.globalMessage || 'No preview available'}
+                            {template.previewSnippet || 'No preview available'}
                           </p>
                           {template.purpose && (
                             <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
