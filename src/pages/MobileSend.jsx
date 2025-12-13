@@ -176,30 +176,9 @@ export default function MobileSend() {
         <div className="flex items-center justify-center h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-
-        {/* Preview Modal */}
-        <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
-          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Card Preview</DialogTitle>
-            </DialogHeader>
-            {previewingTemplate && (
-              <QuickSendPreviewPanel
-                selectedTemplate={messageTemplates.find(t => t.id === previewingTemplate.templateId)}
-                selectedNoteStyleProfile={noteStyleProfiles.find(p => p.id === previewingTemplate.noteStyleProfileId)}
-                selectedCardDesign={cardDesigns.find(d => d.id === previewingTemplate.cardDesignId)}
-                instanceSettings={instanceSettings}
-                includeGreeting={previewingTemplate.includeGreeting}
-                includeSignature={previewingTemplate.includeSignature}
-                user={user}
-                organization={organization}
-              />
-            )}
-          </DialogContent>
-        </Dialog>
-        </MobileLayout>
-        );
-        }
+      </MobileLayout>
+    );
+  }
 
   return (
     <MobileLayout>
@@ -404,60 +383,58 @@ export default function MobileSend() {
                   return (
                     <div
                       key={template.id}
-                      className={`bg-white rounded-lg shadow p-3 transition-all ${
+                      onClick={() => setSelectedTemplate(template)}
+                      className={`bg-white rounded-lg shadow p-3 cursor-pointer transition-all ${
                         isSelected ? 'ring-2 ring-green-500 bg-green-50' : ''
                       }`}
                     >
-                      <div 
-                        onClick={() => setSelectedTemplate(template)}
-                        className="cursor-pointer"
-                      >
-                        <div className="flex items-start gap-3">
-                          {/* Card Image Preview */}
-                          {cardDesign?.frontImageUrl && (
-                            <div className="w-16 h-20 flex-shrink-0 rounded overflow-hidden border border-gray-200">
-                              <img 
-                                src={cardDesign.frontImageUrl} 
-                                alt="Card preview"
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          )}
+                      <div className="flex items-start gap-3">
+                        {/* Card Image Preview */}
+                        {cardDesign?.frontImageUrl && (
+                          <div className="w-16 h-20 flex-shrink-0 rounded overflow-hidden border border-gray-200">
+                            <img 
+                              src={cardDesign.frontImageUrl} 
+                              alt="Card preview"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
 
-                          {/* Template Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2 mb-1">
-                              <h3 className="font-semibold text-gray-900 text-base">{template.name}</h3>
-                              {isSelected && (
-                                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
-                              )}
-                            </div>
+                        {/* Template Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <h3 className="font-semibold text-gray-900 text-base">{template.name}</h3>
+                            {isSelected && (
+                              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                            )}
+                          </div>
 
-                            {/* FIXED: Use previewSnippet field from QuickSendTemplate entity */}
-                            <p className="text-sm text-gray-600 line-clamp-2">
-                              {template.previewSnippet || 'No preview available'}
-                            </p>
+                          {/* FIXED: Use previewSnippet field from QuickSendTemplate entity */}
+                          <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                            {template.previewSnippet || 'No preview available'}
+                          </p>
+                          
+                          {/* Purpose and Preview Button - Inline to save vertical space */}
+                          <div className="flex items-center justify-between gap-2">
                             {template.purpose && (
-                              <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                              <span className="inline-block px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                                 {template.purpose}
                               </span>
                             )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPreviewingTemplate(template);
+                                setShowPreviewModal(true);
+                              }}
+                              className="flex items-center gap-1 px-2 py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded text-xs font-medium transition-colors"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              Preview
+                            </button>
                           </div>
                         </div>
                       </div>
-
-                      {/* Preview Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPreviewingTemplate(template);
-                          setShowPreviewModal(true);
-                        }}
-                        className="mt-2 w-full flex items-center justify-center gap-2 py-2 px-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
-                      >
-                        <Eye className="w-4 h-4" />
-                        Preview
-                      </button>
                     </div>
                   );
                 })}
@@ -553,6 +530,27 @@ export default function MobileSend() {
           </div>
         )}
       </div>
+
+      {/* Preview Modal - Moved outside loading condition to always be in DOM */}
+      <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Card Preview</DialogTitle>
+          </DialogHeader>
+          {previewingTemplate && (
+            <QuickSendPreviewPanel
+              selectedTemplate={messageTemplates.find(t => t.id === previewingTemplate.templateId)}
+              selectedNoteStyleProfile={noteStyleProfiles.find(p => p.id === previewingTemplate.noteStyleProfileId)}
+              selectedCardDesign={cardDesigns.find(d => d.id === previewingTemplate.cardDesignId)}
+              instanceSettings={instanceSettings}
+              includeGreeting={previewingTemplate.includeGreeting}
+              includeSignature={previewingTemplate.includeSignature}
+              user={user}
+              organization={organization}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </MobileLayout>
   );
 }
