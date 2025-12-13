@@ -377,6 +377,15 @@ export default function MobileSend() {
                               <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
                             )}
                           </div>
+                          
+                          {/* TEMP DIAGNOSTIC CODE - REMOVE AFTER DEBUGGING */}
+                          <div className="text-xs bg-yellow-50 border border-yellow-300 rounded p-2 mb-2 space-y-1">
+                            <div><span className="font-bold">selectedCardDesignId:</span> {template.selectedCardDesignId || 'NULL/UNDEFINED'}</div>
+                            <div><span className="font-bold">cardDesign found:</span> {cardDesign ? 'YES' : 'NO'}</div>
+                            <div><span className="font-bold">frontImageUrl:</span> {cardDesign?.frontImageUrl || 'NULL/UNDEFINED'}</div>
+                            <div><span className="font-bold">globalMessage:</span> {template.globalMessage ? `"${template.globalMessage.substring(0, 30)}..."` : 'NULL/UNDEFINED'}</div>
+                          </div>
+                          
                           <p className="text-sm text-gray-600 line-clamp-2">
                             {template.globalMessage || 'No preview available'}
                           </p>
