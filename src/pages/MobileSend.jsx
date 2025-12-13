@@ -533,7 +533,7 @@ export default function MobileSend() {
 
       {/* Preview Modal - Moved outside loading condition to always be in DOM */}
       <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto [&>button]:hidden">
           {previewingTemplate && (
             <MobileQuickSendPreviewPanel
               selectedTemplate={messageTemplates.find(t => t.id === previewingTemplate.templateId)}
