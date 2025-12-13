@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import MobileLayout from '@/components/mobile/MobileLayout';
-import { Search, Send, Loader2, CheckCircle, X, Star } from 'lucide-react';
+import { Search, Send, Loader2, CheckCircle, X, Star, Eye } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import QuickSendPreviewPanel from '@/components/quicksend/QuickSendPreviewPanel';
 
 export default function MobileSend() {
   const { toast } = useToast();
@@ -21,6 +28,12 @@ export default function MobileSend() {
   const [cardDesigns, setCardDesigns] = useState([]);
   const [templateSearchQuery, setTemplateSearchQuery] = useState('');
   const [showFavoriteTemplates, setShowFavoriteTemplates] = useState(false);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewingTemplate, setPreviewingTemplate] = useState(null);
+  const [organization, setOrganization] = useState(null);
+  const [instanceSettings, setInstanceSettings] = useState(null);
+  const [messageTemplates, setMessageTemplates] = useState([]);
+  const [noteStyleProfiles, setNoteStyleProfiles] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -29,11 +42,25 @@ export default function MobileSend() {
   const loadData = async () => {
     try {
       setLoading(true);
-      
+
       // Load current user
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      
+
+      // Load organization
+      if (currentUser.orgId) {
+        const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
+        if (orgList?.length > 0) setOrganization(orgList[0]);
+      }
+
+      // Load instance settings
+      try {
+        const settingsResponse = await base44.functions.invoke('getInstanceSettings');
+        setInstanceSettings(settingsResponse.data);
+      } catch (error) {
+        console.error('Failed to load instance settings:', error);
+      }
+
       // Load whitelabel settings for logo
       try {
         const settings = await base44.entities.WhitelabelSettings.filter({});
@@ -43,7 +70,7 @@ export default function MobileSend() {
       } catch (wlError) {
         console.error('Failed to load whitelabel settings:', wlError);
       }
-      
+
       // Load favorite clients
       try {
         const favorites = await base44.entities.FavoriteClient.filter({ userId: currentUser.id });
@@ -51,16 +78,20 @@ export default function MobileSend() {
       } catch (favError) {
         console.error('Failed to load favorites:', favError);
       }
-      
-      const [clientList, templateList, designList] = await Promise.all([
+
+      const [clientList, templateList, designList, messageTemplateList, profileList] = await Promise.all([
         base44.entities.Client.filter({}, '-created_date', 100),
         base44.entities.QuickSendTemplate.filter({}, '-created_date', 50),
-        base44.entities.CardDesign.filter({}, '-created_date', 200)
+        base44.entities.CardDesign.filter({}, '-created_date', 200),
+        base44.entities.Template.filter({}, '-created_date', 100),
+        base44.entities.NoteStyleProfile.filter({ orgId: currentUser.orgId })
       ]);
-      
+
       setClients(clientList);
       setTemplates(templateList);
       setCardDesigns(designList);
+      setMessageTemplates(messageTemplateList);
+      setNoteStyleProfiles(profileList);
     } catch (error) {
       console.error('Failed to load data:', error);
       toast({
@@ -145,9 +176,30 @@ export default function MobileSend() {
         <div className="flex items-center justify-center h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-      </MobileLayout>
-    );
-  }
+
+        {/* Preview Modal */}
+        <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
+          <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Card Preview</DialogTitle>
+            </DialogHeader>
+            {previewingTemplate && (
+              <QuickSendPreviewPanel
+                selectedTemplate={messageTemplates.find(t => t.id === previewingTemplate.templateId)}
+                selectedNoteStyleProfile={noteStyleProfiles.find(p => p.id === previewingTemplate.noteStyleProfileId)}
+                selectedCardDesign={cardDesigns.find(d => d.id === previewingTemplate.cardDesignId)}
+                instanceSettings={instanceSettings}
+                includeGreeting={previewingTemplate.includeGreeting}
+                includeSignature={previewingTemplate.includeSignature}
+                user={user}
+                organization={organization}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+        </MobileLayout>
+        );
+        }
 
   return (
     <MobileLayout>
@@ -352,43 +404,60 @@ export default function MobileSend() {
                   return (
                     <div
                       key={template.id}
-                      onClick={() => setSelectedTemplate(template)}
-                      className={`bg-white rounded-lg shadow p-3 cursor-pointer transition-all ${
+                      className={`bg-white rounded-lg shadow p-3 transition-all ${
                         isSelected ? 'ring-2 ring-green-500 bg-green-50' : ''
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        {/* Card Image Preview */}
-                        {cardDesign?.frontImageUrl && (
-                          <div className="w-16 h-20 flex-shrink-0 rounded overflow-hidden border border-gray-200">
-                            <img 
-                              src={cardDesign.frontImageUrl} 
-                              alt="Card preview"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
+                      <div 
+                        onClick={() => setSelectedTemplate(template)}
+                        className="cursor-pointer"
+                      >
+                        <div className="flex items-start gap-3">
+                          {/* Card Image Preview */}
+                          {cardDesign?.frontImageUrl && (
+                            <div className="w-16 h-20 flex-shrink-0 rounded overflow-hidden border border-gray-200">
+                              <img 
+                                src={cardDesign.frontImageUrl} 
+                                alt="Card preview"
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          )}
 
-                        {/* Template Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className="font-semibold text-gray-900 text-base">{template.name}</h3>
-                            {isSelected && (
-                              <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                          {/* Template Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <h3 className="font-semibold text-gray-900 text-base">{template.name}</h3>
+                              {isSelected && (
+                                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                              )}
+                            </div>
+
+                            {/* FIXED: Use previewSnippet field from QuickSendTemplate entity */}
+                            <p className="text-sm text-gray-600 line-clamp-2">
+                              {template.previewSnippet || 'No preview available'}
+                            </p>
+                            {template.purpose && (
+                              <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                                {template.purpose}
+                              </span>
                             )}
                           </div>
-
-                          {/* FIXED: Use previewSnippet field from QuickSendTemplate entity */}
-                          <p className="text-sm text-gray-600 line-clamp-2">
-                            {template.previewSnippet || 'No preview available'}
-                          </p>
-                          {template.purpose && (
-                            <span className="inline-block mt-2 px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
-                              {template.purpose}
-                            </span>
-                          )}
                         </div>
                       </div>
+
+                      {/* Preview Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPreviewingTemplate(template);
+                          setShowPreviewModal(true);
+                        }}
+                        className="mt-2 w-full flex items-center justify-center gap-2 py-2 px-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-sm font-medium text-gray-700 transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        Preview
+                      </button>
                     </div>
                   );
                 })}
