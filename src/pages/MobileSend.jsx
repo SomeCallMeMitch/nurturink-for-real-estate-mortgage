@@ -534,8 +534,14 @@ export default function MobileSend() {
       {/* Preview Modal - Moved outside loading condition to always be in DOM */}
       <Dialog open={showPreviewModal} onOpenChange={setShowPreviewModal}>
         <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
+          <DialogHeader className="relative">
             <DialogTitle>QuickCard Details</DialogTitle>
+            <button
+              onClick={() => setShowPreviewModal(false)}
+              className="absolute right-0 top-0 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
           </DialogHeader>
           {previewingTemplate && (
             <MobileQuickSendPreviewPanel

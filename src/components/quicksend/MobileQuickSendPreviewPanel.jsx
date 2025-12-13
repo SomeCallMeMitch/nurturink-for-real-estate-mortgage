@@ -154,19 +154,19 @@ export default function MobileQuickSendPreviewPanel({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-1.5 mt-2">
       {/* Recipient Navigation */}
-      <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+      <div className="flex items-center justify-between bg-gray-50 rounded-lg p-1.5 shadow-md">
         <button
           onClick={handlePrevClient}
           disabled={currentClientIndex === 0}
-          className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
         
-        <div className="text-center flex-1">
-          <p className="font-semibold text-gray-900">{currentClient.fullName}</p>
+        <div className="text-center flex-1 px-2">
+          <p className="font-semibold text-gray-900 text-sm">{currentClient.fullName}</p>
           <p className="text-xs text-gray-500">
             {currentClientIndex + 1} of {selectedClients.length}
           </p>
@@ -175,14 +175,14 @@ export default function MobileQuickSendPreviewPanel({
         <button
           onClick={handleNextClient}
           disabled={currentClientIndex === selectedClients.length - 1}
-          className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed"
+          className="p-1 rounded hover:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed flex-shrink-0"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>
 
       {/* Message Content */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-md">
         <h4 className="text-sm font-semibold text-gray-700 mb-2">Message Content</h4>
         <div className="text-gray-900 whitespace-pre-wrap text-sm leading-relaxed">
           {composedMessage}
@@ -190,8 +190,7 @@ export default function MobileQuickSendPreviewPanel({
       </div>
 
       {/* Return Address */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">Return Address</h4>
+      <div className="bg-white rounded-lg border border-gray-200 p-1.5 shadow-md">
         <div className="flex items-center gap-2">
           <ReturnAddressIcon className={`w-5 h-5 ${returnAddressInfo.color}`} />
           <span className={`text-sm font-medium ${returnAddressInfo.color}`}>
