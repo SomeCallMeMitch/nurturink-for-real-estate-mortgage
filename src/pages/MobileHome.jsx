@@ -87,8 +87,9 @@ export default function MobileHome() {
     }
   };
 
-  // Calculate credits - sum of allocated and purchased credits
-  const personalCredits = (user?.companyAllocatedCredits || 0) + (user?.personalPurchasedCredits || 0);
+  // Calculate credits breakdown
+  const companyAllocatedCredits = user?.companyAllocatedCredits || 0;
+  const personalPurchasedCredits = user?.personalPurchasedCredits || 0;
   const companyPoolCredits = organization?.creditBalance || 0;
   
   // Extract first name from full_name and capitalize first letter
@@ -139,11 +140,19 @@ export default function MobileHome() {
             <CreditCard className="w-5 h-5 opacity-80" />
           </div>
           <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="text-orange-100 text-sm">Personal Balance:</span>
-              <span className="text-2xl font-bold">{personalCredits}</span>
-            </div>
-            {organization && (
+            {companyAllocatedCredits > 0 && (
+              <div className="flex justify-between items-center">
+                <span className="text-orange-100 text-sm">Company Allocated:</span>
+                <span className="text-2xl font-bold">{companyAllocatedCredits}</span>
+              </div>
+            )}
+            {personalPurchasedCredits > 0 && (
+              <div className="flex justify-between items-center">
+                <span className="text-orange-100 text-sm">Personal Purchased:</span>
+                <span className="text-2xl font-bold">{personalPurchasedCredits}</span>
+              </div>
+            )}
+            {organization && user?.canAccessCompanyPool && (
               <div className="flex justify-between items-center pt-2 border-t border-orange-400/50">
                 <span className="text-orange-100 text-sm">Company Pool:</span>
                 <span className="text-xl font-bold">{companyPoolCredits}</span>
