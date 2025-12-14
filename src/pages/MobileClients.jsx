@@ -148,7 +148,7 @@ export default function MobileClients() {
         {/* Content - Padding for fixed header */}
         <div className="pt-[60px] p-4">
           {/* Search Bar with Favorite Toggle */}
-          <div className="flex gap-2 mb-2">
+          <div className="flex gap-2 mb-2 mt-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -179,12 +179,12 @@ export default function MobileClients() {
             </button>
           </div>
 
-          {/* Tag Filter */}
+          {/* Tag Filter - Show if tags exist */}
           {availableTags.length > 0 && (
-            <div className="mb-3">
+            <div className="mb-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
               <div className="flex items-center gap-2 mb-2">
                 <Filter className="w-4 h-4 text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">Filter by Tag:</span>
+                <span className="text-sm font-semibold text-gray-700">Filter by Tag:</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {availableTags.map(tag => (
@@ -194,7 +194,7 @@ export default function MobileClients() {
                     className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                       selectedTagIds.includes(tag.id)
                         ? 'bg-[#c87533] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                     }`}
                   >
                     {tag.name}
@@ -224,7 +224,7 @@ export default function MobileClients() {
                     onClick={() => handleClientClick(client.id)}
                     className="bg-white rounded-lg shadow p-2.5 cursor-pointer active:bg-gray-50"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 text-base">
                           {client.fullName}
@@ -238,9 +238,14 @@ export default function MobileClients() {
                           <p className="text-sm text-gray-500 mt-0.5">{client.company}</p>
                         )}
                       </div>
-                      {isFavorite && (
-                        <Star className="w-5 h-5 text-yellow-500 fill-current flex-shrink-0 ml-2" />
-                      )}
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {isFavorite && (
+                          <Star className="w-5 h-5 text-yellow-500 fill-current" />
+                        )}
+                        <div className="text-xs text-[#c87533] font-medium text-center leading-tight px-2 py-1 border border-[#c87533] rounded">
+                          Click to<br/>Edit
+                        </div>
+                      </div>
                     </div>
                   </div>
                 );

@@ -10,11 +10,32 @@ export default function MobileClientAdd() {
   const location = useLocation();
   const { toast } = useToast();
   
+  // Load whitelabel settings for logo
+  const [user, setUser] = React.useState(null);
+  
+  React.useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+        
+        const settings = await base44.entities.WhitelabelSettings.filter({});
+        if (settings.length > 0) {
+          setWhitelabelSettings(settings[0]);
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    };
+    loadSettings();
+  }, []);
+  
   // Check if we should return to MobileSend or MobileClients
   const urlParams = new URLSearchParams(location.search);
   const returnTo = urlParams.get('returnTo') || 'MobileClients';
   
   const [saving, setSaving] = useState(false);
+  const [whitelabelSettings, setWhitelabelSettings] = useState(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -52,12 +73,12 @@ export default function MobileClientAdd() {
     try {
       setSaving(true);
       
-      const user = await base44.auth.me();
+      const currentUser = user || await base44.auth.me();
       
       await base44.entities.Client.create({
         ...formData,
         fullName: `${formData.firstName} ${formData.lastName}`,
-        orgId: user.orgId,
+        orgId: currentUser.orgId,
         source: 'manual'
       });
 
@@ -81,8 +102,8 @@ export default function MobileClientAdd() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
+      {/* Fixed Header with Logo */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-1.5">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(createPageUrl(returnTo))}
@@ -90,6 +111,17 @@ export default function MobileClientAdd() {
           >
             <ArrowLeft className="w-6 h-6 text-gray-700" />
           </button>
+          {whitelabelSettings?.logoUrl ? (
+            <img 
+              src={whitelabelSettings.logoUrl} 
+              alt="Logo"
+              className="h-10 w-auto object-contain"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-[#c87533] rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-sm">RS</span>
+            </div>
+          )}
           <div>
             <h1 className="text-xl font-bold text-gray-900">Add Client</h1>
             <p className="text-sm text-gray-500">Create a new client</p>
@@ -98,7 +130,7 @@ export default function MobileClientAdd() {
       </div>
 
       {/* Form - Padding for fixed header */}
-      <div className="pt-20 px-4">
+      <div className="pt-[76px] px-4">
         <div className="space-y-4">
           {/* Personal Information Section */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">

@@ -15,6 +15,7 @@ export default function MobileClientEdit() {
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [whitelabelSettings, setWhitelabelSettings] = useState(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -38,6 +39,17 @@ export default function MobileClientEdit() {
   const loadClient = async () => {
     try {
       setLoading(true);
+      
+      // Load whitelabel settings for logo
+      try {
+        const settings = await base44.entities.WhitelabelSettings.filter({});
+        if (settings.length > 0) {
+          setWhitelabelSettings(settings[0]);
+        }
+      } catch (wlError) {
+        console.error('Failed to load whitelabel settings:', wlError);
+      }
+      
       const clients = await base44.entities.Client.filter({ id: clientId });
       if (clients.length > 0) {
         const client = clients[0];
@@ -123,8 +135,8 @@ export default function MobileClientEdit() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
+      {/* Fixed Header with Logo */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-1.5">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate(createPageUrl('MobileClients'))}
@@ -132,6 +144,17 @@ export default function MobileClientEdit() {
           >
             <ArrowLeft className="w-6 h-6 text-gray-700" />
           </button>
+          {whitelabelSettings?.logoUrl ? (
+            <img 
+              src={whitelabelSettings.logoUrl} 
+              alt="Logo"
+              className="h-10 w-auto object-contain"
+            />
+          ) : (
+            <div className="w-10 h-10 bg-[#c87533] rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-sm">RS</span>
+            </div>
+          )}
           <div>
             <h1 className="text-xl font-bold text-gray-900">Edit Client</h1>
             <p className="text-sm text-gray-500">Update client information</p>
@@ -140,7 +163,7 @@ export default function MobileClientEdit() {
       </div>
 
       {/* Form - Padding for fixed header */}
-      <div className="pt-20 px-4">
+      <div className="pt-[76px] px-4">
         <div className="space-y-4">
           {/* Personal Information Section */}
           <div className="bg-white rounded-xl border border-gray-200 p-4">

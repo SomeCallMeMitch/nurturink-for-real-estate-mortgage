@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import MobileLayout from '@/components/mobile/MobileLayout';
-import { Search, Send, Loader2, CheckCircle, X, Star, Eye, User } from 'lucide-react';
+import { Search, Send, Loader2, CheckCircle, X, Star, Eye, User, Filter } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
   Dialog,
@@ -309,11 +309,12 @@ export default function MobileSend() {
               </button>
             </div>
 
-            {/* Tag Filter */}
+            {/* Tag Filter - Show if tags exist */}
             {availableTags.length > 0 && (
-              <div className="mb-3">
+              <div className="mb-3 bg-gray-50 rounded-lg p-3 border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm font-medium text-gray-700">Filter by Tag:</span>
+                  <Filter className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-semibold text-gray-700">Filter by Tag:</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {availableTags.map(tag => (
@@ -323,7 +324,7 @@ export default function MobileSend() {
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         selectedTagIds.includes(tag.id)
                           ? 'bg-[#c87533] text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                       }`}
                     >
                       {tag.name}
