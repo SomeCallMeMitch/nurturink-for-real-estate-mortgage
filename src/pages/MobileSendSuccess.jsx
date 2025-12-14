@@ -27,25 +27,28 @@ export default function MobileSendSuccess() {
         </h1>
         
         {/* Details */}
-        <p className="text-base text-gray-700 mb-8">
+        <p className="text-base text-gray-700 mb-6">
           You successfully sent <span className="font-semibold">{numClients}</span> QuickCard{numClients !== '1' ? 's' : ''} using the '{templateName}' template.
         </p>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-3">
+        {/* Question */}
+        <p className="text-lg font-semibold text-gray-900 mb-4">
+          Send more cards?
+        </p>
+
+        {/* Action Buttons - Yes/No */}
+        <div className="flex gap-3 mb-4">
           <button
             onClick={() => navigate(createPageUrl('MobileSend'))}
-            className="w-full bg-[#c87533] text-white rounded-xl py-3.5 font-semibold text-base flex items-center justify-center gap-2 hover:bg-[#b5682e] active:bg-[#a55a28] transition-colors shadow-sm"
+            className="flex-1 bg-[#c87533] text-white rounded-xl py-3.5 font-semibold text-lg hover:bg-[#b5682e] active:bg-[#a55a28] transition-colors shadow-sm"
           >
-            <Send className="w-5 h-5" />
-            Send Another QuickCard
+            Yes
           </button>
           <button
             onClick={() => navigate(createPageUrl('MobileHome'))}
-            className="w-full bg-white text-gray-900 border border-gray-200 rounded-xl py-3.5 font-semibold text-base hover:bg-gray-50 active:bg-gray-100 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 bg-white text-gray-900 border-2 border-gray-300 rounded-xl py-3.5 font-semibold text-lg hover:bg-gray-50 active:bg-gray-100 transition-colors"
           >
-            <Home className="w-5 h-5" />
-            Go to Home
+            No
           </button>
         </div>
       </div>

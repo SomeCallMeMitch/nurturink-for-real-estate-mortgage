@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import MobileLayout from '@/components/mobile/MobileLayout';
 import { Search, Send, Loader2, CheckCircle, X, Star, Eye } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,6 +15,7 @@ import MobileQuickSendPreviewPanel from '@/components/quicksend/MobileQuickSendP
 
 export default function MobileSend() {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [clients, setClients] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [selectedClients, setSelectedClients] = useState([]);
