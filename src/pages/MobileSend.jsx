@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import MobileLayout from '@/components/mobile/MobileLayout';
-import { Search, Send, Loader2, CheckCircle, X, Star, Eye } from 'lucide-react';
+import { Search, Send, Loader2, CheckCircle, X, Star, Eye, User } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import {
   Dialog,
@@ -37,6 +37,8 @@ export default function MobileSend() {
   const [instanceSettings, setInstanceSettings] = useState(null);
   const [messageTemplates, setMessageTemplates] = useState([]);
   const [noteStyleProfiles, setNoteStyleProfiles] = useState([]);
+  const [availableTags, setAvailableTags] = useState([]);
+  const [selectedTagIds, setSelectedTagIds] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -82,12 +84,13 @@ export default function MobileSend() {
         console.error('Failed to load favorites:', favError);
       }
 
-      const [clientList, templateList, designList, messageTemplateList, profileList] = await Promise.all([
+      const [clientList, templateList, designList, messageTemplateList, profileList, tagsList] = await Promise.all([
         base44.entities.Client.filter({}, '-created_date', 100),
         base44.entities.QuickSendTemplate.filter({}, '-created_date', 50),
         base44.entities.CardDesign.filter({}, '-created_date', 200),
         base44.entities.Template.filter({}, '-created_date', 100),
-        base44.entities.NoteStyleProfile.filter({ orgId: currentUser.orgId })
+        base44.entities.NoteStyleProfile.filter({ orgId: currentUser.orgId }),
+        base44.entities.Tag.filter({})
       ]);
 
       setClients(clientList);
@@ -95,6 +98,16 @@ export default function MobileSend() {
       setCardDesigns(designList);
       setMessageTemplates(messageTemplateList);
       setNoteStyleProfiles(profileList);
+      
+      // Extract tags that are used by clients
+      const tagsSet = new Set();
+      clientList.forEach(client => {
+        if (client.tagIds && Array.isArray(client.tagIds)) {
+          client.tagIds.forEach(tagId => tagsSet.add(tagId));
+        }
+      });
+      const relevantTags = tagsList.filter(tag => tagsSet.has(tag.id));
+      setAvailableTags(relevantTags);
     } catch (error) {
       console.error('Failed to load data:', error);
       toast({
@@ -154,10 +167,26 @@ export default function MobileSend() {
     }
   };
 
+  const toggleTag = (tagId) => {
+    setSelectedTagIds(prev => 
+      prev.includes(tagId)
+        ? prev.filter(id => id !== tagId)
+        : [...prev, tagId]
+    );
+  };
+
   const filteredClients = clients.filter(client => {
     // Filter by favorites if toggle is on
     if (showFavorites && !favoriteClientIds.includes(client.id)) {
       return false;
+    }
+    
+    // Filter by selected tags
+    if (selectedTagIds.length > 0) {
+      const hasSelectedTag = selectedTagIds.some(tagId => 
+        client.tagIds && client.tagIds.includes(tagId)
+      );
+      if (!hasSelectedTag) return false;
     }
     
     // Filter by search query
@@ -280,6 +309,39 @@ export default function MobileSend() {
               </button>
             </div>
 
+            {/* Tag Filter */}
+            {availableTags.length > 0 && (
+              <div className="mb-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-sm font-medium text-gray-700">Filter by Tag:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map(tag => (
+                    <button
+                      key={tag.id}
+                      onClick={() => toggleTag(tag.id)}
+                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                        selectedTagIds.includes(tag.id)
+                          ? 'bg-[#c87533] text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {tag.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Add Client Button */}
+            <button
+              onClick={() => navigate(createPageUrl('MobileClientAdd') + '?returnTo=MobileSend')}
+              className="w-full bg-white text-gray-700 border border-gray-200 rounded-lg py-2.5 font-medium text-sm hover:bg-gray-50 active:bg-gray-100 transition-colors mb-2 flex items-center justify-center gap-2"
+            >
+              <User className="w-4 h-4" />
+              Add New Client
+            </button>
+
             {selectedClients.length > 0 && (
               <div className="bg-orange-50 border border-[#c87533] rounded-lg p-2.5 mb-2">
                 <p className="text-sm text-[#c87533] font-medium">
@@ -292,7 +354,8 @@ export default function MobileSend() {
               {filteredClients.map((client) => {
                 const cityState = [client.city, client.state].filter(Boolean).join(', ');
                 const isSelected = selectedClients.includes(client.id);
-                
+                const isFavorite = favoriteClientIds.includes(client.id);
+
                 return (
                   <div
                     key={client.id}
@@ -303,11 +366,16 @@ export default function MobileSend() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1 min-w-0">
-                        <span className="font-semibold text-gray-900 text-base">
-                          {client.fullName}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900 text-base">
+                            {client.fullName}
+                          </span>
+                          {isFavorite && (
+                            <Star className="w-4 h-4 text-yellow-500 fill-current flex-shrink-0" />
+                          )}
+                        </div>
                         {cityState && (
-                          <span className="text-sm text-gray-500 ml-2">
+                          <span className="text-sm text-gray-500">
                             {cityState}
                           </span>
                         )}

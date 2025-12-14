@@ -45,6 +45,8 @@ import MobileClients from './pages/MobileClients';
 import MobileProfile from './pages/MobileProfile';
 import MobileSend from './pages/MobileSend';
 import MobileSendSuccess from './pages/MobileSendSuccess';
+import MobileClientEdit from './pages/MobileClientEdit';
+import MobileClientAdd from './pages/MobileClientAdd';
 import __Layout from './Layout.jsx';
 
 
@@ -96,6 +98,8 @@ export const PAGES = {
     "MobileProfile": MobileProfile,
     "MobileSend": MobileSend,
     "MobileSendSuccess": MobileSendSuccess,
+    "MobileClientEdit": MobileClientEdit,
+    "MobileClientAdd": MobileClientAdd,
 }
 
 export const pagesConfig = {
