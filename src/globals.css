@@ -1,4 +1,3 @@
-css
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -304,16 +303,16 @@ table tbody tr:hover {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    }
-    }
+  }
+}
 
-    /* =========================
-    PILL COMPONENT STYLES
-    ========================= */
+/* =========================
+   PILL COMPONENT STYLES
+   ========================= */
 
-    .pill {
-    @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md;
-    }
+.pill {
+  @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md;
+}
 
 /* =========================
    LEGACY CLASS MAPPING
@@ -371,3 +370,307 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
   border-color: var(--primary) !important;
   color: var(--primary) !important;
 }
+
+
+/* =============================================================================
+   WHITELABEL UTILITY CLASSES
+   
+   These explicit utility classes map to CSS variables for reliable Tailwind JIT
+   compilation. Use these classes instead of arbitrary value syntax like 
+   bg-[var(--pill-success-bg)] to ensure consistent styling.
+   
+   Add this entire section to the END of globals.css (after the existing 
+   Legacy Class Mapping section)
+   ============================================================================= */
+
+/* =========================
+   PILL UTILITY CLASSES
+   ========================= */
+
+/* Semantic Pills - Success */
+.bg-pill-success { background-color: var(--pill-success-bg); }
+.text-pill-success { color: var(--pill-success-fg); }
+.border-pill-success { border-color: var(--pill-success-fg); }
+
+/* Semantic Pills - Warning */
+.bg-pill-warning { background-color: var(--pill-warning-bg); }
+.text-pill-warning { color: var(--pill-warning-fg); }
+.border-pill-warning { border-color: var(--pill-warning-fg); }
+
+/* Semantic Pills - Danger */
+.bg-pill-danger { background-color: var(--pill-danger-bg); }
+.text-pill-danger { color: var(--pill-danger-fg); }
+.border-pill-danger { border-color: var(--pill-danger-fg); }
+
+/* Semantic Pills - Muted */
+.bg-pill-muted { background-color: var(--pill-muted-bg); }
+.text-pill-muted { color: var(--pill-muted-fg); }
+.border-pill-muted { border-color: var(--pill-muted-fg); }
+
+/* Utility Pills - Color 1 (Blue variant) */
+.bg-pill-color1 { background-color: var(--pill-color1-bg); }
+.text-pill-color1 { color: var(--pill-color1-fg); }
+.border-pill-color1 { border-color: var(--pill-color1-fg); }
+
+/* Utility Pills - Color 2 (Purple variant) */
+.bg-pill-color2 { background-color: var(--pill-color2-bg); }
+.text-pill-color2 { color: var(--pill-color2-fg); }
+.border-pill-color2 { border-color: var(--pill-color2-fg); }
+
+/* Utility Pills - Color 3 (Teal variant) */
+.bg-pill-color3 { background-color: var(--pill-color3-bg); }
+.text-pill-color3 { color: var(--pill-color3-fg); }
+.border-pill-color3 { border-color: var(--pill-color3-fg); }
+
+
+/* =========================
+   STATUS COLOR UTILITIES
+   ========================= */
+
+/* Success */
+.bg-status-success { background-color: var(--success); }
+.text-status-success { color: var(--success); }
+.border-status-success { border-color: var(--success); }
+
+/* Warning */
+.bg-status-warning { background-color: var(--warning); }
+.text-status-warning { color: var(--warning); }
+.border-status-warning { border-color: var(--warning); }
+
+/* Danger */
+.bg-status-danger { background-color: var(--danger); }
+.text-status-danger { color: var(--danger); }
+.border-status-danger { border-color: var(--danger); }
+
+
+/* =========================
+   BRAND & CTA UTILITIES
+   ========================= */
+
+/* Brand Accent */
+.bg-brand-accent { background-color: var(--brand-accent); }
+.text-brand-accent { color: var(--brand-accent); }
+.border-brand-accent { border-color: var(--brand-accent); }
+.bg-brand-accent-foreground { background-color: var(--brand-accent-foreground); }
+.text-brand-accent-foreground { color: var(--brand-accent-foreground); }
+
+/* CTA Primary */
+.bg-cta-primary { background-color: var(--cta-primary); }
+.text-cta-primary { color: var(--cta-primary); }
+.border-cta-primary { border-color: var(--cta-primary); }
+.bg-cta-primary-foreground { background-color: var(--cta-primary-foreground); }
+.text-cta-primary-foreground { color: var(--cta-primary-foreground); }
+
+/* Brand Primary (alias for nav-accent in many cases) */
+.bg-brand-primary { background-color: var(--brand-primary); }
+.text-brand-primary { color: var(--brand-primary); }
+.border-brand-primary { border-color: var(--brand-primary); }
+
+
+/* =========================
+   SURFACE & BACKGROUND UTILITIES
+   ========================= */
+
+/* Surface Levels */
+.bg-surface-0 { background-color: var(--surface-0); }
+.bg-surface-1 { background-color: var(--surface-1); }
+.bg-surface-muted { background-color: var(--surface-muted); }
+
+/* Card */
+.bg-card-themed { background-color: var(--card); }
+.text-card-themed { color: var(--card-foreground); }
+.border-card-themed { border-color: var(--border); }
+
+
+/* =========================
+   TEXT HIERARCHY UTILITIES
+   ========================= */
+
+/* Text Levels */
+.text-level-0 { color: var(--text-0); }
+.text-level-1 { color: var(--text-1); }
+.text-level-2 { color: var(--text-2); }
+
+/* Foreground variants */
+.text-foreground-themed { color: var(--foreground); }
+.text-muted-themed { color: var(--muted-foreground); }
+.text-accent-themed { color: var(--accent-foreground); }
+.text-secondary-themed { color: var(--secondary-foreground); }
+
+
+/* =========================
+   NAVIGATION & SIDEBAR UTILITIES
+   ========================= */
+
+/* Sidebar */
+.bg-sidebar { background-color: var(--sidebar-background); }
+.text-sidebar { color: var(--sidebar-foreground); }
+.border-sidebar { border-color: var(--sidebar-border); }
+.bg-sidebar-accent { background-color: var(--sidebar-accent); }
+.text-sidebar-accent { color: var(--sidebar-accent-foreground); }
+.bg-sidebar-primary { background-color: var(--sidebar-primary); }
+.text-sidebar-primary { color: var(--sidebar-primary-foreground); }
+
+/* Navigation */
+.bg-nav { background-color: var(--nav-bg); }
+.text-nav { color: var(--nav-fg); }
+.text-nav-muted { color: var(--nav-muted); }
+.border-nav { border-color: var(--nav-border); }
+.bg-nav-hover { background-color: var(--nav-item-hover-bg); }
+.bg-nav-active { background-color: var(--nav-item-active-bg); }
+.text-nav-active { color: var(--nav-item-active-fg); }
+.text-nav-accent { color: var(--nav-accent); }
+.bg-nav-accent { background-color: var(--nav-accent); }
+.border-nav-accent { border-color: var(--nav-accent); }
+
+
+/* =========================
+   INPUT & FORM UTILITIES
+   ========================= */
+
+.bg-input-themed { background-color: var(--input); }
+.border-input-themed { border-color: var(--border); }
+.border-subtle { border-color: var(--border-subtle); }
+.ring-themed { --tw-ring-color: var(--ring); }
+.ring-focus { --tw-ring-color: var(--focus-ring); }
+.outline-focus { outline-color: var(--focus-ring); }
+
+
+/* =========================
+   DESTRUCTIVE UTILITIES
+   ========================= */
+
+.bg-destructive-themed { background-color: var(--destructive); }
+.text-destructive-themed { color: var(--destructive); }
+.text-destructive-foreground-themed { color: var(--destructive-foreground); }
+.border-destructive-themed { border-color: var(--destructive); }
+
+
+/* =========================
+   SECONDARY & ACCENT UTILITIES
+   ========================= */
+
+/* Secondary */
+.bg-secondary-themed { background-color: var(--secondary); }
+.text-secondary-themed { color: var(--secondary-foreground); }
+.border-secondary-themed { border-color: var(--secondary); }
+
+/* Accent */
+.bg-accent-themed { background-color: var(--accent); }
+.text-accent-themed { color: var(--accent-foreground); }
+.border-accent-themed { border-color: var(--accent); }
+
+
+/* =========================
+   COMPOSITE PILL CLASSES
+   For convenience - combines bg + text in one class
+   ========================= */
+
+.pill-success {
+  background-color: var(--pill-success-bg);
+  color: var(--pill-success-fg);
+}
+
+.pill-warning {
+  background-color: var(--pill-warning-bg);
+  color: var(--pill-warning-fg);
+}
+
+.pill-danger {
+  background-color: var(--pill-danger-bg);
+  color: var(--pill-danger-fg);
+}
+
+.pill-muted {
+  background-color: var(--pill-muted-bg);
+  color: var(--pill-muted-fg);
+}
+
+.pill-color1 {
+  background-color: var(--pill-color1-bg);
+  color: var(--pill-color1-fg);
+}
+
+.pill-color2 {
+  background-color: var(--pill-color2-bg);
+  color: var(--pill-color2-fg);
+}
+
+.pill-color3 {
+  background-color: var(--pill-color3-bg);
+  color: var(--pill-color3-fg);
+}
+
+
+/* =========================
+   HOVER STATE UTILITIES
+   ========================= */
+
+.hover\:bg-pill-success:hover { background-color: var(--pill-success-bg); }
+.hover\:bg-pill-warning:hover { background-color: var(--pill-warning-bg); }
+.hover\:bg-pill-danger:hover { background-color: var(--pill-danger-bg); }
+.hover\:bg-pill-muted:hover { background-color: var(--pill-muted-bg); }
+
+.hover\:bg-nav-hover:hover { background-color: var(--nav-item-hover-bg); }
+.hover\:bg-nav-active:hover { background-color: var(--nav-item-active-bg); }
+.hover\:bg-sidebar-accent:hover { background-color: var(--sidebar-accent); }
+
+.hover\:bg-brand-accent:hover { background-color: var(--brand-accent); }
+.hover\:bg-cta-primary:hover { background-color: var(--cta-primary); }
+
+.hover\:text-nav-accent:hover { color: var(--nav-accent); }
+.hover\:text-brand-accent:hover { color: var(--brand-accent); }
+
+
+/* =========================
+   FOCUS STATE UTILITIES
+   ========================= */
+
+.focus\:ring-themed:focus { --tw-ring-color: var(--ring); }
+.focus\:ring-focus:focus { --tw-ring-color: var(--focus-ring); }
+.focus\:border-ring:focus { border-color: var(--ring); }
+
+.focus-visible\:ring-themed:focus-visible { --tw-ring-color: var(--ring); }
+.focus-visible\:outline-focus:focus-visible { outline-color: var(--focus-ring); }
+
+
+/* =========================
+   USAGE EXAMPLES
+   ========================= */
+
+/*
+   Pills:
+   <span className="pill-success px-2.5 py-1 text-xs font-medium rounded-md">Active</span>
+   <span className="pill-warning px-2.5 py-1 text-xs font-medium rounded-md">Pending</span>
+   <span className="pill-danger px-2.5 py-1 text-xs font-medium rounded-md">Failed</span>
+   
+   Or with separate classes:
+   <span className="bg-pill-success text-pill-success px-2.5 py-1 text-xs font-medium rounded-md">Active</span>
+   
+   Buttons:
+   <button className="bg-cta-primary text-cta-primary-foreground px-4 py-2 rounded-lg">
+     Send Card
+   </button>
+   
+   <button className="bg-brand-accent text-brand-accent-foreground px-4 py-2 rounded-lg">
+     Primary Action
+   </button>
+   
+   Status indicators:
+   <div className="text-status-success">✓ Complete</div>
+   <div className="text-status-warning">⚠ Warning</div>
+   <div className="text-status-danger">✕ Error</div>
+   
+   Navigation:
+   <a className="bg-nav-active text-nav-active hover:bg-nav-hover">Dashboard</a>
+   
+   Cards:
+   <div className="bg-card-themed text-card-themed border border-card-themed rounded-lg p-4">
+     Content
+   </div>
+   
+   Text hierarchy:
+   <h1 className="text-level-0">Heading</h1>
+   <p className="text-level-1">Body text</p>
+   <span className="text-level-2">Caption</span>
+*/
