@@ -5,9 +5,6 @@ import { createPageUrl } from "@/utils";
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,12 +15,20 @@ import {
   Bell,
   Image as ImageIcon,
   AlertCircle,
+  RotateCcw,
+  Layers,
+  Navigation,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
+// Import panel components
 import WhitelabelBrandingPanel from "@/components/whitelabel/WhitelabelBrandingPanel";
-import WhitelabelThemingPanel from "@/components/whitelabel/WhitelabelThemingPanel";
+import WhitelabelColorsPanel from "@/components/whitelabel/WhitelabelColorsPanel";
+import WhitelabelNavigationPanel from "@/components/whitelabel/WhitelabelNavigationPanel";
+import WhitelabelComponentsPanel from "@/components/whitelabel/WhitelabelComponentsPanel";
 import WhitelabelNotificationsPanel from "@/components/whitelabel/WhitelabelNotificationsPanel";
+import WhitelabelPreviewPanel from "@/components/whitelabel/WhitelabelPreviewPanel";
+import { DEFAULT_WHITELABEL_SETTINGS } from "@/components/whitelabel/WhitelabelHelpers";
 
 export default function SuperAdminWhitelabel() {
   const navigate = useNavigate();
@@ -35,32 +40,7 @@ export default function SuperAdminWhitelabel() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("branding");
 
-  // Form state
-  const [settings, setSettings] = useState({
-    brandName: "RoofScribe",
-    logoUrl: null,
-    faviconUrl: null,
-    primaryColor: "#4F46E5",
-    accentColor: "#7C3AED",
-    backgroundColor: "#F9FAFB",
-    fontHeadings: "Inter",
-    fontBody: "Inter",
-    toastDuration: 3000,
-    toastPlacement: "top-right",
-    toastSuccessBg: "#F0FDF4",
-    toastSuccessText: "#166534",
-    toastSuccessBorder: "#86EFAC",
-    toastErrorBg: "#FEF2F2",
-    toastErrorText: "#991B1B",
-    toastErrorBorder: "#FCA5A5",
-    toastWarningBg: "#FFFBEB",
-    toastWarningText: "#92400E",
-    toastWarningBorder: "#FDE68A",
-    toastInfoBg: "#EFF6FF",
-    toastInfoText: "#1E40AF",
-    toastInfoBorder: "#93C5FD",
-  });
-
+  const [settings, setSettings] = useState(DEFAULT_WHITELABEL_SETTINGS);
   const [originalSettings, setOriginalSettings] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -70,12 +50,12 @@ export default function SuperAdminWhitelabel() {
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!originalSettings) return;
-    const changed = JSON.stringify(settings) !== JSON.stringify(originalSettings);
+    const changed =
+      JSON.stringify(settings) !== JSON.stringify(originalSettings);
     setHasChanges(changed);
   }, [settings, originalSettings]);
 
@@ -88,7 +68,9 @@ export default function SuperAdminWhitelabel() {
       setUser(currentUser);
 
       if (currentUser?.appRole !== "super_admin") {
-        setError("Access denied. Only super admins can access whitelabel settings.");
+        setError(
+          "Access denied. Only super admins can access whitelabel settings."
+        );
         setLoading(false);
         return;
       }
@@ -101,8 +83,10 @@ export default function SuperAdminWhitelabel() {
         return;
       }
 
-      setSettings(loadedSettings);
-      setOriginalSettings(loadedSettings);
+      // Merge loaded settings with defaults (for any missing fields)
+      const mergedSettings = { ...DEFAULT_WHITELABEL_SETTINGS, ...loadedSettings };
+      setSettings(mergedSettings);
+      setOriginalSettings(mergedSettings);
     } catch (err) {
       console.error("Failed to load whitelabel settings:", err);
       setError(err?.response?.data?.error || "Failed to load settings");
@@ -145,12 +129,15 @@ export default function SuperAdminWhitelabel() {
     setHasChanges(false);
   };
 
+  const handleResetToDefaults = () => {
+    setSettings(DEFAULT_WHITELABEL_SETTINGS);
+  };
+
   const handleImageUpload = async (field, file) => {
     if (!file) return;
 
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
       updateSettings({ [field]: file_url });
 
       toast({
@@ -167,20 +154,7 @@ export default function SuperAdminWhitelabel() {
     }
   };
 
-  const fontOptions = [
-    "Inter",
-    "Roboto",
-    "Open Sans",
-    "Lato",
-    "Montserrat",
-    "Poppins",
-    "Raleway",
-    "Nunito",
-    "Ubuntu",
-    "Playfair Display",
-    "Merriweather",
-  ];
-
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -192,6 +166,7 @@ export default function SuperAdminWhitelabel() {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
@@ -199,9 +174,13 @@ export default function SuperAdminWhitelabel() {
           <CardContent className="pt-6">
             <div className="text-center">
               <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-red-600 mb-2">Access Denied</h2>
+              <h2 className="text-xl font-bold text-red-600 mb-2">
+                Access Denied
+              </h2>
               <p className="text-gray-600 mb-4">{error}</p>
-              <Button onClick={() => navigate(createPageUrl("Home"))}>Go to Dashboard</Button>
+              <Button onClick={() => navigate(createPageUrl("Home"))}>
+                Go to Dashboard
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -210,128 +189,138 @@ export default function SuperAdminWhitelabel() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50">
-      <div className="max-w-6xl mx-auto p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100">
+      <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Whitelabel Settings</h1>
-            <p className="text-lg text-gray-600">
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">
+              Whitelabel Settings
+            </h1>
+            <p className="text-gray-600">
               Customize the branding and appearance of your application
             </p>
           </div>
 
-          <Button
-            onClick={handleSave}
-            disabled={saving || !hasChanges}
-            className="bg-indigo-600 hover:bg-indigo-700"
-            size="lg"
-          >
-            {saving ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleResetToDefaults}
+              className="gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Reset to Defaults
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={saving || !hasChanges}
+              className="gap-2"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
-        {/* Save Bar */}
+        {/* Unsaved Changes Banner */}
         {hasChanges && (
-          <Card className="mb-6 border-2 border-orange-300 bg-orange-50">
-            <CardContent className="py-4">
+          <Card className="mb-6 border-2 border-amber-300 bg-amber-50">
+            <CardContent className="py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <AlertCircle className="w-5 h-5 text-orange-600" />
-                  <p className="text-orange-900 font-semibold">You have unsaved changes</p>
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                  <p className="text-amber-900 font-medium">
+                    You have unsaved changes
+                  </p>
                 </div>
-                <div className="flex gap-3">
-                  <Button variant="outline" onClick={handleReset}>
-                    Reset Changes
-                  </Button>
-                </div>
+                <Button variant="outline" size="sm" onClick={handleReset}>
+                  Discard Changes
+                </Button>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="branding" className="gap-2">
-              <ImageIcon className="w-4 h-4" />
-              Branding
-            </TabsTrigger>
-            <TabsTrigger value="theming" className="gap-2">
-              <Palette className="w-4 h-4" />
-              Theming
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2">
-              <Bell className="w-4 h-4" />
-              Notifications
-            </TabsTrigger>
-          </TabsList>
+        {/* Main Content - Two Column Layout */}
+        <div className="grid grid-cols-3 gap-6">
+          {/* Left Column - Settings Panels */}
+          <div className="col-span-2">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-5 mb-6">
+                <TabsTrigger value="branding" className="gap-1.5 text-xs">
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  Branding
+                </TabsTrigger>
+                <TabsTrigger value="colors" className="gap-1.5 text-xs">
+                  <Palette className="w-3.5 h-3.5" />
+                  Colors
+                </TabsTrigger>
+                <TabsTrigger value="navigation" className="gap-1.5 text-xs">
+                  <Navigation className="w-3.5 h-3.5" />
+                  Navigation
+                </TabsTrigger>
+                <TabsTrigger value="components" className="gap-1.5 text-xs">
+                  <Layers className="w-3.5 h-3.5" />
+                  Components
+                </TabsTrigger>
+                <TabsTrigger value="notifications" className="gap-1.5 text-xs">
+                  <Bell className="w-3.5 h-3.5" />
+                  Toasts
+                </TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="branding">
-            <WhitelabelBrandingPanel
-              settings={settings}
-              updateSettings={updateSettings}
-              onUpload={handleImageUpload}
-            />
-          </TabsContent>
+              <TabsContent value="branding">
+                <WhitelabelBrandingPanel
+                  settings={settings}
+                  updateSettings={updateSettings}
+                  onUpload={handleImageUpload}
+                />
+              </TabsContent>
 
-          <TabsContent value="theming">
-            <WhitelabelThemingPanel
-              settings={settings}
-              updateSettings={updateSettings}
-              fontOptions={fontOptions}
-            />
-          </TabsContent>
+              <TabsContent value="colors">
+                <WhitelabelColorsPanel
+                  settings={settings}
+                  updateSettings={updateSettings}
+                />
+              </TabsContent>
 
-          <TabsContent value="notifications">
-            <WhitelabelNotificationsPanel settings={settings} updateSettings={updateSettings} />
-          </TabsContent>
-        </Tabs>
+              <TabsContent value="navigation">
+                <WhitelabelNavigationPanel
+                  settings={settings}
+                  updateSettings={updateSettings}
+                />
+              </TabsContent>
 
-        {/* Bottom Save Button */}
-        <Card className={`mt-6 ${hasChanges ? "border-2 border-indigo-300 bg-indigo-50" : "border border-gray-200"}`}>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <p className={hasChanges ? "text-indigo-900 font-semibold" : "text-gray-600"}>
-                {hasChanges ? "Ready to apply your changes?" : "No unsaved changes"}
-              </p>
-              <div className="flex gap-3">
-                {hasChanges && (
-                  <Button variant="outline" onClick={handleReset}>
-                    Reset Changes
-                  </Button>
-                )}
-                <Button
-                  onClick={handleSave}
-                  disabled={saving || !hasChanges}
-                  className="bg-indigo-600 hover:bg-indigo-700"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save All Changes
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              <TabsContent value="components">
+                <WhitelabelComponentsPanel
+                  settings={settings}
+                  updateSettings={updateSettings}
+                />
+              </TabsContent>
+
+              <TabsContent value="notifications">
+                <WhitelabelNotificationsPanel
+                  settings={settings}
+                  updateSettings={updateSettings}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Right Column - Live Preview */}
+          <div className="col-span-1">
+            <WhitelabelPreviewPanel settings={settings} />
+          </div>
+        </div>
       </div>
     </div>
   );
