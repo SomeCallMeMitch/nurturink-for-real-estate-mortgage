@@ -316,8 +316,11 @@ table tbody tr:hover {
 
 /* =========================
    LEGACY CLASS MAPPING
+   ⚠️ DEPRECATED - For backwards compatibility only
    Maps old Tailwind utility classes to new theme variables
    to ensure consistent styling without full refactor
+   
+   New code should use the Whitelabel Utility Classes below
    ========================= */
 
 /* Backgrounds */
