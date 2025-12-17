@@ -6,35 +6,59 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Layers, Tag, Zap, Type } from "lucide-react";
+import { Circle, Layers } from "lucide-react";
 import { ColorField, ColorSection, PillPreview } from "./WhitelabelHelpers";
 
-export default function WhitelabelComponentsPanel({
-  settings,
-  updateSettings,
-}) {
+export default function WhitelabelComponentsPanel({ settings, updateSettings }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Component Colors</CardTitle>
+        <CardTitle>Pills & Badges</CardTitle>
         <CardDescription>
-          Customize pills, badges, and UI components
+          Customize status indicators and category tags
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Semantic Pills */}
         <ColorSection
           title="Semantic Pills"
-          icon={Tag}
+          icon={Circle}
           defaultOpen={true}
         >
+          <div className="col-span-2 mb-2">
+            <p className="text-sm text-muted-foreground mb-3">
+              Used for status indicators throughout the app
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <PillPreview
+                bg={settings.pillSuccessBg}
+                fg={settings.pillSuccessFg}
+                label="Success"
+              />
+              <PillPreview
+                bg={settings.pillWarningBg}
+                fg={settings.pillWarningFg}
+                label="Warning"
+              />
+              <PillPreview
+                bg={settings.pillDangerBg}
+                fg={settings.pillDangerFg}
+                label="Danger"
+              />
+              <PillPreview
+                bg={settings.pillMutedBg}
+                fg={settings.pillMutedFg}
+                label="Muted"
+              />
+            </div>
+          </div>
           <ColorField
             label="Success Background"
             value={settings.pillSuccessBg}
             onChange={(v) => updateSettings({ pillSuccessBg: v })}
           />
           <ColorField
-            label="Success Foreground"
+            label="Success Text"
             value={settings.pillSuccessFg}
             onChange={(v) => updateSettings({ pillSuccessFg: v })}
           />
@@ -44,7 +68,7 @@ export default function WhitelabelComponentsPanel({
             onChange={(v) => updateSettings({ pillWarningBg: v })}
           />
           <ColorField
-            label="Warning Foreground"
+            label="Warning Text"
             value={settings.pillWarningFg}
             onChange={(v) => updateSettings({ pillWarningFg: v })}
           />
@@ -54,7 +78,7 @@ export default function WhitelabelComponentsPanel({
             onChange={(v) => updateSettings({ pillDangerBg: v })}
           />
           <ColorField
-            label="Danger Foreground"
+            label="Danger Text"
             value={settings.pillDangerFg}
             onChange={(v) => updateSettings({ pillDangerFg: v })}
           />
@@ -64,44 +88,44 @@ export default function WhitelabelComponentsPanel({
             onChange={(v) => updateSettings({ pillMutedBg: v })}
           />
           <ColorField
-            label="Muted Foreground"
+            label="Muted Text"
             value={settings.pillMutedFg}
             onChange={(v) => updateSettings({ pillMutedFg: v })}
           />
-          {/* Preview */}
-          <div className="col-span-2 flex gap-2 mt-2 pt-2 border-t">
-            <PillPreview
-              bg={settings.pillSuccessBg}
-              fg={settings.pillSuccessFg}
-              label="Success"
-            />
-            <PillPreview
-              bg={settings.pillWarningBg}
-              fg={settings.pillWarningFg}
-              label="Warning"
-            />
-            <PillPreview
-              bg={settings.pillDangerBg}
-              fg={settings.pillDangerFg}
-              label="Danger"
-            />
-            <PillPreview
-              bg={settings.pillMutedBg}
-              fg={settings.pillMutedFg}
-              label="Muted"
-            />
-          </div>
         </ColorSection>
 
         {/* Utility Pills */}
         <ColorSection title="Utility Pills" icon={Layers}>
+          <div className="col-span-2 mb-2">
+            <p className="text-sm text-muted-foreground mb-3">
+              Used for categories, tags, and labels
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <PillPreview
+                bg={settings.pillColor1Bg}
+                fg={settings.pillColor1Fg}
+                label="Category 1"
+              />
+              <PillPreview
+                bg={settings.pillColor2Bg}
+                fg={settings.pillColor2Fg}
+                label="Category 2"
+              />
+              <PillPreview
+                bg={settings.pillColor3Bg}
+                fg={settings.pillColor3Fg}
+                label="Category 3"
+              />
+            </div>
+          </div>
           <ColorField
             label="Color 1 Background"
             value={settings.pillColor1Bg}
             onChange={(v) => updateSettings({ pillColor1Bg: v })}
+            description="Blue variant"
           />
           <ColorField
-            label="Color 1 Foreground"
+            label="Color 1 Text"
             value={settings.pillColor1Fg}
             onChange={(v) => updateSettings({ pillColor1Fg: v })}
           />
@@ -109,9 +133,10 @@ export default function WhitelabelComponentsPanel({
             label="Color 2 Background"
             value={settings.pillColor2Bg}
             onChange={(v) => updateSettings({ pillColor2Bg: v })}
+            description="Purple variant"
           />
           <ColorField
-            label="Color 2 Foreground"
+            label="Color 2 Text"
             value={settings.pillColor2Fg}
             onChange={(v) => updateSettings({ pillColor2Fg: v })}
           />
@@ -119,77 +144,12 @@ export default function WhitelabelComponentsPanel({
             label="Color 3 Background"
             value={settings.pillColor3Bg}
             onChange={(v) => updateSettings({ pillColor3Bg: v })}
+            description="Teal variant"
           />
           <ColorField
-            label="Color 3 Foreground"
+            label="Color 3 Text"
             value={settings.pillColor3Fg}
             onChange={(v) => updateSettings({ pillColor3Fg: v })}
-          />
-          {/* Preview */}
-          <div className="col-span-2 flex gap-2 mt-2 pt-2 border-t">
-            <PillPreview
-              bg={settings.pillColor1Bg}
-              fg={settings.pillColor1Fg}
-              label="Color 1"
-            />
-            <PillPreview
-              bg={settings.pillColor2Bg}
-              fg={settings.pillColor2Fg}
-              label="Color 2"
-            />
-            <PillPreview
-              bg={settings.pillColor3Bg}
-              fg={settings.pillColor3Fg}
-              label="Color 3"
-            />
-          </div>
-        </ColorSection>
-
-        {/* Brand & CTA */}
-        <ColorSection title="Brand & CTA" icon={Zap}>
-          <ColorField
-            label="Brand Accent"
-            value={settings.brandAccent}
-            onChange={(v) => updateSettings({ brandAccent: v })}
-          />
-          <ColorField
-            label="Brand Accent Foreground"
-            value={settings.brandAccentForeground}
-            onChange={(v) => updateSettings({ brandAccentForeground: v })}
-          />
-          <ColorField
-            label="CTA Primary"
-            value={settings.ctaPrimary}
-            onChange={(v) => updateSettings({ ctaPrimary: v })}
-          />
-          <ColorField
-            label="CTA Primary Foreground"
-            value={settings.ctaPrimaryForeground}
-            onChange={(v) => updateSettings({ ctaPrimaryForeground: v })}
-          />
-          <ColorField
-            label="Focus Ring"
-            value={settings.focusRing}
-            onChange={(v) => updateSettings({ focusRing: v })}
-          />
-        </ColorSection>
-
-        {/* Text Hierarchy */}
-        <ColorSection title="Text Hierarchy" icon={Type}>
-          <ColorField
-            label="Text Level 0 (Headings)"
-            value={settings.text0}
-            onChange={(v) => updateSettings({ text0: v })}
-          />
-          <ColorField
-            label="Text Level 1 (Body)"
-            value={settings.text1}
-            onChange={(v) => updateSettings({ text1: v })}
-          />
-          <ColorField
-            label="Text Level 2 (Captions)"
-            value={settings.text2}
-            onChange={(v) => updateSettings({ text2: v })}
           />
         </ColorSection>
       </CardContent>
