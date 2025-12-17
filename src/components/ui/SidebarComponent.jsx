@@ -57,14 +57,33 @@ const svgPaths = {
     "M8 2C8.49445 2 8.9778 2.14662 9.38893 2.42133C9.80005 2.69603 10.1205 3.08648 10.3097 3.54329C10.4989 4.00011 10.5484 4.50277 10.452 4.98773C10.3555 5.47268 10.1174 5.91814 9.76777 6.26777C9.41814 6.6174 8.97268 6.8555 8.48773 6.95196C8.00277 7.04843 7.50011 6.99892 7.04329 6.8097C6.58648 6.62048 6.19603 6.30005 5.92133 5.88893C5.64662 5.4778 5.5 4.99445 5.5 4.5C5.5 3.83696 5.76339 3.20107 6.23223 2.73223C6.70107 2.26339 7.33696 2 8 2ZM8 1C7.30777 1 6.63108 1.20527 6.0555 1.58986C5.47993 1.97444 5.03133 2.52107 4.76642 3.16061C4.50152 3.80015 4.4322 4.50388 4.56725 5.18282C4.7023 5.86175 5.03564 6.48539 5.52513 6.97487C6.01461 7.46436 6.63825 7.7977 7.31718 7.93275C7.99612 8.0678 8.69985 7.99849 9.33939 7.73358C9.97893 7.46867 10.5256 7.02007 10.9101 6.4445C11.2947 5.86892 11.5 5.19223 11.5 4.5C11.5 3.57174 11.1313 2.6815 10.4749 2.02513C9.8185 1.36875 8.92826 1 8 1Z",
   p3af0dbf2: "M8 9C8.55228 9 9 8.55228 9 8C9 7.44772 8.55228 7 8 7C7.44772 7 7 7.44772 7 8C7 8.55228 7.44772 9 8 9Z",
   p5113400:
-    "M14.252 4.06808L8.25195 0.568081C8.17548 0.523469 8.08853 0.499962 8 0.499962C7.91147 0.499962 7.82452 0.523469 7.74805 0.568081L1.74805 4.06808C1.67257 4.11212 1.60994 4.17517 1.56642 4.25095C1.5229 4.32673 1.5 4.41259 1.5 4.49998V11.5C1.5 11.5874 1.5229 11.6732 1.56642 11.749C1.60994 11.8248 1.67257 11.8878 1.74805 11.9319L7.74805 15.4319C7.82452 15.4765 7.91147 15.5 8 15.5C8.08853 15.5 8.17548 15.4765 8.25195 15.4319L14.252 11.9319C14.3274 11.8878 14.3901 11.8248 14.4336 11.749C14.4771 11.6732 14.5 11.5874 14.5 11.5V4.49998C14.5 4.41259 14.4771 4.32673 14.4336 4.25095C14.3901 4.17517 14.3274 4.11212 14.252 4.06808ZM8 1.57883L13.0078 4.49998L8 7.42113L2.9922 4.49998L8 1.57883ZM2.5 5.37058L7.5 8.28708V14.1294L2.5 11.2129В5.37058ZM8.5 14.1294V8.28708L13.5 5.37058V11.2129L8.5 14.1294Z",
+    "M14.252 4.06808L8.25195 0.568081C8.17548 0.523469 8.08853 0.499962 8 0.499962C7.91147 0.499962 7.82452 0.523469 7.74805 0.568081L1.74805 4.06808C1.67257 4.11212 1.60994 4.17517 1.56642 4.25095C1.5229 4.32673 1.5 4.41259 1.5 4.49998V11.5C1.5 11.5874 1.5229 11.6732 1.56642 11.749C1.60994 11.8248 1.67257 11.8878 1.74805 11.9319L7.74805 15.4319C7.82452 15.4765 7.91147 15.5 8 15.5C8.08853 15.5 8.17548 15.4765 8.25195 15.4319L14.252 11.9319C14.3274 11.8878 14.3901 11.8248 14.4336 11.749C14.4771 11.6732 14.5 11.5874 14.5 11.5V4.49998C14.5 4.41259 14.4771 4.32673 14.4336 4.25095C14.3901 4.17517 14.3274 4.11212 14.252 4.06808ZM8 1.57883L13.0078 4.49998L8 7.42113L2.9922 4.49998L8 1.57883ZM2.5 5.37058L7.5 8.28708V14.1294L2.5 11.2129V5.37058ZM8.5 14.1294V8.28708L13.5 5.37058V11.2129L8.5 14.1294Z",
   pfa0d600:
-    "M6.32 10C6.20799 10 6.15198 10 6.1092 9.9782C6.07157 9.95903 6.04097 9.92843 6.0218 9.8908C6 9.84802 6 9.79201 6 9.68В6.32C6 6.20799 6 6.15198 6.0218 6.1092C6.04097 6.07157 6.07157 6.04097 6.1092 6.0218C6.15198 6 6.20799 6 6.32 6L17.68 6C17.792 6 17.848 6 17.8908 6.0218C17.9284 6.04097 17.959 6.07157 17.9782 6.1092C18 6.15198 18 6.20799 18 6.32V9.68C18 9.79201 18 9.84802 17.9782 9.8908C17.959 9.92843 17.9284 9.95903 17.8908 9.9782C17.848 10 17.792 10 17.68 10H6.32Z",
+    "M6.32 10C6.20799 10 6.15198 10 6.1092 9.9782C6.07157 9.95903 6.04097 9.92843 6.0218 9.8908C6 9.84802 6 9.79201 6 9.68V6.32C6 6.20799 6 6.15198 6.0218 6.1092C6.04097 6.07157 6.07157 6.04097 6.1092 6.0218C6.15198 6 6.20799 6 6.32 6L17.68 6C17.792 6 17.848 6 17.8908 6.0218C17.9284 6.04097 17.959 6.07157 17.9782 6.1092C18 6.15198 18 6.20799 18 6.32V9.68C18 9.79201 18 9.84802 17.9782 9.8908C17.959 9.92843 17.9284 9.95903 17.8908 9.9782C17.848 10 17.792 10 17.68 10H6.32Z",
 };
 /** ======================================================================= */
 
 // Softer spring animation curve
 const softSpringEasing = "cubic-bezier(0.25, 1.1, 0.4, 1)";
+
+/**
+ * Theme tokens (CSS variables)
+ * These default to your MainLayout system.
+ */
+const TOKENS = {
+  frameBg: "var(--app-bg, var(--surface-0, #ffffff))",
+  railBg: "var(--sidebarcomponent-rail-bg, var(--sidebar-background, #111827))",
+  panelBg: "var(--sidebarcomponent-panel-bg, var(--sidebar-background, #111827))",
+  border: "var(--sidebarcomponent-border, var(--sidebar-border, #374151))",
+  itemBgHover: "var(--sidebarcomponent-item-hover-bg, var(--sidebar-accent, #1f2937))",
+  itemBgActive: "var(--sidebarcomponent-item-active-bg, var(--sidebar-accent, #1f2937))",
+  text: "var(--sidebarcomponent-fg, var(--sidebar-foreground, #f3f4f6))",
+  textMuted: "var(--sidebarcomponent-fg-muted, rgba(243, 244, 246, 0.7))",
+  textSubtle: "var(--sidebarcomponent-fg-subtle, rgba(243, 244, 246, 0.5))",
+  danger: "var(--status-danger, #ef4444)",
+  warning: "var(--status-warning, #f59e0b)",
+  logoFg: "var(--sidebarcomponent-logo-fg, var(--sidebar-primary-foreground, #ffffff))",
+};
 
 /* ----------------------------- Brand / Logos ----------------------------- */
 
@@ -74,9 +93,9 @@ function InterfacesLogoSquare() {
       <div className="absolute aspect-[24/16] left-0 right-0 top-1/2 -translate-y-1/2">
         <svg className="block size-full" fill="none" viewBox="0 0 24 16">
           <g>
-            <path d={svgPaths.p36880f80} fill="#FAFAFA" />
-            <path d={svgPaths.p355df480} fill="#FAFAFA" />
-            <path d={svgPaths.pfa0d600} fill="#FAFAFA" />
+            <path d={svgPaths.p36880f80} fill={TOKENS.logoFg} />
+            <path d={svgPaths.p355df480} fill={TOKENS.logoFg} />
+            <path d={svgPaths.pfa0d600} fill={TOKENS.logoFg} />
           </g>
         </svg>
       </div>
@@ -92,7 +111,10 @@ function BrandBadge() {
           <InterfacesLogoSquare />
         </div>
         <div className="px-2 py-1">
-          <div className="font-['Lexend:SemiBold',_sans-serif] text-[16px] text-neutral-50">
+          <div
+            className="font-['Lexend:SemiBold',_sans-serif] text-[16px]"
+            style={{ color: TOKENS.text }}
+          >
             Interfaces
           </div>
         </div>
@@ -105,13 +127,17 @@ function BrandBadge() {
 
 function AvatarCircle() {
   return (
-    <div className="relative rounded-full shrink-0 size-8 bg-black">
+    <div
+      className="relative rounded-full shrink-0 size-8"
+      style={{ backgroundColor: TOKENS.itemBgActive }}
+    >
       <div className="flex items-center justify-center size-8">
-        <UserIcon size={16} className="text-neutral-50" />
+        <UserIcon size={16} style={{ color: TOKENS.text }} />
       </div>
       <div
         aria-hidden="true"
-        className="absolute inset-0 rounded-full border border-neutral-800 pointer-events-none"
+        className="absolute inset-0 rounded-full border pointer-events-none"
+        style={{ borderColor: TOKENS.border }}
       />
     </div>
   );
@@ -130,10 +156,13 @@ function SearchContainer({ isCollapsed = false }) {
       style={{ transitionTimingFunction: softSpringEasing }}
     >
       <div
-        className={`bg-black h-10 relative rounded-lg flex items-center transition-all duration-500 ${
+        className={`h-10 relative rounded-lg flex items-center transition-all duration-500 ${
           isCollapsed ? "w-10 min-w-10 justify-center" : "w-full"
         }`}
-        style={{ transitionTimingFunction: softSpringEasing }}
+        style={{
+          transitionTimingFunction: softSpringEasing,
+          backgroundColor: TOKENS.itemBgActive,
+        }}
       >
         <div
           className={`flex items-center justify-center shrink-0 transition-all duration-500 ${
@@ -142,7 +171,7 @@ function SearchContainer({ isCollapsed = false }) {
           style={{ transitionTimingFunction: softSpringEasing }}
         >
           <div className="size-8 flex items-center justify-center">
-            <SearchIcon size={16} className="text-neutral-50" />
+            <SearchIcon size={16} style={{ color: TOKENS.text }} />
           </div>
         </div>
 
@@ -159,16 +188,21 @@ function SearchContainer({ isCollapsed = false }) {
                 placeholder="Search..."
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="w-full bg-transparent border-none outline-none font-['Lexend:Regular',_sans-serif] text-[14px] text-neutral-50 placeholder:text-neutral-400 leading-[20px]"
+                className="w-full bg-transparent border-none outline-none font-['Lexend:Regular',_sans-serif] text-[14px] leading-[20px]"
+                style={{ color: TOKENS.text }}
                 tabIndex={isCollapsed ? -1 : 0}
               />
+              <style>{`
+                input::placeholder { color: ${TOKENS.textSubtle}; }
+              `}</style>
             </div>
           </div>
         </div>
 
         <div
           aria-hidden="true"
-          className="absolute inset-0 rounded-lg border border-neutral-800 pointer-events-none"
+          className="absolute inset-0 rounded-lg border pointer-events-none"
+          style={{ borderColor: TOKENS.border }}
         />
       </div>
     </div>
@@ -178,6 +212,8 @@ function SearchContainer({ isCollapsed = false }) {
 /* --------------------------- Types / Content Map -------------------------- */
 
 function getSidebarContent(activeSection) {
+  const icon = (IconComp, size = 16, style) => <IconComp size={size} style={style} />;
+
   const contentMap = {
     dashboard: {
       title: "Dashboard",
@@ -185,9 +221,9 @@ function getSidebarContent(activeSection) {
         {
           title: "Dashboard Types",
           items: [
-            { icon: <View size={16} className="text-neutral-50" />, label: "Overview", isActive: true },
+            { icon: icon(View, 16, { color: TOKENS.text }), label: "Overview", isActive: true },
             {
-              icon: <Dashboard size={16} className="text-neutral-50" />,
+              icon: icon(Dashboard, 16, { color: TOKENS.text }),
               label: "Executive Summary",
               hasDropdown: true,
               children: [
@@ -198,7 +234,7 @@ function getSidebarContent(activeSection) {
               ],
             },
             {
-              icon: <ChartBar size={16} className="text-neutral-50" />,
+              icon: icon(ChartBar, 16, { color: TOKENS.text }),
               label: "Operations Dashboard",
               hasDropdown: true,
               children: [
@@ -209,7 +245,7 @@ function getSidebarContent(activeSection) {
               ],
             },
             {
-              icon: <Analytics size={16} className="text-neutral-50" />,
+              icon: icon(Analytics, 16, { color: TOKENS.text }),
               label: "Financial Dashboard",
               hasDropdown: true,
               children: [
@@ -225,7 +261,7 @@ function getSidebarContent(activeSection) {
           title: "Report Summaries",
           items: [
             {
-              icon: <Report size={16} className="text-neutral-50" />,
+              icon: icon(Report, 16, { color: TOKENS.text }),
               label: "Weekly Reports",
               hasDropdown: true,
               children: [
@@ -236,7 +272,7 @@ function getSidebarContent(activeSection) {
               ],
             },
             {
-              icon: <StarFilled size={16} className="text-neutral-50" />,
+              icon: icon(StarFilled, 16, { color: TOKENS.text }),
               label: "Monthly Insights",
               hasDropdown: true,
               children: [
@@ -247,7 +283,7 @@ function getSidebarContent(activeSection) {
               ],
             },
             {
-              icon: <View size={16} className="text-neutral-50" />,
+              icon: icon(View, 16, { color: TOKENS.text }),
               label: "Quarterly Analysis",
               hasDropdown: true,
               children: [
@@ -263,7 +299,7 @@ function getSidebarContent(activeSection) {
           title: "Business Intelligence",
           items: [
             {
-              icon: <ChartBar size={16} className="text-neutral-50" />,
+              icon: icon(ChartBar, 16, { color: TOKENS.text }),
               label: "Performance Metrics",
               hasDropdown: true,
               children: [
@@ -274,7 +310,7 @@ function getSidebarContent(activeSection) {
               ],
             },
             {
-              icon: <Analytics size={16} className="text-neutral-50" />,
+              icon: icon(Analytics, 16, { color: TOKENS.text }),
               label: "Predictive Analytics",
               hasDropdown: true,
               children: [
@@ -295,40 +331,40 @@ function getSidebarContent(activeSection) {
         {
           title: "Quick Actions",
           items: [
-            { icon: <AddLarge size={16} className="text-neutral-50" />, label: "New task" },
-            { icon: <Filter size={16} className="text-neutral-50" />, label: "Filter tasks" },
+            { icon: icon(AddLarge, 16, { color: TOKENS.text }), label: "New task" },
+            { icon: icon(Filter, 16, { color: TOKENS.text }), label: "Filter tasks" },
           ],
         },
         {
           title: "My Tasks",
           items: [
             {
-              icon: <Time size={16} className="text-neutral-50" />,
+              icon: icon(Time, 16, { color: TOKENS.text }),
               label: "Due today",
               hasDropdown: true,
               children: [
-                { icon: <Flag size={14} className="text-neutral-300" />, label: "Review design mockups" },
-                { icon: <CheckmarkOutline size={14} className="text-neutral-300" />, label: "Update documentation" },
-                { icon: <InProgress size={14} className="text-neutral-300" />, label: "Test new feature" },
+                { icon: icon(Flag, 14, { color: TOKENS.textMuted }), label: "Review design mockups" },
+                { icon: icon(CheckmarkOutline, 14, { color: TOKENS.textMuted }), label: "Update documentation" },
+                { icon: icon(InProgress, 14, { color: TOKENS.textMuted }), label: "Test new feature" },
               ],
             },
             {
-              icon: <InProgress size={16} className="text-neutral-50" />,
+              icon: icon(InProgress, 16, { color: TOKENS.text }),
               label: "In progress",
               hasDropdown: true,
               children: [
-                { icon: <Task size={14} className="text-neutral-300" />, label: "Implement user auth" },
-                { icon: <Task size={14} className="text-neutral-300" />, label: "Database migration" },
+                { icon: icon(Task, 14, { color: TOKENS.textMuted }), label: "Implement user auth" },
+                { icon: icon(Task, 14, { color: TOKENS.textMuted }), label: "Database migration" },
               ],
             },
             {
-              icon: <CheckmarkOutline size={16} className="text-neutral-50" />,
+              icon: icon(CheckmarkOutline, 16, { color: TOKENS.text }),
               label: "Completed",
               hasDropdown: true,
               children: [
-                { icon: <CheckmarkOutline size={14} className="text-neutral-300" />, label: "Fixed login bug" },
-                { icon: <CheckmarkOutline size={14} className="text-neutral-300" />, label: "Updated dependencies" },
-                { icon: <CheckmarkOutline size={14} className="text-neutral-300" />, label: "Code review completed" },
+                { icon: icon(CheckmarkOutline, 14, { color: TOKENS.textMuted }), label: "Fixed login bug" },
+                { icon: icon(CheckmarkOutline, 14, { color: TOKENS.textMuted }), label: "Updated dependencies" },
+                { icon: icon(CheckmarkOutline, 14, { color: TOKENS.textMuted }), label: "Code review completed" },
               ],
             },
           ],
@@ -337,15 +373,15 @@ function getSidebarContent(activeSection) {
           title: "Other",
           items: [
             {
-              icon: <Flag size={16} className="text-neutral-50" />,
+              icon: icon(Flag, 16, { color: TOKENS.text }),
               label: "Priority tasks",
               hasDropdown: true,
               children: [
-                { icon: <Flag size={14} className="text-red-400" />, label: "Security update" },
-                { icon: <Flag size={14} className="text-orange-400" />, label: "Client presentation" },
+                { icon: icon(Flag, 14, { color: TOKENS.danger }), label: "Security update" },
+                { icon: icon(Flag, 14, { color: TOKENS.warning }), label: "Client presentation" },
               ],
             },
-            { icon: <Archive size={16} className="text-neutral-50" />, label: "Archived" },
+            { icon: icon(Archive, 16, { color: TOKENS.text }), label: "Archived" },
           ],
         },
       ],
@@ -357,30 +393,30 @@ function getSidebarContent(activeSection) {
         {
           title: "Quick Actions",
           items: [
-            { icon: <AddLarge size={16} className="text-neutral-50" />, label: "New project" },
-            { icon: <Filter size={16} className="text-neutral-50" />, label: "Filter projects" },
+            { icon: icon(AddLarge, 16, { color: TOKENS.text }), label: "New project" },
+            { icon: icon(Filter, 16, { color: TOKENS.text }), label: "Filter projects" },
           ],
         },
         {
           title: "Active Projects",
           items: [
             {
-              icon: <FolderOpen size={16} className="text-neutral-50" />,
+              icon: icon(FolderOpen, 16, { color: TOKENS.text }),
               label: "Web Application",
               hasDropdown: true,
               children: [
-                { icon: <Task size={14} className="text-neutral-300" />, label: "Frontend development" },
-                { icon: <Task size={14} className="text-neutral-300" />, label: "API integration" },
-                { icon: <Task size={14} className="text-neutral-300" />, label: "Testing & QA" },
+                { icon: icon(Task, 14, { color: TOKENS.textMuted }), label: "Frontend development" },
+                { icon: icon(Task, 14, { color: TOKENS.textMuted }), label: "API integration" },
+                { icon: icon(Task, 14, { color: TOKENS.textMuted }), label: "Testing & QA" },
               ],
             },
             {
-              icon: <FolderOpen size={16} className="text-neutral-50" />,
+              icon: icon(FolderOpen, 16, { color: TOKENS.text }),
               label: "Mobile App",
               hasDropdown: true,
               children: [
-                { icon: <Task size={14} className="text-neutral-300" />, label: "UI/UX design" },
-                { icon: <Task size={14} className="text-neutral-300" />, label: "Native development" },
+                { icon: icon(Task, 14, { color: TOKENS.textMuted }), label: "UI/UX design" },
+                { icon: icon(Task, 14, { color: TOKENS.textMuted }), label: "Native development" },
               ],
             },
           ],
@@ -388,8 +424,8 @@ function getSidebarContent(activeSection) {
         {
           title: "Other",
           items: [
-            { icon: <CheckmarkOutline size={16} className="text-neutral-50" />, label: "Completed" },
-            { icon: <Archive size={16} className="text-neutral-50" />, label: "Archived" },
+            { icon: icon(CheckmarkOutline, 16, { color: TOKENS.text }), label: "Completed" },
+            { icon: icon(Archive, 16, { color: TOKENS.text }), label: "Archived" },
           ],
         },
       ],
@@ -401,32 +437,32 @@ function getSidebarContent(activeSection) {
         {
           title: "Views",
           items: [
-            { icon: <View size={16} className="text-neutral-50" />, label: "Month view" },
-            { icon: <CalendarIcon size={16} className="text-neutral-50" />, label: "Week view" },
-            { icon: <Time size={16} className="text-neutral-50" />, label: "Day view" },
+            { icon: icon(View, 16, { color: TOKENS.text }), label: "Month view" },
+            { icon: icon(CalendarIcon, 16, { color: TOKENS.text }), label: "Week view" },
+            { icon: icon(Time, 16, { color: TOKENS.text }), label: "Day view" },
           ],
         },
         {
           title: "Events",
           items: [
             {
-              icon: <Time size={16} className="text-neutral-50" />,
+              icon: icon(Time, 16, { color: TOKENS.text }),
               label: "Today's events",
               hasDropdown: true,
               children: [
-                { icon: <UserMultiple size={14} className="text-neutral-300" />, label: "Team standup (9:00 AM)" },
-                { icon: <UserIcon size={14} className="text-neutral-300" />, label: "Client call (2:00 PM)" },
-                { icon: <UserMultiple size={14} className="text-neutral-300" />, label: "Project review (4:00 PM)" },
+                { icon: icon(UserMultiple, 14, { color: TOKENS.textMuted }), label: "Team standup (9:00 AM)" },
+                { icon: icon(UserIcon, 14, { color: TOKENS.textMuted }), label: "Client call (2:00 PM)" },
+                { icon: icon(UserMultiple, 14, { color: TOKENS.textMuted }), label: "Project review (4:00 PM)" },
               ],
             },
-            { icon: <CalendarIcon size={16} className="text-neutral-50" />, label: "Upcoming events" },
+            { icon: icon(CalendarIcon, 16, { color: TOKENS.text }), label: "Upcoming events" },
           ],
         },
         {
           title: "Quick Actions",
           items: [
-            { icon: <AddLarge size={16} className="text-neutral-50" />, label: "New event" },
-            { icon: <Share size={16} className="text-neutral-50" />, label: "Share calendar" },
+            { icon: icon(AddLarge, 16, { color: TOKENS.text }), label: "New event" },
+            { icon: icon(Share, 16, { color: TOKENS.text }), label: "Share calendar" },
           ],
         },
       ],
@@ -439,22 +475,22 @@ function getSidebarContent(activeSection) {
           title: "My Teams",
           items: [
             {
-              icon: <Group size={16} className="text-neutral-50" />,
+              icon: icon(Group, 16, { color: TOKENS.text }),
               label: "Development Team",
               hasDropdown: true,
               children: [
-                { icon: <UserIcon size={14} className="text-neutral-300" />, label: "John Doe (Lead)" },
-                { icon: <UserIcon size={14} className="text-neutral-300" />, label: "Jane Smith" },
-                { icon: <UserIcon size={14} className="text-neutral-300" />, label: "Mike Johnson" },
+                { icon: icon(UserIcon, 14, { color: TOKENS.textMuted }), label: "John Doe (Lead)" },
+                { icon: icon(UserIcon, 14, { color: TOKENS.textMuted }), label: "Jane Smith" },
+                { icon: icon(UserIcon, 14, { color: TOKENS.textMuted }), label: "Mike Johnson" },
               ],
             },
             {
-              icon: <Group size={16} className="text-neutral-50" />,
+              icon: icon(Group, 16, { color: TOKENS.text }),
               label: "Design Team",
               hasDropdown: true,
               children: [
-                { icon: <UserIcon size={14} className="text-neutral-300" />, label: "Sarah Wilson" },
-                { icon: <UserIcon size={14} className="text-neutral-300" />, label: "Tom Brown" },
+                { icon: icon(UserIcon, 14, { color: TOKENS.textMuted }), label: "Sarah Wilson" },
+                { icon: icon(UserIcon, 14, { color: TOKENS.textMuted }), label: "Tom Brown" },
               ],
             },
           ],
@@ -462,8 +498,8 @@ function getSidebarContent(activeSection) {
         {
           title: "Quick Actions",
           items: [
-            { icon: <AddLarge size={16} className="text-neutral-50" />, label: "Invite member" },
-            { icon: <UserMultiple size={16} className="text-neutral-50" />, label: "Manage teams" },
+            { icon: icon(AddLarge, 16, { color: TOKENS.text }), label: "Invite member" },
+            { icon: icon(UserMultiple, 16, { color: TOKENS.text }), label: "Manage teams" },
           ],
         },
       ],
@@ -475,22 +511,22 @@ function getSidebarContent(activeSection) {
         {
           title: "Reports",
           items: [
-            { icon: <Report size={16} className="text-neutral-50" />, label: "Performance report" },
-            { icon: <ChartBar size={16} className="text-neutral-50" />, label: "Task completion" },
-            { icon: <Analytics size={16} className="text-neutral-50" />, label: "Team productivity" },
+            { icon: icon(Report, 16, { color: TOKENS.text }), label: "Performance report" },
+            { icon: icon(ChartBar, 16, { color: TOKENS.text }), label: "Task completion" },
+            { icon: icon(Analytics, 16, { color: TOKENS.text }), label: "Team productivity" },
           ],
         },
         {
           title: "Insights",
           items: [
             {
-              icon: <StarFilled size={16} className="text-neutral-50" />,
+              icon: icon(StarFilled, 16, { color: TOKENS.text }),
               label: "Key metrics",
               hasDropdown: true,
               children: [
-                { icon: <CheckmarkOutline size={14} className="text-neutral-300" />, label: "Tasks completed: 24" },
-                { icon: <Time size={14} className="text-neutral-300" />, label: "Avg. completion time: 2.5d" },
-                { icon: <UserMultiple size={14} className="text-neutral-300" />, label: "Team efficiency: 87%" },
+                { icon: icon(CheckmarkOutline, 14, { color: TOKENS.textMuted }), label: "Tasks completed: 24" },
+                { icon: icon(Time, 14, { color: TOKENS.textMuted }), label: "Avg. completion time: 2.5d" },
+                { icon: icon(UserMultiple, 14, { color: TOKENS.textMuted }), label: "Team efficiency: 87%" },
               ],
             },
           ],
@@ -504,31 +540,31 @@ function getSidebarContent(activeSection) {
         {
           title: "Quick Actions",
           items: [
-            { icon: <CloudUpload size={16} className="text-neutral-50" />, label: "Upload file" },
-            { icon: <AddLarge size={16} className="text-neutral-50" />, label: "New folder" },
+            { icon: icon(CloudUpload, 16, { color: TOKENS.text }), label: "Upload file" },
+            { icon: icon(AddLarge, 16, { color: TOKENS.text }), label: "New folder" },
           ],
         },
         {
           title: "Recent Files",
           items: [
             {
-              icon: <DocumentAdd size={16} className="text-neutral-50" />,
+              icon: icon(DocumentAdd, 16, { color: TOKENS.text }),
               label: "Recent documents",
               hasDropdown: true,
               children: [
-                { icon: <DocumentAdd size={14} className="text-neutral-300" />, label: "Project proposal.pdf" },
-                { icon: <DocumentAdd size={14} className="text-neutral-300" />, label: "Meeting notes.docx" },
-                { icon: <DocumentAdd size={14} className="text-neutral-300" />, label: "Design specs.figma" },
+                { icon: icon(DocumentAdd, 14, { color: TOKENS.textMuted }), label: "Project proposal.pdf" },
+                { icon: icon(DocumentAdd, 14, { color: TOKENS.textMuted }), label: "Meeting notes.docx" },
+                { icon: icon(DocumentAdd, 14, { color: TOKENS.textMuted }), label: "Design specs.figma" },
               ],
             },
-            { icon: <Share size={16} className="text-neutral-50" />, label: "Shared with me" },
+            { icon: icon(Share, 16, { color: TOKENS.text }), label: "Shared with me" },
           ],
         },
         {
           title: "Organization",
           items: [
-            { icon: <Folder size={16} className="text-neutral-50" />, label: "All folders" },
-            { icon: <Archive size={16} className="text-neutral-50" />, label: "Archived files" },
+            { icon: icon(Folder, 16, { color: TOKENS.text }), label: "All folders" },
+            { icon: icon(Archive, 16, { color: TOKENS.text }), label: "Archived files" },
           ],
         },
       ],
@@ -540,25 +576,25 @@ function getSidebarContent(activeSection) {
         {
           title: "Account",
           items: [
-            { icon: <UserIcon size={16} className="text-neutral-50" />, label: "Profile settings" },
-            { icon: <Security size={16} className="text-neutral-50" />, label: "Security" },
-            { icon: <Notification size={16} className="text-neutral-50" />, label: "Notifications" },
+            { icon: icon(UserIcon, 16, { color: TOKENS.text }), label: "Profile settings" },
+            { icon: icon(Security, 16, { color: TOKENS.text }), label: "Security" },
+            { icon: icon(Notification, 16, { color: TOKENS.text }), label: "Notifications" },
           ],
         },
         {
           title: "Workspace",
           items: [
             {
-              icon: <SettingsIcon size={16} className="text-neutral-50" />,
+              icon: icon(SettingsIcon, 16, { color: TOKENS.text }),
               label: "Preferences",
               hasDropdown: true,
               children: [
-                { icon: <View size={14} className="text-neutral-300" />, label: "Theme settings" },
-                { icon: <Time size={14} className="text-neutral-300" />, label: "Time zone" },
-                { icon: <Notification size={14} className="text-neutral-300" />, label: "Default notifications" },
+                { icon: icon(View, 14, { color: TOKENS.textMuted }), label: "Theme settings" },
+                { icon: icon(Time, 14, { color: TOKENS.textMuted }), label: "Time zone" },
+                { icon: icon(Notification, 14, { color: TOKENS.textMuted }), label: "Default notifications" },
               ],
             },
-            { icon: <Integration size={16} className="text-neutral-50" />, label: "Integrations" },
+            { icon: icon(Integration, 16, { color: TOKENS.text }), label: "Integrations" },
           ],
         },
       ],
@@ -570,17 +606,22 @@ function getSidebarContent(activeSection) {
 
 /* ---------------------------- Left Icon Nav Rail -------------------------- */
 
-function IconNavButton({
-  children,
-  isActive = false,
-  onClick,
-}) {
+function IconNavButton({ children, isActive = false, onClick }) {
   return (
     <button
       type="button"
-      className={`flex items-center justify-center rounded-lg size-10 min-w-10 transition-colors duration-500
-        ${isActive ? "bg-neutral-800 text-neutral-50" : "hover:bg-neutral-800 text-neutral-400 hover:text-neutral-300"}`}
-      style={{ transitionTimingFunction: softSpringEasing }}
+      className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-colors duration-500"
+      style={{
+        transitionTimingFunction: softSpringEasing,
+        backgroundColor: isActive ? TOKENS.itemBgActive : "transparent",
+        color: isActive ? TOKENS.text : TOKENS.textSubtle,
+      }}
+      onMouseEnter={(e) => {
+        if (!isActive) e.currentTarget.style.backgroundColor = TOKENS.itemBgHover;
+      }}
+      onMouseLeave={(e) => {
+        if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
+      }}
       onClick={onClick}
     >
       {children}
@@ -588,10 +629,7 @@ function IconNavButton({
   );
 }
 
-function IconNavigation({
-  activeSection,
-  onSectionChange,
-}) {
+function IconNavigation({ activeSection, onSectionChange }) {
   const navItems = [
     { id: "dashboard", icon: <Dashboard size={16} />, label: "Dashboard" },
     { id: "tasks", icon: <Task size={16} />, label: "Tasks" },
@@ -603,7 +641,13 @@ function IconNavigation({
   ];
 
   return (
-    <aside className="bg-black flex flex-col gap-2 items-center p-4 w-16 h-[800px] border-r border-neutral-800 rounded-l-2xl">
+    <aside
+      className="flex flex-col gap-2 items-center p-4 w-16 h-[800px] border-r rounded-l-2xl"
+      style={{
+        backgroundColor: TOKENS.railBg,
+        borderColor: TOKENS.border,
+      }}
+    >
       {/* Logo */}
       <div className="mb-2 size-10 flex items-center justify-center">
         <div className="size-7">
@@ -619,7 +663,7 @@ function IconNavigation({
             isActive={activeSection === item.id}
             onClick={() => onSectionChange(item.id)}
           >
-            {item.icon}
+            {React.cloneElement(item.icon, { style: { color: activeSection === item.id ? TOKENS.text : TOKENS.textSubtle } })}
           </IconNavButton>
         ))}
       </div>
@@ -629,7 +673,7 @@ function IconNavigation({
       {/* Bottom section */}
       <div className="flex flex-col gap-2 w-full items-center">
         <IconNavButton isActive={activeSection === "settings"} onClick={() => onSectionChange("settings")}>
-          <SettingsIcon size={16} />
+          <SettingsIcon size={16} style={{ color: activeSection === "settings" ? TOKENS.text : TOKENS.textSubtle }} />
         </IconNavButton>
         <div className="size-8">
           <AvatarCircle />
@@ -641,19 +685,20 @@ function IconNavigation({
 
 /* ------------------------------ Right Sidebar ----------------------------- */
 
-function SectionTitle({
-  title,
-  onToggleCollapse,
-  isCollapsed,
-}) {
+function SectionTitle({ title, onToggleCollapse, isCollapsed }) {
   if (isCollapsed) {
     return (
       <div className="w-full flex justify-center transition-all duration-500" style={{ transitionTimingFunction: softSpringEasing }}>
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-300"
-          style={{ transitionTimingFunction: softSpringEasing }}
+          className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500"
+          style={{
+            transitionTimingFunction: softSpringEasing,
+            color: TOKENS.textSubtle,
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = TOKENS.itemBgHover)}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
           aria-label="Expand sidebar"
         >
           <span className="inline-block rotate-180">
@@ -669,7 +714,10 @@ function SectionTitle({
       <div className="flex items-center justify-between">
         <div className="flex items-center h-10">
           <div className="px-2 py-1">
-            <div className="font-['Lexend:SemiBold',_sans-serif] text-[18px] text-neutral-50 leading-[27px]">
+            <div
+              className="font-['Lexend:SemiBold',_sans-serif] text-[18px] leading-[27px]"
+              style={{ color: TOKENS.text }}
+            >
               {title}
             </div>
           </div>
@@ -678,8 +726,10 @@ function SectionTitle({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-neutral-800 text-neutral-400 hover:text-neutral-300"
-            style={{ transitionTimingFunction: softSpringEasing }}
+            className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500"
+            style={{ transitionTimingFunction: softSpringEasing, color: TOKENS.textSubtle }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = TOKENS.itemBgHover)}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
             aria-label="Collapse sidebar"
           >
             <ChevronDownIcon size={16} className="-rotate-90" />
@@ -708,10 +758,13 @@ function DetailSidebar({ activeSection }) {
 
   return (
     <aside
-      className={`bg-black flex flex-col gap-4 items-start p-4 rounded-r-2xl transition-all duration-500 h-[800px] ${
+      className={`flex flex-col gap-4 items-start p-4 rounded-r-2xl transition-all duration-500 h-[800px] ${
         isCollapsed ? "w-16 min-w-16 !px-0 justify-center" : "w-80"
       }`}
-      style={{ transitionTimingFunction: softSpringEasing }}
+      style={{
+        transitionTimingFunction: softSpringEasing,
+        backgroundColor: TOKENS.panelBg,
+      }}
     >
       {!isCollapsed && <BrandBadge />}
 
@@ -736,19 +789,24 @@ function DetailSidebar({ activeSection }) {
       </div>
 
       {!isCollapsed && (
-        <div className="w-full mt-auto pt-2 border-t border-neutral-800">
+        <div className="w-full mt-auto pt-2 border-t" style={{ borderColor: TOKENS.border }}>
           <div className="flex items-center gap-2 px-2 py-2">
             <AvatarCircle />
-            <div className="font-['Lexend:Regular',_sans-serif] text-[14px] text-neutral-50">Text content</div>
+            <div className="font-['Lexend:Regular',_sans-serif] text-[14px]" style={{ color: TOKENS.text }}>
+              Text content
+            </div>
             <button
               type="button"
-              className="ml-auto size-8 rounded-md flex items-center justify-center hover:bg-neutral-800"
+              className="ml-auto size-8 rounded-md flex items-center justify-center"
+              style={{ color: TOKENS.text }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = TOKENS.itemBgHover)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
               aria-label="More"
             >
               <svg className="size-4" viewBox="0 0 16 16" fill="none">
-                <circle cx="4" cy="8" r="1" fill="#FAFAFA" />
-                <circle cx="8" cy="8" r="1" fill="#FAFAFA" />
-                <circle cx="12" cy="8" r="1" fill="#FAFAFA" />
+                <circle cx="4" cy="8" r="1" fill={TOKENS.logoFg} />
+                <circle cx="8" cy="8" r="1" fill={TOKENS.logoFg} />
+                <circle cx="12" cy="8" r="1" fill={TOKENS.logoFg} />
               </svg>
             </button>
           </div>
@@ -760,17 +818,13 @@ function DetailSidebar({ activeSection }) {
 
 /* ------------------------------ Menu Elements ---------------------------- */
 
-function MenuItem({
-  item,
-  isExpanded,
-  onToggle,
-  onItemClick,
-  isCollapsed,
-}) {
+function MenuItem({ item, isExpanded, onToggle, onItemClick, isCollapsed }) {
   const handleClick = () => {
     if (item.hasDropdown && onToggle) onToggle();
     else onItemClick?.();
   };
+
+  const isActive = !!item.isActive;
 
   return (
     <div
@@ -781,9 +835,18 @@ function MenuItem({
     >
       <div
         className={`rounded-lg cursor-pointer transition-all duration-500 flex items-center relative ${
-          item.isActive ? "bg-neutral-800" : "hover:bg-neutral-800"
-        } ${isCollapsed ? "w-10 min-w-10 h-10 justify-center p-4" : "w-full h-10 px-4 py-2"}`}
-        style={{ transitionTimingFunction: softSpringEasing }}
+          isCollapsed ? "w-10 min-w-10 h-10 justify-center p-4" : "w-full h-10 px-4 py-2"
+        }`}
+        style={{
+          transitionTimingFunction: softSpringEasing,
+          backgroundColor: isActive ? TOKENS.itemBgActive : "transparent",
+        }}
+        onMouseEnter={(e) => {
+          if (!isActive) e.currentTarget.style.backgroundColor = TOKENS.itemBgHover;
+        }}
+        onMouseLeave={(e) => {
+          if (!isActive) e.currentTarget.style.backgroundColor = "transparent";
+        }}
         onClick={handleClick}
         title={isCollapsed ? item.label : undefined}
       >
@@ -795,7 +858,10 @@ function MenuItem({
           }`}
           style={{ transitionTimingFunction: softSpringEasing }}
         >
-          <div className="font-['Lexend:Regular',_sans-serif] text-[14px] text-neutral-50 leading-[20px] truncate">
+          <div
+            className="font-['Lexend:Regular',_sans-serif] text-[14px] leading-[20px] truncate"
+            style={{ color: TOKENS.text }}
+          >
             {item.label}
           </div>
         </div>
@@ -809,8 +875,9 @@ function MenuItem({
           >
             <ChevronDownIcon
               size={16}
-              className="text-neutral-50 transition-transform duration-500"
+              className="transition-transform duration-500"
               style={{
+                color: TOKENS.text,
                 transitionTimingFunction: softSpringEasing,
                 transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
               }}
@@ -826,11 +893,14 @@ function SubMenuItem({ item, onItemClick }) {
   return (
     <div className="w-full pl-9 pr-1 py-[1px]">
       <div
-        className="h-10 w-full rounded-lg cursor-pointer transition-colors hover:bg-neutral-800 flex items-center px-3 py-1"
+        className="h-10 w-full rounded-lg cursor-pointer transition-colors flex items-center px-3 py-1"
+        style={{ color: TOKENS.textMuted }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = TOKENS.itemBgHover)}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
         onClick={onItemClick}
       >
         <div className="flex-1 min-w-0">
-          <div className="font-['Lexend:Regular',_sans-serif] text-[14px] text-neutral-300 leading-[18px] truncate">
+          <div className="font-['Lexend:Regular',_sans-serif] text-[14px] leading-[18px] truncate">
             {item.label}
           </div>
         </div>
@@ -839,12 +909,7 @@ function SubMenuItem({ item, onItemClick }) {
   );
 }
 
-function MenuSection({
-  section,
-  expandedItems,
-  onToggleExpanded,
-  isCollapsed,
-}) {
+function MenuSection({ section, expandedItems, onToggleExpanded, isCollapsed }) {
   return (
     <div className="flex flex-col w-full">
       <div
@@ -854,7 +919,10 @@ function MenuSection({
         style={{ transitionTimingFunction: softSpringEasing }}
       >
         <div className="flex items-center h-10 px-4">
-          <div className="font-['Lexend:Regular',_sans-serif] text-[14px] text-neutral-400">
+          <div
+            className="font-['Lexend:Regular',_sans-serif] text-[14px]"
+            style={{ color: TOKENS.textSubtle }}
+          >
             {section.title}
           </div>
         </div>
@@ -907,7 +975,10 @@ function TwoLevelSidebar() {
 
 export default function Frame760() {
   return (
-    <div className="bg-[#1a1a1a] min-h-screen flex items-center justify-center p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{ backgroundColor: TOKENS.frameBg }}
+    >
       <TwoLevelSidebar />
     </div>
   );
