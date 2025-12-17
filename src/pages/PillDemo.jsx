@@ -1,72 +1,281 @@
-export function PillDemo() {
-  const Pill = ({ className, children }) => (
-    <span
-      className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md border ${className}`}
-    >
-      {children}
-    </span>
-  );
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
+export default function PillDemo() {
   return (
-    <div className="space-y-6">
-      {/* Semantic Pills */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-2">
-          Semantic Pills
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          <Pill className="bg-green-50 text-green-700 border-green-200">
-            Active
-          </Pill>
-          <Pill className="bg-yellow-50 text-yellow-800 border-yellow-200">
-            Member
-          </Pill>
-          <Pill className="bg-red-50 text-red-700 border-red-200">
-            Error
-          </Pill>
-          <Pill className="bg-gray-100 text-gray-700 border-gray-200">
-            Muted
-          </Pill>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 p-8">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Pill Component Visual Reference</h1>
+          <p className="text-lg text-gray-600">
+            Demonstration of semantic and utility pill components used throughout the application
+          </p>
         </div>
-      </div>
 
-      {/* Utility Pills */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-2">
-          Utility Pills (Color 1–3)
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          <Pill className="bg-blue-50 text-blue-700 border-blue-200">
-            Color 1
-          </Pill>
-          <Pill className="bg-purple-50 text-purple-700 border-purple-200">
-            Color 2
-          </Pill>
-          <Pill className="bg-teal-50 text-teal-700 border-teal-200">
-            Color 3
-          </Pill>
-        </div>
-      </div>
+        {/* Semantic Pills Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Semantic Pills</CardTitle>
+            <CardDescription>
+              Color-coded pills that convey meaning (success, warning, danger, muted)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Success Pills */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Success / Positive</h3>
+              <div className="flex flex-wrap gap-3">
+                <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)]">
+                  Active
+                </span>
+                <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)]">
+                  Completed
+                </span>
+                <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)]">
+                  Verified
+                </span>
+                <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)]">
+                  Approved
+                </span>
+              </div>
+            </div>
 
-      {/* Dense / Table Context */}
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900 mb-2">
-          Dense / Table Context
-        </h3>
-        <div className="flex flex-wrap gap-2">
-          <Pill className="bg-purple-50 text-purple-700 border-purple-200">
-            Admin
-          </Pill>
-          <Pill className="bg-green-50 text-green-700 border-green-200">
-            Active
-          </Pill>
-          <Pill className="bg-orange-50 text-orange-700 border-orange-200">
-            Lead Nurture
-          </Pill>
-          <Pill className="bg-blue-50 text-blue-700 border-blue-200">
-            Organization
-          </Pill>
-        </div>
+            {/* Warning Pills */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Warning / Caution</h3>
+              <div className="flex flex-wrap gap-3">
+                <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)]">
+                  Pending
+                </span>
+                <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)]">
+                  In Review
+                </span>
+                <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)]">
+                  Needs Attention
+                </span>
+                <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)]">
+                  Expiring Soon
+                </span>
+              </div>
+            </div>
+
+            {/* Danger Pills */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Danger / Error</h3>
+              <div className="flex flex-wrap gap-3">
+                <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)]">
+                  Failed
+                </span>
+                <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)]">
+                  Error
+                </span>
+                <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)]">
+                  Rejected
+                </span>
+                <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)]">
+                  Overdue
+                </span>
+              </div>
+            </div>
+
+            {/* Muted Pills */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Muted / Neutral</h3>
+              <div className="flex flex-wrap gap-3">
+                <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)]">
+                  Draft
+                </span>
+                <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)]">
+                  Inactive
+                </span>
+                <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)]">
+                  Archived
+                </span>
+                <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)]">
+                  Disabled
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Utility Pills Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Utility Pills (Color 1–3)</CardTitle>
+            <CardDescription>
+              Generic colored pills for categorization, tags, or visual variety
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Color 1 Pills */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Color 1 (Blue Tones)</h3>
+              <div className="flex flex-wrap gap-3">
+                <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)]">
+                  VIP Client
+                </span>
+                <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)]">
+                  Priority
+                </span>
+                <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)]">
+                  Featured
+                </span>
+                <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)]">
+                  Pro Plan
+                </span>
+              </div>
+            </div>
+
+            {/* Color 2 Pills */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Color 2 (Purple Tones)</h3>
+              <div className="flex flex-wrap gap-3">
+                <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)]">
+                  New Feature
+                </span>
+                <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)]">
+                  Beta
+                </span>
+                <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)]">
+                  Premium
+                </span>
+                <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)]">
+                  Limited
+                </span>
+              </div>
+            </div>
+
+            {/* Color 3 Pills */}
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Color 3 (Teal Tones)</h3>
+              <div className="flex flex-wrap gap-3">
+                <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)]">
+                  Hot Lead
+                </span>
+                <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)]">
+                  Follow Up
+                </span>
+                <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)]">
+                  High Value
+                </span>
+                <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)]">
+                  Referred
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Dense / Table Context */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Dense / Table Context</CardTitle>
+            <CardDescription>
+              Smaller pills optimized for use in tables or compact layouts
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Example table-like layout */}
+              <div className="border rounded-lg overflow-hidden">
+                <table className="w-full">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Client Name</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Priority</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">Tags</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-t">
+                      <td className="px-4 py-3 text-sm">John Smith</td>
+                      <td className="px-4 py-3">
+                        <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)] text-xs">
+                          Active
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)] text-xs">
+                          High
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-1">
+                          <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)] text-xs">
+                            VIP
+                          </span>
+                          <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)] text-xs">
+                            Referral
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-3 text-sm">Jane Doe</td>
+                      <td className="px-4 py-3">
+                        <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)] text-xs">
+                          Pending
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)] text-xs">
+                          Normal
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)] text-xs">
+                          Follow Up
+                        </span>
+                      </td>
+                    </tr>
+                    <tr className="border-t">
+                      <td className="px-4 py-3 text-sm">Bob Johnson</td>
+                      <td className="px-4 py-3">
+                        <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)] text-xs">
+                          Overdue
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)] text-xs">
+                          Urgent
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)] text-xs">
+                          Past Due
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Usage Notes */}
+        <Card className="bg-blue-50 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-blue-900">Usage Guidelines</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-blue-800 space-y-2">
+            <p>
+              <strong>Semantic pills</strong> should be used when the pill's color carries meaning (e.g., status indicators).
+            </p>
+            <p>
+              <strong>Utility pills</strong> (Color 1–3) should be used for categorization, tags, or when multiple distinct colors are needed without specific semantic meaning.
+            </p>
+            <p>
+              <strong>Smaller pills</strong> can be achieved by adding the <code className="bg-blue-100 px-1 rounded">text-xs</code> class for use in dense layouts like tables.
+            </p>
+            <p>
+              All pills automatically adapt to light/dark mode based on the CSS variables defined in <code className="bg-blue-100 px-1 rounded">globals.css</code>.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
