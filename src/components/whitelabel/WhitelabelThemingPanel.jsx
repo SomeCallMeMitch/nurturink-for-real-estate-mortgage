@@ -14,6 +14,10 @@ export default function WhitelabelThemingPanel({ settings, updateSettings, fontO
       </CardHeader>
 
       <CardContent className="space-y-6">
+        {/* TEST MESSAGE - ADDED FOR DEBUGGING */}
+        <div className="text-red-600 font-bold text-2xl mb-4">
+          This is NEW
+        </div>
         {/* Color Settings */}
         <div className="grid md:grid-cols-2 gap-6">
           <div>
