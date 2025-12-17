@@ -26,39 +26,32 @@ function Pill({ children, variant = "muted", size = "md" }) {
     success: {
       bg: "var(--pill-success-bg, #DCFCE7)",
       fg: "var(--pill-success-fg, #166534)",
-      bd: "var(--pill-success-bd, rgba(22, 101, 52, 0.15))",
     },
     warning: {
       bg: "var(--pill-warning-bg, #FEF3C7)",
       fg: "var(--pill-warning-fg, #92400E)",
-      bd: "var(--pill-warning-bd, rgba(146, 64, 14, 0.16))",
     },
     danger: {
       bg: "var(--pill-danger-bg, #FEE2E2)",
       fg: "var(--pill-danger-fg, #991B1B)",
-      bd: "var(--pill-danger-bd, rgba(153, 27, 27, 0.16))",
     },
     muted: {
       bg: "var(--pill-muted-bg, #E5E7EB)",
       fg: "var(--pill-muted-fg, #374151)",
-      bd: "var(--pill-muted-bd, rgba(55, 65, 81, 0.14))",
     },
 
     // Utility / custom pills (Color 1–3)
     color1: {
       bg: "var(--pill-color1-bg, #DBEAFE)",
       fg: "var(--pill-color1-fg, #1D4ED8)",
-      bd: "var(--pill-color1-bd, rgba(29, 78, 216, 0.18))",
     },
     color2: {
       bg: "var(--pill-color2-bg, #EDE9FE)",
       fg: "var(--pill-color2-fg, #6D28D9)",
-      bd: "var(--pill-color2-bd, rgba(109, 40, 217, 0.18))",
     },
     color3: {
       bg: "var(--pill-color3-bg, #CCFBF1)",
       fg: "var(--pill-color3-fg, #0F766E)",
-      bd: "var(--pill-color3-bd, rgba(15, 118, 110, 0.18))",
     },
   };
 
@@ -71,13 +64,11 @@ function Pill({ children, variant = "muted", size = "md" }) {
         "rounded-md",
         "font-medium",
         "leading-none",
-        "border",
         sizeClass,
       ].join(" ")}
       style={{
         background: c.bg,
         color: c.fg,
-        borderColor: c.bd,
       }}
     >
       {children}
