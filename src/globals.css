@@ -39,6 +39,17 @@ css
   --primary-foreground: #ffffff;
   --secondary-foreground: #575757;
   --destructive-foreground: #ffffff;
+
+  /* Pill Color Variables */
+  --pill-color-1: #4338ca;
+  --pill-color-2: #0f766e;
+  --pill-color-3: #6d28d9;
+
+  /* Semantic Status Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --surface-muted: #f3f4f6;
 }
 
 .dark {
@@ -61,6 +72,17 @@ css
   --primary-foreground: #ffffff;
   --secondary-foreground: #a3a3a3;
   --destructive-foreground: #ffffff;
+
+  /* Pill Color Variables - Dark Mode */
+  --pill-color-1: #6366f1;
+  --pill-color-2: #14b8a6;
+  --pill-color-3: #8b5cf6;
+
+  /* Semantic Status Colors - Dark Mode */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --surface-muted: #374151;
 }
 
 @theme inline {
@@ -236,8 +258,16 @@ table tbody tr:hover {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-}
+    }
+    }
+
+    /* =========================
+    PILL COMPONENT STYLES
+    ========================= */
+
+    .pill {
+    @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md;
+    }
 
 /* =========================
    LEGACY CLASS MAPPING
