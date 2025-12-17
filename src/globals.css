@@ -308,54 +308,11 @@ table tbody tr:hover {
     }
 
     /* =========================
-       PILL COMPONENT STYLES
-       ========================= */
+    PILL COMPONENT STYLES
+    ========================= */
 
     .pill {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.25rem 0.625rem;
-      font-size: 0.75rem;
-      line-height: 1rem;
-      font-weight: 500;
-      border-radius: 0.375rem;
-    }
-
-    /* Semantic Pill Classes */
-    .pill-success {
-      background-color: var(--pill-success-bg);
-      color: var(--pill-success-fg);
-    }
-
-    .pill-warning {
-      background-color: var(--pill-warning-bg);
-      color: var(--pill-warning-fg);
-    }
-
-    .pill-danger {
-      background-color: var(--pill-danger-bg);
-      color: var(--pill-danger-fg);
-    }
-
-    .pill-muted {
-      background-color: var(--pill-muted-bg);
-      color: var(--pill-muted-fg);
-    }
-
-    /* Utility Pill Classes */
-    .pill-color1 {
-      background-color: var(--pill-color1-bg);
-      color: var(--pill-color1-fg);
-    }
-
-    .pill-color2 {
-      background-color: var(--pill-color2-bg);
-      color: var(--pill-color2-fg);
-    }
-
-    .pill-color3 {
-      background-color: var(--pill-color3-bg);
-      color: var(--pill-color3-fg);
+    @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md;
     }
 
 /* =========================
