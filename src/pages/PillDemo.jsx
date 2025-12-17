@@ -26,16 +26,16 @@ export default function PillDemo() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Success / Positive</h3>
               <div className="flex flex-wrap gap-3">
-                <span className="pill bg-pill-success text-pill-success">
+                <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)]">
                   Active
                 </span>
-                <span className="pill bg-pill-success text-pill-success">
+                <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)]">
                   Completed
                 </span>
-                <span className="pill bg-pill-success text-pill-success">
+                <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)]">
                   Verified
                 </span>
-                <span className="pill bg-pill-success text-pill-success">
+                <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)]">
                   Approved
                 </span>
               </div>
@@ -45,16 +45,16 @@ export default function PillDemo() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Warning / Caution</h3>
               <div className="flex flex-wrap gap-3">
-                <span className="pill bg-pill-warning text-pill-warning">
+                <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)]">
                   Pending
                 </span>
-                <span className="pill bg-pill-warning text-pill-warning">
+                <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)]">
                   In Review
                 </span>
-                <span className="pill bg-pill-warning text-pill-warning">
+                <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)]">
                   Needs Attention
                 </span>
-                <span className="pill bg-pill-warning text-pill-warning">
+                <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)]">
                   Expiring Soon
                 </span>
               </div>
@@ -64,16 +64,16 @@ export default function PillDemo() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Danger / Error</h3>
               <div className="flex flex-wrap gap-3">
-                <span className="pill bg-pill-danger text-pill-danger">
+                <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)]">
                   Failed
                 </span>
-                <span className="pill bg-pill-danger text-pill-danger">
+                <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)]">
                   Error
                 </span>
-                <span className="pill bg-pill-danger text-pill-danger">
+                <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)]">
                   Rejected
                 </span>
-                <span className="pill bg-pill-danger text-pill-danger">
+                <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)]">
                   Overdue
                 </span>
               </div>
@@ -83,16 +83,16 @@ export default function PillDemo() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Muted / Neutral</h3>
               <div className="flex flex-wrap gap-3">
-                <span className="pill bg-pill-muted text-pill-muted">
+                <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)]">
                   Draft
                 </span>
-                <span className="pill bg-pill-muted text-pill-muted">
+                <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)]">
                   Inactive
                 </span>
-                <span className="pill bg-pill-muted text-pill-muted">
+                <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)]">
                   Archived
                 </span>
-                <span className="pill bg-pill-muted text-pill-muted">
+                <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)]">
                   Disabled
                 </span>
               </div>
@@ -113,16 +113,16 @@ export default function PillDemo() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Color 1 (Blue Tones)</h3>
               <div className="flex flex-wrap gap-3">
-                <span className="pill bg-pill-color1 text-pill-color1">
+                <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)]">
                   VIP Client
                 </span>
-                <span className="pill bg-pill-color1 text-pill-color1">
+                <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)]">
                   Priority
                 </span>
-                <span className="pill bg-pill-color1 text-pill-color1">
+                <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)]">
                   Featured
                 </span>
-                <span className="pill bg-pill-color1 text-pill-color1">
+                <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)]">
                   Pro Plan
                 </span>
               </div>
@@ -132,16 +132,16 @@ export default function PillDemo() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Color 2 (Purple Tones)</h3>
               <div className="flex flex-wrap gap-3">
-                <span className="pill bg-pill-color2 text-pill-color2">
+                <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)]">
                   New Feature
                 </span>
-                <span className="pill bg-pill-color2 text-pill-color2">
+                <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)]">
                   Beta
                 </span>
-                <span className="pill bg-pill-color2 text-pill-color2">
+                <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)]">
                   Premium
                 </span>
-                <span className="pill bg-pill-color2 text-pill-color2">
+                <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)]">
                   Limited
                 </span>
               </div>
@@ -151,16 +151,16 @@ export default function PillDemo() {
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Color 3 (Teal Tones)</h3>
               <div className="flex flex-wrap gap-3">
-                <span className="pill bg-pill-color3 text-pill-color3">
+                <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)]">
                   Hot Lead
                 </span>
-                <span className="pill bg-pill-color3 text-pill-color3">
+                <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)]">
                   Follow Up
                 </span>
-                <span className="pill bg-pill-color3 text-pill-color3">
+                <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)]">
                   High Value
                 </span>
-                <span className="pill bg-pill-color3 text-pill-color3">
+                <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)]">
                   Referred
                 </span>
               </div>
@@ -193,21 +193,21 @@ export default function PillDemo() {
                     <tr className="border-t">
                       <td className="px-4 py-3 text-sm">John Smith</td>
                       <td className="px-4 py-3">
-                        <span className="pill bg-pill-success text-pill-success text-xs">
+                        <span className="pill bg-[var(--pill-success-bg)] text-[var(--pill-success-fg)] text-xs">
                           Active
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="pill bg-pill-color1 text-pill-color1 text-xs">
+                        <span className="pill bg-[var(--pill-color1-bg)] text-[var(--pill-color1-fg)] text-xs">
                           High
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
-                          <span className="pill bg-pill-color3 text-pill-color3 text-xs">
+                          <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)] text-xs">
                             VIP
                           </span>
-                          <span className="pill bg-pill-color2 text-pill-color2 text-xs">
+                          <span className="pill bg-[var(--pill-color2-bg)] text-[var(--pill-color2-fg)] text-xs">
                             Referral
                           </span>
                         </div>
@@ -216,17 +216,17 @@ export default function PillDemo() {
                     <tr className="border-t">
                       <td className="px-4 py-3 text-sm">Jane Doe</td>
                       <td className="px-4 py-3">
-                        <span className="pill bg-pill-warning text-pill-warning text-xs">
+                        <span className="pill bg-[var(--pill-warning-bg)] text-[var(--pill-warning-fg)] text-xs">
                           Pending
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="pill bg-pill-muted text-pill-muted text-xs">
+                        <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)] text-xs">
                           Normal
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="pill bg-pill-color3 text-pill-color3 text-xs">
+                        <span className="pill bg-[var(--pill-color3-bg)] text-[var(--pill-color3-fg)] text-xs">
                           Follow Up
                         </span>
                       </td>
@@ -234,17 +234,17 @@ export default function PillDemo() {
                     <tr className="border-t">
                       <td className="px-4 py-3 text-sm">Bob Johnson</td>
                       <td className="px-4 py-3">
-                        <span className="pill bg-pill-danger text-pill-danger text-xs">
+                        <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)] text-xs">
                           Overdue
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="pill bg-pill-danger text-pill-danger text-xs">
+                        <span className="pill bg-[var(--pill-danger-bg)] text-[var(--pill-danger-fg)] text-xs">
                           Urgent
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="pill bg-pill-muted text-pill-muted text-xs">
+                        <span className="pill bg-[var(--pill-muted-bg)] text-[var(--pill-muted-fg)] text-xs">
                           Past Due
                         </span>
                       </td>

@@ -315,65 +315,6 @@ table tbody tr:hover {
     @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md;
     }
 
-    /* Pill Utility Classes - Maps to CSS Variables for Whitelabel Control */
-    @layer utilities {
-      /* Semantic Pills - Success */
-      .bg-pill-success {
-        background-color: var(--pill-success-bg);
-      }
-      .text-pill-success {
-        color: var(--pill-success-fg);
-      }
-
-      /* Semantic Pills - Warning */
-      .bg-pill-warning {
-        background-color: var(--pill-warning-bg);
-      }
-      .text-pill-warning {
-        color: var(--pill-warning-fg);
-      }
-
-      /* Semantic Pills - Danger */
-      .bg-pill-danger {
-        background-color: var(--pill-danger-bg);
-      }
-      .text-pill-danger {
-        color: var(--pill-danger-fg);
-      }
-
-      /* Semantic Pills - Muted */
-      .bg-pill-muted {
-        background-color: var(--pill-muted-bg);
-      }
-      .text-pill-muted {
-        color: var(--pill-muted-fg);
-      }
-
-      /* Utility Pills - Color 1 */
-      .bg-pill-color1 {
-        background-color: var(--pill-color1-bg);
-      }
-      .text-pill-color1 {
-        color: var(--pill-color1-fg);
-      }
-
-      /* Utility Pills - Color 2 */
-      .bg-pill-color2 {
-        background-color: var(--pill-color2-bg);
-      }
-      .text-pill-color2 {
-        color: var(--pill-color2-fg);
-      }
-
-      /* Utility Pills - Color 3 */
-      .bg-pill-color3 {
-        background-color: var(--pill-color3-bg);
-      }
-      .text-pill-color3 {
-        color: var(--pill-color3-fg);
-      }
-    }
-
 /* =========================
    LEGACY CLASS MAPPING
    Maps old Tailwind utility classes to new theme variables
