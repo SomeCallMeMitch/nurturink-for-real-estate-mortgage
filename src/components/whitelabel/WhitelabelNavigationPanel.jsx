@@ -6,100 +6,106 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Navigation, Menu } from "lucide-react";
+import { Layout, Navigation } from "lucide-react";
 import { ColorField, ColorSection } from "./WhitelabelHelpers";
 
-export default function WhitelabelNavigationPanel({
-  settings,
-  updateSettings,
-}) {
+export default function WhitelabelNavigationPanel({ settings, updateSettings }) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Navigation & Sidebar</CardTitle>
         <CardDescription>
-          Customize sidebar and navigation appearance
+          Customize the sidebar and navigation appearance
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Sidebar Colors */}
         <ColorSection
           title="Sidebar Colors"
-          icon={Navigation}
+          icon={Layout}
           defaultOpen={true}
         >
           <ColorField
-            label="Background"
+            label="Sidebar Background"
             value={settings.sidebarBackground}
             onChange={(v) => updateSettings({ sidebarBackground: v })}
+            description="Main sidebar bg"
           />
           <ColorField
-            label="Foreground"
+            label="Sidebar Text"
             value={settings.sidebarForeground}
             onChange={(v) => updateSettings({ sidebarForeground: v })}
+            description="Sidebar text color"
           />
           <ColorField
-            label="Border"
+            label="Sidebar Border"
             value={settings.sidebarBorder}
             onChange={(v) => updateSettings({ sidebarBorder: v })}
+            description="Sidebar border/dividers"
           />
           <ColorField
-            label="Accent"
+            label="Sidebar Accent"
             value={settings.sidebarAccent}
             onChange={(v) => updateSettings({ sidebarAccent: v })}
+            description="Hover background"
           />
           <ColorField
-            label="Accent Foreground"
+            label="Sidebar Accent Text"
             value={settings.sidebarAccentForeground}
             onChange={(v) => updateSettings({ sidebarAccentForeground: v })}
+            description="Text on hover"
           />
         </ColorSection>
 
-        {/* Navigation Colors */}
-        <ColorSection title="Navigation Colors" icon={Menu}>
+        {/* Navigation Items */}
+        <ColorSection title="Navigation Items" icon={Navigation}>
           <ColorField
             label="Nav Background"
             value={settings.navBackground}
             onChange={(v) => updateSettings({ navBackground: v })}
+            description="Navigation background"
           />
           <ColorField
-            label="Nav Foreground"
+            label="Nav Text"
             value={settings.navForeground}
             onChange={(v) => updateSettings({ navForeground: v })}
+            description="Navigation text"
           />
           <ColorField
             label="Nav Muted"
             value={settings.navMuted}
             onChange={(v) => updateSettings({ navMuted: v })}
+            description="Inactive nav items"
           />
           <ColorField
             label="Nav Border"
             value={settings.navBorder}
             onChange={(v) => updateSettings({ navBorder: v })}
+            description="Nav dividers"
+          />
+          <ColorField
+            label="Nav Hover Background"
+            value={settings.navItemHoverBg}
+            onChange={(v) => updateSettings({ navItemHoverBg: v })}
+            description="Hover state bg"
+          />
+          <ColorField
+            label="Nav Active Background"
+            value={settings.navItemActiveBg}
+            onChange={(v) => updateSettings({ navItemActiveBg: v })}
+            description="Active item bg"
+          />
+          <ColorField
+            label="Nav Active Text"
+            value={settings.navItemActiveFg}
+            onChange={(v) => updateSettings({ navItemActiveFg: v })}
+            description="Active item text"
           />
           <ColorField
             label="Nav Accent"
             value={settings.navAccent}
             onChange={(v) => updateSettings({ navAccent: v })}
-          />
-        </ColorSection>
-
-        {/* Navigation States */}
-        <ColorSection title="Navigation States">
-          <ColorField
-            label="Item Hover Background"
-            value={settings.navItemHoverBg}
-            onChange={(v) => updateSettings({ navItemHoverBg: v })}
-          />
-          <ColorField
-            label="Item Active Background"
-            value={settings.navItemActiveBg}
-            onChange={(v) => updateSettings({ navItemActiveBg: v })}
-          />
-          <ColorField
-            label="Item Active Foreground"
-            value={settings.navItemActiveFg}
-            onChange={(v) => updateSettings({ navItemActiveFg: v })}
+            description="Accent highlight"
           />
         </ColorSection>
       </CardContent>
