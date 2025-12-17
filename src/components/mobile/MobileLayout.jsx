@@ -5,13 +5,13 @@ import { Home, Users, Zap, User } from 'lucide-react';
 
 /**
  * MobileLayout Component
- * 
+ *
  * Core layout wrapper for all mobile pages.
  * Includes:
  * - Bottom tab navigation (4 tabs)
  * - Content area with proper spacing for bottom nav
  * - Active tab indicator with burnt orange highlight
- * 
+ *
  * Pages:
  * MobileHome - Home tab
  * MobileClients - Clients tab
@@ -28,14 +28,14 @@ const NAV_ITEMS = [
 
 export default function MobileLayout({ children, currentPageName }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-[var(--surface-1)] flex flex-col">
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto pb-20">
         {children}
       </main>
 
       {/* Bottom Tab Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom z-50">
+      <nav className="fixed bottom-0 left-0 right-0 bg-[var(--surface-0)] border-t border-[var(--border-subtle)] safe-area-bottom z-50">
         <div className="flex items-stretch h-16">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -49,20 +49,29 @@ export default function MobileLayout({ children, currentPageName }) {
                 className={`flex-1 flex flex-col items-center justify-center gap-1 transition-colors ${
                   isActive
                     ? isHighlight
-                      ? 'text-[#c87533]'
-                      : 'text-gray-900'
-                    : 'text-gray-400'
+                      ? 'text-[var(--brand-accent)]'
+                      : 'text-[var(--text-0)]'
+                    : 'text-[var(--text-2)]'
                 }`}
               >
                 {isHighlight ? (
                   // Special highlighted "QuickCard" button - raised circle with label below
                   <>
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center -mt-4 shadow-lg ${
-                      isActive ? 'bg-[#c87533]' : 'bg-orange-400'
-                    }`}>
+                    <div
+                      className={`w-12 h-12 rounded-full flex items-center justify-center -mt-4 shadow-lg ${
+                        isActive ? 'bg-[var(--brand-accent)]' : 'bg-[var(--cta-primary)]'
+                      }`}
+                    >
                       <Icon className="w-6 h-6 text-white" />
                     </div>
-                    <span className={`text-xs -mt-1 ${isActive ? 'font-semibold text-[#c87533]' : 'font-medium text-gray-600'}`}>
+
+                    <span
+                      className={`text-xs -mt-1 ${
+                        isActive
+                          ? 'font-semibold text-[var(--brand-accent)]'
+                          : 'font-medium text-[var(--text-1)]'
+                      }`}
+                    >
                       {item.label}
                     </span>
                   </>
