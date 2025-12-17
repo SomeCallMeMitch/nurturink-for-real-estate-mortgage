@@ -1,155 +1,207 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, CheckCircle, Eye } from "lucide-react";
-
-function ColorField({ label, value, onChange }) {
-  return (
-    <div>
-      <Label className="text-xs">{label}</Label>
-      <div className="flex items-center gap-2 mt-1">
-        <Input type="color" value={value ?? "#000000"} onChange={(e) => onChange(e.target.value)} className="w-12 h-8 cursor-pointer p-1" />
-        <Input type="text" value={value ?? ""} onChange={(e) => onChange(e.target.value)} className="font-mono text-xs flex-1" />
-      </div>
-    </div>
-  );
-}
-
-function ToastColorCard({ title, icon, bg, text, border, onBg, onText, onBorder }) {
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 mb-3">
-        {icon}
-        <h4 className="font-semibold text-gray-900">{title}</h4>
-      </div>
-
-      <ColorField label="Background" value={bg} onChange={onBg} />
-      <ColorField label="Text" value={text} onChange={onText} />
-      <ColorField label="Border" value={border} onChange={onBorder} />
-
-      <div
-        className="p-3 rounded-lg border-2 mt-3"
-        style={{
-          backgroundColor: bg,
-          color: text,
-          borderColor: border,
-        }}
-      >
-        <p className="font-semibold text-sm">{title}</p>
-        <p className="text-xs">Preview</p>
-      </div>
-    </div>
-  );
-}
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ColorField, ColorSection } from "./WhitelabelHelpers";
 
 export default function WhitelabelNotificationsPanel({ settings, updateSettings }) {
   return (
-    <div className="space-y-6">
-      {/* General Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Notification Behavior</CardTitle>
-          <CardDescription>Configure how toast notifications appear and behave</CardDescription>
-        </CardHeader>
+    <Card>
+      <CardHeader>
+        <CardTitle>Toast Notifications</CardTitle>
+        <CardDescription>
+          Customize notification appearance and behavior
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Toast Behavior */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label>Duration (ms)</Label>
+            <Input
+              type="number"
+              value={settings.toastDuration || 3000}
+              onChange={(e) =>
+                updateSettings({
+                  toastDuration: parseInt(e.target.value) || 3000,
+                })
+              }
+              className="mt-1"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              How long toasts stay visible
+            </p>
+          </div>
+          <div>
+            <Label>Placement</Label>
+            <Select
+              value={settings.toastPlacement || "top-right"}
+              onValueChange={(v) => updateSettings({ toastPlacement: v })}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="top-right">Top Right</SelectItem>
+                <SelectItem value="top-left">Top Left</SelectItem>
+                <SelectItem value="bottom-right">Bottom Right</SelectItem>
+                <SelectItem value="bottom-left">Bottom Left</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Where toasts appear on screen
+            </p>
+          </div>
+        </div>
 
-        <CardContent className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="toastDuration">Duration (milliseconds)</Label>
-              <Input
-                id="toastDuration"
-                type="number"
-                min="1000"
-                max="30000"
-                step="500"
-                value={settings?.toastDuration ?? 3000}
-                onChange={(e) => updateSettings({ toastDuration: parseInt(e.target.value || "0", 10) })}
-                className="mt-1"
-              />
-              <p className="text-xs text-gray-500 mt-1">How long notifications stay visible (1000-30000ms)</p>
-            </div>
+        {/* Toast Colors */}
+        <div className="space-y-4 pt-4 border-t">
+          <h3 className="font-medium text-sm text-muted-foreground">
+            Toast Color Schemes
+          </h3>
 
-            <div>
-              <Label htmlFor="toastPlacement">Placement</Label>
-              <Select
-                value={settings?.toastPlacement ?? "top-right"}
-                onValueChange={(value) => updateSettings({ toastPlacement: value })}
+          {/* Success Toast */}
+          <ColorSection title="Success Toast" defaultOpen={true}>
+            <ColorField
+              label="Background"
+              value={settings.toastSuccessBg}
+              onChange={(v) => updateSettings({ toastSuccessBg: v })}
+            />
+            <ColorField
+              label="Text"
+              value={settings.toastSuccessText}
+              onChange={(v) => updateSettings({ toastSuccessText: v })}
+            />
+            <ColorField
+              label="Border"
+              value={settings.toastSuccessBorder}
+              onChange={(v) => updateSettings({ toastSuccessBorder: v })}
+            />
+            {/* Preview */}
+            <div className="col-span-2 mt-2">
+              <div
+                className="p-3 rounded-lg border text-sm"
+                style={{
+                  backgroundColor: settings.toastSuccessBg,
+                  color: settings.toastSuccessText,
+                  borderColor: settings.toastSuccessBorder,
+                }}
               >
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="top-left">Top Left</SelectItem>
-                  <SelectItem value="top-center">Top Center</SelectItem>
-                  <SelectItem value="top-right">Top Right</SelectItem>
-                  <SelectItem value="bottom-left">Bottom Left</SelectItem>
-                  <SelectItem value="bottom-center">Bottom Center</SelectItem>
-                  <SelectItem value="bottom-right">Bottom Right</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500 mt-1">Where notifications appear on screen</p>
+                ✓ Success message preview
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </ColorSection>
 
-      {/* All Notification Colors in One Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Notification Colors</CardTitle>
-          <CardDescription>Customize the appearance of different notification types</CardDescription>
-        </CardHeader>
-
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <ToastColorCard
-              title="Success"
-              icon={<CheckCircle className="w-5 h-5 text-green-600" />}
-              bg={settings?.toastSuccessBg}
-              text={settings?.toastSuccessText}
-              border={settings?.toastSuccessBorder}
-              onBg={(v) => updateSettings({ toastSuccessBg: v })}
-              onText={(v) => updateSettings({ toastSuccessText: v })}
-              onBorder={(v) => updateSettings({ toastSuccessBorder: v })}
+          {/* Error Toast */}
+          <ColorSection title="Error Toast">
+            <ColorField
+              label="Background"
+              value={settings.toastErrorBg}
+              onChange={(v) => updateSettings({ toastErrorBg: v })}
             />
-
-            <ToastColorCard
-              title="Error"
-              icon={<AlertCircle className="w-5 h-5 text-red-600" />}
-              bg={settings?.toastErrorBg}
-              text={settings?.toastErrorText}
-              border={settings?.toastErrorBorder}
-              onBg={(v) => updateSettings({ toastErrorBg: v })}
-              onText={(v) => updateSettings({ toastErrorText: v })}
-              onBorder={(v) => updateSettings({ toastErrorBorder: v })}
+            <ColorField
+              label="Text"
+              value={settings.toastErrorText}
+              onChange={(v) => updateSettings({ toastErrorText: v })}
             />
-
-            <ToastColorCard
-              title="Warning"
-              icon={<AlertCircle className="w-5 h-5 text-yellow-600" />}
-              bg={settings?.toastWarningBg}
-              text={settings?.toastWarningText}
-              border={settings?.toastWarningBorder}
-              onBg={(v) => updateSettings({ toastWarningBg: v })}
-              onText={(v) => updateSettings({ toastWarningText: v })}
-              onBorder={(v) => updateSettings({ toastWarningBorder: v })}
+            <ColorField
+              label="Border"
+              value={settings.toastErrorBorder}
+              onChange={(v) => updateSettings({ toastErrorBorder: v })}
             />
+            {/* Preview */}
+            <div className="col-span-2 mt-2">
+              <div
+                className="p-3 rounded-lg border text-sm"
+                style={{
+                  backgroundColor: settings.toastErrorBg,
+                  color: settings.toastErrorText,
+                  borderColor: settings.toastErrorBorder,
+                }}
+              >
+                ✕ Error message preview
+              </div>
+            </div>
+          </ColorSection>
 
-            <ToastColorCard
-              title="Info"
-              icon={<Eye className="w-5 h-5 text-blue-600" />}
-              bg={settings?.toastInfoBg}
-              text={settings?.toastInfoText}
-              border={settings?.toastInfoBorder}
-              onBg={(v) => updateSettings({ toastInfoBg: v })}
-              onText={(v) => updateSettings({ toastInfoText: v })}
-              onBorder={(v) => updateSettings({ toastInfoBorder: v })}
+          {/* Warning Toast */}
+          <ColorSection title="Warning Toast">
+            <ColorField
+              label="Background"
+              value={settings.toastWarningBg}
+              onChange={(v) => updateSettings({ toastWarningBg: v })}
             />
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            <ColorField
+              label="Text"
+              value={settings.toastWarningText}
+              onChange={(v) => updateSettings({ toastWarningText: v })}
+            />
+            <ColorField
+              label="Border"
+              value={settings.toastWarningBorder}
+              onChange={(v) => updateSettings({ toastWarningBorder: v })}
+            />
+            {/* Preview */}
+            <div className="col-span-2 mt-2">
+              <div
+                className="p-3 rounded-lg border text-sm"
+                style={{
+                  backgroundColor: settings.toastWarningBg,
+                  color: settings.toastWarningText,
+                  borderColor: settings.toastWarningBorder,
+                }}
+              >
+                ⚠ Warning message preview
+              </div>
+            </div>
+          </ColorSection>
+
+          {/* Info Toast */}
+          <ColorSection title="Info Toast">
+            <ColorField
+              label="Background"
+              value={settings.toastInfoBg}
+              onChange={(v) => updateSettings({ toastInfoBg: v })}
+            />
+            <ColorField
+              label="Text"
+              value={settings.toastInfoText}
+              onChange={(v) => updateSettings({ toastInfoText: v })}
+            />
+            <ColorField
+              label="Border"
+              value={settings.toastInfoBorder}
+              onChange={(v) => updateSettings({ toastInfoBorder: v })}
+            />
+            {/* Preview */}
+            <div className="col-span-2 mt-2">
+              <div
+                className="p-3 rounded-lg border text-sm"
+                style={{
+                  backgroundColor: settings.toastInfoBg,
+                  color: settings.toastInfoText,
+                  borderColor: settings.toastInfoBorder,
+                }}
+              >
+                ℹ Info message preview
+              </div>
+            </div>
+          </ColorSection>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
