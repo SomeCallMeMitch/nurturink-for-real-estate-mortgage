@@ -47,6 +47,7 @@ import MobileSend from './pages/MobileSend';
 import MobileSendSuccess from './pages/MobileSendSuccess';
 import MobileClientEdit from './pages/MobileClientEdit';
 import MobileClientAdd from './pages/MobileClientAdd';
+import PillDemo from './pages/PillDemo';
 import __Layout from './Layout.jsx';
 
 
@@ -100,6 +101,7 @@ export const PAGES = {
     "MobileSendSuccess": MobileSendSuccess,
     "MobileClientEdit": MobileClientEdit,
     "MobileClientAdd": MobileClientAdd,
+    "PillDemo": PillDemo,
 }
 
 export const pagesConfig = {
