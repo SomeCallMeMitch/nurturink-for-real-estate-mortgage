@@ -4,141 +4,234 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Eye } from "lucide-react";
 import { PillPreview } from "./WhitelabelHelpers";
 
 export default function WhitelabelPreviewPanel({ settings }) {
-  // Generate inline styles for preview
-  const previewStyles = {
-    backgroundColor: settings.backgroundColor || "#ffffff",
-    color: settings.foregroundColor || "#222222",
-    fontFamily: settings.fontBody || "Inter",
-  };
-
-  const cardStyles = {
-    backgroundColor: settings.cardBackground || "#ffffff",
-    color: settings.cardForeground || "#222222",
-    borderColor: settings.inputBorder || "#e3e3e3",
-  };
-
-  const buttonStyles = {
-    backgroundColor: settings.ctaPrimary || "#c87533",
-    color: settings.ctaPrimaryForeground || "#ffffff",
-  };
-
-  const inputStyles = {
-    backgroundColor: settings.inputBackground || "#e3e3e3",
-    borderColor: settings.inputBorder || "#e3e3e3",
-  };
-
-  const headingStyles = {
-    fontFamily: settings.fontHeadings || "Inter",
-    color: settings.text0 || "#111827",
-  };
-
   return (
     <div className="sticky top-6">
       <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4" />
-            <CardTitle className="text-lg">Live Preview</CardTitle>
-          </div>
-          <CardDescription>
-            See how your theme looks in real-time
-          </CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Live Preview</CardTitle>
         </CardHeader>
         <CardContent>
+          {/* Mini App Preview */}
           <div
-            className="space-y-4 p-4 rounded-lg border"
-            style={previewStyles}
+            className="rounded-lg overflow-hidden border-2 border-gray-200"
+            style={{
+              backgroundColor: settings.backgroundColor,
+              fontFamily: settings.fontBody,
+            }}
           >
-            {/* Heading */}
-            <h2 className="text-xl font-bold mb-2" style={headingStyles}>
-              {settings.brandName || "Brand Name"}
-            </h2>
-
-            {/* Card Preview */}
-            <div
-              className="p-4 rounded-lg border"
-              style={cardStyles}
-            >
-              <h3 className="font-semibold mb-2" style={headingStyles}>
-                Sample Card
-              </h3>
-              <p
-                className="text-sm mb-3"
-                style={{ color: settings.text1 || "#4b5563" }}
+            {/* Mini Sidebar */}
+            <div className="flex">
+              <div
+                className="w-16 p-2 space-y-2"
+                style={{
+                  backgroundColor: settings.sidebarBackground,
+                  borderRight: `1px solid ${settings.sidebarBorder}`,
+                }}
               >
-                This is how your card content will appear with the selected
-                colors and typography.
-              </p>
-
-              {/* Pills Preview */}
-              <div className="flex flex-wrap gap-2 mb-3">
-                <PillPreview
-                  bg={settings.pillSuccessBg}
-                  fg={settings.pillSuccessFg}
-                  label="Active"
-                />
-                <PillPreview
-                  bg={settings.pillWarningBg}
-                  fg={settings.pillWarningFg}
-                  label="Pending"
-                />
-                <PillPreview
-                  bg={settings.pillDangerBg}
-                  fg={settings.pillDangerFg}
-                  label="Failed"
-                />
+                {/* Logo placeholder */}
+                <div
+                  className="w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold mx-auto"
+                  style={{
+                    backgroundColor: settings.brandAccent,
+                    color: settings.brandAccentForeground,
+                  }}
+                >
+                  {settings.brandName?.charAt(0) || "R"}
+                </div>
+                {/* Nav items */}
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="w-10 h-8 rounded mx-auto"
+                    style={{
+                      backgroundColor:
+                        i === 1 ? settings.navItemActiveBg : "transparent",
+                    }}
+                  />
+                ))}
               </div>
 
-              {/* Button Preview */}
-              <button
-                className="px-4 py-2 rounded-lg text-sm font-medium w-full"
-                style={{
-                  ...buttonStyles,
-                  borderRadius: settings.borderRadius || "0.5rem",
-                }}
-              >
-                Primary Button
-              </button>
-            </div>
+              {/* Main content area */}
+              <div className="flex-1 p-3" style={{ minHeight: 200 }}>
+                {/* Header */}
+                <h3
+                  className="text-sm font-semibold mb-2"
+                  style={{
+                    color: settings.foregroundColor,
+                    fontFamily: settings.fontHeadings,
+                  }}
+                >
+                  Dashboard
+                </h3>
 
-            {/* Input Preview */}
-            <div>
-              <label
-                className="block text-sm font-medium mb-1"
-                style={{ color: settings.text1 || "#4b5563" }}
-              >
-                Sample Input
-              </label>
-              <input
-                type="text"
-                placeholder="Enter text..."
-                className="w-full px-3 py-2 border text-sm"
+                {/* Sample card */}
+                <div
+                  className="p-2 mb-2"
+                  style={{
+                    backgroundColor: settings.cardBackground,
+                    borderRadius: settings.borderRadius,
+                    border: `1px solid ${settings.inputBorder}`,
+                  }}
+                >
+                  <p
+                    className="text-xs"
+                    style={{ color: settings.mutedForeground }}
+                  >
+                    Sample card content
+                  </p>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex gap-2 mb-2">
+                  <button
+                    className="px-2 py-1 text-xs font-medium"
+                    style={{
+                      backgroundColor: settings.ctaPrimary,
+                      color: settings.ctaPrimaryForeground,
+                      borderRadius: settings.borderRadius,
+                    }}
+                  >
+                    Primary
+                  </button>
+                  <button
+                    className="px-2 py-1 text-xs font-medium"
+                    style={{
+                      backgroundColor: settings.secondaryBackground,
+                      color: settings.secondaryForeground,
+                      borderRadius: settings.borderRadius,
+                      border: `1px solid ${settings.inputBorder}`,
+                    }}
+                  >
+                    Secondary
+                  </button>
+                </div>
+
+                {/* Pills */}
+                <div className="flex gap-1 flex-wrap">
+                  <PillPreview
+                    bg={settings.pillSuccessBg}
+                    fg={settings.pillSuccessFg}
+                    label="Active"
+                  />
+                  <PillPreview
+                    bg={settings.pillWarningBg}
+                    fg={settings.pillWarningFg}
+                    label="Pending"
+                  />
+                  <PillPreview
+                    bg={settings.pillColor1Bg}
+                    fg={settings.pillColor1Fg}
+                    label="Tag"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Brand Info */}
+          <div className="mt-4 pt-4 border-t">
+            <div className="flex items-center gap-2 mb-2">
+              {settings.logoUrl ? (
+                <img
+                  src={settings.logoUrl}
+                  alt="Logo"
+                  className="w-6 h-6 object-contain"
+                />
+              ) : (
+                <div
+                  className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold"
+                  style={{
+                    backgroundColor: settings.brandAccent,
+                    color: settings.brandAccentForeground,
+                  }}
+                >
+                  {settings.brandName?.charAt(0) || "R"}
+                </div>
+              )}
+              <span
+                className="font-semibold"
                 style={{
-                  ...inputStyles,
-                  borderRadius: settings.borderRadius || "0.5rem",
+                  fontFamily: settings.fontHeadings,
+                  color: settings.foregroundColor,
                 }}
+              >
+                {settings.brandName || "Brand Name"}
+              </span>
+            </div>
+            
+            {/* Color Swatches */}
+            <p className="text-xs text-muted-foreground mb-2">Color Palette</p>
+            <div className="flex gap-2 flex-wrap">
+              <div
+                className="w-6 h-6 rounded border border-gray-200"
+                style={{ backgroundColor: settings.primaryColor }}
+                title="Primary"
+              />
+              <div
+                className="w-6 h-6 rounded border border-gray-200"
+                style={{ backgroundColor: settings.accentColor }}
+                title="Accent"
+              />
+              <div
+                className="w-6 h-6 rounded border border-gray-200"
+                style={{ backgroundColor: settings.brandAccent }}
+                title="Brand"
+              />
+              <div
+                className="w-6 h-6 rounded border border-gray-200"
+                style={{ backgroundColor: settings.successColor }}
+                title="Success"
+              />
+              <div
+                className="w-6 h-6 rounded border border-gray-200"
+                style={{ backgroundColor: settings.warningColor }}
+                title="Warning"
+              />
+              <div
+                className="w-6 h-6 rounded border border-gray-200"
+                style={{ backgroundColor: settings.dangerColor }}
+                title="Danger"
               />
             </div>
+          </div>
 
-            {/* Text Hierarchy */}
-            <div className="pt-3 border-t" style={{ borderColor: settings.borderSubtle }}>
-              <p className="text-xs mb-1" style={{ color: settings.text2 }}>
-                Caption text (Level 2)
-              </p>
-              <p className="text-sm mb-1" style={{ color: settings.text1 }}>
-                Body text (Level 1)
-              </p>
-              <p className="text-base font-medium" style={{ color: settings.text0 }}>
-                Heading text (Level 0)
-              </p>
+          {/* Typography Preview */}
+          <div className="mt-4 pt-4 border-t">
+            <p className="text-xs text-muted-foreground mb-2">Typography</p>
+            <p
+              className="text-lg font-semibold"
+              style={{ fontFamily: settings.fontHeadings }}
+            >
+              {settings.fontHeadings || "Headings Font"}
+            </p>
+            <p
+              className="text-sm"
+              style={{ fontFamily: settings.fontBody }}
+            >
+              {settings.fontBody || "Body Font"} - The quick brown fox jumps over the lazy dog.
+            </p>
+          </div>
+
+          {/* Border Radius Preview */}
+          <div className="mt-4 pt-4 border-t">
+            <p className="text-xs text-muted-foreground mb-2">Corner Style</p>
+            <div className="flex gap-2">
+              <div
+                className="w-12 h-8 bg-gray-200 border border-gray-300"
+                style={{ borderRadius: settings.borderRadius }}
+              />
+              <div
+                className="w-16 h-8 bg-gray-200 border border-gray-300"
+                style={{ borderRadius: settings.borderRadius }}
+              />
+              <div
+                className="w-8 h-8 bg-gray-200 border border-gray-300"
+                style={{ borderRadius: settings.borderRadius }}
+              />
             </div>
           </div>
         </CardContent>
