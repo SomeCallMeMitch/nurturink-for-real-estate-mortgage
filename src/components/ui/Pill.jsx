@@ -66,11 +66,11 @@ const variantStyles = {
 
 // Size style mappings - updated for better readability
 const sizeStyles = {
-  sm: { padding: '4px 10px', fontSize: '11px' },
-  default: { padding: '5px 12px', fontSize: '12px' },
-  lg: { padding: '6px 14px', fontSize: '13px' },
+  sm: { padding: '2px 8px', fontSize: '11px' }, // Reduced padding from 4px 10px
+  default: { padding: '3px 10px', fontSize: '12px' }, // Reduced padding from 5px 12px
+  lg: { padding: '4px 12px', fontSize: '13px' }, // Reduced padding from 6px 14px
 };
-
+ 
 const Pill = React.forwardRef(({ 
   className, 
   variant = "default", 
@@ -87,7 +87,7 @@ const Pill = React.forwardRef(({
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
-    borderRadius: '9999px', // fully rounded (pill shape)
+    borderRadius: '6px', // Changed from '9999px' to '6px' for slightly more square corners
     fontWeight: 600, // semibold for better readability
     transition: 'colors 0.2s',
     ...variantStyle,
@@ -97,7 +97,7 @@ const Pill = React.forwardRef(({
 
   return (
     <span
-      ref={ref}
+      ref__={ref}
       className={cn("whitespace-nowrap", className)}
       style={combinedStyle}
       {...props}
@@ -107,6 +107,7 @@ const Pill = React.forwardRef(({
     </span>
   );
 });
+
 
 Pill.displayName = "Pill";
 
