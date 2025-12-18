@@ -72,6 +72,47 @@
 
   --pill-color3-bg: #CCFBF1;
   --pill-color3-fg: #0F766E;
+
+  /* Tag/Category Pill */
+  --pill-tag-bg: #FEF3E2;
+  --pill-tag-fg: #C87533;
+  
+  /* Custom Indicator Pill */
+  --pill-custom-bg: #FFF7ED;
+  --pill-custom-fg: #C2410C;
+  
+  /* Type Pills */
+  --pill-personal-bg: #F3E8FF;
+  --pill-personal-fg: #7C3AED;
+  --pill-organization-bg: #DBEAFE;
+  --pill-organization-fg: #1D4ED8;
+  --pill-platform-bg: #DCFCE7;
+  --pill-platform-fg: #166534;
+  
+  /* Purpose Pills (QuickSend) */
+  --pill-purpose-thank-you-bg: #DCFCE7;
+  --pill-purpose-thank-you-fg: #166534;
+  --pill-purpose-referral-bg: #DBEAFE;
+  --pill-purpose-referral-fg: #1D4ED8;
+  --pill-purpose-review-bg: #FEF9C3;
+  --pill-purpose-review-fg: #A16207;
+  --pill-purpose-review-referral-bg: #F3E8FF;
+  --pill-purpose-review-referral-fg: #7C3AED;
+  --pill-purpose-birthday-bg: #FCE7F3;
+  --pill-purpose-birthday-fg: #BE185D;
+  --pill-purpose-anniversary-bg: #FEE2E2;
+  --pill-purpose-anniversary-fg: #B91C1C;
+  --pill-purpose-holiday-bg: #E0E7FF;
+  --pill-purpose-holiday-fg: #4338CA;
+  --pill-purpose-just-because-bg: #CCFBF1;
+  --pill-purpose-just-because-fg: #0F766E;
+  --pill-purpose-custom-bg: #F3F4F6;
+  --pill-purpose-custom-fg: #374151;
+  
+  /* Selection/Active States */
+  --selection-bg: #FEF2F2;
+  --selection-border: #DC2626;
+  --selection-text: #991B1B;
 }
 
 .dark {
@@ -128,6 +169,47 @@
 
   --pill-color3-bg: rgba(45, 212, 191, 0.18);
   --pill-color3-fg: #99F6E4;
+
+  /* Tag/Category Pill - Dark Mode */
+  --pill-tag-bg: rgba(200, 117, 51, 0.18);
+  --pill-tag-fg: #FED7AA;
+  
+  /* Custom Indicator Pill - Dark Mode */
+  --pill-custom-bg: rgba(194, 65, 12, 0.18);
+  --pill-custom-fg: #FDBA74;
+  
+  /* Type Pills - Dark Mode */
+  --pill-personal-bg: rgba(124, 58, 237, 0.18);
+  --pill-personal-fg: #DDD6FE;
+  --pill-organization-bg: rgba(29, 78, 216, 0.18);
+  --pill-organization-fg: #BFDBFE;
+  --pill-platform-bg: rgba(22, 101, 52, 0.18);
+  --pill-platform-fg: #BBF7D0;
+  
+  /* Purpose Pills - Dark Mode */
+  --pill-purpose-thank-you-bg: rgba(22, 101, 52, 0.18);
+  --pill-purpose-thank-you-fg: #BBF7D0;
+  --pill-purpose-referral-bg: rgba(29, 78, 216, 0.18);
+  --pill-purpose-referral-fg: #BFDBFE;
+  --pill-purpose-review-bg: rgba(161, 98, 7, 0.18);
+  --pill-purpose-review-fg: #FEF08A;
+  --pill-purpose-review-referral-bg: rgba(124, 58, 237, 0.18);
+  --pill-purpose-review-referral-fg: #DDD6FE;
+  --pill-purpose-birthday-bg: rgba(190, 24, 93, 0.18);
+  --pill-purpose-birthday-fg: #FBCFE8;
+  --pill-purpose-anniversary-bg: rgba(185, 28, 28, 0.18);
+  --pill-purpose-anniversary-fg: #FECACA;
+  --pill-purpose-holiday-bg: rgba(67, 56, 202, 0.18);
+  --pill-purpose-holiday-fg: #C7D2FE;
+  --pill-purpose-just-because-bg: rgba(15, 118, 110, 0.18);
+  --pill-purpose-just-because-fg: #99F6E4;
+  --pill-purpose-custom-bg: rgba(55, 65, 81, 0.18);
+  --pill-purpose-custom-fg: #E5E7EB;
+  
+  /* Selection/Active States - Dark Mode */
+  --selection-bg: rgba(220, 38, 38, 0.15);
+  --selection-border: #F87171;
+  --selection-text: #FCA5A5;
 }
 
 @theme inline {
