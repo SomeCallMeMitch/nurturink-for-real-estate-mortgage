@@ -12,72 +12,76 @@ import {
 
 /**
  * Quick Send Template Purpose Configuration
- * Centralized configuration for purpose icons, labels, and colors
+ * 
+ * UPDATED: Now uses CSS variable-based classes for whitelabel theming.
+ * Colors are controlled via globals.css variables like --pill-purpose-thank-you-bg
+ * 
  * Used across QuickSendPickerModal, QuickSendTemplateCard, TemplatePickerModal
  */
 export const PURPOSE_CONFIG = {
   thank_you: { 
     label: 'Thank You', 
     icon: ThumbsUp, 
-    bgColor: 'bg-green-100', 
-    textColor: 'text-green-700',
-    color: 'bg-green-100 text-green-700' // Shorthand for some components
+    pillClass: 'pill-purpose-thank-you',
+    // Legacy properties for backwards compatibility during migration
+    bgColor: 'bg-[var(--pill-purpose-thank-you-bg)]', 
+    textColor: 'text-[var(--pill-purpose-thank-you-fg)]',
   },
   referral_request: { 
     label: 'Referral Request', 
     icon: Users, 
-    bgColor: 'bg-blue-100', 
-    textColor: 'text-blue-700',
-    color: 'bg-blue-100 text-blue-700'
+    pillClass: 'pill-purpose-referral',
+    bgColor: 'bg-[var(--pill-purpose-referral-bg)]', 
+    textColor: 'text-[var(--pill-purpose-referral-fg)]',
   },
   review_request: { 
     label: 'Review Request', 
     icon: Star, 
-    bgColor: 'bg-yellow-100', 
-    textColor: 'text-yellow-700',
-    color: 'bg-yellow-100 text-yellow-700'
+    pillClass: 'pill-purpose-review',
+    bgColor: 'bg-[var(--pill-purpose-review-bg)]', 
+    textColor: 'text-[var(--pill-purpose-review-fg)]',
   },
   review_and_referral: { 
     label: 'Review & Referral', 
     icon: MessageSquare, 
-    bgColor: 'bg-purple-100', 
-    textColor: 'text-purple-700',
-    color: 'bg-purple-100 text-purple-700'
+    pillClass: 'pill-purpose-review-referral',
+    bgColor: 'bg-[var(--pill-purpose-review-referral-bg)]', 
+    textColor: 'text-[var(--pill-purpose-review-referral-fg)]',
   },
   birthday: { 
     label: 'Birthday', 
     icon: Gift, 
-    bgColor: 'bg-pink-100', 
-    textColor: 'text-pink-700',
-    color: 'bg-pink-100 text-pink-700'
+    pillClass: 'pill-purpose-birthday',
+    bgColor: 'bg-[var(--pill-purpose-birthday-bg)]', 
+    textColor: 'text-[var(--pill-purpose-birthday-fg)]',
   },
   anniversary: { 
     label: 'Anniversary', 
     icon: Heart, 
-    bgColor: 'bg-red-100', 
-    textColor: 'text-red-700',
-    color: 'bg-red-100 text-red-700'
+    pillClass: 'pill-purpose-anniversary',
+    bgColor: 'bg-[var(--pill-purpose-anniversary-bg)]', 
+    textColor: 'text-[var(--pill-purpose-anniversary-fg)]',
   },
   holiday: { 
     label: 'Holiday', 
     icon: Sparkles, 
-    bgColor: 'bg-indigo-100', 
-    textColor: 'text-indigo-700',
-    color: 'bg-indigo-100 text-indigo-700'
+    pillClass: 'pill-purpose-holiday',
+    bgColor: 'bg-[var(--pill-purpose-holiday-bg)]', 
+    textColor: 'text-[var(--pill-purpose-holiday-fg)]',
   },
   just_because: { 
     label: 'Just Because', 
     icon: Calendar, 
-    bgColor: 'bg-teal-100', 
-    textColor: 'text-teal-700',
-    color: 'bg-teal-100 text-teal-700'
+    pillClass: 'pill-purpose-just-because',
+    bgColor: 'bg-[var(--pill-purpose-just-because-bg)]', 
+    textColor: 'text-[var(--pill-purpose-just-because-fg)]',
   },
   custom: { 
     label: 'Custom', 
     icon: HelpCircle, 
-    bgColor: 'bg-gray-100', 
-    textColor: 'text-gray-700',
-    color: 'bg-gray-100 text-gray-700'
+    pillClass: 'pill-purpose-custom',
+    bgColor: 'bg-[var(--pill-purpose-custom-bg)]', 
+    textColor: 'text-[var(--pill-purpose-custom-fg)]',
   }
 };
 
@@ -92,22 +96,84 @@ export const PURPOSE_OPTIONS = Object.entries(PURPOSE_CONFIG).map(([value, confi
 
 /**
  * Template Type Configuration
+ * 
+ * UPDATED: Now uses CSS variable-based classes for whitelabel theming.
  * Used for Quick Send Template visibility badges
  */
 export const TYPE_CONFIG = {
   personal: { 
     label: 'Personal', 
-    bgColor: 'bg-purple-100', 
-    textColor: 'text-purple-700' 
+    pillClass: 'pill-personal',
+    bgColor: 'bg-[var(--pill-personal-bg)]', 
+    textColor: 'text-[var(--pill-personal-fg)]',
   },
   organization: { 
     label: 'Organization', 
-    bgColor: 'bg-blue-100', 
-    textColor: 'text-blue-700' 
+    pillClass: 'pill-organization',
+    bgColor: 'bg-[var(--pill-organization-bg)]', 
+    textColor: 'text-[var(--pill-organization-fg)]',
   },
   platform: { 
     label: 'Platform', 
-    bgColor: 'bg-green-100', 
-    textColor: 'text-green-700' 
+    pillClass: 'pill-platform',
+    bgColor: 'bg-[var(--pill-platform-bg)]', 
+    textColor: 'text-[var(--pill-platform-fg)]',
   }
 };
+
+/**
+ * Status Configuration
+ * For order statuses, mailing statuses, etc.
+ */
+export const STATUS_CONFIG = {
+  // Success states
+  active: { label: 'Active', pillClass: 'pill-success' },
+  sent: { label: 'Sent', pillClass: 'pill-success' },
+  delivered: { label: 'Delivered', pillClass: 'pill-success' },
+  completed: { label: 'Completed', pillClass: 'pill-success' },
+  paid: { label: 'Paid', pillClass: 'pill-success' },
+  
+  // Warning states
+  pending: { label: 'Pending', pillClass: 'pill-warning' },
+  processing: { label: 'Processing', pillClass: 'pill-warning' },
+  scheduled: { label: 'Scheduled', pillClass: 'pill-warning' },
+  in_progress: { label: 'In Progress', pillClass: 'pill-warning' },
+  
+  // Danger states
+  failed: { label: 'Failed', pillClass: 'pill-danger' },
+  cancelled: { label: 'Cancelled', pillClass: 'pill-danger' },
+  rejected: { label: 'Rejected', pillClass: 'pill-danger' },
+  expired: { label: 'Expired', pillClass: 'pill-danger' },
+  
+  // Muted states
+  draft: { label: 'Draft', pillClass: 'pill-muted' },
+  inactive: { label: 'Inactive', pillClass: 'pill-muted' },
+};
+
+/**
+ * Helper to get pill class from status
+ * @param {string} status - Status string (case insensitive)
+ * @returns {string} - CSS class name
+ */
+export function getStatusPillClass(status) {
+  const statusLower = (status || '').toLowerCase().replace(/\s+/g, '_');
+  return STATUS_CONFIG[statusLower]?.pillClass || 'pill-muted';
+}
+
+/**
+ * Helper to get pill class from purpose
+ * @param {string} purpose - Purpose key
+ * @returns {string} - CSS class name
+ */
+export function getPurposePillClass(purpose) {
+  return PURPOSE_CONFIG[purpose]?.pillClass || 'pill-purpose-custom';
+}
+
+/**
+ * Helper to get pill class from type
+ * @param {string} type - Type key (personal, organization, platform)
+ * @returns {string} - CSS class name
+ */
+export function getTypePillClass(type) {
+  return TYPE_CONFIG[type]?.pillClass || 'pill-muted';
+}
