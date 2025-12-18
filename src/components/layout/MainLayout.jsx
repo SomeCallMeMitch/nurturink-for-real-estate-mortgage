@@ -13,10 +13,10 @@ const DEFAULT_SETTINGS = {
   // Core Colors
   primaryColor: "#0477d1",
   accentColor: "#c87533",
-  backgroundColor: "#f8fafc",  // Light gray background
+  backgroundColor: "#f8fafc",
   foregroundColor: "#222222",
 
-  // Card & Surface - CRITICAL: card must be different from background
+  // Card & Surface
   cardBackground: "#ffffff",
   cardForeground: "#222222",
   surface0: "#ffffff",
@@ -108,10 +108,10 @@ const DEFAULT_SETTINGS = {
 
 /**
  * Generates CSS variable declarations from whitelabel settings
- * Merges with defaults to ensure all variables are defined
+ * Includes BOTH standard variables (--card) AND Tailwind color variables (--color-card)
+ * to ensure compatibility with Tailwind's bg-card, text-card-foreground, etc.
  */
 function generateWhitelabelCSS(settings) {
-  // Merge settings with defaults - settings values override defaults
   const merged = { ...DEFAULT_SETTINGS, ...settings };
 
   return `
@@ -150,7 +150,7 @@ function generateWhitelabelCSS(settings) {
       --accent: ${merged.accentBackground};
       --accent-foreground: ${merged.accentForeground};
       
-      /* Popover (same as card for consistency) */
+      /* Popover */
       --popover: ${merged.cardBackground};
       --popover-foreground: ${merged.cardForeground};
       
@@ -216,6 +216,31 @@ function generateWhitelabelCSS(settings) {
       
       /* Border Radius */
       --radius: ${merged.borderRadius};
+
+      /* ========================================
+         TAILWIND COLOR MAPPINGS
+         These --color-* variables are what Tailwind's
+         bg-*, text-*, border-* classes actually use
+         ======================================== */
+      --color-card: ${merged.cardBackground};
+      --color-card-foreground: ${merged.cardForeground};
+      --color-background: ${merged.backgroundColor};
+      --color-foreground: ${merged.foregroundColor};
+      --color-primary: ${merged.primaryColor};
+      --color-primary-foreground: #ffffff;
+      --color-secondary: ${merged.secondaryBackground};
+      --color-secondary-foreground: ${merged.secondaryForeground};
+      --color-muted: ${merged.mutedBackground};
+      --color-muted-foreground: ${merged.mutedForeground};
+      --color-accent: ${merged.accentBackground};
+      --color-accent-foreground: ${merged.accentForeground};
+      --color-destructive: ${merged.destructiveBackground};
+      --color-destructive-foreground: ${merged.destructiveForeground};
+      --color-border: ${merged.inputBorder};
+      --color-input: ${merged.inputBackground};
+      --color-ring: ${merged.ringColor};
+      --color-popover: ${merged.cardBackground};
+      --color-popover-foreground: ${merged.cardForeground};
     }
 
     /* Typography - Font Family Overrides */
