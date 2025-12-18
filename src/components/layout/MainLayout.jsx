@@ -6,6 +6,52 @@ import { base44 } from "@/api/base44Client";
 import { Loader2 } from "lucide-react";
 
 /**
+ * Converts a hex color to HSL values string for Tailwind
+ * Input: "#ffffff" or "ffffff"
+ * Output: "0 0% 100%" (format Tailwind expects)
+ */
+function hexToHSL(hex) {
+  if (!hex) return "0 0% 0%";
+  
+  // Remove # if present
+  hex = hex.replace(/^#/, '');
+  
+  // Handle shorthand hex (e.g., "fff")
+  if (hex.length === 3) {
+    hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+  }
+  
+  // Parse hex values
+  const r = parseInt(hex.substring(0, 2), 16) / 255;
+  const g = parseInt(hex.substring(2, 4), 16) / 255;
+  const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0; // achromatic
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+      default: h = 0;
+    }
+  }
+
+  // Convert to degrees and percentages
+  h = Math.round(h * 360);
+  s = Math.round(s * 100);
+  l = Math.round(l * 100);
+
+  return `${h} ${s}% ${l}%`;
+}
+
+/**
  * Default values - ensures all CSS variables have values even if
  * WhitelabelSettings entity doesn't have all fields yet
  */
@@ -108,62 +154,78 @@ const DEFAULT_SETTINGS = {
 
 /**
  * Generates CSS variable declarations from whitelabel settings
- * Includes BOTH standard variables (--card) AND Tailwind color variables (--color-card)
- * to ensure compatibility with Tailwind's bg-card, text-card-foreground, etc.
+ * Converts hex colors to HSL format for Tailwind compatibility
  */
 function generateWhitelabelCSS(settings) {
   const merged = { ...DEFAULT_SETTINGS, ...settings };
+  
+  // Helper to convert hex to HSL
+  const hsl = (hex) => hexToHSL(hex);
 
   return `
     :root {
       /* ========================================
          WHITELABEL CSS VARIABLE OVERRIDES
          Generated from WhitelabelSettings
+         
+         Values are in HSL format for Tailwind:
+         "hue saturation% lightness%"
          ======================================== */
 
-      /* Core Theme Colors */
-      --primary: ${merged.primaryColor};
-      --background: ${merged.backgroundColor};
-      --foreground: ${merged.foregroundColor};
+      /* Core Theme Colors (HSL for Tailwind) */
+      --primary: ${hsl(merged.primaryColor)};
+      --primary-foreground: ${hsl("#ffffff")};
+      --background: ${hsl(merged.backgroundColor)};
+      --foreground: ${hsl(merged.foregroundColor)};
       
       /* Card & Surface */
-      --card: ${merged.cardBackground};
-      --card-foreground: ${merged.cardForeground};
+      --card: ${hsl(merged.cardBackground)};
+      --card-foreground: ${hsl(merged.cardForeground)};
+      
+      /* Input & Form */
+      --input: ${hsl(merged.inputBackground)};
+      --border: ${hsl(merged.inputBorder)};
+      --ring: ${hsl(merged.ringColor)};
+      
+      /* Muted */
+      --muted: ${hsl(merged.mutedBackground)};
+      --muted-foreground: ${hsl(merged.mutedForeground)};
+      
+      /* Secondary */
+      --secondary: ${hsl(merged.secondaryBackground)};
+      --secondary-foreground: ${hsl(merged.secondaryForeground)};
+      
+      /* Accent */
+      --accent: ${hsl(merged.accentBackground)};
+      --accent-foreground: ${hsl(merged.accentForeground)};
+      
+      /* Popover */
+      --popover: ${hsl(merged.cardBackground)};
+      --popover-foreground: ${hsl(merged.cardForeground)};
+      
+      /* Destructive */
+      --destructive: ${hsl(merged.destructiveBackground)};
+      --destructive-foreground: ${hsl(merged.destructiveForeground)};
+
+      /* Border Radius */
+      --radius: ${merged.borderRadius};
+
+      /* ========================================
+         EXTENDED THEME VARIABLES
+         These use hex for non-Tailwind utilities
+         ======================================== */
+      
+      /* Surface levels (hex - used by custom utilities) */
       --surface-0: ${merged.surface0};
       --surface-1: ${merged.surface1};
       --surface-muted: ${merged.surfaceMuted};
       
-      /* Input & Form */
-      --input: ${merged.inputBackground};
-      --border: ${merged.inputBorder};
-      --ring: ${merged.ringColor};
-      
-      /* Muted */
-      --muted: ${merged.mutedBackground};
-      --muted-foreground: ${merged.mutedForeground};
-      
-      /* Secondary */
-      --secondary: ${merged.secondaryBackground};
-      --secondary-foreground: ${merged.secondaryForeground};
-      
-      /* Accent */
-      --accent: ${merged.accentBackground};
-      --accent-foreground: ${merged.accentForeground};
-      
-      /* Popover */
-      --popover: ${merged.cardBackground};
-      --popover-foreground: ${merged.cardForeground};
-      
-      /* Destructive */
-      --destructive: ${merged.destructiveBackground};
-      --destructive-foreground: ${merged.destructiveForeground};
-      
-      /* Semantic Status Colors */
+      /* Semantic Status Colors (hex) */
       --success: ${merged.successColor};
       --warning: ${merged.warningColor};
       --danger: ${merged.dangerColor};
       
-      /* Pills - Semantic */
+      /* Pills - Semantic (hex for custom .pill-* classes) */
       --pill-success-bg: ${merged.pillSuccessBg};
       --pill-success-fg: ${merged.pillSuccessFg};
       --pill-warning-bg: ${merged.pillWarningBg};
@@ -173,7 +235,7 @@ function generateWhitelabelCSS(settings) {
       --pill-muted-bg: ${merged.pillMutedBg};
       --pill-muted-fg: ${merged.pillMutedFg};
       
-      /* Pills - Utility */
+      /* Pills - Utility (hex) */
       --pill-color1-bg: ${merged.pillColor1Bg};
       --pill-color1-fg: ${merged.pillColor1Fg};
       --pill-color2-bg: ${merged.pillColor2Bg};
@@ -181,15 +243,15 @@ function generateWhitelabelCSS(settings) {
       --pill-color3-bg: ${merged.pillColor3Bg};
       --pill-color3-fg: ${merged.pillColor3Fg};
       
-      /* Navigation/Sidebar */
-      --sidebar-background: ${merged.sidebarBackground};
-      --sidebar-foreground: ${merged.sidebarForeground};
-      --sidebar-border: ${merged.sidebarBorder};
-      --sidebar-accent: ${merged.sidebarAccent};
-      --sidebar-accent-foreground: ${merged.sidebarAccentForeground};
-      --sidebar-primary: ${merged.sidebarPrimary || merged.brandAccent};
-      --sidebar-primary-foreground: ${merged.sidebarPrimaryForeground || merged.brandAccentForeground};
-      --sidebar-ring: ${merged.ringColor};
+      /* Navigation/Sidebar (hex for custom utilities) */
+      --sidebar-background: ${hsl(merged.sidebarBackground)};
+      --sidebar-foreground: ${hsl(merged.sidebarForeground)};
+      --sidebar-border: ${hsl(merged.sidebarBorder)};
+      --sidebar-accent: ${hsl(merged.sidebarAccent)};
+      --sidebar-accent-foreground: ${hsl(merged.sidebarAccentForeground)};
+      --sidebar-primary: ${hsl(merged.sidebarPrimary || merged.brandAccent)};
+      --sidebar-primary-foreground: ${hsl(merged.sidebarPrimaryForeground || "#ffffff")};
+      --sidebar-ring: ${hsl(merged.ringColor)};
       
       --nav-bg: ${merged.navBackground};
       --nav-fg: ${merged.navForeground};
@@ -200,7 +262,7 @@ function generateWhitelabelCSS(settings) {
       --nav-item-active-fg: ${merged.navItemActiveFg};
       --nav-accent: ${merged.navAccent};
       
-      /* Brand/CTA */
+      /* Brand/CTA (hex for custom utilities) */
       --brand-accent: ${merged.brandAccent};
       --brand-accent-foreground: ${merged.brandAccentForeground};
       --brand-primary: ${merged.brandAccent || merged.primaryColor};
@@ -208,39 +270,11 @@ function generateWhitelabelCSS(settings) {
       --cta-primary-foreground: ${merged.ctaPrimaryForeground};
       --focus-ring: ${merged.focusRing};
       
-      /* Text Hierarchy */
+      /* Text Hierarchy (hex for custom utilities) */
       --text-0: ${merged.text0};
       --text-1: ${merged.text1};
       --text-2: ${merged.text2};
       --border-subtle: ${merged.borderSubtle};
-      
-      /* Border Radius */
-      --radius: ${merged.borderRadius};
-
-      /* ========================================
-         TAILWIND COLOR MAPPINGS
-         These --color-* variables are what Tailwind's
-         bg-*, text-*, border-* classes actually use
-         ======================================== */
-      --color-card: ${merged.cardBackground};
-      --color-card-foreground: ${merged.cardForeground};
-      --color-background: ${merged.backgroundColor};
-      --color-foreground: ${merged.foregroundColor};
-      --color-primary: ${merged.primaryColor};
-      --color-primary-foreground: #ffffff;
-      --color-secondary: ${merged.secondaryBackground};
-      --color-secondary-foreground: ${merged.secondaryForeground};
-      --color-muted: ${merged.mutedBackground};
-      --color-muted-foreground: ${merged.mutedForeground};
-      --color-accent: ${merged.accentBackground};
-      --color-accent-foreground: ${merged.accentForeground};
-      --color-destructive: ${merged.destructiveBackground};
-      --color-destructive-foreground: ${merged.destructiveForeground};
-      --color-border: ${merged.inputBorder};
-      --color-input: ${merged.inputBackground};
-      --color-ring: ${merged.ringColor};
-      --color-popover: ${merged.cardBackground};
-      --color-popover-foreground: ${merged.cardForeground};
     }
 
     /* Typography - Font Family Overrides */
@@ -288,8 +322,8 @@ export default function MainLayout({ children, whitelabelSettings }) {
     return (
       <>
         {whitelabelStyles}
-        <div className="h-screen w-full flex items-center justify-center bg-[var(--background)]">
-          <Loader2 className="w-8 h-8 animate-spin text-[var(--primary)]" />
+        <div className="h-screen w-full flex items-center justify-center bg-background">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </>
     );
@@ -330,7 +364,7 @@ export default function MainLayout({ children, whitelabelSettings }) {
   return (
     <>
       {whitelabelStyles}
-      <div className="flex h-screen bg-[var(--background)]">
+      <div className="flex h-screen bg-background">
         <LeftSidebar whitelabelSettings={whitelabelSettings} user={user} />
         <main className="flex-1 overflow-y-auto p-8">{children}</main>
       </div>
