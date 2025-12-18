@@ -6,7 +6,7 @@ import ClientImportModal from "@/components/client/ClientImportModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/Pill";
 import {
   Table,
   TableBody,
@@ -175,8 +175,8 @@ export default function AdminClients() {
       return <ChevronsUpDown className="w-5 h-5 opacity-30 group-hover:opacity-60 transition-opacity" />;
     }
     return sortDirection === 'asc' 
-      ? <ChevronUp className="w-5 h-5 text-amber-700 font-bold" />
-      : <ChevronDown className="w-5 h-5 text-amber-700 font-bold" />;
+      ? <ChevronUp className="w-5 h-5 text-primary font-bold" />
+      : <ChevronDown className="w-5 h-5 text-primary font-bold" />;
   };
 
   // Filter and sort clients
@@ -352,7 +352,7 @@ export default function AdminClients() {
 
   const SortableHeader = ({ label, sortKey, icon }) => (
     <TableHead
-      className="cursor-pointer hover:text-amber-700 select-none transition-colors"
+      className="cursor-pointer hover:text-primary select-none transition-colors"
       onClick={() => handleSort(sortKey)}
     >
       <div className="flex items-center gap-2 group">
@@ -365,21 +365,21 @@ export default function AdminClients() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 text-amber-600 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-3xl font-bold text-foreground">Clients</h1>
+              <p className="text-muted-foreground mt-1">
                 Manage your client database
               </p>
             </div>
@@ -394,7 +394,7 @@ export default function AdminClients() {
               </Button>
               <Button
                 onClick={() => navigate(createPageUrl('AdminClientEdit?id=new'))}
-                className="bg-amber-600 hover:bg-amber-700"
+                className="bg-primary hover:bg-primary/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Add New Client
@@ -409,7 +409,7 @@ export default function AdminClients() {
               <div className="flex gap-3">
                 {/* Search */}
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     placeholder="Search by name, company, email, phone, city, or state..."
                     value={searchQuery}
@@ -429,9 +429,9 @@ export default function AdminClients() {
                               <Tag className="w-4 h-4" />
                               Tags
                               {selectedTags.length > 0 && (
-                                <Badge className="ml-1 bg-amber-50 text-amber-700 border-amber-200">
+                                <Pill variant="tag" size="sm">
                                   {selectedTags.length}
-                                </Badge>
+                                </Pill>
                               )}
                             </Button>
                           </DropdownMenuTrigger>
@@ -451,7 +451,7 @@ export default function AdminClients() {
                             className="flex items-center justify-between cursor-pointer"
                           >
                             <span>{tag}</span>
-                            {isSelected && <Check className="w-4 h-4 text-amber-700" />}
+                            {isSelected && <Check className="w-4 h-4 text-primary" />}
                           </DropdownMenuItem>
                         );
                       })}
@@ -460,7 +460,7 @@ export default function AdminClients() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => setSelectedTags([])}
-                            className="text-amber-700 cursor-pointer"
+                            className="text-primary cursor-pointer"
                           >
                             Clear tag filters
                           </DropdownMenuItem>
@@ -494,16 +494,16 @@ export default function AdminClients() {
               {/* Active Filters Summary & Clear Button */}
               {hasActiveFilters && (
                 <div className="flex items-center justify-between pt-2 border-t">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 flex-wrap">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
                     <span className="font-medium">Active filters:</span>
-                    {searchQuery && <Badge variant="secondary">Search: "{searchQuery}"</Badge>}
-                    {showFavoritesOnly && <Badge variant="secondary">Favorites Only</Badge>}
+                    {searchQuery && <Pill variant="muted">Search: "{searchQuery}"</Pill>}
+                    {showFavoritesOnly && <Pill variant="muted">Favorites Only</Pill>}
                     {selectedTags.length > 0 && (
-                      <Badge className="bg-amber-50 text-amber-700 border-amber-200">
+                      <Pill variant="tag">
                         {selectedTags.length} Tag{selectedTags.length > 1 ? 's' : ''}: {selectedTags.join(', ')}
-                      </Badge>
+                      </Pill>
                     )}
-                    {sortColumn !== 'fullName' && <Badge variant="secondary">Sorted by {sortColumn}</Badge>}
+                    {sortColumn !== 'fullName' && <Pill variant="muted">Sorted by {sortColumn}</Pill>}
                   </div>
                   <Button
                     variant="ghost"
@@ -526,7 +526,7 @@ export default function AdminClients() {
             <CardTitle>
               {filteredClients.length} {filteredClients.length === 1 ? 'Client' : 'Clients'}
               {hasActiveFilters && (
-                <span className="text-sm font-normal text-gray-500 ml-2">
+                <span className="text-sm font-normal text-muted-foreground ml-2">
                   (filtered from {clients.length} total)
                 </span>
               )}
@@ -535,7 +535,7 @@ export default function AdminClients() {
           <CardContent>
             {currentClients.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 mb-2">
+                <p className="text-muted-foreground mb-2">
                   {clients.length === 0 
                     ? 'No clients found' 
                     : 'No clients match your filters'}
@@ -573,24 +573,25 @@ export default function AdminClients() {
                         const isFavorited = favoriteClientIds.has(client.id);
                         const totalNotes = client.totalNotesSent || 0;
                         const lastNoteDate = formatDate(client.lastNoteSentDate);
+                        const isImported = client.source === 'csv_import';
                         
                         return (
                           <TableRow key={client.id}>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <span className="font-bold text-gray-900">
+                                <span className="font-bold text-foreground">
                                   {client.fullName || 'Unnamed Client'}
                                 </span>
                                 {totalNotes === 0 && (
-                                  <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                                  <Pill variant="warning" size="sm">
                                     No notes
-                                  </Badge>
+                                  </Pill>
                                 )}
                               </div>
                             </TableCell>
-                            <TableCell className="text-gray-600">{client.company || <span className="text-gray-400">—</span>}</TableCell>
-                            <TableCell className="text-gray-600">{client.city || <span className="text-gray-400">—</span>}</TableCell>
-                            <TableCell className="text-gray-600">{client.state || <span className="text-gray-400">—</span>}</TableCell>
+                            <TableCell className="text-muted-foreground">{client.company || <span className="text-muted-foreground/50">—</span>}</TableCell>
+                            <TableCell className="text-muted-foreground">{client.city || <span className="text-muted-foreground/50">—</span>}</TableCell>
+                            <TableCell className="text-muted-foreground">{client.state || <span className="text-muted-foreground/50">—</span>}</TableCell>
                             <TableCell>
                               <span className="font-medium">{totalNotes}</span>
                             </TableCell>
@@ -598,29 +599,37 @@ export default function AdminClients() {
                               <span className="text-sm">{lastNoteDate}</span>
                             </TableCell>
                             <TableCell>
-                              {client.tags && client.tags.length > 0 ? (
-                                <div className="flex flex-wrap gap-1">
-                                  {client.tags.slice(0, 2).map(tag => (
-                                    <Badge key={tag} variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                                      {tag}
-                                    </Badge>
-                                  ))}
-                                  {client.tags.length > 2 && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      +{client.tags.length - 2}
-                                    </Badge>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-gray-400 text-sm">—</span>
-                              )}
+                              <div className="flex flex-wrap gap-1">
+                                {/* Show imported indicator if applicable */}
+                                {isImported && (
+                                  <Pill variant="color1" size="sm">
+                                    imported
+                                  </Pill>
+                                )}
+                                {client.tags && client.tags.length > 0 ? (
+                                  <>
+                                    {client.tags.slice(0, 2).map(tag => (
+                                      <Pill key={tag} variant="tag" size="sm">
+                                        {tag}
+                                      </Pill>
+                                    ))}
+                                    {client.tags.length > 2 && (
+                                      <Pill variant="muted" size="sm">
+                                        +{client.tags.length - 2}
+                                      </Pill>
+                                    )}
+                                  </>
+                                ) : (
+                                  !isImported && <span className="text-muted-foreground/50 text-sm">—</span>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={(e) => handleToggleFavorite(client.id, e)}
-                                className={`${isFavorited ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'}`}
+                                className={`${isFavorited ? 'text-yellow-500 hover:text-yellow-600' : 'text-muted-foreground hover:text-yellow-500'}`}
                               >
                                 <Star className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
                               </Button>
@@ -639,7 +648,7 @@ export default function AdminClients() {
                                   size="sm"
                                   onClick={() => setDeleteDialog({ open: true, client })}
                                 >
-                                  <Trash2 className="w-4 h-4 text-red-600" />
+                                  <Trash2 className="w-4 h-4 text-destructive" />
                                 </Button>
                               </div>
                             </TableCell>
@@ -653,7 +662,7 @@ export default function AdminClients() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-muted-foreground">
                       Showing {startIndex + 1} to {Math.min(endIndex, filteredClients.length)} of {filteredClients.length} clients
                     </p>
                     <div className="flex gap-2">
@@ -697,7 +706,7 @@ export default function AdminClients() {
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
             >
               {deleting ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
