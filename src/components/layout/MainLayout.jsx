@@ -95,7 +95,9 @@ const DEFAULT_SETTINGS = {
   warningColor: "#f59e0b",
   dangerColor: "#ef4444",
 
-  // Pills - Semantic
+  // ===========================
+  // PILLS - SEMANTIC
+  // ===========================
   pillSuccessBg: "#dcfce7",
   pillSuccessFg: "#166534",
   pillWarningBg: "#fef3c7",
@@ -105,13 +107,66 @@ const DEFAULT_SETTINGS = {
   pillMutedBg: "#f3f4f6",
   pillMutedFg: "#374151",
 
-  // Pills - Utility
+  // ===========================
+  // PILLS - UTILITY COLORS
+  // ===========================
   pillColor1Bg: "#dbeafe",
   pillColor1Fg: "#1d4ed8",
   pillColor2Bg: "#ede9fe",
   pillColor2Fg: "#6d28d9",
   pillColor3Bg: "#ccfbf1",
   pillColor3Fg: "#0f766e",
+
+  // ===========================
+  // PILLS - TAG/CATEGORY
+  // ===========================
+  pillTagBg: "#fef3e2",
+  pillTagFg: "#c87533",
+
+  // ===========================
+  // PILLS - CUSTOM INDICATOR
+  // ===========================
+  pillCustomBg: "#fff7ed",
+  pillCustomFg: "#c2410c",
+
+  // ===========================
+  // PILLS - TYPES (Template/QuickSend)
+  // ===========================
+  pillPersonalBg: "#f3e8ff",
+  pillPersonalFg: "#7c3aed",
+  pillOrganizationBg: "#dbeafe",
+  pillOrganizationFg: "#1d4ed8",
+  pillPlatformBg: "#dcfce7",
+  pillPlatformFg: "#166534",
+
+  // ===========================
+  // PILLS - PURPOSES (QuickSend)
+  // ===========================
+  pillPurposeThankYouBg: "#dcfce7",
+  pillPurposeThankYouFg: "#166534",
+  pillPurposeReferralBg: "#dbeafe",
+  pillPurposeReferralFg: "#1d4ed8",
+  pillPurposeReviewBg: "#fef9c3",
+  pillPurposeReviewFg: "#a16207",
+  pillPurposeReviewReferralBg: "#f3e8ff",
+  pillPurposeReviewReferralFg: "#7c3aed",
+  pillPurposeBirthdayBg: "#fce7f3",
+  pillPurposeBirthdayFg: "#be185d",
+  pillPurposeAnniversaryBg: "#fee2e2",
+  pillPurposeAnniversaryFg: "#b91c1c",
+  pillPurposeHolidayBg: "#e0e7ff",
+  pillPurposeHolidayFg: "#4338ca",
+  pillPurposeJustBecauseBg: "#ccfbf1",
+  pillPurposeJustBecauseFg: "#0f766e",
+  pillPurposeCustomBg: "#f3f4f6",
+  pillPurposeCustomFg: "#374151",
+
+  // ===========================
+  // SELECTION STATES
+  // ===========================
+  selectionBg: "#fef2f2",
+  selectionBorder: "#dc2626",
+  selectionText: "#991b1b",
 
   // Navigation/Sidebar
   sidebarBackground: "#ffffff",
@@ -211,21 +266,23 @@ function generateWhitelabelCSS(settings) {
       --radius: ${merged.borderRadius};
 
       /* ========================================
-         EXTENDED THEME VARIABLES
-         These use hex for non-Tailwind utilities
+         EXTENDED THEME VARIABLES (HEX)
+         Used by custom utility classes
          ======================================== */
       
-      /* Surface levels (hex - used by custom utilities) */
+      /* Surface levels */
       --surface-0: ${merged.surface0};
       --surface-1: ${merged.surface1};
       --surface-muted: ${merged.surfaceMuted};
       
-      /* Semantic Status Colors (hex) */
+      /* Semantic Status Colors */
       --success: ${merged.successColor};
       --warning: ${merged.warningColor};
       --danger: ${merged.dangerColor};
       
-      /* Pills - Semantic (hex for custom .pill-* classes) */
+      /* ========================================
+         PILLS - SEMANTIC
+         ======================================== */
       --pill-success-bg: ${merged.pillSuccessBg};
       --pill-success-fg: ${merged.pillSuccessFg};
       --pill-warning-bg: ${merged.pillWarningBg};
@@ -235,7 +292,9 @@ function generateWhitelabelCSS(settings) {
       --pill-muted-bg: ${merged.pillMutedBg};
       --pill-muted-fg: ${merged.pillMutedFg};
       
-      /* Pills - Utility (hex) */
+      /* ========================================
+         PILLS - UTILITY COLORS
+         ======================================== */
       --pill-color1-bg: ${merged.pillColor1Bg};
       --pill-color1-fg: ${merged.pillColor1Fg};
       --pill-color2-bg: ${merged.pillColor2Bg};
@@ -243,7 +302,60 @@ function generateWhitelabelCSS(settings) {
       --pill-color3-bg: ${merged.pillColor3Bg};
       --pill-color3-fg: ${merged.pillColor3Fg};
       
-      /* Navigation/Sidebar (hex for custom utilities) */
+      /* ========================================
+         PILLS - TAG/CATEGORY
+         ======================================== */
+      --pill-tag-bg: ${merged.pillTagBg};
+      --pill-tag-fg: ${merged.pillTagFg};
+      
+      /* ========================================
+         PILLS - CUSTOM INDICATOR
+         ======================================== */
+      --pill-custom-bg: ${merged.pillCustomBg};
+      --pill-custom-fg: ${merged.pillCustomFg};
+      
+      /* ========================================
+         PILLS - TYPES
+         ======================================== */
+      --pill-personal-bg: ${merged.pillPersonalBg};
+      --pill-personal-fg: ${merged.pillPersonalFg};
+      --pill-organization-bg: ${merged.pillOrganizationBg};
+      --pill-organization-fg: ${merged.pillOrganizationFg};
+      --pill-platform-bg: ${merged.pillPlatformBg};
+      --pill-platform-fg: ${merged.pillPlatformFg};
+      
+      /* ========================================
+         PILLS - PURPOSES (QuickSend)
+         ======================================== */
+      --pill-purpose-thank-you-bg: ${merged.pillPurposeThankYouBg};
+      --pill-purpose-thank-you-fg: ${merged.pillPurposeThankYouFg};
+      --pill-purpose-referral-bg: ${merged.pillPurposeReferralBg};
+      --pill-purpose-referral-fg: ${merged.pillPurposeReferralFg};
+      --pill-purpose-review-bg: ${merged.pillPurposeReviewBg};
+      --pill-purpose-review-fg: ${merged.pillPurposeReviewFg};
+      --pill-purpose-review-referral-bg: ${merged.pillPurposeReviewReferralBg};
+      --pill-purpose-review-referral-fg: ${merged.pillPurposeReviewReferralFg};
+      --pill-purpose-birthday-bg: ${merged.pillPurposeBirthdayBg};
+      --pill-purpose-birthday-fg: ${merged.pillPurposeBirthdayFg};
+      --pill-purpose-anniversary-bg: ${merged.pillPurposeAnniversaryBg};
+      --pill-purpose-anniversary-fg: ${merged.pillPurposeAnniversaryFg};
+      --pill-purpose-holiday-bg: ${merged.pillPurposeHolidayBg};
+      --pill-purpose-holiday-fg: ${merged.pillPurposeHolidayFg};
+      --pill-purpose-just-because-bg: ${merged.pillPurposeJustBecauseBg};
+      --pill-purpose-just-because-fg: ${merged.pillPurposeJustBecauseFg};
+      --pill-purpose-custom-bg: ${merged.pillPurposeCustomBg};
+      --pill-purpose-custom-fg: ${merged.pillPurposeCustomFg};
+      
+      /* ========================================
+         SELECTION STATES
+         ======================================== */
+      --selection-bg: ${merged.selectionBg};
+      --selection-border: ${merged.selectionBorder};
+      --selection-text: ${merged.selectionText};
+      
+      /* ========================================
+         NAVIGATION / SIDEBAR
+         ======================================== */
       --sidebar-background: ${hsl(merged.sidebarBackground)};
       --sidebar-foreground: ${hsl(merged.sidebarForeground)};
       --sidebar-border: ${hsl(merged.sidebarBorder)};
@@ -262,7 +374,9 @@ function generateWhitelabelCSS(settings) {
       --nav-item-active-fg: ${merged.navItemActiveFg};
       --nav-accent: ${merged.navAccent};
       
-      /* Brand/CTA (hex for custom utilities) */
+      /* ========================================
+         BRAND / CTA
+         ======================================== */
       --brand-accent: ${merged.brandAccent};
       --brand-accent-foreground: ${merged.brandAccentForeground};
       --brand-primary: ${merged.brandAccent || merged.primaryColor};
@@ -270,7 +384,9 @@ function generateWhitelabelCSS(settings) {
       --cta-primary-foreground: ${merged.ctaPrimaryForeground};
       --focus-ring: ${merged.focusRing};
       
-      /* Text Hierarchy (hex for custom utilities) */
+      /* ========================================
+         TEXT HIERARCHY
+         ======================================== */
       --text-0: ${merged.text0};
       --text-1: ${merged.text1};
       --text-2: ${merged.text2};
