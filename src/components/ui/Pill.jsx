@@ -66,9 +66,9 @@ const variantStyles = {
 
 // Size style mappings - updated for better readability
 const sizeStyles = {
-  sm: { padding: '2px 8px', fontSize: '11px' }, // Reduced padding from 4px 10px
-  default: { padding: '3px 10px', fontSize: '12px' }, // Reduced padding from 5px 12px
-  lg: { padding: '4px 12px', fontSize: '13px' }, // Reduced padding from 6px 14px
+  sm: { padding: '2px 6px', fontSize: '12px' }, // Reduced padding from 4px 10px
+  default: { padding: '3px 8px', fontSize: '13px' }, // Reduced padding from 5px 12px
+  lg: { padding: '4px 10px', fontSize: '14px' }, // Reduced padding from 6px 14px
 };
  
 const Pill = React.forwardRef(({ 
@@ -88,7 +88,7 @@ const Pill = React.forwardRef(({
     alignItems: 'center',
     gap: '4px',
     borderRadius: '6px', // Changed from '9999px' to '6px' for slightly more square corners
-    fontWeight: 600, // semibold for better readability
+    fontWeight: 700, // semibold for better readability
     transition: 'colors 0.2s',
     ...variantStyle,
     ...sizeStyle,
