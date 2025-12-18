@@ -1,12 +1,11 @@
 import * as React from "react";
-import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
  * Pill Component
  * 
  * A unified pill/badge component that uses CSS variables for consistent
- * theming across the app. Supports semantic, purpose, and utility variants.
+ * theming across the app. Uses inline styles to avoid Tailwind purging issues.
  * 
  * Usage:
  *   <Pill variant="success">Active</Pill>
@@ -15,83 +14,95 @@ import { cn } from "@/lib/utils";
  *   <Pill variant="tag">Category Name</Pill>
  */
 
-const pillVariants = cva(
-  // Base styles - consistent across all variants
-  "inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-  {
-    variants: {
-      variant: {
-        // Semantic variants - use CSS variables from whitelabel
-        success: "pill-success",
-        warning: "pill-warning", 
-        danger: "pill-danger",
-        muted: "pill-muted",
-        
-        // Utility color variants
-        color1: "pill-color1",
-        color2: "pill-color2",
-        color3: "pill-color3",
-        
-        // Tag/Category variant (uses accent color)
-        tag: "pill-tag",
-        
-        // Type variants (for templates, quicksend)
-        personal: "pill-personal",
-        organization: "pill-organization",
-        platform: "pill-platform",
-        
-        // Purpose variants (for QuickSend templates)
-        "purpose-thank_you": "pill-purpose-thank-you",
-        "purpose-referral_request": "pill-purpose-referral",
-        "purpose-review_request": "pill-purpose-review",
-        "purpose-review_and_referral": "pill-purpose-review-referral",
-        "purpose-birthday": "pill-purpose-birthday",
-        "purpose-anniversary": "pill-purpose-anniversary",
-        "purpose-holiday": "pill-purpose-holiday",
-        "purpose-just_because": "pill-purpose-just-because",
-        "purpose-custom": "pill-purpose-custom",
-        
-        // Status variants (for orders, mailings)
-        "status-active": "pill-success",
-        "status-pending": "pill-warning",
-        "status-failed": "pill-danger",
-        "status-draft": "pill-muted",
-        "status-sent": "pill-success",
-        "status-processing": "pill-color1",
-        
-        // Special variants
-        default: "pill-muted",
-        outline: "border border-current bg-transparent",
-        custom: "pill-custom", // For "has custom overrides" indicator
-      },
-      size: {
-        sm: "px-2 py-0.5 text-[10px]",
-        default: "px-2.5 py-1 text-xs",
-        lg: "px-3 py-1.5 text-sm",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-);
+// Variant style mappings using CSS variables
+const variantStyles = {
+  // Semantic variants
+  success: { backgroundColor: 'var(--pill-success-bg)', color: 'var(--pill-success-fg)' },
+  warning: { backgroundColor: 'var(--pill-warning-bg)', color: 'var(--pill-warning-fg)' },
+  danger: { backgroundColor: 'var(--pill-danger-bg)', color: 'var(--pill-danger-fg)' },
+  muted: { backgroundColor: 'var(--pill-muted-bg)', color: 'var(--pill-muted-fg)' },
+  
+  // Utility color variants
+  color1: { backgroundColor: 'var(--pill-color1-bg)', color: 'var(--pill-color1-fg)' },
+  color2: { backgroundColor: 'var(--pill-color2-bg)', color: 'var(--pill-color2-fg)' },
+  color3: { backgroundColor: 'var(--pill-color3-bg)', color: 'var(--pill-color3-fg)' },
+  
+  // Tag/Category variant
+  tag: { backgroundColor: 'var(--pill-tag-bg)', color: 'var(--pill-tag-fg)' },
+  
+  // Custom indicator
+  custom: { backgroundColor: 'var(--pill-custom-bg)', color: 'var(--pill-custom-fg)' },
+  
+  // Type variants (for templates, quicksend)
+  personal: { backgroundColor: 'var(--pill-personal-bg)', color: 'var(--pill-personal-fg)' },
+  organization: { backgroundColor: 'var(--pill-organization-bg)', color: 'var(--pill-organization-fg)' },
+  platform: { backgroundColor: 'var(--pill-platform-bg)', color: 'var(--pill-platform-fg)' },
+  
+  // Purpose variants (for QuickSend templates)
+  "purpose-thank_you": { backgroundColor: 'var(--pill-purpose-thank-you-bg)', color: 'var(--pill-purpose-thank-you-fg)' },
+  "purpose-referral_request": { backgroundColor: 'var(--pill-purpose-referral-bg)', color: 'var(--pill-purpose-referral-fg)' },
+  "purpose-review_request": { backgroundColor: 'var(--pill-purpose-review-bg)', color: 'var(--pill-purpose-review-fg)' },
+  "purpose-review_and_referral": { backgroundColor: 'var(--pill-purpose-review-referral-bg)', color: 'var(--pill-purpose-review-referral-fg)' },
+  "purpose-birthday": { backgroundColor: 'var(--pill-purpose-birthday-bg)', color: 'var(--pill-purpose-birthday-fg)' },
+  "purpose-anniversary": { backgroundColor: 'var(--pill-purpose-anniversary-bg)', color: 'var(--pill-purpose-anniversary-fg)' },
+  "purpose-holiday": { backgroundColor: 'var(--pill-purpose-holiday-bg)', color: 'var(--pill-purpose-holiday-fg)' },
+  "purpose-just_because": { backgroundColor: 'var(--pill-purpose-just-because-bg)', color: 'var(--pill-purpose-just-because-fg)' },
+  "purpose-custom": { backgroundColor: 'var(--pill-purpose-custom-bg)', color: 'var(--pill-purpose-custom-fg)' },
+  
+  // Status variants (map to semantic)
+  "status-active": { backgroundColor: 'var(--pill-success-bg)', color: 'var(--pill-success-fg)' },
+  "status-pending": { backgroundColor: 'var(--pill-warning-bg)', color: 'var(--pill-warning-fg)' },
+  "status-failed": { backgroundColor: 'var(--pill-danger-bg)', color: 'var(--pill-danger-fg)' },
+  "status-draft": { backgroundColor: 'var(--pill-muted-bg)', color: 'var(--pill-muted-fg)' },
+  "status-sent": { backgroundColor: 'var(--pill-success-bg)', color: 'var(--pill-success-fg)' },
+  "status-processing": { backgroundColor: 'var(--pill-color1-bg)', color: 'var(--pill-color1-fg)' },
+  
+  // Default
+  default: { backgroundColor: 'var(--pill-muted-bg)', color: 'var(--pill-muted-fg)' },
+  
+  // Outline (special case - no background)
+  outline: { backgroundColor: 'transparent', border: '1px solid currentColor' },
+};
+
+// Size style mappings
+const sizeStyles = {
+  sm: { padding: '2px 8px', fontSize: '10px' },
+  default: { padding: '4px 10px', fontSize: '12px' },
+  lg: { padding: '6px 12px', fontSize: '14px' },
+};
 
 const Pill = React.forwardRef(({ 
   className, 
-  variant, 
-  size,
+  variant = "default", 
+  size = "default",
   icon: Icon,
   children, 
+  style,
   ...props 
 }, ref) => {
+  const variantStyle = variantStyles[variant] || variantStyles.default;
+  const sizeStyle = sizeStyles[size] || sizeStyles.default;
+  
+  const combinedStyle = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '4px',
+    borderRadius: '6px',
+    fontWeight: 500,
+    transition: 'colors 0.2s',
+    ...variantStyle,
+    ...sizeStyle,
+    ...style,
+  };
+
   return (
     <span
       ref={ref}
-      className={cn(pillVariants({ variant, size }), className)}
+      className={cn("whitespace-nowrap", className)}
+      style={combinedStyle}
       {...props}
     >
-      {Icon && <Icon className="w-3 h-3" />}
+      {Icon && <Icon style={{ width: '12px', height: '12px' }} />}
       {children}
     </span>
   );
@@ -160,4 +171,4 @@ export function getStatusVariant(status) {
   return "muted";
 }
 
-export { Pill, pillVariants };
+export { Pill };
