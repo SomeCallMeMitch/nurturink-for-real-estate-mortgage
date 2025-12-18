@@ -64,11 +64,11 @@ const variantStyles = {
   outline: { backgroundColor: 'transparent', border: '1px solid currentColor' },
 };
 
-// Size style mappings
+// Size style mappings - updated for better readability
 const sizeStyles = {
-  sm: { padding: '2px 8px', fontSize: '10px' },
-  default: { padding: '4px 10px', fontSize: '12px' },
-  lg: { padding: '6px 12px', fontSize: '14px' },
+  sm: { padding: '4px 10px', fontSize: '11px' },
+  default: { padding: '5px 12px', fontSize: '12px' },
+  lg: { padding: '6px 14px', fontSize: '13px' },
 };
 
 const Pill = React.forwardRef(({ 
@@ -87,8 +87,8 @@ const Pill = React.forwardRef(({
     display: 'inline-flex',
     alignItems: 'center',
     gap: '4px',
-    borderRadius: '6px',
-    fontWeight: 500,
+    borderRadius: '9999px', // fully rounded (pill shape)
+    fontWeight: 600, // semibold for better readability
     transition: 'colors 0.2s',
     ...variantStyle,
     ...sizeStyle,
