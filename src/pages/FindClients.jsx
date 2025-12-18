@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
+import { Pill } from "@/components/ui/Pill";
 import {
   Search,
   ArrowRight,
@@ -493,23 +493,23 @@ export default function FindClients() {
       return <ChevronsUpDown className="w-5 h-5 opacity-30 group-hover:opacity-60 transition-opacity" />;
     }
     return sortDirection === 'asc'
-      ? <ChevronUp className="w-5 h-5 text-amber-700 font-bold" />
-      : <ChevronDown className="w-5 h-5 text-amber-700 font-bold" />;
+      ? <ChevronUp className="w-5 h-5 text-primary font-bold" />
+      : <ChevronDown className="w-5 h-5 text-primary font-bold" />;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <Users className="w-12 h-12 text-amber-600 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600">Loading clients...</p>
+          <Users className="w-12 h-12 text-primary mx-auto mb-4 animate-pulse" />
+          <p className="text-muted-foreground">Loading clients...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Workflow Steps Header with Back Button and Title */}
       <WorkflowSteps 
         currentStep={1} 
@@ -521,7 +521,7 @@ export default function FindClients() {
       <div className="max-w-7xl mx-auto p-6">
         {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
             {error}
           </div>
         )}
@@ -533,7 +533,7 @@ export default function FindClients() {
             <div className="flex gap-3">
               {/* Search */}
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search by name, company, city, or state..."
                   value={searchQuery}
@@ -543,9 +543,9 @@ export default function FindClients() {
               </div>
 
               {/* Client Count - MOVED HERE from CardHeader */}
-              <div className="flex items-center px-3 bg-gray-100 rounded-lg">
-                <span className="font-semibold text-gray-900">{processedClients.length}</span>
-                <span className="text-gray-500 ml-1">{processedClients.length === 1 ? 'Client' : 'Clients'}</span>
+              <div className="flex items-center px-3 bg-muted rounded-lg">
+                <span className="font-semibold text-foreground">{processedClients.length}</span>
+                <span className="text-muted-foreground ml-1">{processedClients.length === 1 ? 'Client' : 'Clients'}</span>
               </div>
 
               {/* Tags Dropdown - moved next to search bar */}
@@ -554,14 +554,14 @@ export default function FindClients() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`gap-2 ${selectedTags.length > 0 ? 'border-amber-500 bg-amber-50 text-amber-700' : ''}`}
+                      className={`gap-2 ${selectedTags.length > 0 ? 'border-primary bg-primary/10 text-primary' : ''}`}
                     >
                       <Tag className="w-4 h-4" />
                       Tags
                       {selectedTags.length > 0 && (
-                        <Badge variant="secondary" className="ml-1 bg-amber-100 text-amber-700">
+                        <Pill variant="tag" size="sm">
                           {selectedTags.length}
-                        </Badge>
+                        </Pill>
                       )}
                       <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
                     </Button>
@@ -577,7 +577,7 @@ export default function FindClients() {
                         >
                           <div className="flex items-center justify-between w-full">
                             <span>{tag}</span>
-                            {isSelected && <Check className="w-4 h-4 text-amber-600" />}
+                            {isSelected && <Check className="w-4 h-4 text-primary" />}
                           </div>
                         </DropdownMenuItem>
                       );
@@ -587,23 +587,21 @@ export default function FindClients() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => setSelectedTags([])}
-                          className="text-gray-500 cursor-pointer"
+                          className="text-muted-foreground cursor-pointer"
                         >
                           Clear tag filters
                         </DropdownMenuItem>
                       </>
                     )}
-                    </DropdownMenuContent>
-                    </DropdownMenu>
-                    )}
-
-                    {/* Spacer for tags when no tags available */}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
 
               {/* Added Today Toggle */}
               <Button
                 variant={uploadedFilter === "today" ? "default" : "outline"}
                 onClick={() => setUploadedFilter(uploadedFilter === "today" ? "all" : "today")}
-                className={`gap-2 ${uploadedFilter === "today" ? 'bg-amber-500 hover:bg-amber-600' : ''}`}
+                className={`gap-2 ${uploadedFilter === "today" ? 'bg-primary hover:bg-primary/90' : ''}`}
               >
                 <Calendar className="w-4 h-4" />
                 Added Today
@@ -633,7 +631,7 @@ export default function FindClients() {
               <div className="border-l pl-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button className="gap-2 bg-gray-900 hover:bg-gray-800 text-white">
+                    <Button className="gap-2 bg-foreground hover:bg-foreground/90 text-background">
                       <Plus className="w-4 h-4" />
                       Add Client
                       <ChevronDown className="w-4 h-4 ml-1 opacity-50" />
@@ -652,52 +650,33 @@ export default function FindClients() {
                 </DropdownMenu>
               </div>
             </div>
-
-            {/* Active Filters Summary & Clear Button */}
-            {hasActiveFilters && (
-              <div className="flex items-center justify-between pt-2 border-t">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <span className="font-medium">Active filters:</span>
-                  {searchQuery && <Badge variant="secondary">Search: "{searchQuery}"</Badge>}
-                  {showFavoritesOnly && <Badge variant="secondary">Favorites Only</Badge>}
-                  {selectedTags.length > 0 && <Badge variant="secondary">{selectedTags.length} Tag{selectedTags.length > 1 ? 's' : ''}</Badge>}
-                  {sortColumn !== "no_notes_first" && <Badge variant="secondary">Sorted by {sortColumn}</Badge>}
-                  {uploadedFilter !== "all" && <Badge variant="secondary" className="bg-amber-50 text-amber-700 border-amber-200">
-                    {uploadedFilter === 'today' ? 'Added Today' : 
-                     uploadedFilter === '7days' ? 'Added Last 7 Days' : 
-                     uploadedFilter === '30days' ? 'Added Last 30 Days' : 'Manual Only'}
-                  </Badge>}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearFilters}
-                  className="gap-2"
-                >
-                  <X className="w-4 h-4" />
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
           </CardContent>
         </Card>
 
-        {/* Client List */}
-        <Card className="mt-3">
-          <CardHeader className="pb-1 pt-2">
-            {/* Selected count badge - only shown when clients are selected */}
+        {/* Client Table */}
+        <Card>
+          <CardContent className="p-0">
+            {/* Selection summary */}
             {selectedClientIds.length > 0 && (
-              <Badge variant="secondary" className="w-fit">
-                {selectedClientIds.length} selected
-              </Badge>
+              <div className="px-4 py-2 bg-muted/50 border-b flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">{selectedClientIds.length}</span> selected
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedClientIds([])}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Clear selection
+                </Button>
+              </div>
             )}
-          </CardHeader>
 
-          <CardContent>
             {processedClients.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 mb-2">
+              <div className="text-center py-16">
+                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-2">
                   {clients.length === 0
                     ? 'No clients found'
                     : 'No clients match your filters'}
@@ -731,7 +710,7 @@ export default function FindClients() {
                     {/* Full Name column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('fullName')}
-                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                      className="cursor-pointer hover:text-primary transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <span>Full Name</span>
@@ -742,7 +721,7 @@ export default function FindClients() {
                     {/* Company column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('company')}
-                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                      className="cursor-pointer hover:text-primary transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <span>Company</span>
@@ -753,7 +732,7 @@ export default function FindClients() {
                     {/* City column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('city')}
-                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                      className="cursor-pointer hover:text-primary transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <span>City</span>
@@ -764,7 +743,7 @@ export default function FindClients() {
                     {/* State column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('state')}
-                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                      className="cursor-pointer hover:text-primary transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <span>State</span>
@@ -775,7 +754,7 @@ export default function FindClients() {
                     {/* Notes column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('notes')}
-                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                      className="cursor-pointer hover:text-primary transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <Mail className="w-4 h-4" />
@@ -787,7 +766,7 @@ export default function FindClients() {
                     {/* Last Note column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('lastNote')}
-                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                      className="cursor-pointer hover:text-primary transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
@@ -799,7 +778,7 @@ export default function FindClients() {
                     {/* Tags column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('tags')}
-                      className="cursor-pointer hover:text-amber-700 transition-colors"
+                      className="cursor-pointer hover:text-primary transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <Tag className="w-4 h-4" />
@@ -811,7 +790,7 @@ export default function FindClients() {
                     {/* Favorite column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('favorite')}
-                      className="w-10 cursor-pointer hover:text-amber-700 transition-colors"
+                      className="w-10 cursor-pointer hover:text-primary transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <Star className="w-4 h-4" />
@@ -827,13 +806,14 @@ export default function FindClients() {
                     const totalNotes = client.totalNotesSent || 0;
                     const lastNoteDate = formatDate(client.lastNoteSentDate);
                     const clientTags = client.tags || [];
+                    const isImported = client.source === 'csv_import';
 
                     return (
                       <TableRow
                         key={client.id}
                         onClick={() => handleToggleClient(client.id)}
                         className={`cursor-pointer transition-all ${
-                          isSelected ? 'bg-blue-50' : 'hover:bg-gray-50'
+                          isSelected ? 'bg-primary/5' : 'hover:bg-muted/50'
                         }`}
                       >
                         {/* Checkbox */}
@@ -848,65 +828,73 @@ export default function FindClients() {
                         {/* Full Name - BOLD */}
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-gray-900">
+                            <span className="font-bold text-foreground">
                               {client.fullName || 'Unnamed Client'}
                             </span>
                             {totalNotes === 0 && (
-                              <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">
+                              <Pill variant="warning" size="sm">
                                 No notes sent
-                              </Badge>
+                              </Pill>
                             )}
                           </div>
                         </TableCell>
 
                         {/* Company */}
-                        <TableCell className="text-gray-600">
-                          {client.company || <span className="text-gray-400">—</span>}
+                        <TableCell className="text-muted-foreground">
+                          {client.company || <span className="text-muted-foreground/50">—</span>}
                         </TableCell>
 
                         {/* City */}
-                        <TableCell className="text-gray-600">
-                          {client.city || <span className="text-gray-400">—</span>}
+                        <TableCell className="text-muted-foreground">
+                          {client.city || <span className="text-muted-foreground/50">—</span>}
                         </TableCell>
 
                         {/* State */}
-                        <TableCell className="text-gray-600">
-                          {client.state || <span className="text-gray-400">—</span>}
+                        <TableCell className="text-muted-foreground">
+                          {client.state || <span className="text-muted-foreground/50">—</span>}
                         </TableCell>
 
                         {/* Notes Count */}
-                        <TableCell className="text-gray-600">
+                        <TableCell className="text-muted-foreground">
                           <span className="font-medium">{totalNotes}</span>
-                          <span className="text-gray-400 ml-1">note{totalNotes !== 1 ? 's' : ''}</span>
+                          <span className="text-muted-foreground/70 ml-1">note{totalNotes !== 1 ? 's' : ''}</span>
                         </TableCell>
 
                         {/* Last Note Date */}
-                        <TableCell className="text-gray-600">
+                        <TableCell className="text-muted-foreground">
                           <span className="font-medium">{lastNoteDate}</span>
                         </TableCell>
 
                         {/* Tags */}
                         <TableCell>
-                          {clientTags.length > 0 ? (
-                            <div className="flex items-center gap-1 flex-wrap">
-                              {clientTags.slice(0, 2).map(tag => (
-                                <Badge 
-                                  key={tag} 
-                                  variant="outline" 
-                                  className="text-xs bg-amber-50 text-amber-700 border-amber-200"
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
-                              {clientTags.length > 2 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{clientTags.length - 2}
-                                </Badge>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {/* Show imported indicator if applicable */}
+                            {isImported && (
+                              <Pill variant="color1" size="sm">
+                                imported
+                              </Pill>
+                            )}
+                            {clientTags.length > 0 ? (
+                              <>
+                                {clientTags.slice(0, 2).map(tag => (
+                                  <Pill 
+                                    key={tag} 
+                                    variant="tag"
+                                    size="sm"
+                                  >
+                                    {tag}
+                                  </Pill>
+                                ))}
+                                {clientTags.length > 2 && (
+                                  <Pill variant="muted" size="sm">
+                                    +{clientTags.length - 2}
+                                  </Pill>
+                                )}
+                              </>
+                            ) : (
+                              !isImported && <span className="text-muted-foreground/50">—</span>
+                            )}
+                          </div>
                         </TableCell>
 
                         {/* Favorite Button */}
@@ -915,7 +903,7 @@ export default function FindClients() {
                             variant="ghost"
                             size="icon"
                             onClick={(e) => handleToggleFavorite(client.id, e)}
-                            className={`w-10 ${isFavorited ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500'}`}
+                            className={`w-10 ${isFavorited ? 'text-yellow-500 hover:text-yellow-600' : 'text-muted-foreground hover:text-yellow-500'}`}
                           >
                             <Star className={`w-5 h-5 ${isFavorited ? 'fill-current' : ''}`} />
                           </Button>
@@ -957,19 +945,19 @@ export default function FindClients() {
       {/* Floating Action Bar - appears when clients are selected */}
       {selectedClientIds.length > 0 && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-          <div className="bg-gray-900 text-white rounded-full px-6 py-3 shadow-xl flex items-center gap-6">
+          <div className="bg-foreground text-background rounded-full px-6 py-3 shadow-xl flex items-center gap-6">
             {/* Selected Count */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center font-bold text-sm">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground">
                 {selectedClientIds.length}
               </div>
               <div className="flex flex-col">
                 <span className="font-semibold">{selectedClientIds.length} Client{selectedClientIds.length > 1 ? 's' : ''} Selected</span>
-                <span className="text-xs text-gray-400">Choose your sending method</span>
+                <span className="text-xs text-muted-foreground">Choose your sending method</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 border-l border-gray-700 pl-6">
+            <div className="flex items-center gap-3 border-l border-muted-foreground/30 pl-6">
               {/* Quick Send Button */}
               <TooltipProvider>
                 <Tooltip>
@@ -977,7 +965,7 @@ export default function FindClients() {
                     <Button
                       onClick={() => setShowQuickSendModal(true)}
                       disabled={initializing}
-                      className="bg-amber-500 text-white hover:bg-amber-600 rounded-full px-5 gap-2"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-5 gap-2"
                     >
                       <Star className="w-4 h-4 fill-current" />
                       Quick Send
@@ -996,7 +984,7 @@ export default function FindClients() {
                     <Button
                       onClick={handleContinue}
                       disabled={initializing}
-                      className="bg-white text-gray-900 hover:bg-gray-100 rounded-full px-5 gap-2"
+                      className="bg-background text-foreground hover:bg-muted rounded-full px-5 gap-2"
                     >
                       {initializing ? 'Initializing...' : (
                         <>
@@ -1024,6 +1012,6 @@ export default function FindClients() {
         onSelectTemplate={handleQuickSendSelect}
         user={user}
       />
-      </div>
-      );
-      }
+    </div>
+  );
+}
