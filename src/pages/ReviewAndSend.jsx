@@ -25,7 +25,7 @@ import {
   formatCompanyAddress,
   formatRepAddress,
   getAddressPreviewText
-} from "@/utils/addressHelpers";
+} from "@/components/utils/addressHelpers";
 
 export default function ReviewAndSend() {
   const navigate = useNavigate();
