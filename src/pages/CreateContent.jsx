@@ -173,13 +173,13 @@ export default function CreateContent() {
 
   // Load all data on mount
   useEffect(() => {
-    console.log('ðŸš€ CreateContent mounted');
-    console.log('ðŸ“‹ mailingBatchId from URL:', mailingBatchId);
+    console.log('🚀 CreateContent mounted');
+    console.log('📋 mailingBatchId from URL:', mailingBatchId);
     
     if (mailingBatchId) {
       loadData();
     } else {
-      console.error('âŒ No mailing batch ID provided');
+      console.error('❌ No mailing batch ID provided');
       setError('No mailing batch ID provided');
       setErrorDetails('URL parameters: ' + window.location.search);
       setLoading(false);
@@ -192,9 +192,9 @@ export default function CreateContent() {
       setError(null);
       setErrorDetails(null);
       
-      console.log('ðŸ“¡ Step 1: Loading user...');
+      console.log('📡 Step 1: Loading user...');
       const currentUser = await base44.auth.me();
-      console.log('âœ… User loaded:', currentUser.email);
+      console.log('✅ User loaded:', currentUser.email);
       
       // Enrich user object with additional data for placeholder replacement
       const enrichedUser = { ...currentUser };
@@ -213,17 +213,17 @@ export default function CreateContent() {
           enrichedUser.phone = userPhones[0].phoneNumber;
         }
       } catch (error) {
-        console.log('âš ï¸ Could not load user phone:', error);
+        console.log('⚠️ Could not load user phone:', error);
       }
       
       setUser(enrichedUser);
       
-      console.log('ðŸ“¡ Step 2: Loading organization...');
+      console.log('📡 Step 2: Loading organization...');
       if (currentUser.orgId) {
         const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
         if (orgList && orgList.length > 0) {
           const currentOrganization = orgList[0];
-          console.log('âœ… Organization loaded:', currentOrganization.name);
+          console.log('✅ Organization loaded:', currentOrganization.name);
           setOrganization(currentOrganization);
           
           // Add organization's name as user's companyName if not already set
@@ -238,7 +238,7 @@ export default function CreateContent() {
         }
       }
       
-      console.log('ðŸ“¡ Step 3: Loading mailing batch...');
+      console.log('📡 Step 3: Loading mailing batch...');
       const batch = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
       
       if (!batch || batch.length === 0) {
@@ -246,7 +246,7 @@ export default function CreateContent() {
       }
       
       const batchData = batch[0];
-      console.log('âœ… Mailing batch loaded:', batchData.id);
+      console.log('✅ Mailing batch loaded:', batchData.id);
       setMailingBatch(batchData);
       
       setLocalGlobalMessage(batchData.globalMessage || '');
@@ -258,14 +258,14 @@ export default function CreateContent() {
       setLocalSignatureOverrides(batchData.signatureOverrides || {});
       setLocalNoteStyleProfileOverrides(batchData.noteStyleProfileOverrides || {});
       
-      console.log('ðŸ“¡ Step 4: Loading clients...');
+      console.log('📡 Step 4: Loading clients...');
       const clientList = await base44.entities.Client.filter({
         id: { $in: batchData.selectedClientIds }
       });
-      console.log('âœ… Clients loaded:', clientList.length);
+      console.log('✅ Clients loaded:', clientList.length);
       setClients(clientList);
       
-      console.log('ðŸ“¡ Step 5: Loading templates...');
+      console.log('📡 Step 5: Loading templates...');
       const [personal, organizationTemplates, platform] = await Promise.all([
         base44.entities.Template.filter({ 
           createdByUserId: currentUser.id, 
@@ -282,7 +282,7 @@ export default function CreateContent() {
       ]);
       
       const allTemplates = [...personal, ...organizationTemplates, ...platform];
-      console.log('âœ… Templates loaded:', allTemplates.length);
+      console.log('✅ Templates loaded:', allTemplates.length);
       setTemplates(allTemplates);
       
       // PHASE 3: Auto-apply default template if globalMessage is empty
@@ -290,22 +290,22 @@ export default function CreateContent() {
         const defaultTemplate = allTemplates.find(t => t.isDefault === true);
         
         if (defaultTemplate) {
-          console.log('ðŸŽ¯ PHASE 3: Auto-applying default template:', defaultTemplate.name);
+          console.log('🎯 PHASE 3: Auto-applying default template:', defaultTemplate.name);
           setLocalGlobalMessage(defaultTemplate.content);
           
           await base44.entities.MailingBatch.update(mailingBatchId, {
             globalMessage: defaultTemplate.content
           });
           
-          console.log('âœ… Default template applied and saved');
+          console.log('✅ Default template applied and saved');
         } else {
-          console.log('â„¹ï¸ No default template found to auto-apply');
+          console.log('ℹ️ No default template found to auto-apply');
         }
       } else {
-        console.log('â„¹ï¸ Global message already exists, skipping default template auto-apply');
+        console.log('ℹ️ Global message already exists, skipping default template auto-apply');
       }
       
-      console.log('ðŸ“¡ Step 6: Loading note style profiles...');
+      console.log('📡 Step 6: Loading note style profiles...');
       const allOrgProfiles = await base44.entities.NoteStyleProfile.filter({
         orgId: currentUser.orgId
       });
@@ -315,7 +315,7 @@ export default function CreateContent() {
         p.userId === currentUser.id || p.isOrgWide === true
       );
       
-      console.log('âœ… Note style profiles loaded:', {
+      console.log('✅ Note style profiles loaded:', {
         total: allOrgProfiles.length,
         relevant: relevantProfiles.length,
         personal: relevantProfiles.filter(p => p.userId === currentUser.id).length,
@@ -326,30 +326,30 @@ export default function CreateContent() {
       if (!batchData.selectedNoteStyleProfileId && relevantProfiles.length > 0) {
         const defaultProfile = relevantProfiles.find(p => p.isDefault) || relevantProfiles[0];
         setLocalSelectedNoteStyleProfileId(defaultProfile.id);
-        console.log('âœ… Auto-selected default note style profile:', defaultProfile.name);
+        console.log('✅ Auto-selected default note style profile:', defaultProfile.name);
       }
       
-      console.log('ðŸ“¡ Step 7: Loading instance settings...');
+      console.log('📡 Step 7: Loading instance settings...');
       try {
         const settingsResponse = await base44.functions.invoke('getInstanceSettings');
         setInstanceSettings(settingsResponse.data);
       } catch (settingsError) {
-        console.error('âš ï¸ Failed to load instance settings, using fallback');
+        console.error('⚠️ Failed to load instance settings, using fallback');
         setInstanceSettings(FALLBACK_SETTINGS);
       }
       
-      console.log('ðŸ“¡ Step 8: Loading column width settings...'); 
+      console.log('📡 Step 8: Loading column width settings...'); 
       try {
         const layoutResponse = await base44.functions.invoke('getCreateContentLayoutSettings');
         setColumnWidths(layoutResponse.data);
       } catch (layoutError) {
-        console.error('âš ï¸ Failed to load column width settings, using defaults');
+        console.error('⚠️ Failed to load column width settings, using defaults');
       }
       
-      console.log('âœ… All data loaded successfully');
+      console.log('✅ All data loaded successfully');
       setLoading(false);
     } catch (err) {
-      console.error('âŒ Failed to load data:', err);
+      console.error('❌ Failed to load data:', err);
       setError(err.message || 'Failed to load data');
       setErrorDetails(JSON.stringify({
         message: err.message,
@@ -518,14 +518,19 @@ export default function CreateContent() {
     return noteStyleProfiles.find(p => p.id === currentProfileId);
   }, [getCurrentNoteStyleProfileId, noteStyleProfiles]);
 
-  const hasCustomOverrides = (clientId) => {
-    return !!(
-      localContentOverrides[clientId] ||
-      localGreetingOverrides.hasOwnProperty(clientId) ||
-      localSignatureOverrides.hasOwnProperty(clientId) ||
-      localNoteStyleProfileOverrides.hasOwnProperty(clientId)
-    );
-  };
+  // Memoized map of which clients have custom overrides (fixes immediate pill display)
+  const clientCustomStatus = useMemo(() => {
+    const status = {};
+    clients.forEach(c => {
+      status[c.id] = !!(
+        localContentOverrides[c.id] ||
+        localGreetingOverrides.hasOwnProperty(c.id) ||
+        localSignatureOverrides.hasOwnProperty(c.id) ||
+        localNoteStyleProfileOverrides.hasOwnProperty(c.id)
+      );
+    });
+    return status;
+  }, [clients, localContentOverrides, localGreetingOverrides, localSignatureOverrides, localNoteStyleProfileOverrides]);
 
   const recipients = useMemo(() => {
     return clients.map(client => ({
@@ -536,12 +541,12 @@ export default function CreateContent() {
 
   const handleContinue = async () => {
     try {
-      console.log('ðŸ’¾ Saving changes before navigation...');
+      console.log('💾 Saving changes before navigation...');
       await saveNow();
-      console.log('âœ… Changes saved successfully');
+      console.log('✅ Changes saved successfully');
       navigate(createPageUrl(`SelectDesign?mailingBatchId=${mailingBatchId}`));
     } catch (err) {
-      console.error('âŒ Failed to save before navigation:', err);
+      console.error('❌ Failed to save before navigation:', err);
       setError('Failed to save your changes. Please try again.');
       setErrorDetails(err.message || 'Unknown error during save before navigation');
     }
@@ -640,14 +645,24 @@ export default function CreateContent() {
                 <div className="flex items-center justify-between text-sm text-gray-900 mb-3 font-medium">
                   <span>1/{clients.length}</span>
                   <div className="flex gap-1">
-                    <button className="hover:text-gray-700">â†</button>
-                    <button className="hover:text-gray-700">â†’</button>
+                    <button 
+                      className="hover:text-gray-700 p-1 hover:bg-gray-100 rounded transition-colors"
+                      aria-label="Previous recipient"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
+                    <button 
+                      className="hover:text-gray-700 p-1 hover:bg-gray-100 rounded transition-colors"
+                      aria-label="Next recipient"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
                 <div className="max-h-48 overflow-y-auto space-y-1">
-                  {clients.map(client => {
+                  {clients.map((client, index) => {
                     const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
-                    const hasCustom = hasCustomOverrides(client.id);
+                    const hasCustom = clientCustomStatus[client.id];
                     
                     return (
                       <button
@@ -656,7 +671,7 @@ export default function CreateContent() {
                         className={`w-full text-left px-3 py-2 text-base rounded transition-all ${
                           isEditing
                             ? 'selection-active'
-                            : 'border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium'
+                            : 'border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
                         }`}
                       >
                         <div className="flex items-center justify-between">
