@@ -76,11 +76,11 @@
   /* Tag/Category Pill */
   --pill-tag-bg: #FEF3E2;
   --pill-tag-fg: #C87533;
-  
+
   /* Custom Indicator Pill */
   --pill-custom-bg: #FFF7ED;
   --pill-custom-fg: #C2410C;
-  
+
   /* Type Pills */
   --pill-personal-bg: #F3E8FF;
   --pill-personal-fg: #7C3AED;
@@ -88,7 +88,7 @@
   --pill-organization-fg: #1D4ED8;
   --pill-platform-bg: #DCFCE7;
   --pill-platform-fg: #166534;
-  
+
   /* Purpose Pills (QuickSend) */
   --pill-purpose-thank-you-bg: #DCFCE7;
   --pill-purpose-thank-you-fg: #166534;
@@ -108,11 +108,55 @@
   --pill-purpose-just-because-fg: #0F766E;
   --pill-purpose-custom-bg: #F3F4F6;
   --pill-purpose-custom-fg: #374151;
-  
+
   /* Selection/Active States */
   --selection-bg: #FEF2F2;
   --selection-border: #DC2626;
   --selection-text: #991B1B;
+
+  /* ==========================================================
+     MISSING TOKENS (to support whitelabel utility classes)
+     Aliased to existing theme tokens for safe defaults
+     ========================================================== */
+
+  /* Brand / CTA */
+  --brand-accent: var(--primary);
+  --brand-accent-foreground: var(--primary-foreground);
+  --brand-primary: var(--primary);
+
+  --cta-primary: var(--primary);
+  --cta-primary-foreground: var(--primary-foreground);
+
+  /* Surfaces / Text levels */
+  --surface-0: var(--background);
+  --surface-1: var(--card);
+
+  --text-0: var(--foreground);
+  --text-1: var(--muted-foreground);
+  --text-2: var(--muted-foreground);
+
+  /* Borders / Focus */
+  --border-subtle: var(--border);
+  --focus-ring: var(--ring);
+
+  /* Sidebar */
+  --sidebar-background: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+
+  /* Nav */
+  --nav-bg: var(--card);
+  --nav-fg: var(--foreground);
+  --nav-muted: var(--muted-foreground);
+  --nav-border: var(--border);
+  --nav-item-hover-bg: var(--accent);
+  --nav-item-active-bg: var(--primary);
+  --nav-item-active-fg: var(--primary-foreground);
+  --nav-accent: var(--primary);
 }
 
 .dark {
@@ -173,11 +217,11 @@
   /* Tag/Category Pill - Dark Mode */
   --pill-tag-bg: rgba(200, 117, 51, 0.18);
   --pill-tag-fg: #FED7AA;
-  
+
   /* Custom Indicator Pill - Dark Mode */
   --pill-custom-bg: rgba(194, 65, 12, 0.18);
   --pill-custom-fg: #FDBA74;
-  
+
   /* Type Pills - Dark Mode */
   --pill-personal-bg: rgba(124, 58, 237, 0.18);
   --pill-personal-fg: #DDD6FE;
@@ -185,7 +229,7 @@
   --pill-organization-fg: #BFDBFE;
   --pill-platform-bg: rgba(22, 101, 52, 0.18);
   --pill-platform-fg: #BBF7D0;
-  
+
   /* Purpose Pills - Dark Mode */
   --pill-purpose-thank-you-bg: rgba(22, 101, 52, 0.18);
   --pill-purpose-thank-you-fg: #BBF7D0;
@@ -205,13 +249,55 @@
   --pill-purpose-just-because-fg: #99F6E4;
   --pill-purpose-custom-bg: rgba(55, 65, 81, 0.18);
   --pill-purpose-custom-fg: #E5E7EB;
-  
+
   /* Selection/Active States - Dark Mode */
   --selection-bg: rgba(220, 38, 38, 0.15);
   --selection-border: #F87171;
   --selection-text: #FCA5A5;
+
+  /* ==========================================================
+     MISSING TOKENS (dark mode aliases)
+     ========================================================== */
+
+  --brand-accent: var(--primary);
+  --brand-accent-foreground: var(--primary-foreground);
+  --brand-primary: var(--primary);
+
+  --cta-primary: var(--primary);
+  --cta-primary-foreground: var(--primary-foreground);
+
+  --surface-0: var(--background);
+  --surface-1: var(--card);
+
+  --text-0: var(--foreground);
+  --text-1: var(--muted-foreground);
+  --text-2: var(--muted-foreground);
+
+  --border-subtle: var(--border);
+  --focus-ring: var(--ring);
+
+  --sidebar-background: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+
+  --nav-bg: var(--card);
+  --nav-fg: var(--foreground);
+  --nav-muted: var(--muted-foreground);
+  --nav-border: var(--border);
+  --nav-item-hover-bg: var(--accent);
+  --nav-item-active-bg: var(--primary);
+  --nav-item-active-fg: var(--primary-foreground);
+  --nav-accent: var(--primary);
 }
 
+/* Tailwind v3 note:
+   @theme inline is not standard CSS and is typically Tailwind v4/CSS-first.
+   Keeping it commented out to avoid build issues in Tailwind v3 projects. */
+/*
 @theme inline {
   --color-card: var(--card);
   --color-ring: var(--ring);
@@ -243,13 +329,15 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-destructive-foreground: var(--destructive-foreground);
 }
+*/
 
 /* =========================
    COMPONENT STYLING SYSTEM
    ========================= */
 
 /* Typography */
-* {
+html,
+body {
   font-family: var(--font-sans);
 }
 
@@ -263,9 +351,9 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--foreground);
 }
 
-p, span, label {
-  color: var(--muted-foreground);
-}
+/* NOTE:
+   Removed global p/span/label muted rule because it makes all text muted by default
+   and conflicts with shadcn/tailwind expectations. */
 
 /* Buttons */
 .btn-primary {
@@ -377,6 +465,15 @@ table tbody tr:hover {
   border-radius: var(--radius);
 }
 
+/* Selection/Active State Utility */
+.selection-active {
+  background-color: var(--selection-bg);
+  border-left: 4px solid var(--selection-border);
+  color: var(--selection-text);
+  font-weight: 600;
+  padding-left: 8px; /* Add this to prevent text from touching border */
+}
+
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -401,9 +498,7 @@ table tbody tr:hover {
    ⚠️ DEPRECATED - For backwards compatibility only
    Maps old Tailwind utility classes to new theme variables
    to ensure consistent styling without full refactor
-   
-   New code should use the Whitelabel Utility Classes below
-   ========================= */
+   ============================================================================= */
 
 /* Backgrounds */
 .bg-blue-600, .bg-indigo-600, .bg-orange-500, .bg-orange-600 {
@@ -456,16 +551,8 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
   color: var(--primary) !important;
 }
 
-
 /* =============================================================================
    WHITELABEL UTILITY CLASSES
-   
-   These explicit utility classes map to CSS variables for reliable Tailwind JIT
-   compilation. Use these classes instead of arbitrary value syntax like 
-   bg-[var(--pill-success-bg)] to ensure consistent styling.
-   
-   Add this entire section to the END of globals.css (after the existing 
-   Legacy Class Mapping section)
    ============================================================================= */
 
 /* =========================
@@ -507,7 +594,6 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
 .text-pill-color3 { color: var(--pill-color3-fg); }
 .border-pill-color3 { border-color: var(--pill-color3-fg); }
 
-
 /* =========================
    STATUS COLOR UTILITIES
    ========================= */
@@ -527,7 +613,6 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
 .text-status-danger { color: var(--danger); }
 .border-status-danger { border-color: var(--danger); }
 
-
 /* =========================
    BRAND & CTA UTILITIES
    ========================= */
@@ -546,11 +631,10 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
 .bg-cta-primary-foreground { background-color: var(--cta-primary-foreground); }
 .text-cta-primary-foreground { color: var(--cta-primary-foreground); }
 
-/* Brand Primary (alias for nav-accent in many cases) */
+/* Brand Primary */
 .bg-brand-primary { background-color: var(--brand-primary); }
 .text-brand-primary { color: var(--brand-primary); }
 .border-brand-primary { border-color: var(--brand-primary); }
-
 
 /* =========================
    SURFACE & BACKGROUND UTILITIES
@@ -566,22 +650,18 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
 .text-card-themed { color: var(--card-foreground); }
 .border-card-themed { border-color: var(--border); }
 
-
 /* =========================
    TEXT HIERARCHY UTILITIES
    ========================= */
 
-/* Text Levels */
 .text-level-0 { color: var(--text-0); }
 .text-level-1 { color: var(--text-1); }
 .text-level-2 { color: var(--text-2); }
 
-/* Foreground variants */
 .text-foreground-themed { color: var(--foreground); }
 .text-muted-themed { color: var(--muted-foreground); }
 .text-accent-themed { color: var(--accent-foreground); }
 .text-secondary-themed { color: var(--secondary-foreground); }
-
 
 /* =========================
    NAVIGATION & SIDEBAR UTILITIES
@@ -608,7 +688,6 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
 .bg-nav-accent { background-color: var(--nav-accent); }
 .border-nav-accent { border-color: var(--nav-accent); }
 
-
 /* =========================
    INPUT & FORM UTILITIES
    ========================= */
@@ -620,7 +699,6 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
 .ring-focus { --tw-ring-color: var(--focus-ring); }
 .outline-focus { outline-color: var(--focus-ring); }
 
-
 /* =========================
    DESTRUCTIVE UTILITIES
    ========================= */
@@ -630,62 +708,29 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
 .text-destructive-foreground-themed { color: var(--destructive-foreground); }
 .border-destructive-themed { border-color: var(--destructive); }
 
-
 /* =========================
    SECONDARY & ACCENT UTILITIES
    ========================= */
 
-/* Secondary */
 .bg-secondary-themed { background-color: var(--secondary); }
 .text-secondary-themed { color: var(--secondary-foreground); }
 .border-secondary-themed { border-color: var(--secondary); }
 
-/* Accent */
 .bg-accent-themed { background-color: var(--accent); }
 .text-accent-themed { color: var(--accent-foreground); }
 .border-accent-themed { border-color: var(--accent); }
 
-
 /* =========================
    COMPOSITE PILL CLASSES
-   For convenience - combines bg + text in one class
    ========================= */
 
-.pill-success {
-  background-color: var(--pill-success-bg);
-  color: var(--pill-success-fg);
-}
-
-.pill-warning {
-  background-color: var(--pill-warning-bg);
-  color: var(--pill-warning-fg);
-}
-
-.pill-danger {
-  background-color: var(--pill-danger-bg);
-  color: var(--pill-danger-fg);
-}
-
-.pill-muted {
-  background-color: var(--pill-muted-bg);
-  color: var(--pill-muted-fg);
-}
-
-.pill-color1 {
-  background-color: var(--pill-color1-bg);
-  color: var(--pill-color1-fg);
-}
-
-.pill-color2 {
-  background-color: var(--pill-color2-bg);
-  color: var(--pill-color2-fg);
-}
-
-.pill-color3 {
-  background-color: var(--pill-color3-bg);
-  color: var(--pill-color3-fg);
-}
-
+.pill-success { background-color: var(--pill-success-bg); color: var(--pill-success-fg); }
+.pill-warning { background-color: var(--pill-warning-bg); color: var(--pill-warning-fg); }
+.pill-danger { background-color: var(--pill-danger-bg); color: var(--pill-danger-fg); }
+.pill-muted { background-color: var(--pill-muted-bg); color: var(--pill-muted-fg); }
+.pill-color1 { background-color: var(--pill-color1-bg); color: var(--pill-color1-fg); }
+.pill-color2 { background-color: var(--pill-color2-bg); color: var(--pill-color2-fg); }
+.pill-color3 { background-color: var(--pill-color3-bg); color: var(--pill-color3-fg); }
 
 /* =========================
    HOVER STATE UTILITIES
@@ -706,7 +751,6 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
 .hover\:text-nav-accent:hover { color: var(--nav-accent); }
 .hover\:text-brand-accent:hover { color: var(--brand-accent); }
 
-
 /* =========================
    FOCUS STATE UTILITIES
    ========================= */
@@ -717,45 +761,3 @@ button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
 
 .focus-visible\:ring-themed:focus-visible { --tw-ring-color: var(--ring); }
 .focus-visible\:outline-focus:focus-visible { outline-color: var(--focus-ring); }
-
-
-/* =========================
-   USAGE EXAMPLES
-   ========================= */
-
-/*
-   Pills:
-   <span className="pill-success px-2.5 py-1 text-xs font-medium rounded-md">Active</span>
-   <span className="pill-warning px-2.5 py-1 text-xs font-medium rounded-md">Pending</span>
-   <span className="pill-danger px-2.5 py-1 text-xs font-medium rounded-md">Failed</span>
-   
-   Or with separate classes:
-   <span className="bg-pill-success text-pill-success px-2.5 py-1 text-xs font-medium rounded-md">Active</span>
-   
-   Buttons:
-   <button className="bg-cta-primary text-cta-primary-foreground px-4 py-2 rounded-lg">
-     Send Card
-   </button>
-   
-   <button className="bg-brand-accent text-brand-accent-foreground px-4 py-2 rounded-lg">
-     Primary Action
-   </button>
-   
-   Status indicators:
-   <div className="text-status-success">✓ Complete</div>
-   <div className="text-status-warning">⚠ Warning</div>
-   <div className="text-status-danger">✕ Error</div>
-   
-   Navigation:
-   <a className="bg-nav-active text-nav-active hover:bg-nav-hover">Dashboard</a>
-   
-   Cards:
-   <div className="bg-card-themed text-card-themed border border-card-themed rounded-lg p-4">
-     Content
-   </div>
-   
-   Text hierarchy:
-   <h1 className="text-level-0">Heading</h1>
-   <p className="text-level-1">Body text</p>
-   <span className="text-level-2">Caption</span>
-*/
