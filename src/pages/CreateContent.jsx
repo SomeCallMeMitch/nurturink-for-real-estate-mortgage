@@ -680,21 +680,29 @@ export default function CreateContent() {
                         isEditing,
                         editMode,
                         selectedRecipientId,
-                        expectedClass: 'selection-active pr-3',
-                        selectionBgVar: getComputedStyle(document.documentElement).getPropertyValue('--selection-bg'),
-                        selectionBorderVar: getComputedStyle(document.documentElement).getPropertyValue('--selection-border'),
+                        usingInlineStyles: true,
                       });
                     }
                     
+                    // FIX: Use inline styles for selected state to bypass CSS variable/class issues
+                    const selectedStyles = isEditing ? {
+                      backgroundColor: '#EFF6FF',
+                      borderLeft: '4px solid #0477d1',
+                      color: '#222222',
+                      fontWeight: 600,
+                      paddingLeft: '8px',
+                      paddingRight: '12px'
+                    } : {};
+                    
                     const finalClassName = `w-full text-left py-2 text-base rounded transition-all ${
                       isEditing
-                        ? 'selection-active pr-3'
+                        ? '' // Styles applied via inline style object instead
                         : 'px-3 border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
                     }`;
                     
-                    // DEBUG: Log the actual className being applied
+                    // DEBUG: Log styles being applied
                     if (isEditing) {
-                      console.log('🎨 CLASSNAME APPLIED:', finalClassName);
+                      console.log('🎨 INLINE STYLES APPLIED:', selectedStyles);
                     }
                     
                     return (
@@ -702,6 +710,7 @@ export default function CreateContent() {
                         key={client.id}
                         onClick={() => handleRecipientClick(client.id)}
                         className={finalClassName}
+                        style={selectedStyles}
                         ref={isEditing ? (el) => {
                           if (el) {
                             const styles = getComputedStyle(el);
