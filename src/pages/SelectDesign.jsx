@@ -74,19 +74,19 @@ export default function SelectDesign() {
     try {
       setLoading(true);
       
-      console.log('ðŸš€ SelectDesign: Starting data load...');
+      console.log('SelectDesign: Starting data load...');
       
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setFavoriteIds(currentUser.favoriteCardDesignIds || []);
-      console.log('âœ… User loaded:', currentUser.email);
+      console.log('User loaded:', currentUser.email);
       
       // Load organization
       if (currentUser.orgId) {
         const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
         if (orgList && orgList.length > 0) {
           setOrganization(orgList[0]);
-          console.log('âœ… Organization loaded:', orgList[0].name);
+          console.log('Organization loaded:', orgList[0].name);
         }
       }
       
@@ -97,7 +97,7 @@ export default function SelectDesign() {
       }
       
       const batchData = batch[0];
-      console.log('âœ… Mailing batch loaded:', {
+      console.log('Mailing batch loaded:', {
         id: batchData.id,
         globalMessage: batchData.globalMessage,
         globalMessageLength: batchData.globalMessage?.length || 0,
@@ -113,13 +113,13 @@ export default function SelectDesign() {
       const clientList = await base44.entities.Client.filter({
         id: { $in: batchData.selectedClientIds }
       });
-      console.log('âœ… Clients loaded:', clientList.length);
+      console.log('Clients loaded:', clientList.length);
       setClients(clientList);
       
       // Load card designs (platform only for now)
       const designList = await base44.entities.CardDesign.filter({ type: 'platform' });
       setDesigns(designList);
-      console.log('âœ… Card designs loaded:', designList.length);
+      console.log('Card designs loaded:', designList.length);
       
       // Auto-select default design if none is selected yet
       if (!batchData.selectedCardDesignId && designList.length > 0) {
@@ -134,7 +134,7 @@ export default function SelectDesign() {
           selectedCardDesignId: defaultDesign.id
         });
         
-        console.log('âœ… Auto-selected default card design:', defaultDesign.name);
+        console.log('Auto-selected default card design:', defaultDesign.name);
       } else {
         // Initialize local state from existing batch data
         setLocalSelectedDesignId(batchData.selectedCardDesignId);
@@ -152,23 +152,23 @@ export default function SelectDesign() {
         });
         if (profiles.length > 0) {
           setNoteStyleProfile(profiles[0]);
-          console.log('âœ… Note style profile loaded:', profiles[0].name, {
+          console.log('Note style profile loaded:', profiles[0].name, {
             defaultGreeting: profiles[0].defaultGreeting,
             signatureText: profiles[0].signatureText,
             handwritingFont: profiles[0].handwritingFont
           });
         }
       } else {
-        console.log('âš ï¸ No note style profile selected in batch');
+        console.log('No note style profile selected in batch');
       }
       
       // Load instance settings
       try {
         const settingsResponse = await base44.functions.invoke('getInstanceSettings');
         setInstanceSettings(settingsResponse.data);
-        console.log('âœ… Instance settings loaded');
+        console.log('Instance settings loaded');
       } catch (settingsError) {
-        console.error('âš ï¸ Failed to load instance settings, using fallback:', settingsError);
+        console.error('Failed to load instance settings, using fallback:', settingsError);
         // Use fallback settings
         setInstanceSettings({
           cardPreviewSettings: {
@@ -192,10 +192,10 @@ export default function SelectDesign() {
         });
       }
       
-      console.log('âœ… All data loaded successfully');
+      console.log('All data loaded successfully');
       setLoading(false);
     } catch (err) {
-      console.error('âŒ Failed to load data:', err);
+      console.error('Failed to load data:', err);
       setError(err.message || 'Failed to load data');
       setLoading(false);
     }
@@ -246,7 +246,7 @@ export default function SelectDesign() {
       ? clients.find(c => c.id === selectedRecipientId)
       : clients[0];
     
-    console.log('ðŸ” getCurrentClient:', {
+    console.log('getCurrentClient:', {
       editMode,
       selectedRecipientId,
       clientName: client?.fullName,
@@ -259,7 +259,7 @@ export default function SelectDesign() {
   // Memoize current message - updates when recipient or batch changes
   const getCurrentMessage = useMemo(() => {
     if (!mailingBatch) {
-      console.log('ðŸ” getCurrentMessage: No mailing batch yet');
+      console.log('getCurrentMessage: No mailing batch yet');
       return '';
     }
     
@@ -267,7 +267,7 @@ export default function SelectDesign() {
       ? mailingBatch.contentOverrides?.[selectedRecipientId] || mailingBatch.globalMessage || ''
       : mailingBatch.globalMessage || '';
     
-    console.log('ðŸ” getCurrentMessage:', {
+    console.log('getCurrentMessage:', {
       editMode,
       selectedRecipientId,
       hasContentOverride: !!(mailingBatch.contentOverrides?.[selectedRecipientId]),
@@ -414,7 +414,7 @@ export default function SelectDesign() {
     );
   }
 
-  console.log('ðŸŽ¨ Rendering SelectDesign with:', {
+  console.log('Rendering SelectDesign with:', {
     selectedDesign: selectedDesign?.name,
     currentMessage: getCurrentMessage,
     currentMessageLength: getCurrentMessage.length,
@@ -466,19 +466,30 @@ export default function SelectDesign() {
                     const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
                     const hasOverride = localDesignOverrides[client.id];
                     
+                    // FIX: Use inline styles for selected state to bypass CSS variable issues
+                    const selectedStyles = isEditing ? {
+                      backgroundColor: '#EFF6FF',
+                      borderLeft: '4px solid #0477d1',
+                      color: '#222222',
+                      fontWeight: 600,
+                      paddingLeft: '8px',
+                      paddingRight: '12px'
+                    } : {};
+                    
                     return (
                       <button
                         key={client.id}
                         onClick={() => handleRecipientClick(client.id)}
-                        className={`w-full text-left px-3 py-2.5 text-sm rounded transition-all ${
+                        className={`w-full text-left py-2.5 text-sm rounded transition-all ${
                           isEditing
-                            ? 'selection-active'
-                            : 'border-l-4 border-l-transparent hover:bg-muted/50 text-foreground'
+                            ? '' // styles applied via inline style object
+                            : 'px-3 border-l-4 border-l-transparent hover:bg-muted/50 text-foreground'
                         } ${hasOverride ? 'font-medium' : ''}`}
+                        style={selectedStyles}
                       >
                         <div className="flex items-center justify-between">
                           <span>{client.fullName || 'Unnamed Client'}</span>
-                          {hasOverride && !isEditing && (
+                          {hasOverride && (
                             <Pill variant="custom" size="sm">Custom</Pill>
                           )}
                         </div>
@@ -685,7 +696,7 @@ export default function SelectDesign() {
             <span className="font-medium">{clients.length} clients selected</span>
             {localSelectedDesignId && (
               <span className="ml-4">
-                â€¢ Design: <span className="font-medium">{designs.find(d => d.id === localSelectedDesignId)?.name}</span>
+                • Design: <span className="font-medium">{designs.find(d => d.id === localSelectedDesignId)?.name}</span>
               </span>
             )}
           </div>
