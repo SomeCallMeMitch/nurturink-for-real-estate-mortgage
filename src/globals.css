@@ -1,0 +1,740 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===================================
+   ROOFSCRIBE GLOBAL THEME SYSTEM
+   Light/Dark Mode via .dark class
+   =================================== */
+
+:root {
+  /* Core Theme Variables */
+  --card: #ffffff;
+  --ring: #0477d1;
+  --input: #e3e3e3;
+  --muted: #eeeeee;
+  --accent: #e3e3e3;
+  --border: #e3e3e3;
+  --radius: 0.5rem;
+  --shadow: 0 0 3px 2px rgba(100, 100, 100, 0.6);
+  --popover: #ffffff;
+  --primary: #0477d1;
+  --spacing: 4px;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --secondary: #edf6fc;
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 3px 3px 5px 0 rgba(100, 100, 100, 0.6);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --background: #ffffff;
+  --foreground: #222222;
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --destructive: #d9363d;
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  --card-foreground: #222222;
+  --muted-foreground: #787878;
+  --accent-foreground: #035392;
+  --popover-foreground: #222222;
+  --primary-foreground: #ffffff;
+  --secondary-foreground: #575757;
+  --destructive-foreground: #ffffff;
+
+  /* Pill Color Variables */
+  --pill-color-1: #4338ca;
+  --pill-color-2: #0f766e;
+  --pill-color-3: #6d28d9;
+
+  /* Semantic Status Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --surface-muted: #f3f4f6;
+
+  /* Pills: semantic */
+  --pill-success-bg: #DCFCE7;
+  --pill-success-fg: #166534;
+
+  --pill-warning-bg: #FEF3C7;
+  --pill-warning-fg: #92400E;
+
+  --pill-danger-bg: #FEE2E2;
+  --pill-danger-fg: #991B1B;
+
+  --pill-muted-bg: #E5E7EB;
+  --pill-muted-fg: #374151;
+
+  /* Pills: utility (Color 1–3) */
+  --pill-color1-bg: #DBEAFE;
+  --pill-color1-fg: #1D4ED8;
+
+  --pill-color2-bg: #EDE9FE;
+  --pill-color2-fg: #6D28D9;
+
+  --pill-color3-bg: #CCFBF1;
+  --pill-color3-fg: #0F766E;
+
+  /* Tag/Category Pill */
+  --pill-tag-bg: #FEF3E2;
+  --pill-tag-fg: #C87533;
+
+  /* Custom Indicator Pill */
+  --pill-custom-bg: #FFF7ED;
+  --pill-custom-fg: #C2410C;
+
+  /* Type Pills */
+  --pill-personal-bg: #F3E8FF;
+  --pill-personal-fg: #7C3AED;
+  --pill-organization-bg: #DBEAFE;
+  --pill-organization-fg: #1D4ED8;
+  --pill-platform-bg: #DCFCE7;
+  --pill-platform-fg: #166534;
+
+  /* Purpose Pills (QuickSend) */
+  --pill-purpose-thank-you-bg: #DCFCE7;
+  --pill-purpose-thank-you-fg: #166534;
+  --pill-purpose-referral-bg: #DBEAFE;
+  --pill-purpose-referral-fg: #1D4ED8;
+  --pill-purpose-review-bg: #FEF9C3;
+  --pill-purpose-review-fg: #A16207;
+  --pill-purpose-review-referral-bg: #F3E8FF;
+  --pill-purpose-review-referral-fg: #7C3AED;
+  --pill-purpose-birthday-bg: #FCE7F3;
+  --pill-purpose-birthday-fg: #BE185D;
+  --pill-purpose-anniversary-bg: #FEE2E2;
+  --pill-purpose-anniversary-fg: #B91C1C;
+  --pill-purpose-holiday-bg: #E0E7FF;
+  --pill-purpose-holiday-fg: #4338CA;
+  --pill-purpose-just-because-bg: #CCFBF1;
+  --pill-purpose-just-because-fg: #0F766E;
+  --pill-purpose-custom-bg: #F3F4F6;
+  --pill-purpose-custom-fg: #374151;
+
+  /* Selection/Active States - PRIMARY-BASED (not red) */
+  --selection-bg: #EFF6FF;
+  --selection-border: #0477d1;
+  --selection-text: #222222;
+
+  /* ==========================================================
+     MISSING TOKENS (to support whitelabel utility classes)
+     Aliased to existing theme tokens for safe defaults
+     ========================================================== */
+
+  /* Brand / CTA */
+  --brand-accent: var(--primary);
+  --brand-accent-foreground: var(--primary-foreground);
+  --brand-primary: var(--primary);
+
+  --cta-primary: var(--primary);
+  --cta-primary-foreground: var(--primary-foreground);
+
+  /* Surfaces / Text levels */
+  --surface-0: var(--background);
+  --surface-1: var(--card);
+
+  --text-0: var(--foreground);
+  --text-1: var(--muted-foreground);
+  --text-2: var(--muted-foreground);
+
+  /* Borders / Focus */
+  --border-subtle: var(--border);
+  --focus-ring: var(--ring);
+
+  /* Sidebar */
+  --sidebar-background: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+
+  /* Nav */
+  --nav-bg: var(--card);
+  --nav-fg: var(--foreground);
+  --nav-muted: var(--muted-foreground);
+  --nav-border: var(--border);
+  --nav-item-hover-bg: var(--accent);
+  --nav-item-active-bg: var(--primary);
+  --nav-item-active-fg: var(--primary-foreground);
+  --nav-accent: var(--primary);
+}
+
+.dark {
+  --card: #1a1a1a;
+  --ring: #0c82d6;
+  --input: #4a4a4a;
+  --muted: #3a3a3a;
+  --accent: #4a4a4a;
+  --border: #4a4a4a;
+  --popover: #1a1a1a;
+  --primary: #0c82d6;
+  --secondary: #2a2a2a;
+  --background: #000000;
+  --foreground: #ffffff;
+  --destructive: #c0392b;
+  --card-foreground: #ffffff;
+  --muted-foreground: #8a8a8a;
+  --accent-foreground: #e3e3e3;
+  --popover-foreground: #ffffff;
+  --primary-foreground: #ffffff;
+  --secondary-foreground: #a3a3a3;
+  --destructive-foreground: #ffffff;
+
+  /* Pill Color Variables - Dark Mode */
+  --pill-color-1: #6366f1;
+  --pill-color-2: #14b8a6;
+  --pill-color-3: #8b5cf6;
+
+  /* Semantic Status Colors - Dark Mode */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --surface-muted: #374151;
+
+  /* Pills: semantic */
+  --pill-success-bg: rgba(52, 211, 153, 0.18);
+  --pill-success-fg: #A7F3D0;
+
+  --pill-warning-bg: rgba(251, 191, 36, 0.18);
+  --pill-warning-fg: #FDE68A;
+
+  --pill-danger-bg: rgba(248, 113, 113, 0.18);
+  --pill-danger-fg: #FECACA;
+
+  --pill-muted-bg: rgba(148, 163, 184, 0.18);
+  --pill-muted-fg: #E5E7EB;
+
+  /* Pills: utility (Color 1–3) */
+  --pill-color1-bg: rgba(96, 165, 250, 0.18);
+  --pill-color1-fg: #BFDBFE;
+
+  --pill-color2-bg: rgba(167, 139, 250, 0.18);
+  --pill-color2-fg: #DDD6FE;
+
+  --pill-color3-bg: rgba(45, 212, 191, 0.18);
+  --pill-color3-fg: #99F6E4;
+
+  /* Tag/Category Pill - Dark Mode */
+  --pill-tag-bg: rgba(200, 117, 51, 0.18);
+  --pill-tag-fg: #FED7AA;
+
+  /* Custom Indicator Pill - Dark Mode */
+  --pill-custom-bg: rgba(194, 65, 12, 0.18);
+  --pill-custom-fg: #FDBA74;
+
+  /* Type Pills - Dark Mode */
+  --pill-personal-bg: rgba(124, 58, 237, 0.18);
+  --pill-personal-fg: #DDD6FE;
+  --pill-organization-bg: rgba(29, 78, 216, 0.18);
+  --pill-organization-fg: #BFDBFE;
+  --pill-platform-bg: rgba(22, 101, 52, 0.18);
+  --pill-platform-fg: #BBF7D0;
+
+  /* Purpose Pills - Dark Mode */
+  --pill-purpose-thank-you-bg: rgba(22, 101, 52, 0.18);
+  --pill-purpose-thank-you-fg: #BBF7D0;
+  --pill-purpose-referral-bg: rgba(29, 78, 216, 0.18);
+  --pill-purpose-referral-fg: #BFDBFE;
+  --pill-purpose-review-bg: rgba(161, 98, 7, 0.18);
+  --pill-purpose-review-fg: #FEF08A;
+  --pill-purpose-review-referral-bg: rgba(124, 58, 237, 0.18);
+  --pill-purpose-review-referral-fg: #DDD6FE;
+  --pill-purpose-birthday-bg: rgba(190, 24, 93, 0.18);
+  --pill-purpose-birthday-fg: #FBCFE8;
+  --pill-purpose-anniversary-bg: rgba(185, 28, 28, 0.18);
+  --pill-purpose-anniversary-fg: #FECACA;
+  --pill-purpose-holiday-bg: rgba(67, 56, 202, 0.18);
+  --pill-purpose-holiday-fg: #C7D2FE;
+  --pill-purpose-just-because-bg: rgba(15, 118, 110, 0.18);
+  --pill-purpose-just-because-fg: #99F6E4;
+  --pill-purpose-custom-bg: rgba(55, 65, 81, 0.18);
+  --pill-purpose-custom-fg: #E5E7EB;
+
+  /* Selection/Active States - Dark Mode PRIMARY-BASED */
+  --selection-bg: rgba(12, 130, 214, 0.2);
+  --selection-border: #0c82d6;
+  --selection-text: #ffffff;
+
+  /* ==========================================================
+     MISSING TOKENS (dark mode aliases)
+     ========================================================== */
+
+  --brand-accent: var(--primary);
+  --brand-accent-foreground: var(--primary-foreground);
+  --brand-primary: var(--primary);
+
+  --cta-primary: var(--primary);
+  --cta-primary-foreground: var(--primary-foreground);
+
+  --surface-0: var(--background);
+  --surface-1: var(--card);
+
+  --text-0: var(--foreground);
+  --text-1: var(--muted-foreground);
+  --text-2: var(--muted-foreground);
+
+  --border-subtle: var(--border);
+  --focus-ring: var(--ring);
+
+  --sidebar-background: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-border: var(--border);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+
+  --nav-bg: var(--card);
+  --nav-fg: var(--foreground);
+  --nav-muted: var(--muted-foreground);
+  --nav-border: var(--border);
+  --nav-item-hover-bg: var(--accent);
+  --nav-item-active-bg: var(--primary);
+  --nav-item-active-fg: var(--primary-foreground);
+  --nav-accent: var(--primary);
+}
+
+/* Tailwind v3 note:
+   @theme inline is not standard CSS and is typically Tailwind v4/CSS-first.
+   Keeping it commented out to avoid build issues in Tailwind v3 projects. */
+/*
+@theme inline {
+  --color-card: var(--card);
+  --color-ring: var(--ring);
+  ...
+}
+*/
+
+/* =========================
+   COMPONENT STYLING SYSTEM
+   ========================= */
+
+/* Typography */
+html,
+body {
+  font-family: var(--font-sans);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* NOTE:
+   Removed global p/span/label muted rule because it makes all text muted by default
+   and conflicts with shadcn/tailwind expectations. */
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: var(--accent);
+}
+
+.btn-destructive {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
+  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius);
+}
+
+/* Cards */
+.card {
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Inputs & Fields */
+input, textarea, select {
+  background-color: var(--input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--foreground);
+  padding: 8px 12px;
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-color: var(--ring);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--muted-foreground);
+}
+
+/* Tables */
+table thead {
+  background-color: var(--secondary);
+}
+
+table thead th {
+  color: var(--secondary-foreground);
+  font-weight: 600;
+}
+
+table tbody tr:hover {
+  background-color: var(--muted);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Alerts */
+.alert-success {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  opacity: 0.8;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+
+.alert-warning {
+  background-color: #ffb84d;
+  color: #222222;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+
+.alert-error {
+  background-color: var(--destructive);
+  color: var(--destructive-foreground);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+
+/* Focus indicators */
+*:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* =========================
+   SELECTION/ACTIVE STATE
+   Used for highlighting selected recipients in lists
+   ========================= */
+.selection-active {
+  background-color: var(--selection-bg) !important;
+  border-left: 4px solid var(--selection-border) !important;
+  color: var(--selection-text) !important;
+  font-weight: 600;
+  padding-left: 8px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* =========================
+   PILL COMPONENT STYLES
+   ========================= */
+
+.pill {
+  @apply inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-md;
+}
+
+/* =========================
+   LEGACY CLASS MAPPING
+   ⚠️ DEPRECATED - For backwards compatibility only
+   Maps old Tailwind utility classes to new theme variables
+   to ensure consistent styling without full refactor
+   ============================================================================= */
+
+/* Backgrounds */
+.bg-blue-600, .bg-indigo-600, .bg-orange-500, .bg-orange-600 {
+  background-color: var(--primary) !important;
+}
+
+.bg-blue-700:hover, .bg-indigo-700:hover, .bg-orange-700:hover {
+  background-color: var(--primary);
+  filter: brightness(0.9);
+}
+
+.bg-blue-50, .bg-indigo-50, .bg-orange-50 {
+  background-color: var(--secondary) !important;
+}
+
+.bg-gray-50 {
+  background-color: var(--background) !important;
+}
+
+.bg-white {
+  background-color: var(--card) !important;
+}
+
+/* Text */
+.text-blue-600, .text-indigo-600, .text-orange-600, .text-gray-900 {
+  color: var(--foreground) !important;
+}
+
+.text-gray-600, .text-gray-500 {
+  color: var(--muted-foreground) !important;
+}
+
+.text-white {
+  color: var(--primary-foreground) !important;
+}
+
+/* Borders */
+.border-blue-600, .border-indigo-600, .border-orange-600, .border-gray-200 {
+  border-color: var(--border) !important;
+}
+
+/* Specific Overrides for Buttons */
+button.bg-blue-600, button.bg-indigo-600, button.bg-orange-600 {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+}
+
+button.border-blue-600, button.border-indigo-600, button.border-orange-600 {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+}
+
+/* =============================================================================
+   WHITELABEL UTILITY CLASSES
+   ============================================================================= */
+
+/* =========================
+   PILL UTILITY CLASSES
+   ========================= */
+
+/* Semantic Pills - Success */
+.bg-pill-success { background-color: var(--pill-success-bg); }
+.text-pill-success { color: var(--pill-success-fg); }
+.border-pill-success { border-color: var(--pill-success-fg); }
+
+/* Semantic Pills - Warning */
+.bg-pill-warning { background-color: var(--pill-warning-bg); }
+.text-pill-warning { color: var(--pill-warning-fg); }
+.border-pill-warning { border-color: var(--pill-warning-fg); }
+
+/* Semantic Pills - Danger */
+.bg-pill-danger { background-color: var(--pill-danger-bg); }
+.text-pill-danger { color: var(--pill-danger-fg); }
+.border-pill-danger { border-color: var(--pill-danger-fg); }
+
+/* Semantic Pills - Muted */
+.bg-pill-muted { background-color: var(--pill-muted-bg); }
+.text-pill-muted { color: var(--pill-muted-fg); }
+.border-pill-muted { border-color: var(--pill-muted-fg); }
+
+/* Utility Pills - Color 1 (Blue variant) */
+.bg-pill-color1 { background-color: var(--pill-color1-bg); }
+.text-pill-color1 { color: var(--pill-color1-fg); }
+.border-pill-color1 { border-color: var(--pill-color1-fg); }
+
+/* Utility Pills - Color 2 (Purple variant) */
+.bg-pill-color2 { background-color: var(--pill-color2-bg); }
+.text-pill-color2 { color: var(--pill-color2-fg); }
+.border-pill-color2 { border-color: var(--pill-color2-fg); }
+
+/* Utility Pills - Color 3 (Teal variant) */
+.bg-pill-color3 { background-color: var(--pill-color3-bg); }
+.text-pill-color3 { color: var(--pill-color3-fg); }
+.border-pill-color3 { border-color: var(--pill-color3-fg); }
+
+/* =========================
+   STATUS COLOR UTILITIES
+   ========================= */
+
+/* Success */
+.bg-status-success { background-color: var(--success); }
+.text-status-success { color: var(--success); }
+.border-status-success { border-color: var(--success); }
+
+/* Warning */
+.bg-status-warning { background-color: var(--warning); }
+.text-status-warning { color: var(--warning); }
+.border-status-warning { border-color: var(--warning); }
+
+/* Danger */
+.bg-status-danger { background-color: var(--danger); }
+.text-status-danger { color: var(--danger); }
+.border-status-danger { border-color: var(--danger); }
+
+/* =========================
+   BRAND & CTA UTILITIES
+   ========================= */
+
+/* Brand Accent */
+.bg-brand-accent { background-color: var(--brand-accent); }
+.text-brand-accent { color: var(--brand-accent); }
+.border-brand-accent { border-color: var(--brand-accent); }
+.bg-brand-accent-foreground { background-color: var(--brand-accent-foreground); }
+.text-brand-accent-foreground { color: var(--brand-accent-foreground); }
+
+/* CTA Primary */
+.bg-cta-primary { background-color: var(--cta-primary); }
+.text-cta-primary { color: var(--cta-primary); }
+.border-cta-primary { border-color: var(--cta-primary); }
+.bg-cta-primary-foreground { background-color: var(--cta-primary-foreground); }
+.text-cta-primary-foreground { color: var(--cta-primary-foreground); }
+
+/* Brand Primary */
+.bg-brand-primary { background-color: var(--brand-primary); }
+.text-brand-primary { color: var(--brand-primary); }
+.border-brand-primary { border-color: var(--brand-primary); }
+
+/* =========================
+   SURFACE & BACKGROUND UTILITIES
+   ========================= */
+
+/* Surface Levels */
+.bg-surface-0 { background-color: var(--surface-0); }
+.bg-surface-1 { background-color: var(--surface-1); }
+.bg-surface-muted { background-color: var(--surface-muted); }
+
+/* Card */
+.bg-card-themed { background-color: var(--card); }
+.text-card-themed { color: var(--card-foreground); }
+.border-card-themed { border-color: var(--border); }
+
+/* =========================
+   TEXT HIERARCHY UTILITIES
+   ========================= */
+
+.text-level-0 { color: var(--text-0); }
+.text-level-1 { color: var(--text-1); }
+.text-level-2 { color: var(--text-2); }
+
+.text-foreground-themed { color: var(--foreground); }
+.text-muted-themed { color: var(--muted-foreground); }
+.text-accent-themed { color: var(--accent-foreground); }
+.text-secondary-themed { color: var(--secondary-foreground); }
+
+/* =========================
+   NAVIGATION & SIDEBAR UTILITIES
+   ========================= */
+
+/* Sidebar */
+.bg-sidebar { background-color: var(--sidebar-background); }
+.text-sidebar { color: var(--sidebar-foreground); }
+.border-sidebar { border-color: var(--sidebar-border); }
+.bg-sidebar-accent { background-color: var(--sidebar-accent); }
+.text-sidebar-accent { color: var(--sidebar-accent-foreground); }
+.bg-sidebar-primary { background-color: var(--sidebar-primary); }
+.text-sidebar-primary { color: var(--sidebar-primary-foreground); }
+
+/* Navigation */
+.bg-nav { background-color: var(--nav-bg); }
+.text-nav { color: var(--nav-fg); }
+.text-nav-muted { color: var(--nav-muted); }
+.border-nav { border-color: var(--nav-border); }
+.bg-nav-hover { background-color: var(--nav-item-hover-bg); }
+.bg-nav-active { background-color: var(--nav-item-active-bg); }
+.text-nav-active { color: var(--nav-item-active-fg); }
+.text-nav-accent { color: var(--nav-accent); }
+.bg-nav-accent { background-color: var(--nav-accent); }
+.border-nav-accent { border-color: var(--nav-accent); }
+
+/* =========================
+   INPUT & FORM UTILITIES
+   ========================= */
+
+.bg-input-themed { background-color: var(--input); }
+.border-input-themed { border-color: var(--border); }
+.border-subtle { border-color: var(--border-subtle); }
+.ring-themed { --tw-ring-color: var(--ring); }
+.ring-focus { --tw-ring-color: var(--focus-ring); }
+.outline-focus { outline-color: var(--focus-ring); }
+
+/* =========================
+   DESTRUCTIVE UTILITIES
+   ========================= */
+
+.bg-destructive-themed { background-color: var(--destructive); }
+.text-destructive-themed { color: var(--destructive); }
+.text-destructive-foreground-themed { color: var(--destructive-foreground); }
+.border-destructive-themed { border-color: var(--destructive); }
+
+/* =========================
+   SECONDARY & ACCENT UTILITIES
+   ========================= */
+
+.bg-secondary-themed { background-color: var(--secondary); }
+.text-secondary-themed { color: var(--secondary-foreground); }
+.border-secondary-themed { border-color: var(--secondary); }
+
+.bg-accent-themed { background-color: var(--accent); }
+.text-accent-themed { color: var(--accent-foreground); }
+.border-accent-themed { border-color: var(--accent); }
+
+/* =========================
+   COMPOSITE PILL CLASSES
+   ========================= */
+
+.pill-success { background-color: var(--pill-success-bg); color: var(--pill-success-fg); }
+.pill-warning { background-color: var(--pill-warning-bg); color: var(--pill-warning-fg); }
+.pill-danger { background-color: var(--pill-danger-bg); color: var(--pill-danger-fg); }
+.pill-muted { background-color: var(--pill-muted-bg); color: var(--pill-muted-fg); }
+.pill-color1 { background-color: var(--pill-color1-bg); color: var(--pill-color1-fg); }
+.pill-color2 { background-color: var(--pill-color2-bg); color: var(--pill-color2-fg); }
+.pill-color3 { background-color: var(--pill-color3-bg); color: var(--pill-color3-fg); }
+
+/* =========================
+   HOVER STATE UTILITIES
+   ========================= */
+
+.hover\:bg-pill-success:hover { background-color: var(--pill-success-bg); }
+.hover\:bg-pill-warning:hover { background-color: var(--pill-warning-bg); }
+.hover\:bg-pill-danger:hover { background-color: var(--pill-danger-bg); }
+.hover\:bg-pill-muted:hover { background-color: var(--pill-muted-bg); }
+
+.hover\:bg-nav-hover:hover { background-color: var(--nav-item-hover-bg); }
+.hover\:bg-nav-active:hover { background-color: var(--nav-item-active-bg); }
+.hover\:bg-sidebar-accent:hover { background-color: var(--sidebar-accent); }
+
+.hover\:bg-brand-accent:hover { background-color: var(--brand-accent); }
+.hover\:bg-cta-primary:hover { background-color: var(--cta-primary); }
+
+.hover\:text-nav-accent:hover { color: var(--nav-accent); }
+.hover\:text-brand-accent:hover { color: var(--brand-accent); }
+
+/* =========================
+   FOCUS STATE UTILITIES
+   ========================= */
+
+.focus\:ring-themed:focus { --tw-ring-color: var(--ring); }
+.focus\:ring-focus:focus { --tw-ring-color: var(--focus-ring); }
+.focus\:border-ring:focus { border-color: var(--ring); }
+
+.focus-visible\:ring-themed:focus-visible { --tw-ring-color: var(--ring); }
+.focus-visible\:outline-focus:focus-visible { outline-color: var(--focus-ring); }
