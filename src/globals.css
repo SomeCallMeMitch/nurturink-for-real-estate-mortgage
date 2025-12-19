@@ -447,8 +447,17 @@ table tbody tr:hover {
   background-color: var(--selection-bg) !important;
   border-left: 4px solid var(--selection-border) !important;
   color: var(--selection-text) !important;
-  font-weight: 600;
-  padding-left: 8px;
+  font-weight: 600 !important;
+  padding-left: 8px !important;
+}
+
+/* Extra specificity for buttons */
+button.selection-active {
+  background-color: var(--selection-bg) !important;
+  border-left: 4px solid var(--selection-border) !important;
+  color: var(--selection-text) !important;
+  font-weight: 600 !important;
+  padding-left: 8px !important;
 }
 
 /* Reduced motion support */
