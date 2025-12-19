@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertTriangle, Send } from "lucide-react";
+import { Loader2, AlertTriangle, Send, AlertCircle } from "lucide-react";
 import { debounce } from "lodash";
 import { useToast } from "@/components/ui/use-toast";
 import { Pill } from "@/components/ui/Pill";
