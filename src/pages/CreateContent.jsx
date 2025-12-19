@@ -12,7 +12,7 @@ import { Pill } from "@/components/ui/Pill";
 import { debounce } from "lodash";
 
 import EditModeSelector from "@/components/mailing/EditModeSelector";
-import { getSelectionStyles } from "@/utils/selectionStyles";
+import { getSelectionStyles } from "@/components/utils/selectionStyles";
 import PlaceholderModal from "@/components/mailing/PlaceholderModal";
 import TemplateLibrary from "@/components/mailing/TemplateLibrary";
 import CardPreview from "@/components/preview/CardPreview";
