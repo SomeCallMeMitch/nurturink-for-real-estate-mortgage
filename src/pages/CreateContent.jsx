@@ -212,8 +212,8 @@ export default function CreateContent() {
         if (userPhones.length > 0) {
           enrichedUser.phone = userPhones[0].phoneNumber;
         }
-      } catch (error) {
-        console.log('⚠️ Could not load user phone:', error);
+      } catch (phoneError) {
+        console.log('⚠️ Could not load user phone:', phoneError);
       }
       
       setUser(enrichedUser);
@@ -516,21 +516,28 @@ export default function CreateContent() {
     const currentProfileId = getCurrentNoteStyleProfileId();
     if (!currentProfileId) return null;
     return noteStyleProfiles.find(p => p.id === currentProfileId);
-  }, [getCurrentNoteStyleProfileId, noteStyleProfiles]);
+  }, [localSelectedNoteStyleProfileId, localNoteStyleProfileOverrides, selectedRecipientId, editMode, noteStyleProfiles]);
 
-  // Memoized map of which clients have custom overrides (fixes immediate pill display)
+  // FIXED: Memoized map of which clients have custom overrides
+  // This ensures the Custom pill appears immediately when changes are made
   const clientCustomStatus = useMemo(() => {
     const status = {};
     clients.forEach(c => {
       status[c.id] = !!(
         localContentOverrides[c.id] ||
-        localGreetingOverrides.hasOwnProperty(c.id) ||
-        localSignatureOverrides.hasOwnProperty(c.id) ||
-        localNoteStyleProfileOverrides.hasOwnProperty(c.id)
+        Object.prototype.hasOwnProperty.call(localGreetingOverrides, c.id) ||
+        Object.prototype.hasOwnProperty.call(localSignatureOverrides, c.id) ||
+        Object.prototype.hasOwnProperty.call(localNoteStyleProfileOverrides, c.id)
       );
     });
     return status;
-  }, [clients, localContentOverrides, localGreetingOverrides, localSignatureOverrides, localNoteStyleProfileOverrides]);
+  }, [
+    clients, 
+    localContentOverrides, 
+    localGreetingOverrides, 
+    localSignatureOverrides, 
+    localNoteStyleProfileOverrides
+  ]);
 
   const recipients = useMemo(() => {
     return clients.map(client => ({
@@ -558,10 +565,10 @@ export default function CreateContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-indigo-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading content editor...</p>
+          <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+          <p className="text-muted-foreground">Loading content editor...</p>
         </div>
       </div>
     );
@@ -569,19 +576,19 @@ export default function CreateContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <Card className="max-w-2xl w-full">
           <CardContent className="pt-6">
             <div className="text-center mb-6">
               <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-destructive mb-2">Error Loading Page</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
+              <p className="text-muted-foreground mb-4">{error}</p>
             </div>
             
             {errorDetails && (
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-sm text-gray-700 mb-2">Debug Information:</h3>
-                <pre className="text-xs text-gray-600 overflow-auto max-h-64 whitespace-pre-wrap">
+              <div className="bg-muted rounded-lg p-4 mb-6">
+                <h3 className="font-semibold text-sm text-foreground mb-2">Debug Information:</h3>
+                <pre className="text-xs text-muted-foreground overflow-auto max-h-64 whitespace-pre-wrap">
                   {errorDetails}
                 </pre>
               </div>
@@ -606,12 +613,12 @@ export default function CreateContent() {
 
   if (!mailingBatch) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <Card className="max-w-md">
           <CardContent className="pt-6">
             <div className="text-center">
               <h2 className="text-xl font-bold text-destructive mb-2">Mailing Batch Not Found</h2>
-              <p className="text-gray-600 mb-4">The requested mailing batch could not be found.</p>
+              <p className="text-muted-foreground mb-4">The requested mailing batch could not be found.</p>
               <Button onClick={() => navigate(createPageUrl('FindClients'))}>
                 Back to Clients
               </Button>
@@ -623,7 +630,7 @@ export default function CreateContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       <WorkflowSteps 
         currentStep={2} 
         creditsLeft={totalAvailableCredits}
@@ -633,26 +640,27 @@ export default function CreateContent() {
       
       <div className="max-w-[1600px] mx-auto p-6">
         <div className="grid grid-cols-12 gap-6">
+          {/* Left Column: Recipients & Templates */}
           <div style={{ gridColumn: `span ${columnWidths.leftColumnSpan}` }} className="space-y-6">
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-base font-bold text-gray-900">Recipients</h3>
-                  <div className="text-sm font-medium text-gray-900">
+                  <h3 className="text-base font-bold text-foreground">Recipients</h3>
+                  <div className="text-sm font-medium text-foreground">
                     {clients.length} {clients.length === 1 ? 'recipient' : 'recipients'}
                   </div>
                 </div>
-                <div className="flex items-center justify-between text-sm text-gray-900 mb-3 font-medium">
+                <div className="flex items-center justify-between text-sm text-foreground mb-3 font-medium">
                   <span>1/{clients.length}</span>
                   <div className="flex gap-1">
                     <button 
-                      className="hover:text-gray-700 p-1 hover:bg-gray-100 rounded transition-colors"
+                      className="hover:text-muted-foreground p-1 hover:bg-muted rounded transition-colors"
                       aria-label="Previous recipient"
                     >
                       <ArrowLeft className="w-4 h-4" />
                     </button>
                     <button 
-                      className="hover:text-gray-700 p-1 hover:bg-gray-100 rounded transition-colors"
+                      className="hover:text-muted-foreground p-1 hover:bg-muted rounded transition-colors"
                       aria-label="Next recipient"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -660,30 +668,23 @@ export default function CreateContent() {
                   </div>
                 </div>
                 <div className="max-h-48 overflow-y-auto space-y-1">
-                  {clients.map((client, index) => {
+                  {clients.map((client) => {
                     const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
                     const hasCustom = clientCustomStatus[client.id];
                     
                     return (
                       <button
-                        key={`${client.id}-${hasCustom ? 'custom' : 'no-custom'}`}
+                        key={client.id}
                         onClick={() => handleRecipientClick(client.id)}
-                        style={isEditing ? {
-                          backgroundColor: 'var(--selection-bg)',
-                          borderLeft: '4px solid var(--selection-border)',
-                          color: 'var(--selection-text)',
-                          fontWeight: 600,
-                          paddingLeft: '0.5rem'
-                        } : {}}
-                        className={`w-full text-left py-2 text-base rounded transition-all ${
+                        className={`w-full text-left px-3 py-2 text-base rounded transition-all ${
                           isEditing
-                            ? 'pr-3'
-                            : 'px-3 border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
+                            ? 'selection-active'
+                            : 'border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
                         }`}
                       >
                         <div className="flex items-center justify-between">
                           <span>{client.fullName || 'Unnamed Client'}</span>
-                          {hasCustom && !isEditing && (
+                          {hasCustom && (
                             <Pill variant="custom" size="sm">
                               Custom
                             </Pill>
@@ -703,10 +704,11 @@ export default function CreateContent() {
             />
           </div>
 
+          {/* Center Column: Editor */}
           <div style={{ gridColumn: `span ${columnWidths.centerColumnSpan}` }}>
             <Card>
               <CardContent className="pt-6 space-y-6">
-                <div className="flex items-center justify-end text-xs text-gray-500">
+                <div className="flex items-center justify-end text-xs text-muted-foreground">
                   {isSaving ? (
                     <span className="flex items-center gap-2">
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -728,7 +730,7 @@ export default function CreateContent() {
                 />
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Writing Style
                   </label>
                   <Select
@@ -760,14 +762,14 @@ export default function CreateContent() {
 
                 <PlaceholderModal onPlaceholderSelect={handlePlaceholderSelect} />
 
-                <div className="flex items-center gap-6 pt-4 border-t">
+                <div className="flex items-center gap-6 pt-4 border-t border-border">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="includeGreeting"
                       checked={getCurrentIncludeGreeting()}
                       onCheckedChange={handleGreetingChange}
                     />
-                    <label htmlFor="includeGreeting" className="text-sm font-medium">
+                    <label htmlFor="includeGreeting" className="text-sm font-medium text-foreground">
                       Include Greeting
                     </label>
                   </div>
@@ -778,7 +780,7 @@ export default function CreateContent() {
                       checked={getCurrentIncludeSignature()}
                       onCheckedChange={handleSignatureChange}
                     />
-                    <label htmlFor="includeSignature" className="text-sm font-medium">
+                    <label htmlFor="includeSignature" className="text-sm font-medium text-foreground">
                       Include Signature
                     </label>
                   </div>
@@ -787,10 +789,11 @@ export default function CreateContent() {
             </Card>
           </div>
 
+          {/* Right Column: Preview */}
           <div style={{ gridColumn: `span ${columnWidths.rightColumnSpan}` }}>
             <Card className="sticky top-6">
               <CardContent className="pt-6">
-                <h3 className="font-semibold text-gray-900 mb-4">Preview for {getCurrentClient().fullName || 'Client'}</h3>
+                <h3 className="font-semibold text-foreground mb-4">Preview for {getCurrentClient().fullName || 'Client'}</h3>
                 
                 <div className="flex justify-center px-4">
                   {instanceSettings && (
@@ -812,7 +815,7 @@ export default function CreateContent() {
                   )}
                   
                   {!instanceSettings && (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-muted-foreground">
                       Loading preview...
                     </div>
                   )}
@@ -823,9 +826,10 @@ export default function CreateContent() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      {/* Fixed Footer */}
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             {clients.length} clients selected
           </div>
           
