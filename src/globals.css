@@ -110,9 +110,9 @@
   --pill-purpose-custom-fg: #374151;
 
   /* Selection/Active States */
-  --selection-bg: #FEF2F2;
-  --selection-border: #DC2626;
-  --selection-text: #991B1B;
+  --selection-bg: #EFF6FF;
+  --selection-border: var(--primary);
+  --selection-text: var(--foreground);
 
   /* ==========================================================
      MISSING TOKENS (to support whitelabel utility classes)
@@ -251,9 +251,9 @@
   --pill-purpose-custom-fg: #E5E7EB;
 
   /* Selection/Active States - Dark Mode */
-  --selection-bg: rgba(220, 38, 38, 0.15);
-  --selection-border: #F87171;
-  --selection-text: #FCA5A5;
+  --selection-bg: rgba(4, 119, 209, 0.15);
+  --selection-border: var(--primary);
+  --selection-text: var(--foreground);
 
   /* ==========================================================
      MISSING TOKENS (dark mode aliases)
