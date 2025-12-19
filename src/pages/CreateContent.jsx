@@ -676,10 +676,10 @@ export default function CreateContent() {
                       <button
                         key={client.id}
                         onClick={() => handleRecipientClick(client.id)}
-                        className={`w-full text-left px-3 py-2 text-base rounded transition-all ${
+                        className={`w-full text-left py-2 text-base rounded transition-all ${
                           isEditing
-                            ? 'selection-active'
-                            : 'border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
+                            ? 'selection-active pr-3'
+                            : 'px-3 border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
                         }`}
                       >
                         <div className="flex items-center justify-between">
