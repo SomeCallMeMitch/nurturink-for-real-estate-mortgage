@@ -1,99 +1,31 @@
-
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2, Save, AlertTriangle, AlertCircle, Send } from "lucide-react";
+import { Loader2, AlertTriangle, Send } from "lucide-react";
 import { debounce } from "lodash";
 import { useToast } from "@/components/ui/use-toast";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Pill } from "@/components/ui/Pill";
 
+// Components
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import EditModeSelector from "@/components/mailing/EditModeSelector";
 import EnvelopePreview from "@/components/preview/EnvelopePreview";
 import NotEnoughCreditsModal from "@/components/modals/NotEnoughCreditsModal";
 
-// Helper to replace placeholders in address text
-const replacePlaceholders = (text, client, user, organization) => {
-  if (!text) return '';
-  
-  let result = text;
-  
-  // Organization placeholders
-  if (organization) {
-    result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
-    result = result.replace(/\{\{org\.street\}\}/g, organization.companyReturnAddress?.street || '');
-    result = result.replace(/\{\{org\.city\}\}/g, organization.companyReturnAddress?.city || '');
-    result = result.replace(/\{\{org\.state\}\}/g, organization.companyReturnAddress?.state || '');
-    result = result.replace(/\{\{org\.zipCode\}\}/g, organization.companyReturnAddress?.zip || '');
-  }
-  
-  // User/Me placeholders
-  if (user) {
-    result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
-    result = result.replace(/\{\{me\.street\}\}/g, user.street || '');
-    result = result.replace(/\{\{me\.city\}\}/g, user.city || '');
-    result = result.replace(/\{\{me\.state\}\}/g, user.state || '');
-    result = result.replace(/\{\{me\.zipCode\}\}/g, user.zipCode || '');
-  }
-  
-  return result;
-};
+// Extracted components
+import { AddressEditDialog } from "@/components/review/AddressEditDialog";
+import { ReturnAddressSelector } from "@/components/review/ReturnAddressSelector";
+import { CreditStatusBanner } from "@/components/review/CreditStatusBanner";
 
-// Helper to format company address
-const formatCompanyAddress = (organization) => {
-  if (!organization?.companyReturnAddress) return null;
-  
-  const addr = organization.companyReturnAddress;
-  const lines = [];
-  
-  // Add company name first if it exists
-  if (addr.companyName) {
-    lines.push(addr.companyName);
-  } else if (organization.name) {
-    lines.push(organization.name);
-  }
-  
-  if (addr.street) lines.push(addr.street);
-  if (addr.address2) lines.push(addr.address2);
-  
-  const cityStateZip = [addr.city, addr.state, addr.zip].filter(Boolean).join(' ');
-  if (cityStateZip) lines.push(cityStateZip);
-  
-  return lines.length > 0 ? lines.join('\n') : null;
-};
-
-// Helper to format rep address
-const formatRepAddress = (user) => {
-  if (!user?.street) return null;
-  
-  const lines = [];
-  
-  // Add name first if it exists
-  if (user.returnAddressName) {
-    lines.push(user.returnAddressName);
-  } else if (user.full_name) {
-    lines.push(user.full_name);
-  }
-  
-  if (user.street) lines.push(user.street);
-  if (user.address2) lines.push(user.address2);
-  
-  const cityStateZip = [user.city, user.state, user.zipCode].filter(Boolean).join(' ');
-  if (cityStateZip) lines.push(cityStateZip);
-  
-  return lines.length > 0 ? lines.join('\n') : null;
-};
+// Utilities
+import {
+  formatCompanyAddress,
+  formatRepAddress,
+  getAddressPreviewText
+} from "@/utils/addressHelpers";
 
 export default function ReviewAndSend() {
   const navigate = useNavigate();
@@ -122,18 +54,9 @@ export default function ReviewAndSend() {
   const [localReturnAddressModeGlobal, setLocalReturnAddressModeGlobal] = useState('company');
   const [localReturnAddressModeOverrides, setLocalReturnAddressModeOverrides] = useState({});
 
-  // Add dialog state for editing addresses
+  // Dialog state
   const [companyAddressDialogOpen, setCompanyAddressDialogOpen] = useState(false);
   const [repAddressDialogOpen, setRepAddressDialogOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState({
-    companyName: '',
-    returnAddressName: '',
-    street: '',
-    address2: '',
-    city: '',
-    state: '',
-    zipCode: ''
-  });
   const [savingAddress, setSavingAddress] = useState(false);
 
   // NEW: Credit checking state
@@ -363,42 +286,13 @@ export default function ReviewAndSend() {
     return user?.street ? true : false;
   }, [user]);
 
-  // Get mini address preview for an option
-  const getAddressPreview = (mode) => {
-    if (mode === 'company') {
-      return hasCompanyAddress ? formatCompanyAddress(organization) : null;
-    } else if (mode === 'rep') {
-      return hasRepAddress ? formatRepAddress(user) : null;
-    } else {
-      return 'No return address';
-    }
-  };
+
 
   // Handle opening company address dialog
   const handleOpenCompanyAddressDialog = (e) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
-    }
-    
-    if (organization?.companyReturnAddress) {
-      setEditingAddress({
-        companyName: organization.companyReturnAddress.companyName || organization.name || '',
-        street: organization.companyReturnAddress.street || '',
-        address2: organization.companyReturnAddress.address2 || '',
-        city: organization.companyReturnAddress.city || '',
-        state: organization.companyReturnAddress.state || '',
-        zipCode: organization.companyReturnAddress.zip || ''
-      });
-    } else {
-      setEditingAddress({
-        companyName: organization?.name || '',
-        street: '',
-        address2: '',
-        city: '',
-        state: '',
-        zipCode: ''
-      });
     }
     setCompanyAddressDialogOpen(true);
   };
@@ -409,31 +303,22 @@ export default function ReviewAndSend() {
       e.preventDefault();
       e.stopPropagation();
     }
-    
-    setEditingAddress({
-      returnAddressName: user?.returnAddressName || user?.full_name || '',
-      street: user?.street || '',
-      address2: user?.address2 || '',
-      city: user?.city || '',
-      state: user?.state || '',
-      zipCode: user?.zipCode || ''
-    });
     setRepAddressDialogOpen(true);
   };
 
   // Handle saving company address
-  const handleSaveCompanyAddress = async () => {
+  const handleSaveCompanyAddress = async (addressData) => {
     try {
       setSavingAddress(true);
       
       await base44.entities.Organization.update(organization.id, {
         companyReturnAddress: {
-          companyName: editingAddress.companyName || organization.name,
-          street: editingAddress.street,
-          address2: editingAddress.address2,
-          city: editingAddress.city,
-          state: editingAddress.state,
-          zip: editingAddress.zipCode
+          companyName: addressData.companyName || organization.name,
+          street: addressData.street,
+          address2: addressData.address2,
+          city: addressData.city,
+          state: addressData.state,
+          zip: addressData.zipCode
         }
       });
       
@@ -461,17 +346,17 @@ export default function ReviewAndSend() {
   };
 
   // Handle saving rep address
-  const handleSaveRepAddress = async () => {
+  const handleSaveRepAddress = async (addressData) => {
     try {
       setSavingAddress(true);
       
       await base44.auth.updateMe({
-        returnAddressName: editingAddress.returnAddressName,
-        street: editingAddress.street,
-        address2: editingAddress.address2,
-        city: editingAddress.city,
-        state: editingAddress.state,
-        zipCode: editingAddress.zipCode
+        returnAddressName: addressData.returnAddressName,
+        street: addressData.street,
+        address2: addressData.address2,
+        city: addressData.city,
+        state: addressData.state,
+        zipCode: addressData.zipCode
       });
       
       // Reload data to refresh user
@@ -632,85 +517,15 @@ export default function ReviewAndSend() {
       />
       
       <div className="max-w-[1600px] mx-auto p-6">
-        {/* Credit Warning Banner - Show if insufficient credits */}
-        {creditCheckResult && !creditCheckResult.available && (
-          <Card className="mb-6 border-red-300 bg-red-50">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-red-900 mb-1">Insufficient Credits</h3>
-                  <p className="text-sm text-red-800 mb-3">
-                    You need {creditCheckResult.creditsNeeded} credits to send to {clients.length} {clients.length === 1 ? 'recipient' : 'recipients'}, 
-                    but you only have {creditCheckResult.totalAvailable} credits available.
-                  </p>
-                  <div className="flex gap-3">
-                    <Button
-                      onClick={() => navigate(createPageUrl('Credits'))}
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      Purchase Credits
-                    </Button>
-                    <Button
-                      onClick={checkCreditAvailability}
-                      size="sm"
-                      variant="outline"
-                      disabled={checkingCredits}
-                    >
-                      {checkingCredits ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Checking...
-                        </>
-                      ) : (
-                        'Refresh Balance'
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Credit Info Banner - Show if sufficient credits */}
-        {creditSummary && creditSummary.sufficient && (
-          <Card className="mb-6 border-green-300 bg-green-50">
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <Send className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-green-900">
-                      Ready to send to {clients.length} {clients.length === 1 ? 'recipient' : 'recipients'}
-                    </p>
-                    <p className="text-xs text-green-700">
-                      {creditSummary.hasCompanyPool ? (
-                        <>
-                          Using {Math.min(clients.length, creditSummary.companyCredits)} from company pool
-                          {clients.length > creditSummary.companyCredits && 
-                            ` + ${clients.length - creditSummary.companyCredits} personal credits`
-                          }
-                        </>
-                      ) : (
-                        `Using ${clients.length} of your ${creditSummary.personalCredits} personal credits`
-                      )}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-green-700">
-                    {creditSummary.total - clients.length}
-                  </p>
-                  <p className="text-xs text-green-600">Credits remaining</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Credit Status Banner */}
+        <CreditStatusBanner
+          creditCheckResult={creditCheckResult}
+          creditSummary={creditSummary}
+          clientCount={clients.length}
+          onPurchaseCredits={() => navigate(createPageUrl('Credits'))}
+          onRefresh={checkCreditAvailability}
+          checking={checkingCredits}
+        />
 
         {/* Three-Column Layout */}
         <div className="grid grid-cols-12 gap-6">
@@ -736,25 +551,20 @@ export default function ReviewAndSend() {
                         key={client.id}
                         onClick={() => handleRecipientClick(client.id)}
                         type="button"
-                        className={`w-full text-left px-3 py-2.5 rounded transition-all ${
-                          isEditing
-                            ? 'bg-[#fff8f8] border-l-4 border-l-[#d32f2f] font-semibold'
-                            : 'border-l-4 border-l-transparent hover:bg-gray-50'
-                        }`}
+                        className={`w-full text-left px-3 py-2.5 rounded transition-all ${isEditing ? 'selection-active' : 'border-l-4 border-l-transparent hover:bg-gray-50'}`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-sm text-gray-900">
                             {index + 1}. {client.fullName || 'Unnamed Client'}
                           </span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${
-                            effectiveMode === 'company' ? 'bg-blue-100 text-blue-800' :
-                            effectiveMode === 'rep' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
+                          <Pill
+                            variant={effectiveMode === 'company' ? 'color1' : effectiveMode === 'rep' ? 'success' : 'muted'}
+                            size="sm"
+                          >
                             {effectiveMode === 'company' ? 'Company' :
                              effectiveMode === 'rep' ? 'Rep' :
                              'None'}
-                          </span>
+                          </Pill>
                         </div>
                       </button>
                     );
@@ -786,126 +596,18 @@ export default function ReviewAndSend() {
                   onModeChange={handleModeChange}
                 />
                 
-                {/* Return Address Options - Card Style with CONDITIONAL RENDERING */}
-                <div className="space-y-3">
-                  {/* Company Option - CONDITIONAL RENDERING */}
-                  {hasCompanyAddress ? (
-                    // When address EXISTS - clickable button
-                    <button
-                      onClick={() => handleReturnAddressModeSelect('company')}
-                      type="button"
-                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                        getCurrentReturnAddressMode() === 'company'
-                          ? 'border-orange-500 bg-orange-50'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold text-gray-900">Company</h3>
-                        {getCurrentReturnAddressMode() === 'company' && (
-                          <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                            <div className="w-2 h-2 bg-white rounded-full" />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 whitespace-pre-line">
-                        {getAddressPreview('company')}
-                      </p>
-                    </button>
-                  ) : (
-                    // When NO address - non-clickable div with working link
-                    <div className={`w-full p-4 rounded-lg border-2 border-gray-200 bg-gray-50 ${
-                      getCurrentReturnAddressMode() === 'company' ? 'border-orange-500 bg-orange-50' : ''
-                    }`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold text-gray-500">Company</h3>
-                      </div>
-                      <div className="flex items-start gap-2 text-sm text-red-600">
-                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <div>
-                          No company address set.{' '}
-                          <button
-                            onClick={handleOpenCompanyAddressDialog}
-                            type="button"
-                            className="underline font-medium hover:text-red-700 cursor-pointer bg-transparent border-none p-0"
-                          >
-                            Add in Settings
-                          </button>
-                          {' '}or choose Rep/None
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Rep Option - CONDITIONAL RENDERING */}
-                  {hasRepAddress ? (
-                    // When address EXISTS - clickable button
-                    <button
-                      onClick={() => handleReturnAddressModeSelect('rep')}
-                      type="button"
-                      className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                        getCurrentReturnAddressMode() === 'rep'
-                          ? 'border-orange-500 bg-orange-50'
-                          : 'border-gray-200 hover:border-gray-300 bg-white'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold text-gray-900">Rep</h3>
-                        {getCurrentReturnAddressMode() === 'rep' && (
-                          <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                            <div className="w-2 h-2 bg-white rounded-full" />
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 whitespace-pre-line">
-                        {getAddressPreview('rep')}
-                      </p>
-                    </button>
-                  ) : (
-                    // When NO address - non-clickable div with working link
-                    <div className={`w-full p-4 rounded-lg border-2 border-gray-200 bg-gray-50 ${
-                      getCurrentReturnAddressMode() === 'rep' ? 'border-orange-500 bg-orange-50' : ''
-                    }`}>
-                      <div className="flex items-start gap-2 text-sm text-red-600">
-                        <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                        <div>
-                          {user?.full_name || 'You'} don't have a return address on file.{' '}
-                          <button
-                            onClick={handleOpenRepAddressDialog}
-                            type="button"
-                            className="underline font-medium hover:text-red-700 cursor-pointer bg-transparent border-none p-0"
-                          >
-                            Add Address
-                          </button>
-                          {' '}or choose Company/None
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* None Option - Always clickable */}
-                  <button
-                    onClick={() => handleReturnAddressModeSelect('none')}
-                    type="button"
-                    className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                      getCurrentReturnAddressMode() === 'none'
-                        ? 'border-orange-500 bg-orange-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-900">None</h3>
-                      {getCurrentReturnAddressMode() === 'none' && (
-                        <div className="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
-                          <div className="w-2 h-2 bg-white rounded-full" />
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      {getAddressPreview('none')}
-                    </p>
-                  </button>
-                </div>
+                {/* Return Address Options */}
+                <ReturnAddressSelector
+                  currentMode={getCurrentReturnAddressMode()}
+                  onModeSelect={handleReturnAddressModeSelect}
+                  hasCompanyAddress={hasCompanyAddress}
+                  hasRepAddress={hasRepAddress}
+                  companyAddressPreview={formatCompanyAddress(organization)}
+                  repAddressPreview={formatRepAddress(user)}
+                  onAddCompanyAddress={handleOpenCompanyAddressDialog}
+                  onAddRepAddress={handleOpenRepAddressDialog}
+                  userName={user?.full_name}
+                />
               </CardContent>
             </Card>
           </div>
@@ -925,10 +627,10 @@ export default function ReviewAndSend() {
                       client={getCurrentClient}
                       user={user}
                       organization={organization}
-                      returnAddressMode={getCurrentReturnAddressMode()} // Pass the mode
+                      returnAddressMode={getCurrentReturnAddressMode()}
                     />
                   ) : (
-                    <div className="text-center py-12 text-gray-50">
+                    <div className="text-center py-12 text-gray-500">
                       Loading preview...
                     </div>
                   )}
@@ -940,7 +642,7 @@ export default function ReviewAndSend() {
                     Preview Info
                   </h4>
                   <div className="text-sm text-blue-800 space-y-1">
-                    <p><strong>Recipient:</strong> {getCurrentClient.fullName || 'Sample Client'}</p>
+                    <p><strong>Recipient:</strong> {getCurrentClient?.fullName || 'Sample Client'}</p>
                     <p><strong>Return Address Mode:</strong> {getCurrentReturnAddressMode()}</p>
                   </div>
                 </div>
@@ -993,198 +695,25 @@ export default function ReviewAndSend() {
       </div>
 
       {/* Company Address Dialog */}
-      <Dialog open={companyAddressDialogOpen} onOpenChange={setCompanyAddressDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Company Return Address</DialogTitle>
-            <DialogDescription>
-              This address will be used when "Company" is selected as the return address
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="company-name-edit">Company Name</Label>
-              <Input
-                id="company-name-edit"
-                value={editingAddress.companyName || ''}
-                onChange={(e) => setEditingAddress({ ...editingAddress, companyName: e.target.value })}
-                placeholder="Acme Corporation"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="company-street-edit">Street Address *</Label>
-              <Input
-                id="company-street-edit"
-                value={editingAddress.street}
-                onChange={(e) => setEditingAddress({ ...editingAddress, street: e.target.value })}
-                placeholder="123 Business Ave"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="company-address2-edit">Address Line 2</Label>
-              <Input
-                id="company-address2-edit"
-                value={editingAddress.address2}
-                onChange={(e) => setEditingAddress({ ...editingAddress, address2: e.target.value })}
-                placeholder="Suite 100"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="company-city-edit">City *</Label>
-                <Input
-                  id="company-city-edit"
-                  value={editingAddress.city}
-                  onChange={(e) => setEditingAddress({ ...editingAddress, city: e.target.value })}
-                  placeholder="Denver"
-                />
-              </div>
-              <div>
-                <Label htmlFor="company-state-edit">State *</Label>
-                <Input
-                  id="company-state-edit"
-                  value={editingAddress.state}
-                  onChange={(e) => setEditingAddress({ ...editingAddress, state: e.target.value })}
-                  placeholder="CO"
-                  maxLength={2}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="company-zip-edit">ZIP Code *</Label>
-              <Input
-                id="company-zip-edit"
-                value={editingAddress.zipCode}
-                onChange={(e) => setEditingAddress({ ...editingAddress, zipCode: e.target.value })}
-                placeholder="80202"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button 
-                onClick={handleSaveCompanyAddress}
-                disabled={savingAddress || !editingAddress.street || !editingAddress.city || !editingAddress.state || !editingAddress.zipCode}
-                className="bg-indigo-600 hover:bg-indigo-700"
-              >
-                {savingAddress ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</>
-                ) : (
-                  'Save Address'
-                )}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setCompanyAddressDialogOpen(false)}
-                disabled={savingAddress}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AddressEditDialog
+        open={companyAddressDialogOpen}
+        onOpenChange={setCompanyAddressDialogOpen}
+        type="company"
+        initialAddress={organization?.companyReturnAddress || { companyName: organization?.name }}
+        onSave={handleSaveCompanyAddress}
+        saving={savingAddress}
+      />
 
       {/* Rep Address Dialog */}
-      <Dialog open={repAddressDialogOpen} onOpenChange={setRepAddressDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Your Return Address</DialogTitle>
-            <DialogDescription>
-              This address will be used when "Rep" is selected as the return address
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="rep-name-edit">Name *</Label>
-              <Input
-                id="rep-name-edit"
-                value={editingAddress.returnAddressName || ''}
-                onChange={(e) => setEditingAddress({ ...editingAddress, returnAddressName: e.target.value })}
-                placeholder="John Smith"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="rep-street-edit">Street Address *</Label>
-              <Input
-                id="rep-street-edit"
-                value={editingAddress.street}
-                onChange={(e) => setEditingAddress({ ...editingAddress, street: e.target.value })}
-                placeholder="123 Main Street"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="rep-address2-edit">Address Line 2</Label>
-              <Input
-                id="rep-address2-edit"
-                value={editingAddress.address2}
-                onChange={(e) => setEditingAddress({ ...editingAddress, address2: e.target.value })}
-                placeholder="Apt 4B"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="rep-city-edit">City *</Label>
-                <Input
-                  id="rep-city-edit"
-                  value={editingAddress.city}
-                  onChange={(e) => setEditingAddress({ ...editingAddress, city: e.target.value })}
-                  placeholder="Denver"
-                />
-              </div>
-              <div>
-                <Label htmlFor="rep-state-edit">State *</Label>
-                <Input
-                  id="rep-state-edit"
-                  value={editingAddress.state}
-                  onChange={(e) => setEditingAddress({ ...editingAddress, state: e.target.value })}
-                  placeholder="CO"
-                  maxLength={2}
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label htmlFor="rep-zip-edit">ZIP Code *</Label>
-              <Input
-                id="rep-zip-edit"
-                value={editingAddress.zipCode}
-                onChange={(e) => setEditingAddress({ ...editingAddress, zipCode: e.target.value })}
-                placeholder="80202"
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button 
-                onClick={handleSaveRepAddress}
-                disabled={savingAddress || !editingAddress.street || !editingAddress.city || !editingAddress.state || !editingAddress.zipCode}
-                className="bg-indigo-600 hover:bg-indigo-700"
-              >
-                {savingAddress ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</>
-                ) : (
-                  'Save Address'
-                )}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setRepAddressDialogOpen(false)}
-                disabled={savingAddress}
-              >
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AddressEditDialog
+        open={repAddressDialogOpen}
+        onOpenChange={setRepAddressDialogOpen}
+        type="rep"
+        initialAddress={user}
+        onSave={handleSaveRepAddress}
+        saving={savingAddress}
+        userName={user?.full_name}
+      />
 
       {/* NEW: Not Enough Credits Modal */}
       <NotEnoughCreditsModal
