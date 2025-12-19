@@ -672,15 +672,48 @@ export default function CreateContent() {
                     const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
                     const hasCustom = clientCustomStatus[client.id];
                     
+                    // DEBUG: Log selection state
+                    if (isEditing) {
+                      console.log('🎯 SELECTED RECIPIENT DEBUG:', {
+                        clientId: client.id,
+                        clientName: client.fullName,
+                        isEditing,
+                        editMode,
+                        selectedRecipientId,
+                        expectedClass: 'selection-active pr-3',
+                        selectionBgVar: getComputedStyle(document.documentElement).getPropertyValue('--selection-bg'),
+                        selectionBorderVar: getComputedStyle(document.documentElement).getPropertyValue('--selection-border'),
+                      });
+                    }
+                    
+                    const finalClassName = `w-full text-left py-2 text-base rounded transition-all ${
+                      isEditing
+                        ? 'selection-active pr-3'
+                        : 'px-3 border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
+                    }`;
+                    
+                    // DEBUG: Log the actual className being applied
+                    if (isEditing) {
+                      console.log('🎨 CLASSNAME APPLIED:', finalClassName);
+                    }
+                    
                     return (
                       <button
                         key={client.id}
                         onClick={() => handleRecipientClick(client.id)}
-                        className={`w-full text-left py-2 text-base rounded transition-all ${
-                          isEditing
-                            ? 'selection-active pr-3'
-                            : 'px-3 border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
-                        }`}
+                        className={finalClassName}
+                        ref={isEditing ? (el) => {
+                          if (el) {
+                            const styles = getComputedStyle(el);
+                            console.log('🔍 COMPUTED STYLES ON SELECTED BUTTON:', {
+                              backgroundColor: styles.backgroundColor,
+                              borderLeft: styles.borderLeft,
+                              paddingLeft: styles.paddingLeft,
+                              color: styles.color,
+                              fontWeight: styles.fontWeight,
+                            });
+                          }
+                        } : undefined}
                       >
                         <div className="flex items-center justify-between">
                           <span>{client.fullName || 'Unnamed Client'}</span>
