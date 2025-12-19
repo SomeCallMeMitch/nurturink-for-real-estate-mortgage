@@ -12,6 +12,7 @@ import { Pill } from "@/components/ui/Pill";
 import { debounce } from "lodash";
 
 import EditModeSelector from "@/components/mailing/EditModeSelector";
+import { getSelectionStyles } from "@/utils/selectionStyles";
 import PlaceholderModal from "@/components/mailing/PlaceholderModal";
 import TemplateLibrary from "@/components/mailing/TemplateLibrary";
 import CardPreview from "@/components/preview/CardPreview";
@@ -684,15 +685,7 @@ export default function CreateContent() {
                       });
                     }
                     
-                    // FIX: Use inline styles for selected state to bypass CSS variable/class issues
-                    const selectedStyles = isEditing ? {
-                      backgroundColor: '#EFF6FF',
-                      borderLeft: '4px solid #0477d1',
-                      color: '#222222',
-                      fontWeight: 600,
-                      paddingLeft: '8px',
-                      paddingRight: '12px'
-                    } : {};
+                    const selectedStyles = getSelectionStyles(isEditing);
                     
                     const finalClassName = `w-full text-left py-2 text-base rounded transition-all ${
                       isEditing
