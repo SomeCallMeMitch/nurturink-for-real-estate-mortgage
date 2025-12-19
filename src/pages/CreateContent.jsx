@@ -666,12 +666,19 @@ export default function CreateContent() {
                     
                     return (
                       <button
-                        key={client.id}
+                        key={`${client.id}-${hasCustom ? 'custom' : 'no-custom'}`}
                         onClick={() => handleRecipientClick(client.id)}
-                        className={`w-full text-left px-3 py-2 text-base rounded transition-all ${
+                        style={isEditing ? {
+                          backgroundColor: 'var(--selection-bg)',
+                          borderLeft: '4px solid var(--selection-border)',
+                          color: 'var(--selection-text)',
+                          fontWeight: 600,
+                          paddingLeft: '0.5rem'
+                        } : {}}
+                        className={`w-full text-left py-2 text-base rounded transition-all ${
                           isEditing
-                            ? 'selection-active'
-                            : 'border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
+                            ? 'pr-3'
+                            : 'px-3 border-l-4 border-l-transparent hover:bg-muted/50 text-foreground font-medium odd:bg-muted/30'
                         }`}
                       >
                         <div className="flex items-center justify-between">
