@@ -546,12 +546,27 @@ export default function ReviewAndSend() {
                     const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
                     const effectiveMode = getEffectiveReturnAddressMode(client.id);
                     
+                    // FIX: Use inline styles for selected state to bypass CSS variable issues
+                    const selectedStyles = isEditing ? {
+                      backgroundColor: '#EFF6FF',
+                      borderLeft: '4px solid #0477d1',
+                      color: '#222222',
+                      fontWeight: 600,
+                      paddingLeft: '8px',
+                      paddingRight: '12px'
+                    } : {};
+                    
                     return (
                       <button
                         key={client.id}
                         onClick={() => handleRecipientClick(client.id)}
                         type="button"
-                        className={`w-full text-left px-3 py-2.5 rounded transition-all ${isEditing ? 'selection-active' : 'border-l-4 border-l-transparent hover:bg-gray-50'}`}
+                        className={`w-full text-left py-2.5 rounded transition-all ${
+                          isEditing 
+                            ? '' // styles applied via inline style object
+                            : 'px-3 border-l-4 border-l-transparent hover:bg-gray-50'
+                        }`}
+                        style={selectedStyles}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-sm text-gray-900">
