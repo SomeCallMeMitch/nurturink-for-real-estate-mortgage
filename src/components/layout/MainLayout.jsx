@@ -164,9 +164,9 @@ const DEFAULT_SETTINGS = {
   // ===========================
   // SELECTION STATES
   // ===========================
-  selectionBg: "#fef2f2",
-  selectionBorder: "#dc2626",
-  selectionText: "#991b1b",
+  selectionBg: "#EFF6FF",
+  selectionBorder: "#0477d1",
+  selectionText: "#222222",
 
   // Navigation/Sidebar
   sidebarBackground: "#ffffff",
