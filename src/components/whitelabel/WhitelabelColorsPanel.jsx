@@ -172,6 +172,28 @@ export default function WhitelabelColorsPanel({ settings, updateSettings }) {
           />
         </ColorSection>
 
+        {/* Selection/Active States */}
+        <ColorSection title="Selection States" icon={Square}>
+          <ColorField
+            label="Selection Background"
+            value={settings.selectionBg}
+            onChange={(v) => updateSettings({ selectionBg: v })}
+            description="Selected item background"
+          />
+          <ColorField
+            label="Selection Border"
+            value={settings.selectionBorder}
+            onChange={(v) => updateSettings({ selectionBorder: v })}
+            description="Selected item left border"
+          />
+          <ColorField
+            label="Selection Text"
+            value={settings.selectionText}
+            onChange={(v) => updateSettings({ selectionText: v })}
+            description="Text on selected items"
+          />
+        </ColorSection>
+
         {/* Semantic Status Colors */}
         <ColorSection title="Status Colors" icon={Circle}>
           <ColorField

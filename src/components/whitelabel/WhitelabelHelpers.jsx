@@ -171,6 +171,11 @@ export const DEFAULT_WHITELABEL_SETTINGS = {
   text2: "#9ca3af",
   borderSubtle: "#e5e7eb",
 
+  // Selection/Active States
+  selectionBg: "#EFF6FF",
+  selectionBorder: "#0477d1",
+  selectionText: "#222222",
+
   // Typography
   fontHeadings: "Inter",
   fontBody: "Inter",
