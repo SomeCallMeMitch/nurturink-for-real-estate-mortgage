@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +15,7 @@ import {
   Send
 } from 'lucide-react';
 import WorkflowSteps from '@/components/mailing/WorkflowSteps';
+import { Pill } from '@/components/ui/Pill';
 
 export default function MailingConfirmation() {
   const navigate = useNavigate();
@@ -184,10 +184,10 @@ export default function MailingConfirmation() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-indigo-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading confirmation...</p>
+          <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+          <p className="text-muted-foreground">Loading confirmation...</p>
         </div>
       </div>
     );
@@ -195,13 +195,13 @@ export default function MailingConfirmation() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <Card className="max-w-2xl w-full">
           <CardContent className="pt-6">
             <div className="text-center mb-6">
-              <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-red-600 mb-2">Error Loading Confirmation</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
+              <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-destructive mb-2">Error Loading Confirmation</h2>
+              <p className="text-muted-foreground mb-4">{error}</p>
             </div>
             
             <div className="flex gap-3 justify-center">
@@ -219,7 +219,7 @@ export default function MailingConfirmation() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Workflow Steps Header */}
       <WorkflowSteps currentStep={4} creditsLeft={user?.creditBalance || 0} />
       
@@ -236,15 +236,15 @@ export default function MailingConfirmation() {
                 </div>
                 
                 {/* Title */}
-                <h1 className="text-3xl font-bold text-gray-900 mb-3">
+                <h1 className="text-3xl font-bold text-foreground mb-3">
                   Your Notes are On The Way!
                 </h1>
                 
                 {/* Details */}
-                <p className="text-lg text-gray-700 mb-2">
+                <p className="text-lg text-foreground mb-2">
                   <span className="font-semibold">{clients.length} card{clients.length !== 1 ? 's' : ''}</span> {clients.length !== 1 ? 'have' : 'has'} been sent.
                 </p>
-                <p className="text-gray-600">
+                <p className="text-muted-foreground">
                   Expect them to be delivered in <span className="font-medium">5-10 business days</span>.
                 </p>
               </CardContent>
@@ -257,27 +257,27 @@ export default function MailingConfirmation() {
               <Card className="bg-blue-50 border-blue-200">
                 <CardContent className="pt-6 pb-6">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold">?</span>
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                      <span className="text-primary-foreground font-bold">?</span>
                     </div>
-                    <h3 className="text-lg font-bold text-gray-900">What Happens Next</h3>
+                    <h3 className="text-lg font-bold text-foreground">What Happens Next</h3>
                   </div>
                   
-                  <ul className="space-y-3 mb-6 text-sm text-gray-700">
+                  <ul className="space-y-3 mb-6 text-sm text-foreground">
                     <li className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-0.5">•</span>
+                      <span className="text-primary mt-0.5">•</span>
                       <span>Your cards are being printed with your custom message right now</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-0.5">•</span>
+                      <span className="text-primary mt-0.5">•</span>
                       <span>Each card will be hand-addressed and handwritten by our team</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-0.5">•</span>
+                      <span className="text-primary mt-0.5">•</span>
                       <span>Recipients should receive them in 5-10 business days</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-blue-600 mt-0.5">•</span>
+                      <span className="text-primary mt-0.5">•</span>
                       <span>A confirmation email with this summary has been sent to your inbox</span>
                     </li>
                   </ul>
@@ -310,7 +310,7 @@ export default function MailingConfirmation() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Mailing Details</h2>
+              <h2 className="text-xl font-bold text-foreground">Mailing Details</h2>
               
               {/* Export Buttons */}
               <div className="flex gap-2">
@@ -348,53 +348,53 @@ export default function MailingConfirmation() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b-2 border-gray-200">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                  <tr className="border-b-2 border-border">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                       Recipient
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                       Address
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                       Template
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                       Design
                     </th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 uppercase tracking-wider">
+                    <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                       Return Address
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-border">
                   {clients.map((client, index) => {
                     const design = getClientDesign(client.id);
                     const returnMode = getClientReturnAddressMode(client.id);
                     const hasCustomMessage = mailingBatch?.contentOverrides?.[client.id];
                     
                     return (
-                      <tr key={client.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={client.id} className="hover:bg-muted/50 transition-colors">
                         <td className="py-3 px-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-500">
+                            <span className="text-sm font-medium text-muted-foreground">
                               {index + 1}.
                             </span>
-                            <span className="font-medium text-gray-900">
+                            <span className="font-medium text-foreground">
                               {client.fullName || 'Unnamed Client'}
                             </span>
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="text-sm text-gray-700">
+                          <div className="text-sm text-foreground">
                             <div>{client.street}</div>
                             {client.address2 && <div>{client.address2}</div>}
                             <div>{client.city}, {client.state} {client.zipCode}</div>
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <div className="text-sm text-gray-700">
+                          <div className="text-sm text-foreground">
                             {hasCustomMessage ? (
-                              <span className="italic text-gray-600">Custom Message</span>
+                              <span className="italic text-muted-foreground">Custom Message</span>
                             ) : (
                               <span>Global Message</span>
                             )}
@@ -403,27 +403,26 @@ export default function MailingConfirmation() {
                         <td className="py-3 px-4">
                           {design ? (
                             <div className="flex items-center gap-2">
-                              <div className="w-12 h-12 rounded border border-gray-200 overflow-hidden flex-shrink-0">
+                              <div className="w-12 h-12 rounded border border-border overflow-hidden flex-shrink-0">
                                 <img
                                   src={design.insideImageUrl || design.imageUrl}
                                   alt={design.name}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
-                              <span className="text-sm text-gray-700">{design.name}</span>
+                              <span className="text-sm text-foreground">{design.name}</span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-500 italic">No design</span>
+                            <span className="text-sm text-muted-foreground italic">No design</span>
                           )}
                         </td>
                         <td className="py-3 px-4">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            returnMode === 'company' ? 'bg-blue-100 text-blue-800' :
-                            returnMode === 'rep' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
+                          <Pill 
+                            variant={returnMode === 'company' ? 'color1' : returnMode === 'rep' ? 'success' : 'muted'} 
+                            size="sm"
+                          >
                             {formatReturnAddressMode(returnMode)}
-                          </span>
+                          </Pill>
                         </td>
                       </tr>
                     );
@@ -435,7 +434,7 @@ export default function MailingConfirmation() {
             {/* Empty State */}
             {clients.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500">No recipients found in this batch</p>
+                <p className="text-muted-foreground">No recipients found in this batch</p>
               </div>
             )}
           </CardContent>

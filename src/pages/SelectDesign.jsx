@@ -13,6 +13,7 @@ import { debounce } from "lodash";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import EditModeSelector from "@/components/mailing/EditModeSelector";
 import CardPreview from "@/components/preview/CardPreview";
+import { getSelectionStyles } from "@/components/utils/selectionStyles";
 
 export default function SelectDesign() {
   const navigate = useNavigate();
@@ -377,10 +378,10 @@ export default function SelectDesign() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-indigo-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading design library...</p>
+          <Loader2 className="w-12 h-12 text-primary mx-auto mb-4 animate-spin" />
+          <p className="text-muted-foreground">Loading design library...</p>
         </div>
       </div>
     );
@@ -388,13 +389,13 @@ export default function SelectDesign() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
         <Card className="max-w-2xl w-full">
           <CardContent className="pt-6">
             <div className="text-center mb-6">
               <AlertTriangle className="w-16 h-16 text-destructive mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-destructive mb-2">Error Loading Page</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
+              <p className="text-muted-foreground mb-4">{error}</p>
             </div>
             
             <div className="flex gap-3 justify-center">
@@ -427,7 +428,7 @@ export default function SelectDesign() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32">
+    <div className="min-h-screen bg-background pb-32">
       {/* Workflow Steps Header with Back Button and Title */}
       <WorkflowSteps 
         currentStep={3} 
@@ -444,8 +445,8 @@ export default function SelectDesign() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-base font-bold text-gray-900">Recipients</h3>
-                  <div className="text-sm font-medium text-gray-900">
+                  <h3 className="text-base font-bold text-foreground">Recipients</h3>
+                  <div className="text-sm font-medium text-foreground">
                     {clients.length} {clients.length === 1 ? 'recipient' : 'recipients'}
                   </div>
                 </div>
@@ -466,15 +467,8 @@ export default function SelectDesign() {
                     const isEditing = editMode === 'individual' && selectedRecipientId === client.id;
                     const hasOverride = localDesignOverrides[client.id];
                     
-                    // FIX: Use inline styles for selected state to bypass CSS variable issues
-                    const selectedStyles = isEditing ? {
-                      backgroundColor: '#EFF6FF',
-                      borderLeft: '4px solid #0477d1',
-                      color: '#222222',
-                      fontWeight: 600,
-                      paddingLeft: '8px',
-                      paddingRight: '12px'
-                    } : {};
+                    // Use centralized selection styles utility
+                    const selectedStyles = getSelectionStyles(isEditing);
                     
                     return (
                       <button
@@ -500,7 +494,7 @@ export default function SelectDesign() {
                 
                 {/* Save Status */}
                 {saving && (
-                  <div className="mt-4 text-xs text-gray-500 flex items-center gap-2">
+                  <div className="mt-4 text-xs text-muted-foreground flex items-center gap-2">
                     <Loader2 className="w-3 h-3 animate-spin" />
                     Saving...
                   </div>
@@ -513,7 +507,7 @@ export default function SelectDesign() {
           <div className="col-span-5">
             <Card>
               <CardContent className="pt-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Select Card Design</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-6">Select Card Design</h2>
                 
                 {/* Search and Filter */}
                 <div className="flex gap-3 mb-4">
@@ -543,13 +537,13 @@ export default function SelectDesign() {
                 </div>
                 
                 {/* Tabs */}
-                <div className="flex gap-4 border-b border-gray-200 mb-6">
+                <div className="flex gap-4 border-b border-border mb-6">
                   <button
                     onClick={() => setActiveTab('all')}
                     className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                       activeTab === 'all'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-600 hover:text-gray-900'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     All Designs ({designs.length})
@@ -558,8 +552,8 @@ export default function SelectDesign() {
                     onClick={() => setActiveTab('favorites')}
                     className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
                       activeTab === 'favorites'
-                        ? 'border-indigo-600 text-indigo-600'
-                        : 'border-transparent text-gray-600 hover:text-gray-900'
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Favorites ({favoriteCount})
@@ -570,7 +564,7 @@ export default function SelectDesign() {
                 <div className="max-h-[600px] overflow-y-auto">
                   {filteredDesigns.length === 0 ? (
                     <div className="text-center py-12">
-                      <p className="text-gray-500">
+                      <p className="text-muted-foreground">
                         {searchQuery || selectedCategoryId !== 'all' 
                           ? 'No designs match your filters' 
                           : activeTab === 'favorites'
@@ -595,7 +589,7 @@ export default function SelectDesign() {
                             className={`relative cursor-pointer rounded-lg border-2 transition-all hover:shadow-lg ${
                               isSelected 
                                 ? 'border-primary shadow-lg' 
-                                : 'border-gray-200 hover:border-gray-300'
+                                : 'border-border hover:border-muted-foreground'
                             }`}
                           >
                             {/* Selected Indicator */}
@@ -614,13 +608,13 @@ export default function SelectDesign() {
                                 className={`w-4 h-4 ${
                                   isFavorite 
                                     ? 'fill-yellow-400 text-yellow-400' 
-                                    : 'text-gray-400 hover:text-yellow-400'
+                                    : 'text-muted-foreground hover:text-yellow-400'
                                 }`}
                               />
                             </button>
                             
                             {/* Single Design Image with Hover Effect */}
-                            <div className="relative rounded-t-lg overflow-hidden bg-gray-100" style={{ aspectRatio: '412/600' }}>
+                            <div className="relative rounded-t-lg overflow-hidden bg-muted" style={{ aspectRatio: '412/600' }}>
                               <img
                                 src={displayImageUrl || design.imageUrl}
                                 alt={design.name}
@@ -634,8 +628,8 @@ export default function SelectDesign() {
                             </div>
                             
                             {/* Design Info */}
-                            <div className="p-3 bg-white rounded-b-lg">
-                              <p className="font-medium text-sm text-gray-900 truncate">
+                            <div className="p-3 bg-card rounded-b-lg">
+                              <p className="font-medium text-sm text-foreground truncate">
                                 {design.name}
                               </p>
                               {design.isDefault && (
@@ -656,7 +650,7 @@ export default function SelectDesign() {
           <div className="col-span-4">
             <Card className="sticky top-6">
               <CardContent className="pt-6">
-                <h3 className="font-semibold text-gray-900 mb-4">
+                <h3 className="font-semibold text-foreground mb-4">
                   Preview for {getCurrentClient.fullName || 'Client'}
                 </h3>
                 
@@ -678,7 +672,7 @@ export default function SelectDesign() {
                       />
                     </div>
                   ) : (
-                    <div className="text-center py-12 text-gray-500">
+                    <div className="text-center py-12 text-muted-foreground">
                       {!selectedDesign ? 'Select a design to preview' : 'Loading preview...'}
                     </div>
                   )}
@@ -690,9 +684,9 @@ export default function SelectDesign() {
       </div>
 
       {/* Sticky Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             <span className="font-medium">{clients.length} clients selected</span>
             {localSelectedDesignId && (
               <span className="ml-4">
