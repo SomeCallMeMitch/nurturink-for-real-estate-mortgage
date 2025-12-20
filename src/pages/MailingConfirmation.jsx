@@ -18,7 +18,7 @@ import WorkflowSteps from '@/components/mailing/WorkflowSteps';
 import { Pill } from '@/components/ui/Pill';
 
 // ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from '@/utils/creditHelpers';
+import { calculateTotalAvailableCredits } from '@/components/utils/creditHelpers';
 
 export default function MailingConfirmation() {
   const navigate = useNavigate();
