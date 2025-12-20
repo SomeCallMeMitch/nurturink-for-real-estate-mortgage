@@ -437,6 +437,10 @@ export default function ReviewAndSend() {
         });
       }
       
+      // ADDED: Refresh user and organization data AFTER processing to get updated credit balances
+      // This ensures MailingConfirmation page will fetch fresh post-deduction credit data
+      await loadData();
+      
       // Navigate to confirmation page
       navigate(createPageUrl(`MailingConfirmation?mailingBatchId=${mailingBatchId}`));
       

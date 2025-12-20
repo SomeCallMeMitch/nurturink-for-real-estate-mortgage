@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import WorkflowSteps from '@/components/mailing/WorkflowSteps';
 import { Pill } from '@/components/ui/Pill';
+
+// ADDED: Import centralized credit calculation utility
+import { calculateTotalAvailableCredits } from '@/utils/creditHelpers';
 
 export default function MailingConfirmation() {
   const navigate = useNavigate();
@@ -124,6 +127,12 @@ export default function MailingConfirmation() {
     return modeMap[mode] || mode;
   };
 
+  // ADDED: Calculate total available credits using centralized utility
+  // This now correctly reflects post-deduction balance after mailing is processed
+  const totalAvailableCredits = useMemo(() => {
+    return calculateTotalAvailableCredits(user, organization);
+  }, [user, organization]);
+
   // Handle download placeholders - UPDATED
   const handleDownloadCSV = async () => {
     try {
@@ -220,8 +229,8 @@ export default function MailingConfirmation() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Workflow Steps Header */}
-      <WorkflowSteps currentStep={4} creditsLeft={user?.creditBalance || 0} />
+      {/* Workflow Steps Header - FIXED: Now uses correct totalAvailableCredits calculation */}
+      <WorkflowSteps currentStep={4} creditsLeft={totalAvailableCredits} />
       
       <div className="max-w-7xl mx-auto p-6">
         {/* Top Section - Two Column Split */}
