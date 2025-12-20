@@ -18,6 +18,9 @@ import TemplateLibrary from "@/components/mailing/TemplateLibrary";
 import CardPreview from "@/components/preview/CardPreview";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 
+// ADDED: Import centralized credit calculation utility
+import { calculateTotalAvailableCredits } from "@/components/utils/creditHelpers";
+
 // Default fallback settings if API fails
 const FALLBACK_SETTINGS = {
   cardPreviewSettings: {
@@ -159,17 +162,9 @@ export default function CreateContent() {
   const [localSignatureOverrides, setLocalSignatureOverrides] = useState({});
   const [localNoteStyleProfileOverrides, setLocalNoteStyleProfileOverrides] = useState({});
 
-  // Calculate total available credits with CORRECTED hierarchy
+  // REFACTORED: Using centralized credit calculation utility
   const totalAvailableCredits = useMemo(() => {
-    if (!user) return 0;
-    
-    const companyAllocated = user.companyAllocatedCredits || 0;
-    const personalPurchased = user.personalPurchasedCredits || 0;
-    
-    const canAccessPool = user.canAccessCompanyPool !== false;
-    const companyCredits = canAccessPool ? (organization?.creditBalance || 0) : 0;
-    
-    return companyAllocated + companyCredits + personalPurchased;
+    return calculateTotalAvailableCredits(user, organization);
   }, [user, organization]);
 
   // Load all data on mount

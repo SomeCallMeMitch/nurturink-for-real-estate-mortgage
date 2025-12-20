@@ -15,6 +15,9 @@ import EditModeSelector from "@/components/mailing/EditModeSelector";
 import CardPreview from "@/components/preview/CardPreview";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 
+// ADDED: Import centralized credit calculation utility
+import { calculateTotalAvailableCredits } from "@/components/utils/creditHelpers";
+
 export default function SelectDesign() {
   const navigate = useNavigate();
   
@@ -48,18 +51,9 @@ export default function SelectDesign() {
   const [localSelectedDesignId, setLocalSelectedDesignId] = useState(null);
   const [localDesignOverrides, setLocalDesignOverrides] = useState({});
 
-  // Calculate total available credits with CORRECTED hierarchy
+  // REFACTORED: Using centralized credit calculation utility
   const totalAvailableCredits = useMemo(() => {
-    if (!user) return 0;
-    
-    const companyAllocated = user.companyAllocatedCredits || 0;
-    const personalPurchased = user.personalPurchasedCredits || 0;
-    
-    // Only include company pool if user has access
-    const canAccessPool = user.canAccessCompanyPool !== false;
-    const companyCredits = canAccessPool ? (organization?.creditBalance || 0) : 0;
-    
-    return companyAllocated + companyCredits + personalPurchased;
+    return calculateTotalAvailableCredits(user, organization);
   }, [user, organization]);
 
   useEffect(() => {
