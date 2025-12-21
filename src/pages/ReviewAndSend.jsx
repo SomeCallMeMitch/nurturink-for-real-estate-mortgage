@@ -28,12 +28,15 @@ import {
 } from "@/components/utils/addressHelpers";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 
-// ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from "../components/utils/creditHelpers";
+// PHASE 2: Import CreditContext hook for global credit state
+import { useCredits } from "../components/context/CreditContext";
 
 export default function ReviewAndSend() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // PHASE 2: Use global credit context
+  const { totalCredits, refreshCredits } = useCredits();
   
   // Get mailingBatchId from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -68,10 +71,8 @@ export default function ReviewAndSend() {
   const [checkingCredits, setCheckingCredits] = useState(false);
   const [showNotEnoughCreditsModal, setShowNotEnoughCreditsModal] = useState(false);
 
-  // REFACTORED: Using centralized credit calculation utility
-  const totalAvailableCredits = useMemo(() => {
-    return calculateTotalAvailableCredits(user, organization);
-  }, [user, organization]);
+  // PHASE 2: Use totalCredits from CreditContext (centralized calculation)
+  const totalAvailableCredits = totalCredits;
 
   // Load all data on mount
   useEffect(() => {

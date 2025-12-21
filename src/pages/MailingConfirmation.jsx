@@ -17,11 +17,14 @@ import {
 import WorkflowSteps from '@/components/mailing/WorkflowSteps';
 import { Pill } from '@/components/ui/Pill';
 
-// ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from '../components/utils/creditHelpers';
+// PHASE 2: Import CreditContext hook for global credit state
+import { useCredits } from '../components/context/CreditContext';
 
 export default function MailingConfirmation() {
   const navigate = useNavigate();
+  
+  // PHASE 2: Use global credit context
+  const { totalCredits, refreshCredits } = useCredits();
   
   // Get mailingBatchId from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -127,11 +130,13 @@ export default function MailingConfirmation() {
     return modeMap[mode] || mode;
   };
 
-  // ADDED: Calculate total available credits using centralized utility
-  // This now correctly reflects post-deduction balance after mailing is processed
-  const totalAvailableCredits = useMemo(() => {
-    return calculateTotalAvailableCredits(user, organization);
-  }, [user, organization]);
+  // PHASE 2: Use totalCredits from CreditContext (centralized calculation)
+  // Refresh context on mount to get post-deduction balance
+  useEffect(() => {
+    refreshCredits();
+  }, []);
+  
+  const totalAvailableCredits = totalCredits;
 
   // Handle download placeholders - UPDATED
   const handleDownloadCSV = async () => {
