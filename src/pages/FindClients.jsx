@@ -65,6 +65,9 @@ import { useCredits } from "../components/context/CreditContext";
 export default function FindClients() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // PHASE 2: Use global credit context for user, organization, and credits
+  const { user, organization, totalCredits, refreshCredits } = useCredits();
 
   // Data state
   const [clients, setClients] = useState([]);
@@ -72,9 +75,6 @@ export default function FindClients() {
   const [availableTags, setAvailableTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // NEW: State for user and organization
-  const [user, setUser] = useState(null);
-  const [organization, setOrganization] = useState(null);
 
   // Selection state
   const [selectedClientIds, setSelectedClientIds] = useState([]);
@@ -82,11 +82,11 @@ export default function FindClients() {
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortColumn, setSortColumn] = useState("no_notes_first"); // Column to sort by
-  const [sortDirection, setSortDirection] = useState("asc"); // 'asc' or 'desc'
+  const [sortColumn, setSortColumn] = useState("no_notes_first");
+  const [sortDirection, setSortDirection] = useState("asc");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
-  const [uploadedFilter, setUploadedFilter] = useState("all"); // 'all', 'today', '7days', '30days', 'manual'
+  const [uploadedFilter, setUploadedFilter] = useState("all");
   
   // Import modal state
   const [showImportModal, setShowImportModal] = useState(false);
@@ -106,20 +106,12 @@ export default function FindClients() {
       setLoading(true);
       setError(null);
 
+      // PHASE 2: Refresh credit context to get latest user/org data
+      await refreshCredits();
+
       const currentUser = await base44.auth.me();
       console.log('🔍 FindClients: Current user:', currentUser);
       console.log('🔍 FindClients: User orgId:', currentUser.orgId);
-      
-      setUser(currentUser);
-      
-      // Explicitly fetch Organization entity to get accurate creditBalance
-      if (currentUser.orgId) {
-        const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
-        if (orgList && orgList.length > 0) {
-          setOrganization(orgList[0]);
-          console.log('🔍 FindClients: Organization loaded:', orgList[0].name, 'creditBalance:', orgList[0].creditBalance);
-        }
-      }
 
       const [clientList, favoritesList] = await Promise.all([
         base44.entities.Client.filter({ orgId: currentUser.orgId }),
@@ -151,21 +143,10 @@ export default function FindClients() {
     }
   };
 
-  // Calculate total available credits with CORRECTED hierarchy
-  const totalAvailableCredits = useMemo(() => {
-    if (!user) return 0;
-    
-    const companyAllocated = user.companyAllocatedCredits || 0;
-    const personalPurchased = user.personalPurchasedCredits || 0;
-    
-    // Only include company pool if user has access
-    const canAccessPool = user.canAccessCompanyPool !== false;
-    const companyCredits = canAccessPool ? (organization?.creditBalance || 0) : 0;
-    
-    return companyAllocated + companyCredits + personalPurchased;
-  }, [user, organization]);
+  // PHASE 2: Use totalCredits from CreditContext (centralized calculation)
+  const totalAvailableCredits = totalCredits;
 
-  // NEW: Handle back to home
+  // Handle back to home
   const handleBack = () => {
     navigate(createPageUrl('Home'));
   };
@@ -203,10 +184,8 @@ export default function FindClients() {
   // Handle column header click for sorting
   const handleSort = (column) => {
     if (sortColumn === column) {
-      // Toggle direction if same column
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
     } else {
-      // New column, default to ascending
       setSortColumn(column);
       setSortDirection('asc');
     }
@@ -245,7 +224,7 @@ export default function FindClients() {
       });
     }
 
-    // Apply added date filter - uses created_date for all clients (manual and imported)
+    // Apply added date filter
     if (uploadedFilter !== 'all') {
       const now = new Date();
       result = result.filter(client => {
@@ -253,7 +232,6 @@ export default function FindClients() {
           return client.source === 'manual' || !client.source;
         }
         
-        // Use created_date (built-in field) for date filtering - works for all clients
         const addedDate = client.created_date ? new Date(client.created_date) : null;
         if (!addedDate) return false;
         
@@ -273,7 +251,6 @@ export default function FindClients() {
 
     switch (sortColumn) {
       case "no_notes_first":
-        // Default: Clients with no notes first, then by last note date (most recent first)
         result.sort((a, b) => {
           const aTotalNotes = a.totalNotesSent || 0;
           const bTotalNotes = b.totalNotesSent || 0;
@@ -292,11 +269,9 @@ export default function FindClients() {
         break;
 
       case "fullName":
-        // Sort by last name (lastName field from Client entity)
         result.sort((a, b) => {
           const aLastName = (a.lastName || '').toLowerCase();
           const bLastName = (b.lastName || '').toLowerCase();
-          // If last names are equal, sort by first name
           if (aLastName === bLastName) {
             const aFirstName = (a.firstName || '').toLowerCase();
             const bFirstName = (b.firstName || '').toLowerCase();
@@ -347,15 +322,12 @@ export default function FindClients() {
         break;
 
       case "tags":
-        // Sort by number of tags, then alphabetically by first tag
         result.sort((a, b) => {
           const aTags = a.tags || [];
           const bTags = b.tags || [];
-          // First compare by tag count
           if (aTags.length !== bTags.length) {
             return direction * (aTags.length - bTags.length);
           }
-          // If same count, compare by first tag alphabetically
           const aFirstTag = (aTags[0] || '').toLowerCase();
           const bFirstTag = (bTags[0] || '').toLowerCase();
           return direction * aFirstTag.localeCompare(bFirstTag);
@@ -363,11 +335,10 @@ export default function FindClients() {
         break;
 
       case "favorite":
-        // Sort favorites first (or last depending on direction)
         result.sort((a, b) => {
           const aFav = favoriteClientIds.has(a.id) ? 1 : 0;
           const bFav = favoriteClientIds.has(b.id) ? 1 : 0;
-          return direction * (bFav - aFav); // Favorites first when ascending
+          return direction * (bFav - aFav);
         });
         break;
 
@@ -436,7 +407,6 @@ export default function FindClients() {
 
       const { mailingBatchId } = response.data;
 
-      // Navigate to CreateContent with mailingBatchId (Quick Send flow)
       navigate(createPageUrl(`CreateContent?mailingBatchId=${mailingBatchId}&quickSend=true`));
 
     } catch (err) {
@@ -490,7 +460,7 @@ export default function FindClients() {
     return date.toLocaleDateString();
   };
 
-  // Get sort icon for column header - IMPROVED VERSION
+  // Get sort icon for column header
   const getSortIcon = (column) => {
     if (sortColumn !== column) {
       return <ChevronsUpDown className="w-5 h-5 opacity-30 group-hover:opacity-60 transition-opacity" />;
@@ -532,7 +502,6 @@ export default function FindClients() {
         {/* Search, Filter, and Sort Controls */}
         <Card className="mb-6">
           <CardContent className="pt-3 space-y-2">
-            {/* Row 1: Search, Client Count, Tags Dropdown, Favorites, Refresh */}
             <div className="flex gap-3">
               {/* Search */}
               <div className="flex-1 relative">
@@ -545,13 +514,13 @@ export default function FindClients() {
                 />
               </div>
 
-              {/* Client Count - MOVED HERE from CardHeader */}
+              {/* Client Count */}
               <div className="flex items-center px-3 bg-muted rounded-lg">
                 <span className="font-semibold text-foreground">{processedClients.length}</span>
                 <span className="text-muted-foreground ml-1">{processedClients.length === 1 ? 'Client' : 'Clients'}</span>
               </div>
 
-              {/* Tags Dropdown - moved next to search bar */}
+              {/* Tags Dropdown */}
               {availableTags.length > 0 && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -699,7 +668,6 @@ export default function FindClients() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    {/* Select All Checkbox column - ADDED: Standard practice placement */}
                     <TableHead className="w-10">
                       {processedClients.length > 0 && (
                         <Checkbox
@@ -710,7 +678,6 @@ export default function FindClients() {
                       )}
                     </TableHead>
                     
-                    {/* Full Name column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('fullName')}
                       className="cursor-pointer hover:text-primary transition-colors"
@@ -721,7 +688,6 @@ export default function FindClients() {
                       </div>
                     </TableHead>
                     
-                    {/* Company column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('company')}
                       className="cursor-pointer hover:text-primary transition-colors"
@@ -732,7 +698,6 @@ export default function FindClients() {
                       </div>
                     </TableHead>
                     
-                    {/* City column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('city')}
                       className="cursor-pointer hover:text-primary transition-colors"
@@ -743,7 +708,6 @@ export default function FindClients() {
                       </div>
                     </TableHead>
                     
-                    {/* State column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('state')}
                       className="cursor-pointer hover:text-primary transition-colors"
@@ -754,7 +718,6 @@ export default function FindClients() {
                       </div>
                     </TableHead>
                     
-                    {/* Notes column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('notes')}
                       className="cursor-pointer hover:text-primary transition-colors"
@@ -766,7 +729,6 @@ export default function FindClients() {
                       </div>
                     </TableHead>
                     
-                    {/* Last Note column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('lastNote')}
                       className="cursor-pointer hover:text-primary transition-colors"
@@ -778,7 +740,6 @@ export default function FindClients() {
                       </div>
                     </TableHead>
                     
-                    {/* Tags column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('tags')}
                       className="cursor-pointer hover:text-primary transition-colors"
@@ -790,7 +751,6 @@ export default function FindClients() {
                       </div>
                     </TableHead>
                     
-                    {/* Favorite column - sortable */}
                     <TableHead 
                       onClick={() => handleSort('favorite')}
                       className="w-10 cursor-pointer hover:text-primary transition-colors"
@@ -819,7 +779,6 @@ export default function FindClients() {
                           isSelected ? 'bg-primary/5' : 'hover:bg-muted/50'
                         }`}
                       >
-                        {/* Checkbox */}
                         <TableCell>
                           <Checkbox
                             checked={isSelected}
@@ -828,7 +787,6 @@ export default function FindClients() {
                           />
                         </TableCell>
 
-                        {/* Full Name - BOLD */}
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-foreground">
@@ -842,36 +800,29 @@ export default function FindClients() {
                           </div>
                         </TableCell>
 
-                        {/* Company */}
                         <TableCell className="text-muted-foreground">
                           {client.company || <span className="text-muted-foreground/50">—</span>}
                         </TableCell>
 
-                        {/* City */}
                         <TableCell className="text-muted-foreground">
                           {client.city || <span className="text-muted-foreground/50">—</span>}
                         </TableCell>
 
-                        {/* State */}
                         <TableCell className="text-muted-foreground">
                           {client.state || <span className="text-muted-foreground/50">—</span>}
                         </TableCell>
 
-                        {/* Notes Count */}
                         <TableCell className="text-muted-foreground">
                           <span className="font-medium">{totalNotes}</span>
                           <span className="text-muted-foreground/70 ml-1">note{totalNotes !== 1 ? 's' : ''}</span>
                         </TableCell>
 
-                        {/* Last Note Date */}
                         <TableCell className="text-muted-foreground">
                           <span className="font-medium">{lastNoteDate}</span>
                         </TableCell>
 
-                        {/* Tags */}
                         <TableCell>
                           <div className="flex items-center gap-1 flex-wrap">
-                            {/* Show imported indicator if applicable */}
                             {isImported && (
                               <Pill variant="color1" size="sm">
                                 imported
@@ -900,7 +851,6 @@ export default function FindClients() {
                           </div>
                         </TableCell>
 
-                        {/* Favorite Button */}
                         <TableCell>
                           <Button
                             variant="ghost"
@@ -945,11 +895,10 @@ export default function FindClients() {
         availableTagsFromParent={availableTags}
       />
 
-      {/* Floating Action Bar - appears when clients are selected */}
+      {/* Floating Action Bar */}
       {selectedClientIds.length > 0 && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <div className="bg-foreground text-background rounded-full px-6 py-3 shadow-xl flex items-center gap-6">
-            {/* Selected Count */}
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground">
                 {selectedClientIds.length}
@@ -961,7 +910,6 @@ export default function FindClients() {
             </div>
 
             <div className="flex items-center gap-3 border-l border-muted-foreground/30 pl-6">
-              {/* Quick Send Button */}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -980,7 +928,6 @@ export default function FindClients() {
                 </Tooltip>
               </TooltipProvider>
 
-              {/* Custom Message Button */}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
