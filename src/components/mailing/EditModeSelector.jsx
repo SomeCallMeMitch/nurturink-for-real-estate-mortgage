@@ -64,7 +64,7 @@ export default function EditModeSelector({ mode, selectedRecipientId, recipients
   return (
     <div className="flex items-center gap-3" ref={dropdownRef}>
       {/* Label */}
-      <span className="text-sm font-medium text-[#d32f2f]">
+      <span className="text-sm font-medium text-brand-accent">
         Changes Apply To
       </span>
 
@@ -73,10 +73,10 @@ export default function EditModeSelector({ mode, selectedRecipientId, recipients
         {/* Dropdown Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`w-full flex items-center justify-between px-[14px] py-[10px] pr-[36px] text-sm font-medium text-[#333] bg-white rounded-md border-2 transition-colors ${
+          className={`w-full flex items-center justify-between px-[14px] py-[10px] pr-[36px] text-sm font-medium text-foreground bg-card rounded-md border-2 transition-colors ${
             isOpen 
-              ? 'border-[#d32f2f]' 
-              : 'border-[#bbb] hover:border-[#999]'
+              ? 'border-brand-accent' 
+              : 'border-border hover:border-muted-foreground'
           }`}
         >
           <span>{getDisplayText()}</span>
@@ -86,33 +86,33 @@ export default function EditModeSelector({ mode, selectedRecipientId, recipients
         {/* Dropdown Menu */}
         {isOpen && (
           <div 
-            className="absolute top-[calc(100%+4px)] left-0 right-0 bg-white border-2 border-[#d32f2f] rounded-md shadow-lg overflow-hidden z-50 animate-in fade-in-0 slide-in-from-top-2 duration-200"
+            className="absolute top-[calc(100%+4px)] left-0 right-0 bg-card border-2 border-brand-accent rounded-md shadow-lg overflow-hidden z-50 animate-in fade-in-0 slide-in-from-top-2 duration-200"
             style={{ maxHeight: '320px', overflowY: 'auto' }}
           >
             {/* Bulk Option */}
             <button
               onClick={() => handleSelect('bulk')}
-              className={`w-full px-4 py-3 text-left text-sm font-semibold text-[#d32f2f] hover:bg-[#fff8f8] transition-colors border-b-2 border-[#e0e0e0] ${
-                mode === 'bulk' ? 'bg-[#ffebee]' : ''
+              className={`w-full px-4 py-3 text-left text-sm font-semibold text-brand-accent hover:bg-brand-accent/5 transition-colors border-b-2 border-border ${
+                mode === 'bulk' ? 'bg-brand-accent/10' : ''
               }`}
             >
               Apply to All Recipients
             </button>
 
             {/* Visual Separator */}
-            <div className="h-2 bg-[#f9f9f9] border-t border-b border-[#e0e0e0]" />
+            <div className="h-2 bg-muted border-t border-b border-border" />
 
             {/* Individual Recipients */}
             {sortedRecipients.map((recipient, index) => (
               <button
                 key={recipient.id}
                 onClick={() => handleSelect('individual', recipient.id)}
-                className={`w-full px-4 py-3 text-left text-sm text-[#333] hover:bg-[#f5f5f5] transition-colors ${
+                className={`w-full px-4 py-3 text-left text-sm text-foreground hover:bg-muted transition-colors ${
                   mode === 'individual' && selectedRecipientId === recipient.id 
-                    ? 'bg-[#ffebee] text-[#d32f2f] font-semibold' 
+                    ? 'bg-brand-accent/10 text-brand-accent font-semibold' 
                     : 'font-normal'
                 } ${
-                  index < sortedRecipients.length - 1 ? 'border-b border-[#f0f0f0]' : ''
+                  index < sortedRecipients.length - 1 ? 'border-b border-border' : ''
                 }`}
               >
                 {recipient.name}
