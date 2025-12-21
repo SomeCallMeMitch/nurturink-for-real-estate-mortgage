@@ -37,12 +37,12 @@ export default function TemplateFilterControls({ filters, setFilters, categories
   const isFavoritesActive = filters.viewMode === 'favorites';
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+    <div className="bg-card rounded-lg border border-border p-4 space-y-4">
       {/* Search Bar and Category Dropdown - Side by Side */}
       <div className="flex items-center gap-3">
         {/* Search Bar */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search templates..."
             value={filters.search}
@@ -87,7 +87,7 @@ export default function TemplateFilterControls({ filters, setFilters, categories
       </div>
 
       {/* View Mode Tabs + Favorites Toggle */}
-      <div className="flex items-center gap-2 pb-4 border-b border-gray-200">
+      <div className="flex items-center gap-2 pb-4 border-b border-border">
         {viewModes.map((mode) => {
           const Icon = mode.icon;
           const isActive = filters.viewMode === mode.id;
@@ -98,8 +98,8 @@ export default function TemplateFilterControls({ filters, setFilters, categories
               onClick={() => handleViewModeChange(mode.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-amber-600 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-brand-accent text-brand-accent-foreground shadow-md'
+                  : 'bg-muted text-muted-foreground hover:bg-accent'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -113,8 +113,8 @@ export default function TemplateFilterControls({ filters, setFilters, categories
           onClick={() => handleViewModeChange(isFavoritesActive ? 'all' : 'favorites')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
             isFavoritesActive
-              ? 'bg-yellow-500 text-white shadow-md'
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              ? 'bg-warning text-warning-foreground shadow-md'
+              : 'bg-muted text-muted-foreground hover:bg-accent'
           }`}
         >
           <Star className={`w-4 h-4 ${isFavoritesActive ? 'fill-current' : ''}`} />
@@ -124,19 +124,19 @@ export default function TemplateFilterControls({ filters, setFilters, categories
 
       {/* Active Filter Summary */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
           {filters.viewMode !== 'all' && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-pill-warning-bg text-pill-warning-fg rounded-full text-sm">
               {filters.viewMode === 'favorites' ? 'Favorites' : viewModes.find(m => m.id === filters.viewMode)?.label}
             </span>
           )}
           {filters.categoryId && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-pill-color2-bg text-pill-color2-fg rounded-full text-sm">
               {categories.find(c => c.id === filters.categoryId)?.name}
             </span>
           )}
           {filters.search && (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-pill-color1-bg text-pill-color1-fg rounded-full text-sm">
               Search: "{filters.search}"
             </span>
           )}

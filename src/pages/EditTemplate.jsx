@@ -368,15 +368,15 @@ export default function EditTemplate() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-background p-6">
         <div className="max-w-[1600px] mx-auto">
           {/* Header */}
           <div className="mb-6">
@@ -391,10 +391,10 @@ export default function EditTemplate() {
             
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-foreground">
                   {isDuplicate ? 'Duplicate Template' : (isNew ? 'Create New Template' : 'Edit Template')}
                 </h1>
-                <p className="text-gray-600 mt-1">
+                <p className="text-muted-foreground mt-1">
                   {isDuplicate 
                     ? 'Save to create a copy of this template' 
                     : (isNew ? 'Create a reusable message template' : 'Update your template')
@@ -403,7 +403,7 @@ export default function EditTemplate() {
               </div>
               
               {hasUnsavedChanges && (
-                <div className="flex items-center gap-2 text-orange-600">
+                <div className="flex items-center gap-2 text-warning">
                   <AlertTriangle className="w-5 h-5" />
                   <span className="text-sm font-medium">Unsaved changes</span>
                 </div>
@@ -432,13 +432,13 @@ export default function EditTemplate() {
                       {!isNew ? (
                         <button
                           onClick={handleFavoriteToggle}
-                          className="p-2 hover:bg-gray-100 rounded transition-colors flex-shrink-0"
+                          className="p-2 hover:bg-muted rounded transition-colors flex-shrink-0"
                         >
                           <Star
                             className={`w-5 h-5 ${
                               isFavorited 
-                                ? 'fill-yellow-400 text-yellow-400' 
-                                : 'text-yellow-400'
+                                ? 'fill-warning text-warning' 
+                                : 'text-warning'
                             }`}
                           />
                         </button>
@@ -448,12 +448,12 @@ export default function EditTemplate() {
                             disabled
                             className="p-2 rounded transition-colors flex-shrink-0 cursor-not-allowed opacity-40"
                           >
-                            <Star className="w-5 h-5 text-yellow-400" />
+                            <Star className="w-5 h-5 text-warning" />
                           </button>
                           <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-50 pointer-events-none">
-                            <div className="bg-gray-900 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                            <div className="bg-foreground text-background text-xs rounded py-1 px-2 whitespace-nowrap">
                               Save template first to add to favorites
-                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900"></div>
+                              <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-foreground"></div>
                             </div>
                           </div>
                         </div>
@@ -519,7 +519,7 @@ export default function EditTemplate() {
                       placeholder="Write your template message here..."
                       className="min-h-[200px]"
                     />
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className="text-sm text-muted-foreground mt-2">
                       Click the "Placeholders" button below to insert dynamic fields
                     </p>
                   </div>
@@ -533,21 +533,21 @@ export default function EditTemplate() {
                     <div>
                       <Label>Categories (Select Multiple)</Label>
                       {categories.length === 0 ? (
-                        <div className="mt-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <p className="text-sm text-yellow-800 font-medium mb-2">
-                            ⚠️ No categories available yet
+                        <div className="mt-2 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+                          <p className="text-sm text-warning font-medium mb-2">
+                            No categories available yet
                           </p>
-                          <p className="text-sm text-yellow-700">
+                          <p className="text-sm text-warning/80">
                             Categories help organize your templates. To create categories:
                           </p>
-                          <ul className="text-sm text-yellow-700 mt-2 ml-4 list-disc">
+                          <ul className="text-sm text-warning/80 mt-2 ml-4 list-disc">
                             <li>Go to <strong>Home</strong> page</li>
                             <li>Click <strong>"Seed Categories"</strong></li>
                           </ul>
                         </div>
                       ) : (
                         <>
-                          <p className="text-sm text-gray-500 mb-2">
+                          <p className="text-sm text-muted-foreground mb-2">
                             Select all categories that apply to this template
                           </p>
                           <div className="mt-2 space-y-2">
@@ -568,7 +568,7 @@ export default function EditTemplate() {
                             ))}
                           </div>
                           {template.templateCategoryIds.length > 0 && (
-                            <p className="text-sm text-indigo-600 mt-2">
+                            <p className="text-sm text-primary mt-2">
                               {template.templateCategoryIds.length} {template.templateCategoryIds.length === 1 ? 'category' : 'categories'} selected
                             </p>
                           )}
@@ -637,7 +637,6 @@ export default function EditTemplate() {
                     <Button
                       onClick={handleSave}
                       disabled={saving}
-                      className="bg-indigo-600 hover:bg-indigo-700"
                     >
                       {saving ? (
                         <>
@@ -668,7 +667,7 @@ export default function EditTemplate() {
             <div className="col-span-5">
               <Card className="sticky top-6">
                 <CardContent className="pt-6">
-                  <h3 className="font-semibold text-gray-900 mb-4">Live Preview</h3>
+                  <h3 className="font-semibold text-foreground mb-4">Live Preview</h3>
                   
                   {/* Preview container */}
                   <div className="flex justify-center px-4">
@@ -689,19 +688,19 @@ export default function EditTemplate() {
                         />
                       </div>
                     ) : (
-                      <div className="text-center py-12 text-gray-500">
-                        <Loader2 className="w-8 h-8 text-gray-400 mx-auto mb-2 animate-spin" />
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Loader2 className="w-8 h-8 text-muted-foreground mx-auto mb-2 animate-spin" />
                         <p>Loading preview...</p>
                       </div>
                     )}
                   </div>
 
                   {/* Preview Info */}
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-600">
+                  <div className="mt-4 p-3 bg-muted rounded-lg">
+                    <p className="text-xs text-muted-foreground">
                       <strong>Preview uses sample data:</strong>
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Client: {SAMPLE_CLIENT.fullName} • {SAMPLE_CLIENT.company}
                     </p>
                   </div>

@@ -88,10 +88,10 @@ export default function TemplateGrid({
   if (!templates || templates.length === 0) {
     return (
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{title}</h2>
-        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-          <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-500">{emptyMessage}</p>
+        <h2 className="text-xl font-semibold text-foreground mb-4">{title}</h2>
+        <div className="text-center py-12 bg-muted rounded-lg border-2 border-dashed border-border">
+          <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">{emptyMessage}</p>
         </div>
       </div>
     );
@@ -102,7 +102,7 @@ export default function TemplateGrid({
   return (
     <TooltipProvider>
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2 className="text-xl font-semibold text-foreground mb-4">
           {title}
         </h2>
         
@@ -130,7 +130,7 @@ export default function TemplateGrid({
                 <Card className="hover:shadow-lg transition-shadow group relative">
                   <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-3">
                     <div className="flex-1 pr-2">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
                         {template.name}
                       </h3>
                     </div>
@@ -144,7 +144,7 @@ export default function TemplateGrid({
                               e.stopPropagation();
                               onFavoriteToggle(template.id);
                             }}
-                            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                            className="p-1.5 hover:bg-muted rounded transition-colors"
                           >
                             <Star
                               className={`w-4 h-4 ${
@@ -160,7 +160,7 @@ export default function TemplateGrid({
                         </TooltipContent>
                       </Tooltip>
 
-                      {/* Edit Button - INDIGO (only if user can edit) */}
+                      {/* Edit Button (only if user can edit) */}
                       {canEdit && (
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -169,9 +169,9 @@ export default function TemplateGrid({
                                 e.stopPropagation();
                                 navigate(createPageUrl(`EditTemplate?id=${template.id}`));
                               }}
-                              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                              className="p-1.5 hover:bg-muted rounded transition-colors"
                             >
-                              <Pencil className="w-4 h-4 text-indigo-600" />
+                              <Pencil className="w-4 h-4 text-primary" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -180,7 +180,7 @@ export default function TemplateGrid({
                         </Tooltip>
                       )}
 
-                      {/* Duplicate Button - BLUE (always visible) */}
+                      {/* Duplicate Button (always visible) */}
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
@@ -188,9 +188,9 @@ export default function TemplateGrid({
                               e.stopPropagation();
                               onDuplicateTemplate(template);
                             }}
-                            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                            className="p-1.5 hover:bg-muted rounded transition-colors"
                           >
-                            <Copy className="w-4 h-4 text-blue-600" />
+                            <Copy className="w-4 h-4 text-primary" />
                           </button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -198,7 +198,7 @@ export default function TemplateGrid({
                         </TooltipContent>
                       </Tooltip>
 
-                      {/* Delete Button - RED (only if user can edit) */}
+                      {/* Delete Button (only if user can edit) */}
                       {canEdit && (
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -207,9 +207,9 @@ export default function TemplateGrid({
                                 e.stopPropagation();
                                 handleDeleteClick(template);
                               }}
-                              className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                              className="p-1.5 hover:bg-muted rounded transition-colors"
                             >
-                              <Trash className="w-4 h-4 text-red-600" />
+                              <Trash className="w-4 h-4 text-destructive" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -222,7 +222,7 @@ export default function TemplateGrid({
 
                   <CardContent>
                     {/* Template content - 2 lines with larger font */}
-                    <p className="text-base text-gray-600 line-clamp-2 leading-relaxed">
+                    <p className="text-base text-muted-foreground line-clamp-2 leading-relaxed">
                       {template.content}
                     </p>
                     
@@ -242,7 +242,7 @@ export default function TemplateGrid({
                       ))}
                       
                       {template.usageCount > 0 && (
-                        <span className="text-gray-400">
+                        <span className="text-muted-foreground">
                           Used {template.usageCount}x
                         </span>
                       )}
@@ -259,10 +259,10 @@ export default function TemplateGrid({
                         : 'left-full ml-2 slide-in-from-left-2'
                     }`}
                   >
-                    <div className="bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 w-[520px]">
+                    <div className="bg-card border-2 border-border rounded-lg shadow-xl p-4 w-[520px]">
                       <div className="space-y-2">
-                        <p className="font-semibold text-sm">{template.name}</p>
-                        <p className="text-sm whitespace-pre-wrap max-h-80 overflow-y-auto">
+                        <p className="font-semibold text-sm text-foreground">{template.name}</p>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap max-h-80 overflow-y-auto">
                           {template.content}
                         </p>
                       </div>

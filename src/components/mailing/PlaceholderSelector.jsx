@@ -64,9 +64,9 @@ export default function PlaceholderSelector({ onPlaceholderSelect }) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="start">
-        <div className="p-4 border-b border-gray-200 bg-gray-50">
-          <h3 className="font-semibold text-sm text-gray-900">Dynamic Content</h3>
-          <p className="text-xs text-gray-500 mt-1">
+        <div className="p-4 border-b border-border bg-muted">
+          <h3 className="font-semibold text-sm text-foreground">Dynamic Content</h3>
+          <p className="text-xs text-muted-foreground mt-1">
             Insert personalized placeholders that will be replaced with real data for each recipient.
           </p>
         </div>
@@ -76,10 +76,10 @@ export default function PlaceholderSelector({ onPlaceholderSelect }) {
             const Icon = category.icon;
             
             return (
-              <div key={categoryIndex} className="border-b border-gray-100 last:border-0">
-                <div className="px-4 py-2 bg-gray-50 flex items-center gap-2">
-                  <Icon className="w-4 h-4 text-gray-500" />
-                  <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              <div key={categoryIndex} className="border-b border-border last:border-0">
+                <div className="px-4 py-2 bg-muted flex items-center gap-2">
+                  <Icon className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     {category.name}
                   </span>
                 </div>
@@ -89,10 +89,10 @@ export default function PlaceholderSelector({ onPlaceholderSelect }) {
                     <button
                       key={placeholderIndex}
                       onClick={() => handleSelect(placeholder.value)}
-                      className="w-full px-4 py-2 text-left text-sm hover:bg-indigo-50 transition-colors flex items-center justify-between group"
+                      className="w-full px-4 py-2 text-left text-sm hover:bg-accent transition-colors flex items-center justify-between group"
                     >
-                      <span className="text-gray-700">{placeholder.label}</span>
-                      <code className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded group-hover:bg-indigo-100 group-hover:text-indigo-700">
+                      <span className="text-foreground">{placeholder.label}</span>
+                      <code className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded group-hover:bg-primary/10 group-hover:text-primary">
                         {placeholder.value}
                       </code>
                     </button>
@@ -103,8 +103,8 @@ export default function PlaceholderSelector({ onPlaceholderSelect }) {
           })}
         </div>
 
-        <div className="p-3 bg-gray-50 border-t border-gray-200">
-          <p className="text-xs text-gray-500">
+        <div className="p-3 bg-muted border-t border-border">
+          <p className="text-xs text-muted-foreground">
             <strong>Tip:</strong> Placeholders will be replaced with actual data when the card is sent.
           </p>
         </div>

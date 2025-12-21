@@ -372,8 +372,8 @@ export default function EditQuickSendTemplate() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Zap className="w-6 h-6 text-orange-600" />
+            <div className="p-2 bg-brand-accent/10 rounded-lg">
+              <Zap className="w-6 h-6 text-brand-accent" />
             </div>
             <div>
               <h1 className="text-2xl font-bold text-foreground">
@@ -391,7 +391,7 @@ export default function EditQuickSendTemplate() {
           <Button variant="outline" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving} className="gap-2 bg-amber-500 hover:bg-amber-600">
+          <Button onClick={handleSave} disabled={saving} className="gap-2 bg-brand-accent hover:bg-brand-accent/90 text-brand-accent-foreground">
             {saving ? (
             <>
             <Loader2 className="w-4 h-4 animate-spin" />

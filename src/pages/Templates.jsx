@@ -194,12 +194,11 @@ export default function TemplatesPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Content Library</h1>
-                    <p className="mt-1 text-gray-600">Browse, create, and manage your message templates.</p>
+                    <h1 className="text-3xl font-bold text-foreground">Content Library</h1>
+                    <p className="mt-1 text-muted-foreground">Browse, create, and manage your message templates.</p>
                 </div>
                 <Button
                     onClick={() => navigate(createPageUrl('EditTemplate?id=new'))}
-                    className="bg-gray-900 hover:bg-gray-800"
                 >
                     <Plus className="w-4 h-4 mr-2" />
                     New Template
@@ -224,7 +223,7 @@ export default function TemplatesPage() {
             )}
 
             {error && (
-                <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
                     {error}
                 </div>
             )}
