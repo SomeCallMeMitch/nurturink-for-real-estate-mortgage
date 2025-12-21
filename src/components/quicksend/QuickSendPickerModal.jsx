@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Pill, getPurposeVariant } from '@/components/ui/Pill';
 import {
   Select,
   SelectContent,
@@ -310,16 +310,15 @@ export default function QuickSendPickerModal({
                           )}
                         </div>
                         
-                        {/* Badges */}
+                        {/* Pills */}
                         <div className="flex gap-2 mt-1 mb-2">
-                          <Badge className={`text-xs ${purposeConfig.color}`}>
-                            <PurposeIcon className="w-3 h-3 mr-1" />
+                          <Pill variant={getPurposeVariant(template.purpose)} size="sm" icon={PurposeIcon}>
                             {purposeConfig.label}
-                          </Badge>
+                          </Pill>
                           {template.isDefault && (
-                            <Badge className="text-xs bg-orange-100 text-orange-700">
+                            <Pill variant="warning" size="sm">
                               Default
-                            </Badge>
+                            </Pill>
                           )}
                         </div>
                         

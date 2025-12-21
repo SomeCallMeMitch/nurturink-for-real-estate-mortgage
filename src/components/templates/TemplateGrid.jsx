@@ -4,6 +4,7 @@ import { createPageUrl } from '@/utils';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Star, Pencil, Copy, Trash, FileText } from 'lucide-react';
+import { Pill, getTypeVariant } from '@/components/ui/Pill';
 import {
   Tooltip,
   TooltipContent,
@@ -226,31 +227,18 @@ export default function TemplateGrid({
                     </p>
                     
                     {/* Template Metadata */}
-                    <div className="mt-4 flex items-center gap-2 text-xs text-gray-500 flex-wrap">
-                      {template.type === 'organization' && (
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded">
-                          Organization
-                        </span>
-                      )}
-                      {template.type === 'personal' && (
-                        <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
-                          Personal
-                        </span>
-                      )}
-                      {template.type === 'platform' && (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded">
-                          Platform
-                        </span>
-                      )}
+                    <div className="mt-4 flex items-center gap-2 text-xs flex-wrap">
+                      {/* Type Pill */}
+                      <Pill variant={getTypeVariant(template.type)} size="sm">
+                        {template.type === 'organization' ? 'Organization' :
+                         template.type === 'personal' ? 'Personal' : 'Platform'}
+                      </Pill>
                       
-                      {/* Category Badges */}
+                      {/* Category Pills */}
                       {templateCategories.map((categoryName, idx) => (
-                        <span 
-                          key={idx}
-                          className="px-2 py-1 bg-orange-100 text-orange-700 rounded"
-                        >
+                        <Pill key={idx} variant="tag" size="sm">
                           {categoryName}
-                        </span>
+                        </Pill>
                       ))}
                       
                       {template.usageCount > 0 && (

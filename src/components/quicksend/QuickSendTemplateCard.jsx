@@ -13,6 +13,7 @@ import {
   Star
 } from 'lucide-react';
 import { PURPOSE_CONFIG, TYPE_CONFIG } from '@/components/utils/quickSendConstants';
+import { Pill, getPurposeVariant, getTypeVariant } from '@/components/ui/Pill';
 
 /**
  * QuickSendTemplateCard Component
@@ -114,22 +115,21 @@ export default function QuickSendTemplateCard({
           
           {/* Badges */}
           <div className="flex flex-wrap gap-2 mb-3">
-            {/* Purpose badge */}
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${purposeConfig.bgColor} ${purposeConfig.textColor}`}>
-              <PurposeIcon className="w-3 h-3" />
+            {/* Purpose pill */}
+            <Pill variant={getPurposeVariant(template.purpose)} size="sm" icon={PurposeIcon}>
               {purposeConfig.label}
-            </span>
+            </Pill>
             
-            {/* Type badge */}
-            <span className={`px-2 py-0.5 rounded text-xs font-medium ${typeConfig.bgColor} ${typeConfig.textColor}`}>
+            {/* Type pill */}
+            <Pill variant={getTypeVariant(template.type)} size="sm">
               {typeConfig.label}
-            </span>
+            </Pill>
             
-            {/* Default badge */}
+            {/* Default pill */}
             {template.isDefault && (
-              <span className="px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700">
+              <Pill variant="warning" size="sm">
                 Default
-              </span>
+              </Pill>
             )}
           </div>
           
