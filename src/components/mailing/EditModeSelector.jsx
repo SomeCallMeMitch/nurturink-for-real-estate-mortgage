@@ -92,8 +92,8 @@ export default function EditModeSelector({ mode, selectedRecipientId, recipients
             {/* Bulk Option */}
             <button
               onClick={() => handleSelect('bulk')}
-              className={`w-full px-4 py-3 text-left text-sm font-semibold text-brand-accent hover:bg-brand-accent/5 transition-colors border-b-2 border-border ${
-                mode === 'bulk' ? 'bg-brand-accent/10' : ''
+              className={`w-full px-4 py-3 text-left text-sm font-semibold text-brand-accent hover:bg-muted transition-colors border-b-2 border-border ${
+                mode === 'bulk' ? 'bg-muted' : ''
               }`}
             >
               Apply to All Recipients
@@ -109,7 +109,7 @@ export default function EditModeSelector({ mode, selectedRecipientId, recipients
                 onClick={() => handleSelect('individual', recipient.id)}
                 className={`w-full px-4 py-3 text-left text-sm text-foreground hover:bg-muted transition-colors ${
                   mode === 'individual' && selectedRecipientId === recipient.id 
-                    ? 'bg-brand-accent/10 text-brand-accent font-semibold' 
+                    ? 'bg-muted text-brand-accent font-semibold' 
                     : 'font-normal'
                 } ${
                   index < sortedRecipients.length - 1 ? 'border-b border-border' : ''

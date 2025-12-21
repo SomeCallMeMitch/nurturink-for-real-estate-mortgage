@@ -28,9 +28,9 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
 
   // Determine credit indicator color based on amount
   const getCreditDotColor = () => {
-    if (creditsLeft < 10) return 'bg-destructive';
-    if (creditsLeft < 50) return 'bg-warning';
-    return 'bg-success';
+    if (creditsLeft < 10) return 'bg-status-danger';
+    if (creditsLeft < 50) return 'bg-status-warning';
+    return 'bg-status-success';
   };
 
   return (
@@ -43,7 +43,7 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
               variant="outline"
               size="sm"
               onClick={onBackClick}
-              className="gap-2 text-muted-foreground hover:text-brand-accent hover:border-brand-accent/30 hover:bg-brand-accent/10 transition-colors"
+              className="gap-2 text-muted-foreground hover:text-brand-accent hover:border-border hover:bg-muted transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back
@@ -64,23 +64,23 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
                 {/* Connector Line (before step, except first) */}
                 {index > 0 && (
                   <div className={`h-0.5 w-12 mx-3 ${
-                    step.number <= currentStep ? 'bg-success' : 'bg-muted'
+                    step.number <= currentStep ? 'bg-status-success' : 'bg-muted'
                   }`} />
                 )}
 
                 {/* Step indicator - Completed State */}
                 {state === 'completed' && (
-                  <div className="flex items-center gap-2 bg-pill-success-bg border border-success/20 rounded-full pl-1 pr-4 py-1">
-                    <div className="w-7 h-7 rounded-full bg-success text-success-foreground flex items-center justify-center">
+                  <div className="flex items-center gap-2 bg-pill-success border border-border rounded-full pl-1 pr-4 py-1">
+                    <div className="w-7 h-7 rounded-full bg-status-success text-primary-foreground flex items-center justify-center">
                       <Check className="w-4 h-4" />
                     </div>
-                    <span className="font-medium text-pill-success-fg whitespace-nowrap">{step.label}</span>
+                    <span className="font-medium text-pill-success whitespace-nowrap">{step.label}</span>
                   </div>
                 )}
 
                 {/* Step indicator - Active State */}
                 {state === 'active' && (
-                  <div className="flex items-center gap-2 bg-brand-accent/10 border border-brand-accent rounded-full pl-1 pr-4 py-1">
+                  <div className="flex items-center gap-2 bg-muted border border-brand-accent rounded-full pl-1 pr-4 py-1">
                     <div className="w-7 h-7 rounded-full bg-brand-accent text-brand-accent-foreground text-sm font-semibold flex items-center justify-center">
                       {step.number}
                     </div>
