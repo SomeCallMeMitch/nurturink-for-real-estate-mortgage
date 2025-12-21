@@ -102,12 +102,12 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
           })}
         </div>
 
-        {/* Right: Credits Display */}
+        {/* Right: Credits Display - PHASE 3: Clearer verbiage */}
         <div className="flex items-center justify-end min-w-[200px]">
           <div className="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
             <div className={`w-2.5 h-2.5 rounded-full ${getCreditDotColor()}`} />
             <span className="font-semibold text-gray-900">{creditsLeft.toLocaleString()}</span>
-            <span className="text-gray-500">credits left</span>
+            <span className="text-gray-500">{creditsLeft === 1 ? 'credit' : 'credits'} available</span>
           </div>
         </div>
       </div>
