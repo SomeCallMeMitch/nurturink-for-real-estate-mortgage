@@ -698,7 +698,7 @@ export default function ReviewAndSend() {
             className={`gap-2 text-lg px-8 py-6 ${
               creditSummary && !creditSummary.sufficient
                 ? 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed'
-                : 'bg-orange-500 hover:bg-orange-600'
+                : ''
             }`}
             disabled={saving || checkingCredits || (creditCheckResult && !creditCheckResult.available)}
           >

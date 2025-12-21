@@ -306,7 +306,7 @@ export default function QuickSendPickerModal({
                         <div className="flex items-start justify-between">
                           <h4 className="font-semibold text-gray-900">{template.name}</h4>
                           {isSelected && (
-                            <Check className="w-5 h-5 text-orange-500 flex-shrink-0" />
+                            <Check className="w-5 h-5 text-primary flex-shrink-0" />
                           )}
                         </div>
                         
