@@ -6,6 +6,7 @@ import { base44 } from "@/api/base44Client";
 import { useLocation, useNavigate } from "react-router-dom";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import { useIsMobile } from "./components/hooks/use-mobile";
+import { CreditProvider } from "./components/context/CreditContext";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -143,12 +144,17 @@ export default function Layout({ children, currentPageName }) {
           ) : isWelcomePage ? (
           // Welcome page renders directly without sidebar
           children
-          ) : isMobile ? (
-          // Mobile users get MobileLayout with bottom navigation
-          <MobileLayout>{children}</MobileLayout>
           ) : (
-          // Desktop users get MainLayout with sidebar
-          <MainLayout whitelabelSettings={whitelabelSettings}>{children}</MainLayout>
+          // PHASE 2: Wrap authenticated pages in CreditProvider for global credit state
+          <CreditProvider>
+            {isMobile ? (
+              // Mobile users get MobileLayout with bottom navigation
+              <MobileLayout>{children}</MobileLayout>
+            ) : (
+              // Desktop users get MainLayout with sidebar
+              <MainLayout whitelabelSettings={whitelabelSettings}>{children}</MainLayout>
+            )}
+          </CreditProvider>
           )}
       
       {/* Global Toaster - will auto-dismiss after 3 seconds */}
