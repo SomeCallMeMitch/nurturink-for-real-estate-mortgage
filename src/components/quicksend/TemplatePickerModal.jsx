@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { getSelectionStyles } from '@/components/utils/selectionStyles';
 import {
   Select,
   SelectContent,

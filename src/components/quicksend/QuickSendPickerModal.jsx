@@ -30,6 +30,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { PURPOSE_CONFIG, PURPOSE_OPTIONS } from '@/components/utils/quickSendConstants';
+import { getSelectionStyles } from '@/components/utils/selectionStyles';
 
 /**
  * QuickSendPickerModal Component
