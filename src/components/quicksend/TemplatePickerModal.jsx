@@ -150,7 +150,7 @@ export default function TemplatePickerModal({
                 onClick={() => setActiveCategory(category.id)}
                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
                   isActive
-                    ? 'border-orange-500 text-orange-600'
+                    ? 'border-primary text-primary'
                     : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
                 }`}
               >
@@ -191,9 +191,10 @@ export default function TemplatePickerModal({
                     onClick={() => handleSelect(template)}
                     className={`w-full p-4 border rounded-lg text-left transition-colors ${
                       isSelected
-                        ? 'border-orange-500 bg-orange-50'
+                        ? 'border-primary'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                     }`}
+                    style={getSelectionStyles(isSelected)}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 pr-4">
@@ -203,7 +204,7 @@ export default function TemplatePickerModal({
                         </p>
                       </div>
                       {isSelected && (
-                        <Check className="w-5 h-5 text-orange-500 flex-shrink-0" />
+                        <Check className="w-5 h-5 text-primary flex-shrink-0" />
                       )}
                     </div>
                   </button>
