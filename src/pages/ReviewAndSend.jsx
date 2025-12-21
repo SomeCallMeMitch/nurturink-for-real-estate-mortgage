@@ -29,7 +29,7 @@ import {
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 
 // ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from "@/components/utils/creditHelpers";
+import { calculateTotalAvailableCredits } from "../components/utils/creditHelpers";
 
 export default function ReviewAndSend() {
   const navigate = useNavigate();

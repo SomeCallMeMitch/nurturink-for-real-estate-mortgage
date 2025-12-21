@@ -19,7 +19,7 @@ import CardPreview from "@/components/preview/CardPreview";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 
 // ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from "@/components/utils/creditHelpers";
+import { calculateTotalAvailableCredits } from "../components/utils/creditHelpers";
 
 // Default fallback settings if API fails
 const FALLBACK_SETTINGS = {

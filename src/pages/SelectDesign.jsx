@@ -16,7 +16,7 @@ import CardPreview from "@/components/preview/CardPreview";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 
 // ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from "@/components/utils/creditHelpers";
+import { calculateTotalAvailableCredits } from "../components/utils/creditHelpers";
 
 export default function SelectDesign() {
   const navigate = useNavigate();

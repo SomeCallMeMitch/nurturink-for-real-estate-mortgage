@@ -60,7 +60,7 @@ import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import { useToast } from "@/components/ui/use-toast";
 
 // ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from "@/components/utils/creditHelpers";
+import { calculateTotalAvailableCredits } from "../components/utils/creditHelpers";
 
 export default function FindClients() {
   const navigate = useNavigate();
