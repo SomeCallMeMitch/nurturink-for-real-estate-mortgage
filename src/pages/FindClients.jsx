@@ -59,8 +59,8 @@ import {
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import { useToast } from "@/components/ui/use-toast";
 
-// ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from "../components/utils/creditHelpers";
+// PHASE 2: Import CreditContext hook for global credit state
+import { useCredits } from "../components/context/CreditContext";
 
 export default function FindClients() {
   const navigate = useNavigate();
