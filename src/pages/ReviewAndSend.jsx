@@ -659,24 +659,35 @@ export default function ReviewAndSend() {
         </div>
       </div>
 
-      {/* Sticky Footer - UPDATED with credit info */}
+      {/* Sticky Footer - PHASE 3: Updated with clearer credit verbiage */}
       <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50">
         <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="text-sm text-muted-foreground">
-              <span className="font-medium">{clients.length} recipients ready to send</span>
+              <span className="font-medium">{clients.length} {clients.length === 1 ? 'note' : 'notes'} ready to send</span>
             </div>
             
             {creditSummary && (
               <div className="text-sm">
-                <span className={`font-semibold ${
-                  creditSummary.sufficient ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {creditSummary.total} credits available
-                </span>
-                <span className="text-muted-foreground ml-2">
-                  ({clients.length} needed)
-                </span>
+                {creditSummary.sufficient ? (
+                  <>
+                    <span className="font-semibold text-green-600">
+                      {creditSummary.total - clients.length} credit{(creditSummary.total - clients.length) !== 1 ? 's' : ''} remaining after send
+                    </span>
+                    <span className="text-muted-foreground ml-2">
+                      (using {clients.length} of {creditSummary.total})
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold text-red-600">
+                      Need {clients.length - creditSummary.total} more credit{(clients.length - creditSummary.total) !== 1 ? 's' : ''}
+                    </span>
+                    <span className="text-muted-foreground ml-2">
+                      ({creditSummary.total} available, {clients.length} needed)
+                    </span>
+                  </>
+                )}
               </div>
             )}
           </div>
