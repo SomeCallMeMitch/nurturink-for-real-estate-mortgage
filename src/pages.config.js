@@ -1,109 +1,111 @@
-import Home from './pages/Home';
-import AdminCardLayout from './pages/AdminCardLayout';
-import AdminEnvelopeLayout from './pages/AdminEnvelopeLayout';
-import FindClients from './pages/FindClients';
-import CreateContent from './pages/CreateContent';
-import Templates from './pages/Templates';
-import EditTemplate from './pages/EditTemplate';
-import AdminClients from './pages/AdminClients';
-import AdminClientEdit from './pages/AdminClientEdit';
-import SettingsWritingStyle from './pages/SettingsWritingStyle';
-import SettingsProfile from './pages/SettingsProfile';
-import SettingsAddresses from './pages/SettingsAddresses';
-import SettingsPhones from './pages/SettingsPhones';
-import SettingsUrls from './pages/SettingsUrls';
-import SuperAdminDashboard from './pages/SuperAdminDashboard';
-import AdminCreateContentLayout from './pages/AdminCreateContentLayout';
-import SettingsOrganization from './pages/SettingsOrganization';
-import TemplatePreview from './pages/TemplatePreview';
-import SuperAdminCardManagement from './pages/SuperAdminCardManagement';
-import SelectDesign from './pages/SelectDesign';
-import ReviewAndSend from './pages/ReviewAndSend';
-import MailingConfirmation from './pages/MailingConfirmation';
-import AdminPricing from './pages/AdminPricing';
-import Credits from './pages/Credits';
-import AdminCoupons from './pages/AdminCoupons';
-import Order from './pages/Order';
-import PaymentCancel from './pages/PaymentCancel';
-import PaymentSuccess from './pages/PaymentSuccess';
-import TeamManagement from './pages/TeamManagement';
-import SuperAdminWhitelabel from './pages/SuperAdminWhitelabel';
-import Landing from './pages/Landing';
-import landing1 from './pages/landing1';
-import lp from './pages/lp';
-import UpdateUserRole from './pages/UpdateUserRole';
-import SidebarDemo from './pages/SidebarDemo';
-import Onboarding from './pages/Onboarding';
-import TestEmail from './pages/TestEmail';
-import Welcome from './pages/Welcome';
-import AdminEmailTesting from './pages/AdminEmailTesting';
 import AcceptInvitation from './pages/AcceptInvitation';
-import QuickSendTemplates from './pages/QuickSendTemplates';
+import AdminCardLayout from './pages/AdminCardLayout';
+import AdminClientEdit from './pages/AdminClientEdit';
+import AdminClients from './pages/AdminClients';
+import AdminCoupons from './pages/AdminCoupons';
+import AdminCreateContentLayout from './pages/AdminCreateContentLayout';
+import AdminEmailTesting from './pages/AdminEmailTesting';
+import AdminEnvelopeLayout from './pages/AdminEnvelopeLayout';
+import AdminPricing from './pages/AdminPricing';
+import CreateContent from './pages/CreateContent';
+import CreateContent2 from './pages/CreateContent2';
+import Credits from './pages/Credits';
 import EditQuickSendTemplate from './pages/EditQuickSendTemplate';
-import MobileHome from './pages/MobileHome';
+import EditTemplate from './pages/EditTemplate';
+import FindClients from './pages/FindClients';
+import Home from './pages/Home';
+import Landing from './pages/Landing';
+import MailingConfirmation from './pages/MailingConfirmation';
+import MobileClientAdd from './pages/MobileClientAdd';
+import MobileClientEdit from './pages/MobileClientEdit';
 import MobileClients from './pages/MobileClients';
+import MobileHome from './pages/MobileHome';
 import MobileProfile from './pages/MobileProfile';
 import MobileSend from './pages/MobileSend';
 import MobileSendSuccess from './pages/MobileSendSuccess';
-import MobileClientEdit from './pages/MobileClientEdit';
-import MobileClientAdd from './pages/MobileClientAdd';
+import Onboarding from './pages/Onboarding';
+import Order from './pages/Order';
+import PaymentCancel from './pages/PaymentCancel';
+import PaymentSuccess from './pages/PaymentSuccess';
 import PillDemo from './pages/PillDemo';
+import QuickSendTemplates from './pages/QuickSendTemplates';
+import ReviewAndSend from './pages/ReviewAndSend';
+import SelectDesign from './pages/SelectDesign';
+import SettingsAddresses from './pages/SettingsAddresses';
+import SettingsOrganization from './pages/SettingsOrganization';
+import SettingsPhones from './pages/SettingsPhones';
+import SettingsProfile from './pages/SettingsProfile';
+import SettingsUrls from './pages/SettingsUrls';
+import SettingsWritingStyle from './pages/SettingsWritingStyle';
+import SidebarDemo from './pages/SidebarDemo';
+import SuperAdminCardManagement from './pages/SuperAdminCardManagement';
+import SuperAdminDashboard from './pages/SuperAdminDashboard';
+import SuperAdminWhitelabel from './pages/SuperAdminWhitelabel';
+import TeamManagement from './pages/TeamManagement';
+import TemplatePreview from './pages/TemplatePreview';
+import Templates from './pages/Templates';
+import TestEmail from './pages/TestEmail';
+import UpdateUserRole from './pages/UpdateUserRole';
 import WLDemo from './pages/WLDemo';
+import Welcome from './pages/Welcome';
+import landing1 from './pages/landing1';
+import lp from './pages/lp';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "Home": Home,
-    "AdminCardLayout": AdminCardLayout,
-    "AdminEnvelopeLayout": AdminEnvelopeLayout,
-    "FindClients": FindClients,
-    "CreateContent": CreateContent,
-    "Templates": Templates,
-    "EditTemplate": EditTemplate,
-    "AdminClients": AdminClients,
-    "AdminClientEdit": AdminClientEdit,
-    "SettingsWritingStyle": SettingsWritingStyle,
-    "SettingsProfile": SettingsProfile,
-    "SettingsAddresses": SettingsAddresses,
-    "SettingsPhones": SettingsPhones,
-    "SettingsUrls": SettingsUrls,
-    "SuperAdminDashboard": SuperAdminDashboard,
-    "AdminCreateContentLayout": AdminCreateContentLayout,
-    "SettingsOrganization": SettingsOrganization,
-    "TemplatePreview": TemplatePreview,
-    "SuperAdminCardManagement": SuperAdminCardManagement,
-    "SelectDesign": SelectDesign,
-    "ReviewAndSend": ReviewAndSend,
-    "MailingConfirmation": MailingConfirmation,
-    "AdminPricing": AdminPricing,
-    "Credits": Credits,
-    "AdminCoupons": AdminCoupons,
-    "Order": Order,
-    "PaymentCancel": PaymentCancel,
-    "PaymentSuccess": PaymentSuccess,
-    "TeamManagement": TeamManagement,
-    "SuperAdminWhitelabel": SuperAdminWhitelabel,
-    "Landing": Landing,
-    "landing1": landing1,
-    "lp": lp,
-    "UpdateUserRole": UpdateUserRole,
-    "SidebarDemo": SidebarDemo,
-    "Onboarding": Onboarding,
-    "TestEmail": TestEmail,
-    "Welcome": Welcome,
-    "AdminEmailTesting": AdminEmailTesting,
     "AcceptInvitation": AcceptInvitation,
-    "QuickSendTemplates": QuickSendTemplates,
+    "AdminCardLayout": AdminCardLayout,
+    "AdminClientEdit": AdminClientEdit,
+    "AdminClients": AdminClients,
+    "AdminCoupons": AdminCoupons,
+    "AdminCreateContentLayout": AdminCreateContentLayout,
+    "AdminEmailTesting": AdminEmailTesting,
+    "AdminEnvelopeLayout": AdminEnvelopeLayout,
+    "AdminPricing": AdminPricing,
+    "CreateContent": CreateContent,
+    "CreateContent2": CreateContent2,
+    "Credits": Credits,
     "EditQuickSendTemplate": EditQuickSendTemplate,
-    "MobileHome": MobileHome,
+    "EditTemplate": EditTemplate,
+    "FindClients": FindClients,
+    "Home": Home,
+    "Landing": Landing,
+    "MailingConfirmation": MailingConfirmation,
+    "MobileClientAdd": MobileClientAdd,
+    "MobileClientEdit": MobileClientEdit,
     "MobileClients": MobileClients,
+    "MobileHome": MobileHome,
     "MobileProfile": MobileProfile,
     "MobileSend": MobileSend,
     "MobileSendSuccess": MobileSendSuccess,
-    "MobileClientEdit": MobileClientEdit,
-    "MobileClientAdd": MobileClientAdd,
+    "Onboarding": Onboarding,
+    "Order": Order,
+    "PaymentCancel": PaymentCancel,
+    "PaymentSuccess": PaymentSuccess,
     "PillDemo": PillDemo,
+    "QuickSendTemplates": QuickSendTemplates,
+    "ReviewAndSend": ReviewAndSend,
+    "SelectDesign": SelectDesign,
+    "SettingsAddresses": SettingsAddresses,
+    "SettingsOrganization": SettingsOrganization,
+    "SettingsPhones": SettingsPhones,
+    "SettingsProfile": SettingsProfile,
+    "SettingsUrls": SettingsUrls,
+    "SettingsWritingStyle": SettingsWritingStyle,
+    "SidebarDemo": SidebarDemo,
+    "SuperAdminCardManagement": SuperAdminCardManagement,
+    "SuperAdminDashboard": SuperAdminDashboard,
+    "SuperAdminWhitelabel": SuperAdminWhitelabel,
+    "TeamManagement": TeamManagement,
+    "TemplatePreview": TemplatePreview,
+    "Templates": Templates,
+    "TestEmail": TestEmail,
+    "UpdateUserRole": UpdateUserRole,
     "WLDemo": WLDemo,
+    "Welcome": Welcome,
+    "landing1": landing1,
+    "lp": lp,
 }
 
 export const pagesConfig = {

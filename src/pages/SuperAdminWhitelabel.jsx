@@ -43,9 +43,17 @@ export default function SuperAdminWhitelabel() {
   const [settings, setSettings] = useState(DEFAULT_WHITELABEL_SETTINGS);
   const [originalSettings, setOriginalSettings] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
+  // Track which fields have been explicitly changed by the user
+  const [dirtyFields, setDirtyFields] = useState(new Set());
 
   const updateSettings = (patch) => {
     setSettings((prev) => ({ ...prev, ...patch }));
+    // Mark the changed fields as dirty
+    setDirtyFields((prev) => {
+      const newDirty = new Set(prev);
+      Object.keys(patch).forEach((key) => newDirty.add(key));
+      return newDirty;
+    });
   };
 
   useEffect(() => {
@@ -99,12 +107,30 @@ export default function SuperAdminWhitelabel() {
     try {
       setSaving(true);
 
+      // Build payload with only changed fields, but ALWAYS include critical fields
+      // to prevent accidental clearing of logoUrl/faviconUrl
+      const payload = {};
+      
+      // Always include these fields from current settings to prevent accidental clearing
+      const preserveFields = ['brandName', 'logoUrl', 'faviconUrl'];
+      preserveFields.forEach((field) => {
+        if (settings[field] !== undefined) {
+          payload[field] = settings[field];
+        }
+      });
+      
+      // Include all dirty (changed) fields
+      dirtyFields.forEach((field) => {
+        payload[field] = settings[field];
+      });
+
       await base44.functions.invoke("updateWhitelabelSettings", {
-        settings,
+        settings: payload,
       });
 
       setOriginalSettings(settings);
       setHasChanges(false);
+      setDirtyFields(new Set()); // Reset dirty tracking after successful save
 
       toast({
         title: "Settings Saved! ✓",
@@ -127,10 +153,22 @@ export default function SuperAdminWhitelabel() {
     if (!originalSettings) return;
     setSettings(originalSettings);
     setHasChanges(false);
+    setDirtyFields(new Set()); // Clear dirty tracking on discard
   };
 
   const handleResetToDefaults = () => {
-    setSettings(DEFAULT_WHITELABEL_SETTINGS);
+    // When resetting to defaults, preserve current logoUrl and faviconUrl
+    // since the user likely wants to keep their uploaded images
+    setSettings({
+      ...DEFAULT_WHITELABEL_SETTINGS,
+      logoUrl: settings.logoUrl,
+      faviconUrl: settings.faviconUrl,
+    });
+    // Mark all fields except logo/favicon as dirty so they get saved
+    const allFieldsExceptImages = Object.keys(DEFAULT_WHITELABEL_SETTINGS).filter(
+      (key) => key !== 'logoUrl' && key !== 'faviconUrl'
+    );
+    setDirtyFields(new Set(allFieldsExceptImages));
   };
 
   const handleImageUpload = async (field, file) => {
