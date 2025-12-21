@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { calculateTotalAvailableCredits, getCreditBreakdown } from '../utils/creditHelpers';
+import { calculateTotalAvailableCredits, getCreditBreakdown } from '@/components/utils/creditHelpers';
 
 /**
  * CreditContext
