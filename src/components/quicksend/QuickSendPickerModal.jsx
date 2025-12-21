@@ -234,7 +234,7 @@ export default function QuickSendPickerModal({
                 onClick={() => setViewMode(mode.id)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-orange-500 text-white shadow-md'
+                    ? 'bg-primary text-primary-foreground shadow-md'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -280,9 +280,10 @@ export default function QuickSendPickerModal({
                     onClick={() => setSelectedTemplateId(template.id)}
                     className={`w-full p-4 border rounded-lg text-left transition-all ${
                       isSelected
-                        ? 'border-orange-500 bg-orange-50 shadow-md'
+                        ? 'border-primary shadow-md'
                         : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                     }`}
+                    style={getSelectionStyles(isSelected)}
                   >
                     <div className="flex gap-4">
                       {/* Card Thumbnail */}
@@ -346,7 +347,7 @@ export default function QuickSendPickerModal({
           <Button
             onClick={handleConfirm}
             disabled={!selectedTemplateId}
-            className="bg-orange-500 hover:bg-orange-600 gap-2"
+            className="gap-2"
           >
             Continue with Template
             <ArrowRight className="w-4 h-4" />
