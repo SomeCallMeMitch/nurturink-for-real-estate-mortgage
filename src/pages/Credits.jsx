@@ -34,11 +34,22 @@ import {
 } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 
+// PHASE 3: Import CreditContext hook for global credit state
+import { useCredits } from '../components/context/CreditContext';
+
 export default function Credits() {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Data state
+  // PHASE 3: Use global credit context for user, organization, and refresh capability
+  const { 
+    user: contextUser, 
+    organization: contextOrg, 
+    refreshCredits,
+    creditBreakdown 
+  } = useCredits();
+  
+  // Data state - user and organization now primarily from context
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
   const [pricingTiers, setPricingTiers] = useState([]);
@@ -65,6 +76,16 @@ export default function Credits() {
   const [loadingTeamMembers, setLoadingTeamMembers] = useState(false);
   const [allocations, setAllocations] = useState({});
   const [allocating, setAllocating] = useState(false);
+
+  // PHASE 3: Sync local state with context when context updates
+  useEffect(() => {
+    if (contextUser) {
+      setUser(contextUser);
+    }
+    if (contextOrg) {
+      setOrganization(contextOrg);
+    }
+  }, [contextUser, contextOrg]);
 
   useEffect(() => {
     loadData();
@@ -464,6 +485,9 @@ export default function Credits() {
 
         // Clear allocations
         setAllocations({});
+
+        // PHASE 3: Refresh global credit context after allocation
+        await refreshCredits();
 
         // Reload data to reflect changes
         await loadData();
