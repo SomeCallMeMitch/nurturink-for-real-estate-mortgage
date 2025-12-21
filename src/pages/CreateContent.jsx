@@ -18,8 +18,8 @@ import TemplateLibrary from "@/components/mailing/TemplateLibrary";
 import CardPreview from "@/components/preview/CardPreview";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 
-// ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from "../components/utils/creditHelpers";
+// PHASE 2: Import CreditContext hook for global credit state
+import { useCredits } from "../components/context/CreditContext";
 
 // Default fallback settings if API fails
 const FALLBACK_SETTINGS = {
@@ -123,6 +123,9 @@ export default function CreateContent() {
   const navigate = useNavigate();
   const textareaRef = useRef(null);
   
+  // PHASE 2: Use global credit context
+  const { user: contextUser, organization: contextOrg, totalCredits, refreshCredits } = useCredits();
+  
   // Get mailingBatchId from URL - handle both camelCase and lowercase
   const urlParams = new URLSearchParams(window.location.search);
   const mailingBatchId = urlParams.get('mailingBatchId') || urlParams.get('mailingbatchid');
@@ -162,10 +165,8 @@ export default function CreateContent() {
   const [localSignatureOverrides, setLocalSignatureOverrides] = useState({});
   const [localNoteStyleProfileOverrides, setLocalNoteStyleProfileOverrides] = useState({});
 
-  // REFACTORED: Using centralized credit calculation utility
-  const totalAvailableCredits = useMemo(() => {
-    return calculateTotalAvailableCredits(user, organization);
-  }, [user, organization]);
+  // PHASE 2: Use totalCredits from CreditContext (centralized calculation)
+  const totalAvailableCredits = totalCredits;
 
   // Load all data on mount
   useEffect(() => {

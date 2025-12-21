@@ -15,11 +15,14 @@ import EditModeSelector from "@/components/mailing/EditModeSelector";
 import CardPreview from "@/components/preview/CardPreview";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 
-// ADDED: Import centralized credit calculation utility
-import { calculateTotalAvailableCredits } from "../components/utils/creditHelpers";
+// PHASE 2: Import CreditContext hook for global credit state
+import { useCredits } from "../components/context/CreditContext";
 
 export default function SelectDesign() {
   const navigate = useNavigate();
+  
+  // PHASE 2: Use global credit context
+  const { totalCredits, refreshCredits } = useCredits();
   
   // Get mailingBatchId from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -51,10 +54,8 @@ export default function SelectDesign() {
   const [localSelectedDesignId, setLocalSelectedDesignId] = useState(null);
   const [localDesignOverrides, setLocalDesignOverrides] = useState({});
 
-  // REFACTORED: Using centralized credit calculation utility
-  const totalAvailableCredits = useMemo(() => {
-    return calculateTotalAvailableCredits(user, organization);
-  }, [user, organization]);
+  // PHASE 2: Use totalCredits from CreditContext (centralized calculation)
+  const totalAvailableCredits = totalCredits;
 
   useEffect(() => {
     if (mailingBatchId) {
