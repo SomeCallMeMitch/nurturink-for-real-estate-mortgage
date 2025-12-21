@@ -44,7 +44,7 @@ export default function QuickSendTemplateCard({
     <Card className="hover:shadow-lg transition-shadow group overflow-hidden">
       <div className="flex">
         {/* Card Design Thumbnail */}
-        <div className="w-24 flex-shrink-0 bg-gray-100">
+        <div className="w-24 flex-shrink-0 bg-muted">
           {thumbnailUrl ? (
             <img
               src={thumbnailUrl}
@@ -53,7 +53,7 @@ export default function QuickSendTemplateCard({
               style={{ minHeight: '160px' }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400" style={{ minHeight: '160px' }}>
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground" style={{ minHeight: '160px' }}>
               <Zap className="w-8 h-8" />
             </div>
           )}
@@ -63,7 +63,7 @@ export default function QuickSendTemplateCard({
         <div className="flex-1 p-4">
           {/* Header with name and actions */}
           <div className="flex items-start justify-between mb-2">
-            <h3 className="font-semibold text-gray-900 group-hover:text-orange-600 transition-colors line-clamp-1">
+            <h3 className="font-semibold text-foreground group-hover:text-brand-accent transition-colors line-clamp-1">
               {template.name}
             </h3>
             
@@ -74,9 +74,9 @@ export default function QuickSendTemplateCard({
                   <TooltipTrigger asChild>
                     <button
                       onClick={(e) => { e.stopPropagation(); onEdit(); }}
-                      className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1.5 hover:bg-muted rounded transition-colors"
                     >
-                      <Pencil className="w-4 h-4 text-indigo-600" />
+                      <Pencil className="w-4 h-4 text-primary" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>Edit QuickSend</TooltipContent>
@@ -88,9 +88,9 @@ export default function QuickSendTemplateCard({
                 <TooltipTrigger asChild>
                   <button
                     onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-                    className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                    className="p-1.5 hover:bg-muted rounded transition-colors"
                   >
-                    <Copy className="w-4 h-4 text-blue-600" />
+                    <Copy className="w-4 h-4 text-primary" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>Duplicate QuickSend</TooltipContent>
@@ -102,9 +102,9 @@ export default function QuickSendTemplateCard({
                   <TooltipTrigger asChild>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                      className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+                      className="p-1.5 hover:bg-muted rounded transition-colors"
                     >
-                      <Trash className="w-4 h-4 text-red-600" />
+                      <Trash className="w-4 h-4 text-destructive" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>Delete QuickSend</TooltipContent>
@@ -134,13 +134,13 @@ export default function QuickSendTemplateCard({
           </div>
           
           {/* Message preview */}
-          <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+          <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
             {previewSnippet || 'No message content'}
           </p>
           
           {/* Usage stats */}
           {template.usageCount > 0 && (
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               Used {template.usageCount} time{template.usageCount !== 1 ? 's' : ''}
             </p>
           )}

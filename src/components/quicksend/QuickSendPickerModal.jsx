@@ -187,7 +187,7 @@ export default function QuickSendPickerModal({
       <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-orange-500" />
+            <Zap className="w-5 h-5 text-brand-accent" />
             Quick Send
           </DialogTitle>
           <DialogDescription>
@@ -198,7 +198,7 @@ export default function QuickSendPickerModal({
         {/* Search and Purpose Filter Row */}
         <div className="flex gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search templates..."
               value={searchQuery}
@@ -235,7 +235,7 @@ export default function QuickSendPickerModal({
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-muted text-muted-foreground hover:bg-accent'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -255,8 +255,8 @@ export default function QuickSendPickerModal({
             </div>
           ) : filteredTemplates.length === 0 ? (
             <div className="text-center py-12">
-              <Zap className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500">
+              <Zap className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
                 {searchQuery || purposeFilter !== 'all'
                   ? 'No templates match your filters'
                   : viewMode === 'my' ? 'No personal templates' :
@@ -281,13 +281,13 @@ export default function QuickSendPickerModal({
                     className={`w-full p-4 border rounded-lg text-left transition-all ${
                       isSelected
                         ? 'border-primary shadow-md'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        : 'border-border hover:border-border hover:bg-muted'
                     }`}
                     style={getSelectionStyles(isSelected)}
                   >
                     <div className="flex gap-4">
                       {/* Card Thumbnail */}
-                      <div className="w-16 h-20 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+                      <div className="w-16 h-20 flex-shrink-0 bg-muted rounded overflow-hidden">
                         {cardDesign ? (
                           <img
                             src={cardDesign.outsideImageUrl || cardDesign.imageUrl}
@@ -296,7 +296,7 @@ export default function QuickSendPickerModal({
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Zap className="w-6 h-6 text-gray-400" />
+                            <Zap className="w-6 h-6 text-muted-foreground" />
                           </div>
                         )}
                       </div>
@@ -304,7 +304,7 @@ export default function QuickSendPickerModal({
                       {/* Template Details */}
                       <div className="flex-1">
                         <div className="flex items-start justify-between">
-                          <h4 className="font-semibold text-gray-900">{template.name}</h4>
+                          <h4 className="font-semibold text-foreground">{template.name}</h4>
                           {isSelected && (
                             <Check className="w-5 h-5 text-primary flex-shrink-0" />
                           )}
@@ -323,7 +323,7 @@ export default function QuickSendPickerModal({
                         </div>
                         
                         {/* Message Preview */}
-                        <p className="text-sm text-gray-600 line-clamp-2">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
                           {messageTemplate?.content || template.previewSnippet || 'No message content'}
                         </p>
                       </div>

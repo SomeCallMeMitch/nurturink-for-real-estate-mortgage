@@ -113,7 +113,7 @@ export default function TemplatePickerModal({
         {/* Search and Purpose Filter Row */}
         <div className="flex gap-3">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search templates..."
               value={searchQuery}
@@ -139,7 +139,7 @@ export default function TemplatePickerModal({
         </div>
         
         {/* View Mode Tabs */}
-        <div className="flex gap-1 border-b border-gray-200">
+        <div className="flex gap-1 border-b border-border">
           {viewModes.map((category) => {
             const Icon = category.icon;
             const isActive = activeCategory === category.id;
@@ -151,7 +151,7 @@ export default function TemplatePickerModal({
                 className={`flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
                   isActive
                     ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -165,8 +165,8 @@ export default function TemplatePickerModal({
         <div className="flex-1 overflow-y-auto space-y-2 mt-2">
           {filteredTemplates.length === 0 ? (
             <div className="text-center py-12">
-              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500">
+              <FileText className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
                 {searchQuery || purposeFilter !== 'all'
                   ? 'No templates match your filters' 
                   : activeCategory === 'favorites' ? 'No favorite templates' :
@@ -192,14 +192,14 @@ export default function TemplatePickerModal({
                     className={`w-full p-4 border rounded-lg text-left transition-colors ${
                       isSelected
                         ? 'border-primary'
-                        : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        : 'border-border hover:border-border hover:bg-muted'
                     }`}
                     style={getSelectionStyles(isSelected)}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 pr-4">
-                        <h4 className="font-medium text-gray-900">{template.name}</h4>
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                        <h4 className="font-medium text-foreground">{template.name}</h4>
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                           {template.content}
                         </p>
                       </div>
@@ -212,9 +212,9 @@ export default function TemplatePickerModal({
                   {/* Hover tooltip - full content preview */}
                   {isHovered && template.content?.length > 100 && (
                     <div className="absolute left-full ml-2 top-0 z-50 animate-in fade-in-0 slide-in-from-left-2 duration-200 pointer-events-none">
-                      <div className="bg-white border-2 border-gray-300 rounded-lg shadow-xl p-4 w-80">
-                        <h4 className="font-semibold text-gray-900 mb-2">{template.name}</h4>
-                        <p className="text-sm text-gray-600 whitespace-pre-wrap max-h-48 overflow-y-auto">
+                      <div className="bg-card border-2 border-border rounded-lg shadow-xl p-4 w-80">
+                        <h4 className="font-semibold text-foreground mb-2">{template.name}</h4>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap max-h-48 overflow-y-auto">
                           {template.content}
                         </p>
                       </div>
