@@ -97,7 +97,7 @@ const Pill = React.forwardRef(({
 
   return (
     <span
-      ref__={ref}
+      ref={ref}
       className={cn("whitespace-nowrap", className)}
       style={combinedStyle}
       {...props}
