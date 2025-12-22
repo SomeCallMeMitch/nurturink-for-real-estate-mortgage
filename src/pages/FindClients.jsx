@@ -483,25 +483,27 @@ export default function FindClients() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Workflow Steps Header with Back Button and Title */}
-      <WorkflowSteps 
-        currentStep={1} 
-        creditsLeft={totalAvailableCredits}
-        pageTitle="Find Clients"
-        onBackClick={handleBack}
-      />
-
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-            {error}
-          </div>
-        )}
+      {/* Sticky Header: Workflow Steps + Search/Filter Controls */}
+      <div className="sticky top-0 z-20 bg-background">
+        {/* Workflow Steps Header with Back Button and Title */}
+        <WorkflowSteps 
+          currentStep={1} 
+          creditsLeft={totalAvailableCredits}
+          pageTitle="Find Clients"
+          onBackClick={handleBack}
+        />
 
         {/* Search, Filter, and Sort Controls */}
-        <Card className="mb-6">
-          <CardContent className="pt-3 space-y-2">
+        <div className="max-w-7xl mx-auto px-6 pb-3">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
+              {error}
+            </div>
+          )}
+
+          <Card className="shadow-sm">
+            <CardContent className="py-2 space-y-2">
             <div className="flex gap-3">
               {/* Search */}
               <div className="flex-1 relative">
