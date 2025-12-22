@@ -485,13 +485,15 @@ export default function FindClients() {
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Sticky Header: Workflow Steps + Search/Filter Controls */}
       <div className="flex-shrink-0 bg-background border-b border-border">
-        {/* Workflow Steps Header with Back Button and Title */}
-        <WorkflowSteps 
-          currentStep={1} 
-          creditsLeft={totalAvailableCredits}
-          pageTitle="Find Clients"
-          onBackClick={handleBack}
-        />
+        {/* Workflow Steps Header with Back Button and Title - reduced vertical padding via negative margins */}
+        <div className="[&>div]:py-1.5">
+          <WorkflowSteps 
+            currentStep={1} 
+            creditsLeft={totalAvailableCredits}
+            pageTitle="Find Clients"
+            onBackClick={handleBack}
+          />
+        </div>
 
         {/* Search, Filter, and Sort Controls */}
         <div className="max-w-7xl mx-auto px-6 pb-3">
