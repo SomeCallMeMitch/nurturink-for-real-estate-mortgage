@@ -34,7 +34,7 @@ export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle 
   };
 
   return (
-    <div className="sticky top-0 z-20 bg-white border-b border-gray-200 py-2 px-6 shadow-sm">
+    <div className="sticky top-0 z-20 bg-white border-b border-gray-200 py-4 px-6 shadow-sm">
       <div className="max-w-[1600px] mx-auto flex items-center justify-between">
         {/* Left: Back Button + Page Title */}
         <div className="flex items-center gap-4 min-w-[200px]">
