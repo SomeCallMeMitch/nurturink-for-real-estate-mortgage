@@ -676,7 +676,7 @@ export default function FindClients() {
               </div>
             ) : (
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 z-10 bg-card">
                   <TableRow>
                     <TableHead className="w-10">
                       {processedClients.length > 0 && (
