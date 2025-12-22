@@ -504,7 +504,7 @@ export default function FindClients() {
             </div>
           )}
 
-          <Card className="shadow-sm">
+          <Card className="shadow-none border-0">
             <CardContent className="py-2 space-y-2">
             <div className="flex gap-3">
               {/* Search */}
