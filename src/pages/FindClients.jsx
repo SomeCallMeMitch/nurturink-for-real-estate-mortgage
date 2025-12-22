@@ -626,7 +626,12 @@ export default function FindClients() {
             </div>
           </CardContent>
         </Card>
+        </div>
+      </div>
+      {/* END Sticky Header */}
 
+      {/* Main Content Area */}
+      <div className="max-w-7xl mx-auto px-6 pb-6">
         {/* Client Table */}
         <Card>
           <CardContent className="p-0">
