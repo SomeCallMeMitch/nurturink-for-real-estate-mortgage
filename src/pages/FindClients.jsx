@@ -482,9 +482,9 @@ export default function FindClients() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Sticky Header: Workflow Steps + Search/Filter Controls */}
-      <div className="sticky top-0 z-20 bg-background">
+      <div className="flex-shrink-0 bg-background border-b border-border">
         {/* Workflow Steps Header with Back Button and Title */}
         <WorkflowSteps 
           currentStep={1} 
@@ -630,8 +630,9 @@ export default function FindClients() {
       </div>
       {/* END Sticky Header */}
 
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-6 pb-6">
+      {/* Main Content Area - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-7xl mx-auto px-6 py-4 pb-24">
         {/* Client Table */}
         <Card>
           <CardContent className="p-0">
@@ -876,6 +877,7 @@ export default function FindClients() {
             )}
           </CardContent>
         </Card>
+        </div>
       </div>
 
       {/* Client Import Modal */}
