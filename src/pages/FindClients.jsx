@@ -507,15 +507,24 @@ export default function FindClients() {
           <Card className="shadow-none border-0">
             <CardContent className="py-2 space-y-2">
             <div className="flex gap-3">
-              {/* Search */}
+              {/* Search with Clear Button */}
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   placeholder="Search by name, company, city, or state..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 pr-10"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
               </div>
 
               {/* Client Count */}
