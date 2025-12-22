@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import MainLayout from "./components/layout/MainLayout";
-import MobileLayout from "./components/mobile/MobileLayout";
+import MainLayout from "@/components/layout/MainLayout";
+import MobileLayout from "@/components/mobile/MobileLayout";
 import { Toaster } from "@/components/ui/toaster";
 import { base44 } from "@/api/base44Client";
 import { useLocation, useNavigate } from "react-router-dom";
-import AcceptInvitation from "./pages/AcceptInvitation";
-import { useIsMobile } from "./components/hooks/use-mobile";
-import { CreditProvider } from "./components/context/CreditContext";
+import AcceptInvitation from "@/pages/AcceptInvitation";
+import { useIsMobile } from "@/components/hooks/use-mobile";
+import { CreditProvider } from "@/components/context/CreditContext";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
