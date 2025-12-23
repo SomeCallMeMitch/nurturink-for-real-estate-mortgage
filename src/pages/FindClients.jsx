@@ -485,15 +485,13 @@ export default function FindClients() {
     <div className="h-screen flex flex-col bg-background overflow-hidden">
       {/* Sticky Header: Workflow Steps + Search/Filter Controls */}
       <div className="flex-shrink-0 bg-background border-b border-border">
-        {/* Workflow Steps Header with Back Button and Title - reduced vertical padding via negative margins */}
-        <div className="[&>div]:py-1.5">
-          <WorkflowSteps 
-            currentStep={1} 
-            creditsLeft={totalAvailableCredits}
-            pageTitle="Find Clients"
-            onBackClick={handleBack}
-          />
-        </div>
+        {/* Workflow Steps Header with Back Button and Title */}
+        <WorkflowSteps 
+          currentStep={1} 
+          creditsLeft={totalAvailableCredits}
+          pageTitle="Find Clients"
+          onBackClick={handleBack}
+        />
 
         {/* Search, Filter, and Sort Controls */}
         <div className="max-w-7xl mx-auto px-6 pb-3">
@@ -645,7 +643,7 @@ export default function FindClients() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-7xl mx-auto px-6 py-4 pb-24">
         {/* Client Table */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardContent className="p-0">
             {/* Selection summary */}
             {selectedClientIds.length > 0 && (
@@ -684,8 +682,9 @@ export default function FindClients() {
                 )}
               </div>
             ) : (
+              <div className="max-h-[calc(100vh-320px)] overflow-y-auto">
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-card">
+                <TableHeader className="sticky top-0 z-10 bg-card shadow-sm">
                   <TableRow>
                     <TableHead className="w-10">
                       {processedClients.length > 0 && (
@@ -885,6 +884,7 @@ export default function FindClients() {
                   })}
                 </TableBody>
               </Table>
+              </div>
             )}
           </CardContent>
         </Card>
