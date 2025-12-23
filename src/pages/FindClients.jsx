@@ -66,16 +66,39 @@ export default function FindClients() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24 flex flex-col">
-      <WorkflowSteps
-        currentStep={1}
-        creditsLeft={totalAvailableCredits}
-        pageTitle="Find Clients"
-        onBackClick={() => navigate(createPageUrl("Home"))}
-      />
+    <div className="flex min-h-screen flex-col bg-gray-50 pb-24">
+      {/* Sticky Header Area */}
+      <div className="sticky top-0 z-30 border-b bg-gray-50">
+        <WorkflowSteps
+          currentStep={1}
+          creditsLeft={totalAvailableCredits}
+          pageTitle="Find Clients"
+          onBackClick={() => navigate(createPageUrl("Home"))}
+        />
 
-      <div className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
+        <div className="px-4 md:px-8 pb-4">
+          <FindClientsFilters
+            searchQuery={ui.searchQuery}
+            onSearchChange={ui.setSearchQuery}
+            showFavoritesOnly={ui.showFavoritesOnly}
+            onToggleFavoritesOnly={() => ui.setShowFavoritesOnly((v) => !v)}
+            availableTags={ui.availableTags}
+            selectedTags={ui.selectedTags}
+            onToggleTag={ui.toggleTag}
+            uploadedFilter={ui.uploadedFilter}
+            onUploadedFilterChange={ui.setUploadedFilter}
+            hasActiveFilters={ui.hasActiveFilters}
+            activeFiltersBadges={ui.activeFiltersBadges}
+            onClearFilters={ui.clearFilters}
+            onOpenAddClient={() => ui.setShowAddClientModal(true)}
+            onOpenImport={() => ui.setShowImportModal(true)}
+            onRefresh={reload}
+          />
+        </div>
+      </div>
+
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-auto px-4 md:px-8 pb-6">
         {error ? (
           <Card>
             <CardHeader>
@@ -87,45 +110,19 @@ export default function FindClients() {
           </Card>
         ) : null}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Clients</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <FindClientsFilters
-              searchQuery={ui.searchQuery}
-              onSearchChange={ui.setSearchQuery}
-              showFavoritesOnly={ui.showFavoritesOnly}
-              onToggleFavoritesOnly={() => ui.setShowFavoritesOnly((v) => !v)}
-              availableTags={ui.availableTags}
-              selectedTags={ui.selectedTags}
-              onToggleTag={ui.toggleTag}
-              uploadedFilter={ui.uploadedFilter}
-              onUploadedFilterChange={ui.setUploadedFilter}
-              hasActiveFilters={ui.hasActiveFilters}
-              activeFiltersBadges={ui.activeFiltersBadges}
-              onClearFilters={ui.clearFilters}
-              onOpenAddClient={() => ui.setShowAddClientModal(true)}
-              onOpenImport={() => ui.setShowImportModal(true)}
-              onRefresh={reload}
-            />
-
-            <div className="border rounded-lg bg-white overflow-hidden">
-              <ClientsTable
-                clients={ui.processedClients}
-                favoriteClientIds={favoriteClientIds}
-                sortColumn={ui.sortColumn}
-                sortDirection={ui.sortDirection}
-                onSort={ui.handleSort}
-                onToggleFavorite={ui.toggleFavorite}
-                selectedClientIds={ui.selectedClientIds}
-                onToggleClient={ui.toggleClient}
-                onToggleAllVisible={ui.toggleAllVisible}
-                onRowClick={onRowClick}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="border rounded-lg bg-white overflow-hidden">
+          <ClientsTable
+            clients={ui.processedClients}
+            favoriteClientIds={favoriteClientIds}
+            sortColumn={ui.sortColumn}
+            sortDirection={ui.sortDirection}
+            onSort={ui.handleSort}
+            onToggleFavorite={ui.toggleFavorite}
+            selectedClientIds={ui.selectedClientIds}
+            onToggleClient={ui.toggleClient}
+            onToggleAllVisible={ui.toggleAllVisible}
+            onRowClick={onRowClick}
+          />
         </div>
       </div>
 
@@ -150,7 +147,9 @@ export default function FindClients() {
       <QuickSendPickerModal
         open={ui.showQuickSendModal}
         onOpenChange={ui.setShowQuickSendModal}
-        onTemplateSelected={(template) => ui.startWorkflow({ quickSendTemplateId: template?.id })}
+        onTemplateSelected={(template) =>
+          ui.startWorkflow({ quickSendTemplateId: template?.id })
+        }
       />
     </div>
   );
