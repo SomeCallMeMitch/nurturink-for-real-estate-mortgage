@@ -12,6 +12,7 @@ import CreateContent2 from './pages/CreateContent2';
 import Credits from './pages/Credits';
 import EditQuickSendTemplate from './pages/EditQuickSendTemplate';
 import EditTemplate from './pages/EditTemplate';
+import FindClients from './pages/FindClients';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import MailingConfirmation from './pages/MailingConfirmation';
@@ -49,7 +50,6 @@ import WLDemo from './pages/WLDemo';
 import Welcome from './pages/Welcome';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import FindClients from './pages/FindClients';
 import __Layout from './Layout.jsx';
 
 
@@ -68,6 +68,7 @@ export const PAGES = {
     "Credits": Credits,
     "EditQuickSendTemplate": EditQuickSendTemplate,
     "EditTemplate": EditTemplate,
+    "FindClients": FindClients,
     "Home": Home,
     "Landing": Landing,
     "MailingConfirmation": MailingConfirmation,
@@ -105,7 +106,6 @@ export const PAGES = {
     "Welcome": Welcome,
     "landing1": landing1,
     "lp": lp,
-    "FindClients": FindClients,
 }
 
 export const pagesConfig = {

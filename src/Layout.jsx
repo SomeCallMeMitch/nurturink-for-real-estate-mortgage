@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import AcceptInvitation from "@/pages/AcceptInvitation";
 import { useIsMobile } from "@/components/hooks/use-mobile";
 import { CreditProvider } from "@/components/context/CreditContext";
+import { applyWhitelabelTheme } from "@/components/utils/whitelabelTheme";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -70,10 +71,13 @@ export default function Layout({ children, currentPageName }) {
       }
       
       try {
-        const response = await base44.functions.invoke('getWhitelabelSettings');
-        setWhitelabelSettings(response.data.settings);
-        
-        // Update favicon if it exists
+                    const response = await base44.functions.invoke('getWhitelabelSettings');
+                    setWhitelabelSettings(response.data.settings);
+
+                    // Apply whitelabel theme to CSS variables
+                    applyWhitelabelTheme(response.data.settings);
+
+                    // Update favicon if it exists
         if (response.data.settings.faviconUrl) {
           const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
           link.type = 'image/x-icon';
