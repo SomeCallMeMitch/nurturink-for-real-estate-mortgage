@@ -6,7 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Plus, Search } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
-import CardDesignForm from '@/components/sa/CardDesignForm';
+import CardDesignFormWithUpload from '@/components/sa/CardDesignFormWithUpload';
 import CardDesignGrid from '@/components/sa/CardDesignGrid';
 import CategoryList, { CategoryForm } from '@/components/sa/CategoryList';
 import {
@@ -314,8 +314,8 @@ export default function SuperAdminCardManagement() {
           </TabsContent>
         </Tabs>
 
-        {/* Card Design Form Modal */}
-        <CardDesignForm
+        {/* Card Design Form Modal - Uses file upload for print-ready files */}
+        <CardDesignFormWithUpload
           open={showDesignForm}
           onOpenChange={(open) => {
             setShowDesignForm(open);
