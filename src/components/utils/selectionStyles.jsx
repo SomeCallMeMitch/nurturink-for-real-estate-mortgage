@@ -10,11 +10,14 @@
  *   <button style={getSelectionStyles(isSelected)} className={...}>
  */
 
-export const getSelectionStyles = (isSelected) => isSelected ? {
-  backgroundColor: 'var(--selection-bg)',
-  borderLeft: '4px solid var(--selection-border)',
-  color: 'var(--selection-text)',
-  fontWeight: 600,
-  paddingLeft: '8px',
-  paddingRight: '12px',
-} : {};
+export const getSelectionStyles = (isSelected) =>
+  isSelected
+    ? {
+        backgroundColor: "hsl(var(--selection-bg))",
+        borderLeft: "4px solid hsl(var(--selection-border))",
+        color: "hsl(var(--selection-text))",
+        fontWeight: 600,
+        paddingLeft: "8px",
+        paddingRight: "12px",
+      }
+    : {};
