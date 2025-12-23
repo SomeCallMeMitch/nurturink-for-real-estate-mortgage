@@ -66,7 +66,7 @@ export default function FindClients() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50 pb-24 flex flex-col">
       <WorkflowSteps
         currentStep={1}
         creditsLeft={totalAvailableCredits}
@@ -74,7 +74,8 @@ export default function FindClients() {
         onBackClick={() => navigate(createPageUrl("Home"))}
       />
 
-      <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-6">
         {error ? (
           <Card>
             <CardHeader>
@@ -125,6 +126,7 @@ export default function FindClients() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
 
       <SelectedClientsBar
