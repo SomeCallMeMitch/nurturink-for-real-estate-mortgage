@@ -15,8 +15,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { Search, Plus, Upload, RefreshCw, X, Star } from "lucide-react";
+import { Search, Plus, Upload, RefreshCw, X, Star, Tag } from "lucide-react";
 
 export default function FindClientsFilters({
   searchQuery,
@@ -35,8 +36,12 @@ export default function FindClientsFilters({
   onOpenImport,
   onRefresh,
 }) {
+  const selectedTagsArray = Array.isArray(selectedTags) ? selectedTags : [];
+  const tagsArray = Array.isArray(availableTags) ? availableTags : [];
+
   return (
     <div className="space-y-3">
+      {/* Row 1: Search + Actions */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative w-full md:max-w-lg">
           <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
@@ -75,8 +80,10 @@ export default function FindClientsFilters({
         </div>
       </div>
 
+      {/* Row 2: Filters */}
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-3 items-center">
+          {/* Favorites checkbox */}
           <label className="flex items-center gap-2 text-sm">
             <Checkbox checked={!!showFavoritesOnly} onCheckedChange={() => onToggleFavoritesOnly?.()} />
             <span className="flex items-center gap-1">
@@ -85,7 +92,8 @@ export default function FindClientsFilters({
             </span>
           </label>
 
-          <div className="w-full md:w-56">
+          {/* Date filter dropdown */}
+          <div className="w-full md:w-44">
             <Select value={uploadedFilter || "all"} onValueChange={(v) => onUploadedFilterChange?.(v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter by added date" />
@@ -93,31 +101,44 @@ export default function FindClientsFilters({
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
                 <SelectItem value="today">Added Today</SelectItem>
-                <SelectItem value="7days">Added Last 7 Days</SelectItem>
-                <SelectItem value="30days">Added Last 30 Days</SelectItem>
+                <SelectItem value="7days">Last 7 Days</SelectItem>
+                <SelectItem value="30days">Last 30 Days</SelectItem>
                 <SelectItem value="manual">Manual Only</SelectItem>
                 <SelectItem value="imported">Imported Only</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            {(availableTags || []).map((tag) => {
-              const active = Array.isArray(selectedTags) && selectedTags.includes(tag);
-              return (
-                <Button
-                  key={tag}
-                  variant={active ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => onToggleTag?.(tag)}
-                >
-                  {tag}
+          {/* Tags dropdown (multi-select) */}
+          {tagsArray.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Tag className="w-4 h-4" />
+                  Tags
+                  {selectedTagsArray.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 px-1.5 py-0 text-xs">
+                      {selectedTagsArray.length}
+                    </Badge>
+                  )}
                 </Button>
-              );
-            })}
-          </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                {tagsArray.map((tag) => (
+                  <DropdownMenuCheckboxItem
+                    key={tag}
+                    checked={selectedTagsArray.includes(tag)}
+                    onCheckedChange={() => onToggleTag?.(tag)}
+                  >
+                    {tag}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
+        {/* Clear filters button */}
         {hasActiveFilters && (
           <Button variant="outline" size="sm" onClick={onClearFilters} className="gap-2">
             <X className="w-4 h-4" />
@@ -126,6 +147,7 @@ export default function FindClientsFilters({
         )}
       </div>
 
+      {/* Active filters summary */}
       {hasActiveFilters && (
         <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 pt-2 border-t">
           <span className="font-medium">Active filters:</span>
