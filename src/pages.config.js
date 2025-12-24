@@ -51,6 +51,7 @@ import Welcome from './pages/Welcome';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
 import AdminSends from './pages/AdminSends';
+import AdminSendDetails from './pages/AdminSendDetails';
 import __Layout from './Layout.jsx';
 
 
@@ -108,6 +109,7 @@ export const PAGES = {
     "landing1": landing1,
     "lp": lp,
     "AdminSends": AdminSends,
+    "AdminSendDetails": AdminSendDetails,
 }
 
 export const pagesConfig = {
