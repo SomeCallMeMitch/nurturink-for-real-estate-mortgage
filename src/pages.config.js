@@ -50,6 +50,7 @@ import WLDemo from './pages/WLDemo';
 import Welcome from './pages/Welcome';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
+import AdminSends from './pages/AdminSends';
 import __Layout from './Layout.jsx';
 
 
@@ -106,6 +107,7 @@ export const PAGES = {
     "Welcome": Welcome,
     "landing1": landing1,
     "lp": lp,
+    "AdminSends": AdminSends,
 }
 
 export const pagesConfig = {

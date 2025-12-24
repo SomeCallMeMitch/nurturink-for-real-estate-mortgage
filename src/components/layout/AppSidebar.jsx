@@ -26,7 +26,8 @@ import {
   Link as LinkIcon,
   Building,
   Home,
-  Zap
+  Zap,
+  Send
 } from "lucide-react";
 
 import {
@@ -161,6 +162,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
 
   const adminItems = [
     { title: "Dashboard", url: "SuperAdminDashboard", icon: LayoutDashboard },
+    { title: "All Sends", url: "AdminSends", icon: Send },
     { title: "Card Designs", url: "SuperAdminCardManagement", icon: Palette },
     { title: "Pricing Tiers", url: "AdminPricing", icon: DollarSign },
     { title: "Coupons", url: "AdminCoupons", icon: FileText },

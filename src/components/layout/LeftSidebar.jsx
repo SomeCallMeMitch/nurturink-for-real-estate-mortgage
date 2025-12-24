@@ -24,7 +24,8 @@ import {
   PenTool,
   Briefcase,
   Ticket,
-  Zap
+  Zap,
+  Send
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
@@ -175,6 +176,13 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
 
   // Admin Portal submenu items
   const adminMenuItems = [
+    {
+      id: 'admin-sends',
+      label: 'All Sends',
+      icon: Send,
+      path: 'AdminSends',
+      roles: ['organization_owner', 'whitelabel_partner', 'super_admin']
+    },
     {
       id: 'admin-card-management',
       label: 'Card Management',
