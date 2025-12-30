@@ -6,7 +6,10 @@ import {
   Trash, 
   Star,
   CheckCircle,
-  Image as ImageIcon
+  Image as ImageIcon,
+  FileArchive,
+  Loader2,
+  Check
 } from 'lucide-react';
 
 /**
@@ -19,7 +22,9 @@ function CardDesignCard({
   isFavorite, 
   onToggleFavorite, 
   onEdit, 
-  onDelete 
+  onDelete,
+  onGenerateZip,
+  isGeneratingZip
 }) {
   return (
     <Card className="overflow-hidden relative group">
@@ -98,6 +103,42 @@ function CardDesignCard({
           </div>
         )}
 
+        {/* Scribe ZIP status */}
+        <div className="flex items-center gap-2 mb-2">
+          {design.scribeZipUrl ? (
+            <span className="text-xs text-green-600 flex items-center gap-1">
+              <Check className="w-3 h-3" />
+              Scribe ZIP ready
+            </span>
+          ) : (
+            <span className="text-xs text-amber-600">No Scribe ZIP</span>
+          )}
+          {!design.insideImageUrl && (
+            <span className="text-xs text-gray-500">(Inside: Default white)</span>
+          )}
+        </div>
+
+        {/* Generate ZIP Button */}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onGenerateZip(design)}
+          disabled={isGeneratingZip}
+          className="w-full mb-2 h-8"
+        >
+          {isGeneratingZip ? (
+            <>
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <FileArchive className="w-3 h-3 mr-1" />
+              {design.scribeZipUrl ? 'Regenerate ZIP' : 'Generate Scribe ZIP'}
+            </>
+          )}
+        </Button>
+
         <div className="flex gap-2">
           <Button
             size="sm"
@@ -133,6 +174,8 @@ function CardDesignCard({
  * @param {Function} onEdit - Edit design callback
  * @param {Function} onDelete - Delete design callback
  * @param {Function} onAdd - Add new design callback
+ * @param {Function} onGenerateZip - Generate Scribe ZIP callback
+ * @param {string|null} generatingZipFor - ID of design currently generating ZIP
  */
 export default function CardDesignGrid({
   designs = [],
@@ -141,7 +184,9 @@ export default function CardDesignGrid({
   onToggleFavorite,
   onEdit,
   onDelete,
-  onAdd
+  onAdd,
+  onGenerateZip,
+  generatingZipFor = null
 }) {
   if (designs.length === 0) {
     return (
@@ -165,6 +210,8 @@ export default function CardDesignGrid({
           onToggleFavorite={onToggleFavorite}
           onEdit={onEdit}
           onDelete={onDelete}
+          onGenerateZip={onGenerateZip}
+          isGeneratingZip={generatingZipFor === design.id}
         />
       ))}
     </div>
