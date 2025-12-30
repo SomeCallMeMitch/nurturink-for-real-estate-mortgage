@@ -12,7 +12,12 @@ import JSZip from 'npm:jszip@3.10.1';
  * - 2.png = inside/back image (1375x2000px)
  * 
  * The ZIP is stored in Base44 private storage and the URI is saved to CardDesign.scribeZipUrl
+ * 
+ * If insideImageUrl is not set, falls back to DEFAULT_WHITE_INSIDE_URL environment variable.
  */
+
+// Default white inside image - set via environment variable
+const DEFAULT_WHITE_INSIDE_URL = Deno.env.get('DEFAULT_WHITE_INSIDE_URL') || null;
 
 Deno.serve(async (req) => {
   try {
@@ -48,33 +53,53 @@ Deno.serve(async (req) => {
     const cardDesign = designList[0];
     console.log(`[generateCardDesignZip] Found design: ${cardDesign.name}`);
     
-    // Validate required images exist
-    if (!cardDesign.insideImageUrl || !cardDesign.outsideImageUrl) {
+    // Validate outside image exists (required)
+    if (!cardDesign.outsideImageUrl) {
       return Response.json({ 
         success: false, 
-        error: 'CardDesign is missing required images (insideImageUrl and/or outsideImageUrl)' 
+        error: 'CardDesign is missing required outsideImageUrl' 
       }, { status: 400 });
     }
+    
+    // Determine inside image - use default white if not specified
+    const insideImageUrl = cardDesign.insideImageUrl || DEFAULT_WHITE_INSIDE_URL;
+    const usingDefaultWhite = !cardDesign.insideImageUrl;
+    
+    if (!insideImageUrl) {
+      return Response.json({ 
+        success: false, 
+        error: 'CardDesign has no insideImageUrl and no default white image is configured. Set DEFAULT_WHITE_INSIDE_URL environment variable.' 
+      }, { status: 400 });
+    }
+    
+    if (usingDefaultWhite) {
+      console.log(`[generateCardDesignZip] Using default white inside image`);
+    }
+    
+    // Helper function to fetch image buffer from URL or file_uri
+    const fetchImageBuffer = async (imageUrl, imageName) => {
+      let fetchUrl = imageUrl;
+      
+      // Check if it's a private file URI
+      if (imageUrl.startsWith('private/') || imageUrl.includes('file_uri') || imageUrl.startsWith('file:')) {
+        const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({
+          file_uri: imageUrl
+        });
+        fetchUrl = signedUrlResult.signed_url;
+      }
+      
+      const response = await fetch(fetchUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${imageName}: HTTP ${response.status}`);
+      }
+      return await response.arrayBuffer();
+    };
     
     // Fetch outside image (1.png - front/cover)
     console.log(`[generateCardDesignZip] Fetching outside image...`);
     let outsideBuffer;
     try {
-      // Check if it's a private file URI or public URL
-      if (cardDesign.outsideImageUrl.startsWith('private/') || cardDesign.outsideImageUrl.includes('file_uri')) {
-        // Get signed URL for private file
-        const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({
-          file_uri: cardDesign.outsideImageUrl
-        });
-        const response = await fetch(signedUrlResult.signed_url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        outsideBuffer = await response.arrayBuffer();
-      } else {
-        // Direct fetch for public URLs
-        const response = await fetch(cardDesign.outsideImageUrl);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        outsideBuffer = await response.arrayBuffer();
-      }
+      outsideBuffer = await fetchImageBuffer(cardDesign.outsideImageUrl, 'outside image');
     } catch (err) {
       console.error(`[generateCardDesignZip] Failed to fetch outside image:`, err);
       return Response.json({ 
@@ -87,18 +112,7 @@ Deno.serve(async (req) => {
     console.log(`[generateCardDesignZip] Fetching inside image...`);
     let insideBuffer;
     try {
-      if (cardDesign.insideImageUrl.startsWith('private/') || cardDesign.insideImageUrl.includes('file_uri')) {
-        const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({
-          file_uri: cardDesign.insideImageUrl
-        });
-        const response = await fetch(signedUrlResult.signed_url);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        insideBuffer = await response.arrayBuffer();
-      } else {
-        const response = await fetch(cardDesign.insideImageUrl);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        insideBuffer = await response.arrayBuffer();
-      }
+      insideBuffer = await fetchImageBuffer(insideImageUrl, 'inside image');
     } catch (err) {
       console.error(`[generateCardDesignZip] Failed to fetch inside image:`, err);
       return Response.json({ 
@@ -165,7 +179,8 @@ Deno.serve(async (req) => {
       success: true,
       cardDesignId: cardDesignId,
       scribeZipUrl: scribeZipUrl,
-      zipSizeBytes: zipData.length
+      zipSizeBytes: zipData.length,
+      usedDefaultWhiteInside: usingDefaultWhite
     });
     
   } catch (error) {
