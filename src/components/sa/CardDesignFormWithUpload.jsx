@@ -333,16 +333,16 @@ export default function CardDesignFormWithUpload({
             </p>
             <div className="grid grid-cols-2 gap-6">
               <PrintReadyFileUploader
-                label="Print-Ready Front"
-                sublabel="Outside/cover of physical card"
+                label="Print-Ready Outside"
+                sublabel="Cover of physical card (1.png in ZIP)"
                 fileUri={form.printReadyFrontUri}
                 onFileUriChange={(uri) => setForm({ ...form, printReadyFrontUri: uri })}
                 accept=".pdf,.png,.jpg,.jpeg"
                 maxSizeMB={10}
               />
               <PrintReadyFileUploader
-                label="Print-Ready Back"
-                sublabel="Inside of physical card"
+                label="Print-Ready Inside"
+                sublabel="Interior of physical card (2.png in ZIP)"
                 fileUri={form.printReadyBackUri}
                 onFileUriChange={(uri) => setForm({ ...form, printReadyBackUri: uri })}
                 accept=".pdf,.png,.jpg,.jpeg"
