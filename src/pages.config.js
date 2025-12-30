@@ -1,4 +1,5 @@
 import AcceptInvitation from './pages/AcceptInvitation';
+import AdminCardDetails from './pages/AdminCardDetails';
 import AdminCardLayout from './pages/AdminCardLayout';
 import AdminClientEdit from './pages/AdminClientEdit';
 import AdminClients from './pages/AdminClients';
@@ -7,6 +8,8 @@ import AdminCreateContentLayout from './pages/AdminCreateContentLayout';
 import AdminEmailTesting from './pages/AdminEmailTesting';
 import AdminEnvelopeLayout from './pages/AdminEnvelopeLayout';
 import AdminPricing from './pages/AdminPricing';
+import AdminSendDetails from './pages/AdminSendDetails';
+import AdminSends from './pages/AdminSends';
 import CreateContent from './pages/CreateContent';
 import CreateContent2 from './pages/CreateContent2';
 import Credits from './pages/Credits';
@@ -50,14 +53,12 @@ import WLDemo from './pages/WLDemo';
 import Welcome from './pages/Welcome';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import AdminSends from './pages/AdminSends';
-import AdminSendDetails from './pages/AdminSendDetails';
-import AdminCardDetails from './pages/AdminCardDetails';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AcceptInvitation": AcceptInvitation,
+    "AdminCardDetails": AdminCardDetails,
     "AdminCardLayout": AdminCardLayout,
     "AdminClientEdit": AdminClientEdit,
     "AdminClients": AdminClients,
@@ -66,6 +67,8 @@ export const PAGES = {
     "AdminEmailTesting": AdminEmailTesting,
     "AdminEnvelopeLayout": AdminEnvelopeLayout,
     "AdminPricing": AdminPricing,
+    "AdminSendDetails": AdminSendDetails,
+    "AdminSends": AdminSends,
     "CreateContent": CreateContent,
     "CreateContent2": CreateContent2,
     "Credits": Credits,
@@ -109,9 +112,6 @@ export const PAGES = {
     "Welcome": Welcome,
     "landing1": landing1,
     "lp": lp,
-    "AdminSends": AdminSends,
-    "AdminSendDetails": AdminSendDetails,
-    "AdminCardDetails": AdminCardDetails,
 }
 
 export const pagesConfig = {

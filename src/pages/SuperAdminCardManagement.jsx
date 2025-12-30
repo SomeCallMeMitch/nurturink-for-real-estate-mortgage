@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, FileArchive } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
 import CardDesignFormWithUpload from '@/components/sa/CardDesignFormWithUpload';
@@ -41,6 +41,9 @@ export default function SuperAdminCardManagement() {
   
   // Delete confirmation state
   const [deleteDialog, setDeleteDialog] = useState({ open: false, type: null, item: null });
+  
+  // ZIP generation state
+  const [generatingZipFor, setGeneratingZipFor] = useState(null);
 
   // Load initial data
   useEffect(() => {
@@ -228,6 +231,77 @@ export default function SuperAdminCardManagement() {
     }
   };
 
+  // Generate Scribe ZIP handler
+  const handleGenerateZip = async (design) => {
+    try {
+      setGeneratingZipFor(design.id);
+      
+      const response = await base44.functions.invoke('generateCardDesignZip', {
+        cardDesignId: design.id
+      });
+      
+      if (response.data.success) {
+        toast({
+          title: 'ZIP Generated',
+          description: `Scribe ZIP created for "${design.name}" (${Math.round(response.data.zipSizeBytes / 1024)} KB)${response.data.usedDefaultWhiteInside ? ' - used default white inside' : ''}`
+        });
+        loadData(); // Refresh to show updated scribeZipUrl
+      } else {
+        throw new Error(response.data.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Failed to generate ZIP:', error);
+      toast({
+        title: 'ZIP Generation Failed',
+        description: error.message || 'Failed to generate Scribe ZIP',
+        variant: 'destructive'
+      });
+    } finally {
+      setGeneratingZipFor(null);
+    }
+  };
+
+  // Generate all missing ZIPs
+  const handleGenerateAllMissingZips = async () => {
+    const designsWithoutZip = designs.filter(d => !d.scribeZipUrl && (d.outsideImageUrl || d.insideImageUrl));
+    
+    if (designsWithoutZip.length === 0) {
+      toast({
+        title: 'All ZIPs Ready',
+        description: 'All card designs already have Scribe ZIPs generated'
+      });
+      return;
+    }
+
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const design of designsWithoutZip) {
+      try {
+        setGeneratingZipFor(design.id);
+        const response = await base44.functions.invoke('generateCardDesignZip', {
+          cardDesignId: design.id
+        });
+        if (response.data.success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (err) {
+        failCount++;
+      }
+    }
+
+    setGeneratingZipFor(null);
+    loadData();
+
+    toast({
+      title: 'Bulk ZIP Generation Complete',
+      description: `Generated ${successCount} ZIPs${failCount > 0 ? `, ${failCount} failed` : ''}`,
+      variant: failCount > 0 ? 'destructive' : 'default'
+    });
+  };
+
   // Filter designs by search
   const filteredDesigns = designs.filter(design =>
     design.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -270,6 +344,14 @@ export default function SuperAdminCardManagement() {
                 />
               </div>
               <Button
+                onClick={handleGenerateAllMissingZips}
+                variant="outline"
+                disabled={generatingZipFor !== null}
+              >
+                <FileArchive className="w-4 h-4 mr-2" />
+                Generate All Missing ZIPs
+              </Button>
+              <Button
                 onClick={() => {
                   setEditingDesign(null);
                   setShowDesignForm(true);
@@ -288,6 +370,8 @@ export default function SuperAdminCardManagement() {
               onToggleFavorite={handleToggleFavorite}
               onEdit={handleEditDesign}
               onDelete={handleDeleteDesign}
+              onGenerateZip={handleGenerateZip}
+              generatingZipFor={generatingZipFor}
             />
           </TabsContent>
 
