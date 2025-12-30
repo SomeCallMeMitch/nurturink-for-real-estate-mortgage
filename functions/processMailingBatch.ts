@@ -581,7 +581,10 @@ Deno.serve(async (req) => {
           noteId: note.id,
           mailingId: mailing.id,
           clientId: client.id,
-          clientName: client.fullName
+          clientName: client.fullName,
+          cardDesignId: cardDesignId,
+          returnAddressMode: returnMode,
+          scribeMessage: scribeMessage
         });
         
       } catch (clientError) {
