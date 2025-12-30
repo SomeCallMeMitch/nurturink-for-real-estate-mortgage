@@ -706,9 +706,199 @@ Deno.serve(async (req) => {
       }
     }
     
-    // 9. Update batch status
+    // ============================================================
+    // SCRIBE INTEGRATION - Process campaigns after credit deduction
+    // ============================================================
+    
+    const scribeCampaigns = [];
+    const processingErrors = [...errors.map(e => ({
+      clientId: e.clientId,
+      error: e.error,
+      timestamp: currentTimestamp
+    }))];
+    
+    // Only proceed with Scribe if we have successful mailings and API token is configured
+    if (processedMailings.length > 0 && SCRIBE_API_TOKEN) {
+      console.log(`[processMailingBatch] Starting Scribe integration for ${processedMailings.length} mailings`);
+      
+      // Load card designs for ZIP URLs
+      const cardDesignIds = [...new Set(processedMailings.map(m => m.cardDesignId))];
+      const cardDesigns = await base44.asServiceRole.entities.CardDesign.filter({
+        id: { $in: cardDesignIds }
+      });
+      const cardDesignMap = {};
+      cardDesigns.forEach(d => { cardDesignMap[d.id] = d; });
+      
+      // Build client map for contact data
+      const clientMap = {};
+      clients.forEach(c => { clientMap[c.id] = c; });
+      
+      // Group mailings by (message + cardDesign + returnAddress) for Scribe campaigns
+      const campaignGroups = new Map();
+      
+      for (const mailing of processedMailings) {
+        const cardDesign = cardDesignMap[mailing.cardDesignId];
+        
+        // Skip if card design missing or no ZIP
+        if (!cardDesign?.scribeZipUrl) {
+          processingErrors.push({
+            clientId: mailing.clientId,
+            error: `Card design ${mailing.cardDesignId} missing scribeZipUrl - run generateCardDesignZip first`,
+            timestamp: new Date().toISOString()
+          });
+          continue;
+        }
+        
+        // Resolve return address for grouping key
+        const returnAddress = resolveReturnAddress(mailing.returnAddressMode, user, organization);
+        const groupKey = createCampaignGroupKey(mailing.scribeMessage, mailing.cardDesignId, returnAddress);
+        
+        if (!campaignGroups.has(groupKey)) {
+          campaignGroups.set(groupKey, {
+            scribeMessage: mailing.scribeMessage,
+            cardDesignId: mailing.cardDesignId,
+            cardDesign: cardDesign,
+            returnAddress: returnAddress,
+            returnAddressMode: mailing.returnAddressMode,
+            textType: determineTextType(mailing.scribeMessage),
+            recipients: []
+          });
+        }
+        
+        campaignGroups.get(groupKey).recipients.push({
+          clientId: mailing.clientId,
+          noteId: mailing.noteId,
+          mailingId: mailing.mailingId,
+          client: clientMap[mailing.clientId]
+        });
+      }
+      
+      console.log(`[processMailingBatch] Created ${campaignGroups.size} campaign groups`);
+      
+      // Process each campaign group
+      for (const [groupKey, group] of campaignGroups) {
+        let scribeCampaignId = null;
+        
+        try {
+          console.log(`[processMailingBatch] Processing group with ${group.recipients.length} recipients`);
+          
+          // 1. Create draft campaign
+          scribeCampaignId = await createScribeDraftCampaign();
+          console.log(`[processMailingBatch] Created draft campaign: ${scribeCampaignId}`);
+          
+          // 2. Fetch ZIP from storage
+          const zipBuffer = await fetchZipFromStorage(base44, group.cardDesign.scribeZipUrl);
+          console.log(`[processMailingBatch] Fetched ZIP, size: ${zipBuffer.byteLength} bytes`);
+          
+          // 3. Add campaign details with ZIP
+          await addScribeCampaignDetails(
+            scribeCampaignId,
+            group.scribeMessage,
+            group.textType,
+            zipBuffer,
+            group.returnAddress
+          );
+          console.log(`[processMailingBatch] Added campaign details`);
+          
+          // 4. Build contacts array
+          const contacts = group.recipients.map(r => ({
+            first_name: r.client.firstName || '',
+            last_name: r.client.lastName || '',
+            street: r.client.street || '',
+            address2: r.client.address2 || '',
+            city: r.client.city || '',
+            state: r.client.state || '',
+            zip: r.client.zipCode || '',
+            email: r.client.email || '',
+            phone: r.client.phone || '',
+            company_name: r.client.company || ''
+          }));
+          
+          // 5. Add contacts
+          await addScribeContacts(scribeCampaignId, contacts);
+          console.log(`[processMailingBatch] Added ${contacts.length} contacts`);
+          
+          // 6. Submit campaign
+          await submitScribeCampaign(scribeCampaignId);
+          console.log(`[processMailingBatch] Submitted campaign`);
+          
+          // 7. Update Notes with scribeCampaignId
+          for (const recipient of group.recipients) {
+            await base44.asServiceRole.entities.Note.update(recipient.noteId, {
+              scribeCampaignId: String(scribeCampaignId),
+              status: 'pending_print'
+            });
+            
+            await base44.asServiceRole.entities.Mailing.update(recipient.mailingId, {
+              scribeCampaignId: String(scribeCampaignId)
+            });
+          }
+          
+          // 8. Record successful campaign
+          scribeCampaigns.push({
+            scribeCampaignId: String(scribeCampaignId),
+            campaignGroupKey: groupKey.substring(0, 100), // Truncate for storage
+            cardDesignId: group.cardDesignId,
+            returnAddressMode: group.returnAddressMode,
+            clientIds: group.recipients.map(r => r.clientId),
+            contactCount: group.recipients.length,
+            status: 'submitted',
+            scribeStatus: 'pending',
+            submittedAt: new Date().toISOString()
+          });
+          
+          console.log(`[processMailingBatch] Campaign ${scribeCampaignId} submitted successfully`);
+          
+        } catch (scribeError) {
+          console.error(`[processMailingBatch] Scribe error for group:`, scribeError);
+          
+          // Record failed campaign
+          scribeCampaigns.push({
+            scribeCampaignId: scribeCampaignId ? String(scribeCampaignId) : null,
+            campaignGroupKey: groupKey.substring(0, 100),
+            cardDesignId: group.cardDesignId,
+            returnAddressMode: group.returnAddressMode,
+            clientIds: group.recipients.map(r => r.clientId),
+            contactCount: group.recipients.length,
+            status: 'failed',
+            errorMessage: scribeError.message,
+            submittedAt: new Date().toISOString()
+          });
+          
+          // Add per-client errors
+          for (const recipient of group.recipients) {
+            processingErrors.push({
+              clientId: recipient.clientId,
+              error: `Scribe API error: ${scribeError.message}`,
+              timestamp: new Date().toISOString()
+            });
+          }
+        }
+      }
+    } else if (!SCRIBE_API_TOKEN) {
+      console.log(`[processMailingBatch] Skipping Scribe integration - SCRIBE_API_TOKEN not configured`);
+    }
+    
+    // Determine final batch status
+    const successfulCampaigns = scribeCampaigns.filter(c => c.status === 'submitted').length;
+    const failedCampaigns = scribeCampaigns.filter(c => c.status === 'failed').length;
+    
+    let finalStatus = 'completed';
+    if (scribeCampaigns.length > 0) {
+      if (failedCampaigns === scribeCampaigns.length) {
+        finalStatus = 'failed';
+      } else if (failedCampaigns > 0) {
+        finalStatus = 'partial';
+      }
+    }
+    
+    // 9. Update batch status with Scribe tracking data
     await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, {
-      status: 'completed'
+      status: finalStatus,
+      scribeCampaigns: scribeCampaigns,
+      processedAt: currentTimestamp,
+      totalCreditsUsed: successfulSends,
+      processingErrors: processingErrors
     });
     
     // Return success response
