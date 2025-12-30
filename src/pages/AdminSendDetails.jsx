@@ -8,30 +8,76 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Pill } from '@/components/ui/Pill';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   ArrowLeft,
   Search,
   Calendar,
   Users,
   ChevronRight,
-  Loader2,
+  ChevronDown,
   Package,
   User,
   MapPin,
   FileText,
-  Mail,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Building,
+  RefreshCw,
+  Mail,
+  XCircle,
+  Copy
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 /**
- * AdminSendDetails Page - Phase 2
+ * Shared Status Utilities (inline)
+ */
+function getStatusPillVariant(status) {
+  const variantMap = {
+    completed: 'success',
+    delivered: 'success',
+    sent: 'success',
+    sending: 'color1',
+    printed: 'color1',
+    printing: 'color1',
+    submitted: 'color1',
+    processing: 'color1',
+    ready_to_send: 'warning',
+    queued: 'warning',
+    queued_for_sending: 'warning',
+    pending_print: 'warning',
+    pending: 'warning',
+    failed: 'danger',
+    cancelled: 'danger',
+    partial: 'warning',
+    draft: 'muted',
+    paused: 'muted'
+  };
+  return variantMap[status] || 'muted';
+}
+
+function formatStatus(status) {
+  if (!status) return 'Unknown';
+  return status
+    .split(/[_-]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+/**
+ * AdminSendDetails Page
  * 
- * Shows detailed information for a selected MailingBatch
- * and lists all individual Note records (cards) within it.
+ * Shows detailed information for a selected MailingBatch including:
+ * - Batch summary with Scribe campaign breakdown
+ * - List of individual Notes (cards) within the batch
+ * - Processing errors if any
  * 
- * Clicking a card navigates to AdminCardDetails page (Phase 3).
+ * IMPORTANT: Queries Notes by mailingBatchId (not userId + clientIds)
  */
 export default function AdminSendDetails() {
   const navigate = useNavigate();
@@ -41,6 +87,7 @@ export default function AdminSendDetails() {
   // Data state
   const [batch, setBatch] = useState(null);
   const [notes, setNotes] = useState([]);
+  const [mailings, setMailings] = useState({});
   const [clients, setClients] = useState({});
   const [cardDesigns, setCardDesigns] = useState({});
   const [sender, setSender] = useState(null);
@@ -50,6 +97,11 @@ export default function AdminSendDetails() {
   
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // UI state
+  const [campaignsExpanded, setCampaignsExpanded] = useState(true);
+  const [errorsExpanded, setErrorsExpanded] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
     if (batchId) {
@@ -77,45 +129,72 @@ export default function AdminSendDetails() {
       
       // Fetch sender user
       if (batchData.userId) {
-        const userList = await base44.entities.User.filter({ id: batchData.userId });
-        if (userList && userList.length > 0) {
-          setSender(userList[0]);
+        try {
+          const userList = await base44.entities.User.filter({ id: batchData.userId });
+          if (userList?.length > 0) setSender(userList[0]);
+        } catch (e) {
+          console.warn('Could not fetch sender:', e);
         }
       }
       
       // Fetch organization
       if (batchData.organizationId) {
-        const orgList = await base44.entities.Organization.filter({ id: batchData.organizationId });
-        if (orgList && orgList.length > 0) {
-          setOrganization(orgList[0]);
+        try {
+          const orgList = await base44.entities.Organization.filter({ id: batchData.organizationId });
+          if (orgList?.length > 0) setOrganization(orgList[0]);
+        } catch (e) {
+          console.warn('Could not fetch organization:', e);
         }
       }
       
-      // Fetch notes associated with this batch via mailingId or by matching clients
-      // Since notes reference mailingId, we'll fetch by that if available
-      // Otherwise, we'll construct from the batch's selectedClientIds
+      // Fetch notes by mailingBatchId (the correct way!)
       let noteList = [];
-      
-      // Try to fetch notes that reference this batch
-      // Notes don't have a direct batchId field, but we can match by client IDs and user
-      if (batchData.selectedClientIds && batchData.selectedClientIds.length > 0) {
-        // Fetch clients first
-        const clientList = await base44.entities.Client.filter({ 
-          id: { $in: batchData.selectedClientIds } 
-        });
-        const clientMap = {};
-        clientList.forEach(c => { clientMap[c.id] = c; });
-        setClients(clientMap);
-        
-        // Fetch notes for these clients by this user (approximate match)
-        // In a real scenario, we'd have a batchId on Note entity
-        noteList = await base44.entities.Note.filter({
-          userId: batchData.userId,
-          clientId: { $in: batchData.selectedClientIds }
-        });
+      try {
+        noteList = await base44.entities.Note.filter({ mailingBatchId: batchId });
+      } catch (e) {
+        console.warn('Could not fetch notes by mailingBatchId, trying fallback:', e);
+        // Fallback: Query by userId + clientIds (old method, less reliable)
+        if (batchData.selectedClientIds?.length > 0) {
+          noteList = await base44.entities.Note.filter({
+            userId: batchData.userId,
+            clientId: { $in: batchData.selectedClientIds }
+          });
+        }
       }
-      
       setNotes(noteList);
+      
+      // Fetch mailings for these notes
+      const mailingMap = {};
+      if (noteList.length > 0) {
+        try {
+          const mailingList = await base44.entities.Mailing.filter({ 
+            mailingBatchId: batchId 
+          });
+          mailingList.forEach(m => { 
+            mailingMap[m.noteId] = m; 
+          });
+        } catch (e) {
+          console.warn('Could not fetch mailings by mailingBatchId:', e);
+        }
+      }
+      setMailings(mailingMap);
+      
+      // Fetch clients
+      const clientIds = [...new Set([
+        ...(batchData.selectedClientIds || []),
+        ...noteList.map(n => n.clientId).filter(Boolean)
+      ])];
+      
+      if (clientIds.length > 0) {
+        try {
+          const clientList = await base44.entities.Client.filter({ id: { $in: clientIds } });
+          const clientMap = {};
+          clientList.forEach(c => { clientMap[c.id] = c; });
+          setClients(clientMap);
+        } catch (e) {
+          console.warn('Could not fetch clients:', e);
+        }
+      }
       
       // Fetch card designs used
       const designIds = [...new Set([
@@ -124,12 +203,14 @@ export default function AdminSendDetails() {
       ].filter(Boolean))];
       
       if (designIds.length > 0) {
-        const designList = await base44.entities.CardDesign.filter({ 
-          id: { $in: designIds } 
-        });
-        const designMap = {};
-        designList.forEach(d => { designMap[d.id] = d; });
-        setCardDesigns(designMap);
+        try {
+          const designList = await base44.entities.CardDesign.filter({ id: { $in: designIds } });
+          const designMap = {};
+          designList.forEach(d => { designMap[d.id] = d; });
+          setCardDesigns(designMap);
+        } catch (e) {
+          console.warn('Could not fetch card designs:', e);
+        }
       }
       
     } catch (err) {
@@ -154,30 +235,11 @@ export default function AdminSendDetails() {
     });
   }, [notes, searchQuery, clients]);
 
-  // Get status pill variant
-  const getStatusPillVariant = (status) => {
-    switch (status) {
-      case 'completed': return 'success';
-      case 'sending': return 'color1';
-      case 'ready_to_send': return 'warning';
-      case 'draft': return 'muted';
-      case 'delivered': return 'success';
-      case 'sent': return 'color1';
-      case 'queued': return 'warning';
-      case 'queued_for_sending': return 'warning';
-      case 'pending_print': return 'warning';
-      case 'printed': return 'color1';
-      case 'failed': return 'danger';
-      default: return 'muted';
-    }
-  };
-
-  // Format status for display
-  const formatStatus = (status) => {
-    if (!status) return 'Unknown';
-    return status.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+  // Copy to clipboard
+  const copyToClipboard = (text, id) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   // Navigate to card details
@@ -210,7 +272,10 @@ export default function AdminSendDetails() {
           Back to All Sends
         </Button>
         <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-lg">
-          <p className="text-destructive">{error}</p>
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-destructive" />
+            <p className="text-destructive">{error}</p>
+          </div>
         </div>
       </div>
     );
@@ -221,7 +286,7 @@ export default function AdminSendDetails() {
 
   return (
     <div className="space-y-6">
-      {/* Header with Back Button */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" onClick={handleBack} className="gap-2">
@@ -229,14 +294,16 @@ export default function AdminSendDetails() {
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Send Details
-            </h1>
+            <h1 className="text-3xl font-bold text-foreground">Send Details</h1>
             <p className="text-muted-foreground">
               Batch #{batchId?.slice(-8).toUpperCase()}
             </p>
           </div>
         </div>
+        <Button variant="outline" onClick={loadData} className="gap-2">
+          <RefreshCw className="w-4 h-4" />
+          Refresh
+        </Button>
       </div>
 
       {/* Batch Summary Card */}
@@ -257,16 +324,6 @@ export default function AdminSendDetails() {
               </Pill>
             </div>
             
-            {/* Scribe Status */}
-            {batch?.scribeStatus && batch.scribeStatus !== 'draft' && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Scribe Status</p>
-                <Pill variant={getStatusPillVariant(batch?.scribeStatus)}>
-                  {formatStatus(batch?.scribeStatus)}
-                </Pill>
-              </div>
-            )}
-            
             {/* Card Count */}
             <div>
               <p className="text-sm text-muted-foreground mb-1">Total Cards</p>
@@ -276,14 +333,22 @@ export default function AdminSendDetails() {
               </p>
             </div>
             
-            {/* Created Date */}
+            {/* Credits Used */}
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Created</p>
+              <p className="text-sm text-muted-foreground mb-1">Credits Used</p>
+              <p className="font-semibold text-foreground">
+                {batch?.totalCreditsUsed || 0} credits
+              </p>
+            </div>
+            
+            {/* Processed Date */}
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Sent</p>
               <p className="font-semibold text-foreground flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                {batch?.created_date 
-                  ? format(new Date(batch.created_date), 'MMM d, yyyy h:mm a')
-                  : 'Unknown'}
+                {batch?.processedAt 
+                  ? format(new Date(batch.processedAt), 'MMM d, yyyy h:mm a')
+                  : 'Not processed yet'}
               </p>
             </div>
             
@@ -320,14 +385,6 @@ export default function AdminSendDetails() {
                 </div>
               </div>
             )}
-            
-            {/* Scribe Campaign ID */}
-            {batch?.scribeCampaignId && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Scribe Campaign ID</p>
-                <p className="font-mono text-sm text-foreground">{batch.scribeCampaignId}</p>
-              </div>
-            )}
           </div>
           
           {/* Global Message Preview */}
@@ -344,66 +401,205 @@ export default function AdminSendDetails() {
         </CardContent>
       </Card>
 
-      {/* Cards List Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-foreground">
-            Individual Cards ({filteredNotes.length})
-          </h2>
-          
-          {/* Search */}
-          <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by recipient..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
+      {/* Scribe Campaigns Section */}
+      {batch?.scribeCampaigns && batch.scribeCampaigns.length > 0 && (
+        <Collapsible open={campaignsExpanded} onOpenChange={setCampaignsExpanded}>
+          <Card className="border border-subtle">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="pb-4 cursor-pointer hover:bg-surface-1/50 transition-colors">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-5 h-5" />
+                    Scribe Campaigns ({batch.scribeCampaigns.length})
+                  </div>
+                  {campaignsExpanded ? (
+                    <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  {batch.scribeCampaigns.map((campaign, index) => {
+                    const design = cardDesigns[campaign.cardDesignId];
+                    
+                    return (
+                      <div 
+                        key={campaign.scribeCampaignId || index}
+                        className="p-4 bg-surface-1 rounded-lg border border-subtle"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Pill variant={getStatusPillVariant(campaign.status)} size="sm">
+                              {formatStatus(campaign.status)}
+                            </Pill>
+                            {campaign.scribeCampaignId && (
+                              <div className="flex items-center gap-1">
+                                <code className="text-xs font-mono bg-white px-2 py-1 rounded border">
+                                  Campaign #{campaign.scribeCampaignId}
+                                </code>
+                                <button 
+                                  onClick={() => copyToClipboard(campaign.scribeCampaignId, `campaign-${index}`)}
+                                  className="p-1 hover:bg-white rounded"
+                                >
+                                  {copiedId === `campaign-${index}` ? (
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                                  ) : (
+                                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                          <span className="text-sm text-muted-foreground">
+                            {campaign.contactCount} contacts
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Design</p>
+                            <p className="font-medium">{design?.name || 'Unknown'}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Return Address</p>
+                            <p className="font-medium capitalize">{campaign.returnAddressMode || 'company'}</p>
+                          </div>
+                          <div>
+                            <p className="text-muted-foreground">Submitted</p>
+                            <p className="font-medium">
+                              {campaign.submittedAt 
+                                ? format(new Date(campaign.submittedAt), 'MMM d, h:mm a')
+                                : '-'}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {campaign.errorMessage && (
+                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
+                            {campaign.errorMessage}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
-        {/* Empty state for notes */}
-        {filteredNotes.length === 0 && notes.length === 0 && (
-          <div className="text-center py-12 bg-surface-1 rounded-lg border border-subtle">
-            <AlertCircle className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-foreground mb-1">No Cards Found</h3>
-            <p className="text-muted-foreground">
-              No individual card records are associated with this batch yet.
-            </p>
-          </div>
-        )}
+      {/* Processing Errors Section */}
+      {batch?.processingErrors && batch.processingErrors.length > 0 && (
+        <Collapsible open={errorsExpanded} onOpenChange={setErrorsExpanded}>
+          <Card className="border border-red-200 bg-red-50/50">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="pb-4 cursor-pointer hover:bg-red-100/50 transition-colors">
+                <CardTitle className="flex items-center justify-between text-red-700">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5" />
+                    Processing Errors ({batch.processingErrors.length})
+                  </div>
+                  {errorsExpanded ? (
+                    <ChevronDown className="w-5 h-5" />
+                  ) : (
+                    <ChevronRight className="w-5 h-5" />
+                  )}
+                </CardTitle>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {batch.processingErrors.map((err, index) => {
+                    const client = clients[err.clientId];
+                    return (
+                      <div 
+                        key={index}
+                        className="p-3 bg-white border border-red-200 rounded-lg"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium text-red-800">
+                              {client?.fullName || `Client ${err.clientId?.slice(-8)}`}
+                            </p>
+                            <p className="text-sm text-red-600">{err.error}</p>
+                          </div>
+                          <span className="text-xs text-red-500">
+                            {err.timestamp && format(new Date(err.timestamp), 'h:mm a')}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
-        {/* Filtered empty state */}
-        {filteredNotes.length === 0 && notes.length > 0 && (
-          <div className="text-center py-12 bg-surface-1 rounded-lg border border-subtle">
-            <Search className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
-            <h3 className="text-lg font-semibold text-foreground mb-1">No Matches</h3>
-            <p className="text-muted-foreground">
-              No cards match your search. Try a different term.
-            </p>
+      {/* Individual Cards Section */}
+      <Card className="border border-subtle">
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Cards in This Batch ({notes.length})
+            </CardTitle>
+            {/* Search */}
+            <div className="relative w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search recipients..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
-        )}
-
-        {/* Cards list */}
-        {filteredNotes.length > 0 && (
-          <div className="space-y-2">
-            {filteredNotes.map((note) => {
-              const client = clients[note.clientId];
-              const design = cardDesigns[note.cardDesignId];
-              
-              return (
-                <Card
-                  key={note.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow border border-subtle"
-                  onClick={() => handleCardClick(note.id)}
-                >
-                  <CardContent className="p-4">
+        </CardHeader>
+        <CardContent>
+          {filteredNotes.length === 0 ? (
+            <div className="text-center py-12">
+              <Mail className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                {searchQuery ? 'No matching cards' : 'No cards yet'}
+              </h3>
+              <p className="text-muted-foreground">
+                {searchQuery 
+                  ? 'Try adjusting your search query.'
+                  : 'Cards will appear here once the batch is processed.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredNotes.map((note) => {
+                const client = clients[note.clientId];
+                const mailing = mailings[note.id];
+                const design = cardDesigns[note.cardDesignId];
+                
+                // Use mailing address if available, otherwise fall back to client
+                const address = mailing?.recipientAddress || (client ? {
+                  name: client.fullName,
+                  city: client.city,
+                  state: client.state
+                } : null);
+                
+                return (
+                  <div
+                    key={note.id}
+                    className="p-4 bg-surface-1 rounded-lg border border-subtle cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleCardClick(note.id)}
+                  >
                     <div className="flex items-center justify-between">
-                      {/* Left: Card Info */}
                       <div className="flex items-center gap-4">
-                        {/* Card Design Thumbnail */}
-                        <div className="w-12 h-16 rounded bg-surface-1 border border-subtle overflow-hidden flex-shrink-0">
+                        {/* Card design thumbnail */}
+                        <div className="w-12 h-16 rounded border bg-white overflow-hidden flex-shrink-0">
                           {design?.outsideImageUrl ? (
                             <img 
                               src={design.outsideImageUrl} 
@@ -417,84 +613,60 @@ export default function AdminSendDetails() {
                           )}
                         </div>
                         
-                        {/* Details */}
-                        <div className="flex-1">
+                        {/* Recipient info */}
+                        <div>
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold text-foreground">
-                              {note.recipientName || client?.fullName || 'Unknown Recipient'}
+                              {note.recipientName || address?.name || 'Unknown Recipient'}
                             </h4>
                             <Pill variant={getStatusPillVariant(note.status)} size="sm">
                               {formatStatus(note.status)}
                             </Pill>
                           </div>
                           
-                          {/* Address */}
-                          {client && (
-                            <p className="text-sm text-muted-foreground flex items-center gap-1 mb-1">
-                              <MapPin className="w-3.5 h-3.5" />
-                              {[client.street, client.city, client.state, client.zipCode]
-                                .filter(Boolean).join(', ')}
-                            </p>
-                          )}
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            {address && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3.5 h-3.5" />
+                                {address.city}, {address.state}
+                              </span>
+                            )}
+                            
+                            {note.scribeCampaignId && (
+                              <span className="flex items-center gap-1">
+                                <Package className="w-3.5 h-3.5" />
+                                Campaign #{note.scribeCampaignId}
+                              </span>
+                            )}
+                            
+                            {note.sentDate && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                {format(new Date(note.sentDate), 'MMM d, h:mm a')}
+                              </span>
+                            )}
+                          </div>
                           
-                          {/* Message snippet */}
+                          {/* Message preview */}
                           {note.message && (
-                            <p className="text-sm text-muted-foreground line-clamp-1">
-                              {note.message.substring(0, 100)}
-                              {note.message.length > 100 ? '...' : ''}
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                              {note.message.substring(0, 80)}
+                              {note.message.length > 80 ? '...' : ''}
                             </p>
                           )}
                         </div>
                       </div>
                       
-                      {/* Right: Arrow and date */}
-                      <div className="flex items-center gap-4">
-                        {note.sentDate && (
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            {format(new Date(note.sentDate), 'MMM d, yyyy')}
-                          </p>
-                        )}
-                        <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Show clients from batch if no notes exist */}
-        {notes.length === 0 && Object.keys(clients).length > 0 && (
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground mb-2">
-              Showing selected clients for this batch (no card records created yet):
-            </p>
-            {Object.values(clients).map((client) => (
-              <Card key={client.id} className="border border-subtle">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-                      <User className="w-5 h-5 text-secondary-foreground" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">
-                        {client.fullName || `${client.firstName} ${client.lastName}`}
-                      </h4>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5" />
-                        {[client.street, client.city, client.state, client.zipCode]
-                          .filter(Boolean).join(', ')}
-                      </p>
+                      {/* Arrow */}
+                      <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
