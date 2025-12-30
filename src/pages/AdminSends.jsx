@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Pill, getStatusVariant } from '@/components/ui/Pill';
+import { Pill } from '@/components/ui/Pill';
 import {
   Select,
   SelectContent,
@@ -20,14 +20,56 @@ import {
   Calendar,
   Users,
   ChevronRight,
-  Loader2,
   Package,
-  RefreshCw
+  RefreshCw,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  XCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 /**
- * AdminSends Page - Phase 1
+ * Shared Status Utilities (inline to avoid import issues)
+ */
+function getStatusPillVariant(status) {
+  const variantMap = {
+    completed: 'success',
+    delivered: 'success',
+    sent: 'success',
+    sending: 'color1',
+    printed: 'color1',
+    printing: 'color1',
+    submitted: 'color1',
+    processing: 'color1',
+    ready_to_send: 'warning',
+    queued: 'warning',
+    queued_for_sending: 'warning',
+    pending_print: 'warning',
+    pending: 'warning',
+    'payment-pending': 'warning',
+    'expect-48-hour-delay': 'warning',
+    failed: 'danger',
+    cancelled: 'danger',
+    partial: 'warning',
+    delete: 'danger',
+    draft: 'muted',
+    paused: 'muted',
+    'on-going': 'muted'
+  };
+  return variantMap[status] || 'muted';
+}
+
+function formatStatus(status) {
+  if (!status) return 'Unknown';
+  return status
+    .split(/[_-]/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+/**
+ * AdminSends Page
  * 
  * Displays a paginated list of all MailingBatch records.
  * Each row shows batch details and links to AdminSendDetails page.
@@ -58,11 +100,23 @@ export default function AdminSends() {
       setError(null);
       
       // Fetch all mailing batches, sorted by created_date descending
+      // Only fetch batches that have been sent (not drafts in progress)
       const batches = await base44.entities.MailingBatch.list('-created_date', 100);
-      setMailingBatches(batches);
+      
+      // Filter to only show batches that have been processed (have status other than just draft)
+      // or have scribeCampaigns array populated
+      const processedBatches = batches.filter(b => 
+        b.status === 'completed' || 
+        b.status === 'sending' || 
+        b.status === 'partial' ||
+        b.status === 'failed' ||
+        (b.scribeCampaigns && b.scribeCampaigns.length > 0)
+      );
+      
+      setMailingBatches(processedBatches);
       
       // Get unique user IDs to fetch user details
-      const userIds = [...new Set(batches.map(b => b.userId).filter(Boolean))];
+      const userIds = [...new Set(processedBatches.map(b => b.userId).filter(Boolean))];
       
       if (userIds.length > 0) {
         const userList = await base44.entities.User.filter({ id: { $in: userIds } });
@@ -103,40 +157,35 @@ export default function AdminSends() {
     return filtered;
   }, [mailingBatches, statusFilter, searchQuery, users]);
 
-  // Get status pill variant
-  const getStatusPillVariant = (status) => {
+  // Get status icon
+  const getStatusIcon = (status) => {
     switch (status) {
-      case 'completed': return 'success';
-      case 'sending': return 'color1';
-      case 'ready_to_send': return 'warning';
-      case 'draft': return 'muted';
-      default: return 'muted';
+      case 'completed':
+      case 'delivered':
+        return <CheckCircle2 className="w-4 h-4 text-green-600" />;
+      case 'sending':
+      case 'processing':
+        return <Clock className="w-4 h-4 text-blue-600 animate-pulse" />;
+      case 'failed':
+        return <XCircle className="w-4 h-4 text-red-600" />;
+      case 'partial':
+        return <AlertCircle className="w-4 h-4 text-amber-600" />;
+      default:
+        return <Package className="w-4 h-4 text-gray-600" />;
     }
   };
 
-  // Get Scribe status pill variant
-  const getScribeStatusPillVariant = (scribeStatus) => {
-    switch (scribeStatus) {
-      case 'delivered': return 'success';
-      case 'shipped': return 'success';
-      case 'printed': return 'color1';
-      case 'printing': return 'color1';
-      case 'processing': return 'warning';
-      case 'pending': return 'warning';
-      case 'queued': return 'warning';
-      case 'cancelled': return 'danger';
-      case 'delete': return 'danger';
-      case 'paused': return 'muted';
-      default: return 'muted';
+  // Calculate campaign stats for a batch
+  const getCampaignStats = (batch) => {
+    if (!batch.scribeCampaigns || batch.scribeCampaigns.length === 0) {
+      return null;
     }
-  };
-
-  // Format status for display
-  const formatStatus = (status) => {
-    if (!status) return 'Unknown';
-    return status.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+    
+    const total = batch.scribeCampaigns.length;
+    const submitted = batch.scribeCampaigns.filter(c => c.status === 'submitted').length;
+    const failed = batch.scribeCampaigns.filter(c => c.status === 'failed').length;
+    
+    return { total, submitted, failed };
   };
 
   // Navigate to send details
@@ -151,7 +200,7 @@ export default function AdminSends() {
         <div>
           <h1 className="text-3xl font-bold text-foreground">All Sends</h1>
           <p className="mt-1 text-muted-foreground">
-            View and track all outgoing mail batches.
+            View and track all outgoing mail batches sent through Scribe.
           </p>
         </div>
         <Button
@@ -185,10 +234,10 @@ export default function AdminSends() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="ready_to_send">Ready to Send</SelectItem>
-            <SelectItem value="sending">Sending</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="sending">Sending</SelectItem>
+            <SelectItem value="partial">Partial</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -197,7 +246,7 @@ export default function AdminSends() {
       {loading && (
         <div className="space-y-4">
           {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-20 w-full" />
+            <Skeleton key={i} className="h-24 w-full" />
           ))}
         </div>
       )}
@@ -205,7 +254,10 @@ export default function AdminSends() {
       {/* Error State */}
       {error && (
         <div className="p-6 bg-destructive/10 border border-destructive/20 rounded-lg">
-          <p className="text-destructive">{error}</p>
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-destructive" />
+            <p className="text-destructive">{error}</p>
+          </div>
         </div>
       )}
 
@@ -217,7 +269,7 @@ export default function AdminSends() {
           <p className="text-muted-foreground">
             {searchQuery || statusFilter !== 'all'
               ? 'No sends match your filters. Try adjusting your search or status filter.'
-              : 'No mailing batches have been created yet.'}
+              : 'No mailing batches have been sent yet.'}
           </p>
         </div>
       )}
@@ -234,6 +286,7 @@ export default function AdminSends() {
           {filteredBatches.map((batch) => {
             const sender = users[batch.userId];
             const cardCount = batch.selectedClientIds?.length || 0;
+            const campaignStats = getCampaignStats(batch);
             
             return (
               <Card
@@ -247,7 +300,7 @@ export default function AdminSends() {
                     <div className="flex items-center gap-4">
                       {/* Icon */}
                       <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center">
-                        <Package className="w-6 h-6 text-secondary-foreground" />
+                        {getStatusIcon(batch.status)}
                       </div>
                       
                       {/* Details */}
@@ -259,11 +312,6 @@ export default function AdminSends() {
                           <Pill variant={getStatusPillVariant(batch.status)} size="sm">
                             {formatStatus(batch.status)}
                           </Pill>
-                          {batch.scribeStatus && batch.scribeStatus !== 'draft' && (
-                            <Pill variant={getScribeStatusPillVariant(batch.scribeStatus)} size="sm">
-                              Scribe: {formatStatus(batch.scribeStatus)}
-                            </Pill>
-                          )}
                         </div>
                         
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
@@ -279,14 +327,41 @@ export default function AdminSends() {
                             {cardCount} {cardCount === 1 ? 'card' : 'cards'}
                           </span>
                           
-                          {/* Created Date */}
+                          {/* Campaign Stats */}
+                          {campaignStats && (
+                            <span className="flex items-center gap-1">
+                              <Package className="w-3.5 h-3.5" />
+                              {campaignStats.total} {campaignStats.total === 1 ? 'campaign' : 'campaigns'}
+                              {campaignStats.failed > 0 && (
+                                <span className="text-red-600">({campaignStats.failed} failed)</span>
+                              )}
+                            </span>
+                          )}
+                          
+                          {/* Sent/Created Date */}
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
-                            {batch.created_date 
-                              ? format(new Date(batch.created_date), 'MMM d, yyyy h:mm a')
-                              : 'Unknown date'}
+                            {batch.processedAt 
+                              ? format(new Date(batch.processedAt), 'MMM d, yyyy h:mm a')
+                              : batch.created_date 
+                                ? format(new Date(batch.created_date), 'MMM d, yyyy h:mm a')
+                                : 'Unknown date'}
                           </span>
                         </div>
+                        
+                        {/* Credits Used */}
+                        {batch.totalCreditsUsed > 0 && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {batch.totalCreditsUsed} credits used
+                          </p>
+                        )}
+                        
+                        {/* Processing Errors Summary */}
+                        {batch.processingErrors && batch.processingErrors.length > 0 && (
+                          <p className="text-sm text-red-600 mt-1">
+                            {batch.processingErrors.length} error{batch.processingErrors.length !== 1 ? 's' : ''}
+                          </p>
+                        )}
                       </div>
                     </div>
                     
