@@ -512,21 +512,33 @@ Deno.serve(async (req) => {
         // 3. Determine card design for this client
         const cardDesignId = batch.cardDesignOverrides?.[client.id] || batch.selectedCardDesignId;
         
-        // 4. Create Note entity
+        // 4. Determine return address mode for this client
+        const returnMode = batch.returnAddressModeOverrides?.[client.id] 
+          || batch.returnAddressModeGlobal 
+          || 'company';
+        
+        // 4a. Generate Scribe-formatted message (sender placeholders resolved, client placeholders mapped)
+        const messageWithSenderResolved = resolveSenderPlaceholders(fullMessage, user, organization);
+        const scribeMessage = mapToScribePlaceholders(messageWithSenderResolved);
+        
+        // 4b. Create Note entity with Scribe tracking fields
         const note = await base44.asServiceRole.entities.Note.create({
           orgId: user.orgId,
           userId: user.id,
           clientId: client.id,
+          mailingBatchId: mailingBatchId,
           cardDesignId: cardDesignId,
           noteStyleProfileId: batch.selectedNoteStyleProfileId || null,
           message: fullMessage,
+          messageTemplate: scribeMessage,
           signature: signatureText,
           status: 'queued_for_sending',
           sentDate: currentTimestamp,
           creditCost: 1,
           recipientName: client.fullName,
           senderUserId: user.id,
-          senderName: user.full_name
+          senderName: user.full_name,
+          returnAddressMode: returnMode
         });
         
         // 5. Determine return address based on mode
