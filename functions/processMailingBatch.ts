@@ -912,13 +912,20 @@ Deno.serve(async (req) => {
         personalPurchased: actualFromPersonalPurchased,
         companyPool: actualFromCompanyPool,
         total: successfulSends
-      }
+      },
+      scribe: {
+        campaignsCreated: scribeCampaigns.length,
+        campaignsSubmitted: successfulCampaigns,
+        campaignsFailed: failedCampaigns,
+        campaigns: scribeCampaigns
+      },
+      batchStatus: finalStatus
     };
     
     // Include errors if any occurred
-    if (errors.length > 0) {
-      response.errors = errors;
-      response.partialSuccess = true;
+    if (processingErrors.length > 0) {
+      response.errors = processingErrors;
+      response.partialSuccess = failedCampaigns > 0;
     }
     
     return Response.json(response);
