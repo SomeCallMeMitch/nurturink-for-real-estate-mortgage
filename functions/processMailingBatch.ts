@@ -541,38 +541,14 @@ Deno.serve(async (req) => {
           returnAddressMode: returnMode
         });
         
-        // 5. Determine return address based on mode
-        const returnMode = batch.returnAddressModeOverrides?.[client.id] 
-          || batch.returnAddressModeGlobal 
-          || 'company';
+        // 5. Resolve return address
+        const returnAddress = resolveReturnAddress(returnMode, user, organization);
         
-        let returnAddress = null;
-        
-        if (returnMode === 'company' && organization?.companyReturnAddress) {
-          const companyAddr = organization.companyReturnAddress;
-          returnAddress = {
-            name: companyAddr.companyName || organization.name || '',
-            street: companyAddr.street || '',
-            address2: companyAddr.address2 || null,
-            city: companyAddr.city || '',
-            state: companyAddr.state || '',
-            zip: companyAddr.zip || ''
-          };
-        } else if (returnMode === 'rep' && user.street) {
-          returnAddress = {
-            name: user.returnAddressName || user.full_name || '',
-            street: user.street || '',
-            address2: user.address2 || null,
-            city: user.city || '',
-            state: user.state || '',
-            zip: user.zipCode || ''
-          };
-        }
-        
-        // 6. Create Mailing entity
+        // 6. Create Mailing entity with batch tracking
         const mailing = await base44.asServiceRole.entities.Mailing.create({
           noteId: note.id,
           orgId: user.orgId,
+          mailingBatchId: mailingBatchId,
           recipientAddress: {
             name: client.fullName || '',
             street: client.street || '',
@@ -581,8 +557,16 @@ Deno.serve(async (req) => {
             state: client.state || '',
             zip: client.zipCode || ''
           },
-          returnAddress: returnAddress,
-          status: 'queued'
+          returnAddress: returnAddress ? {
+            name: returnAddress.name || '',
+            street: returnAddress.street || '',
+            address2: null,
+            city: returnAddress.city || '',
+            state: returnAddress.state || '',
+            zip: returnAddress.zip || ''
+          } : null,
+          status: 'queued',
+          returnAddressMode: returnMode
         });
         
         // 7. Update Client tracking fields
