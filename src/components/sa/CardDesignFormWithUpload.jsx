@@ -6,7 +6,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Loader2, 
   Upload,
-  X
+  X,
+  Copy,
+  Check,
+  Download
 } from 'lucide-react';
 import {
   Dialog,
@@ -15,6 +18,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import PrintReadyFileUploader from './PrintReadyFileUploader';
+import { base44 } from '@/api/base44Client';
 
 /**
  * ImageUploader Component
@@ -127,6 +131,11 @@ export default function CardDesignFormWithUpload({
     front: false,
     back: false
   });
+  
+  // Scribe ZIP display state
+  const [copiedZipUri, setCopiedZipUri] = useState(false);
+  const [signedZipUrl, setSignedZipUrl] = useState(null);
+  const [isGeneratingSignedUrl, setIsGeneratingSignedUrl] = useState(false);
 
   // Reset form when modal opens/closes or editing design changes
   useEffect(() => {
@@ -161,6 +170,44 @@ export default function CardDesignFormWithUpload({
       }
     }
   }, [open, editingDesign]);
+
+  // Generate signed URL for ZIP download when editing a design with scribeZipUrl
+  useEffect(() => {
+    if (open && editingDesign?.scribeZipUrl) {
+      const generateSignedUrl = async () => {
+        setIsGeneratingSignedUrl(true);
+        try {
+          const response = await base44.integrations.Core.CreateFileSignedUrl({
+            file_uri: editingDesign.scribeZipUrl,
+            expires_in: 3600
+          });
+          setSignedZipUrl(response.signed_url);
+        } catch (error) {
+          console.error("Failed to generate signed URL for ZIP:", error);
+          setSignedZipUrl(null);
+        } finally {
+          setIsGeneratingSignedUrl(false);
+        }
+      };
+      generateSignedUrl();
+    } else {
+      setSignedZipUrl(null);
+    }
+  }, [open, editingDesign?.scribeZipUrl]);
+
+  const handleCopyZipUri = async () => {
+    if (editingDesign?.scribeZipUrl) {
+      await navigator.clipboard.writeText(editingDesign.scribeZipUrl);
+      setCopiedZipUri(true);
+      setTimeout(() => setCopiedZipUri(false), 2000);
+    }
+  };
+
+  const handleDownloadZip = () => {
+    if (signedZipUrl) {
+      window.open(signedZipUrl, '_blank');
+    }
+  };
 
   // Handle digital preview image uploads (public storage)
   const handleUpload = async (field, file) => {
@@ -350,6 +397,44 @@ export default function CardDesignFormWithUpload({
               />
             </div>
           </div>
+
+          {/* Scribe ZIP URL Display - Only shown when editing a design with a generated ZIP */}
+          {editingDesign?.scribeZipUrl && (
+            <div className="pt-4 border-t">
+              <Label className="text-sm font-semibold mb-2 block">Generated Scribe ZIP</Label>
+              <p className="text-xs text-gray-500 mb-3">
+                This ZIP contains outside (1.png) and inside (2.png) images for Scribe Nurture API.
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  value={editingDesign.scribeZipUrl}
+                  readOnly
+                  className="flex-1 font-mono text-xs bg-gray-50"
+                />
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={handleCopyZipUri}
+                  title="Copy ZIP URI"
+                >
+                  {copiedZipUri ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="icon"
+                  onClick={handleDownloadZip} 
+                  disabled={isGeneratingSignedUrl || !signedZipUrl}
+                  title="Download ZIP"
+                >
+                  {isGeneratingSignedUrl ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
