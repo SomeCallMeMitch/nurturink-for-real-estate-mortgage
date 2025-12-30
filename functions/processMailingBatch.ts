@@ -1,4 +1,268 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+// ============================================================
+// SCRIBE API CONFIGURATION
+// ============================================================
+const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://api.scribenurture.com';
+const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
+
+// ============================================================
+// SCRIBE HELPER FUNCTIONS
+// ============================================================
+
+/**
+ * Resolve sender placeholders ({{me.*}}, {{org.*}}) but leave client placeholders
+ * for Scribe to handle at print time
+ */
+function resolveSenderPlaceholders(text, user, organization) {
+  if (!text) return '';
+  let result = text;
+  
+  // User/Me placeholders
+  if (user) {
+    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
+    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
+    result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
+    result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
+    result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
+    result = result.replace(/\{\{me\.title\}\}/g, user.title || '');
+    result = result.replace(/\{\{me\.companyName\}\}/g, user.companyName || '');
+    result = result.replace(/\{\{me\.street\}\}/g, user.street || '');
+    result = result.replace(/\{\{me\.city\}\}/g, user.city || '');
+    result = result.replace(/\{\{me\.state\}\}/g, user.state || '');
+    result = result.replace(/\{\{me\.zipCode\}\}/g, user.zipCode || '');
+  }
+  
+  // Organization placeholders
+  if (organization) {
+    result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
+    result = result.replace(/\{\{org\.website\}\}/g, organization.website || '');
+    result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
+    result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
+    result = result.replace(/\{\{org\.street\}\}/g, organization.companyReturnAddress?.street || '');
+    result = result.replace(/\{\{org\.city\}\}/g, organization.companyReturnAddress?.city || '');
+    result = result.replace(/\{\{org\.state\}\}/g, organization.companyReturnAddress?.state || '');
+    result = result.replace(/\{\{org\.zipCode\}\}/g, organization.companyReturnAddress?.zip || '');
+  }
+  
+  return result;
+}
+
+/**
+ * Map our placeholders to Scribe's format
+ * Our format: {{client.firstName}} -> Scribe format: {FIRST_NAME}
+ */
+function mapToScribePlaceholders(text) {
+  if (!text) return '';
+  return text
+    .replace(/\{\{client\.firstName\}\}/g, '{FIRST_NAME}')
+    .replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}')
+    .replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
+    .replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}')
+    .replace(/\{\{client\.street\}\}/g, '{STREET}')
+    .replace(/\{\{client\.city\}\}/g, '{CITY}')
+    .replace(/\{\{client\.state\}\}/g, '{STATE}')
+    .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}');
+}
+
+/**
+ * Resolve return address based on mode
+ */
+function resolveReturnAddress(mode, user, organization) {
+  if (mode === 'none') return null;
+  
+  if (mode === 'company' && organization?.companyReturnAddress) {
+    const addr = organization.companyReturnAddress;
+    return {
+      name: addr.companyName || organization.name || '',
+      street: addr.street || '',
+      city: addr.city || '',
+      state: addr.state || '',
+      zip: addr.zip || ''
+    };
+  }
+  
+  if (mode === 'rep' && user?.street) {
+    return {
+      name: user.returnAddressName || user.full_name || '',
+      street: user.street || '',
+      city: user.city || '',
+      state: user.state || '',
+      zip: user.zipCode || ''
+    };
+  }
+  
+  return null;
+}
+
+/**
+ * Create a unique key for grouping campaigns
+ */
+function createCampaignGroupKey(message, cardDesignId, returnAddress) {
+  const returnKey = returnAddress 
+    ? `${returnAddress.name}|${returnAddress.street}|${returnAddress.city}|${returnAddress.state}|${returnAddress.zip}`
+    : 'none';
+  return `${message}::${cardDesignId}::${returnKey}`;
+}
+
+/**
+ * Determine text type based on message content
+ */
+function determineTextType(message) {
+  if (!message) return 'standard';
+  const lineCount = (message.match(/\n/g) || []).length + 1;
+  const charCount = message.length;
+  // Use 'small' for shorter messages, 'standard' for longer
+  if (lineCount <= 8 && charCount < 400) return 'small';
+  return 'standard';
+}
+
+/**
+ * Create a draft campaign in Scribe
+ */
+async function createScribeDraftCampaign() {
+  const response = await fetch(`${SCRIBE_API_BASE_URL}/api/v1/campaign/draft`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({})
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Scribe draft campaign creation failed: ${response.status} - ${errorText}`);
+  }
+  
+  const result = await response.json();
+  if (!result.campaign_id) {
+    throw new Error(`Scribe draft campaign creation failed: no campaign_id returned`);
+  }
+  
+  return result.campaign_id;
+}
+
+/**
+ * Add campaign details (message, ZIP, return address) to Scribe
+ * Uses multipart/form-data as required by Scribe API
+ */
+async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer, returnAddress) {
+  const formData = new FormData();
+  
+  formData.append('campaign_id', String(campaignId));
+  formData.append('message', message);
+  formData.append('text_type', textType);
+  formData.append('campaign_type', 'one-time');
+  formData.append('attachment', new Blob([zipBuffer], { type: 'application/zip' }), 'design.zip');
+  
+  if (returnAddress) {
+    // Scribe expects: { firstName, lastName, street, city, state, zip }
+    // For company addresses, put company name in firstName
+    const scribeReturnAddress = {
+      firstName: returnAddress.name || '',
+      lastName: '',
+      street: returnAddress.street || '',
+      city: returnAddress.city || '',
+      state: returnAddress.state || '',
+      zip: returnAddress.zip || ''
+    };
+    formData.append('return_address', JSON.stringify(scribeReturnAddress));
+  }
+  
+  const response = await fetch(`${SCRIBE_API_BASE_URL}/api/add-campaign-v2`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`
+      // Note: Do NOT set Content-Type - fetch sets it automatically with boundary for FormData
+    },
+    body: formData
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Scribe add campaign details failed: ${response.status} - ${errorText}`);
+  }
+  
+  const result = await response.json();
+  if (!result.success) {
+    throw new Error(`Scribe add campaign details failed: ${JSON.stringify(result)}`);
+  }
+  
+  return result;
+}
+
+/**
+ * Add contacts to a Scribe campaign in bulk
+ */
+async function addScribeContacts(campaignId, contacts) {
+  const response = await fetch(`${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      campaign_id: campaignId,
+      contacts: contacts
+    })
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Scribe add contacts failed: ${response.status} - ${errorText}`);
+  }
+  
+  const result = await response.json();
+  if (!result.success) {
+    throw new Error(`Scribe add contacts failed: ${JSON.stringify(result)}`);
+  }
+  
+  return result;
+}
+
+/**
+ * Submit a Scribe campaign for processing
+ */
+async function submitScribeCampaign(campaignId) {
+  const response = await fetch(`${SCRIBE_API_BASE_URL}/api/v1/campaign/send`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ campaign_id: campaignId })
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Scribe submit failed: ${response.status} - ${errorText}`);
+  }
+  
+  return await response.json();
+}
+
+/**
+ * Fetch ZIP file from private storage
+ */
+async function fetchZipFromStorage(base44, fileUri) {
+  // Get signed URL for private file
+  const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({
+    file_uri: fileUri
+  });
+  
+  // Fetch the ZIP bytes
+  const response = await fetch(signedUrlResult.signed_url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ZIP: ${response.status}`);
+  }
+  
+  return await response.arrayBuffer();
+}
+
+// ============================================================
+// ORIGINAL HELPER FUNCTIONS
+// ============================================================
 
 // Helper function to replace placeholders in text
 function replacePlaceholders(text, client, user, organization) {
