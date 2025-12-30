@@ -313,13 +313,34 @@ export default function AdminSendDetails() {
     try {
       setRejecting(true);
       
+      const creditsToRefund = batch.totalCreditsUsed || notes.length;
+      const currentUser = await base44.auth.me();
+      
+      // Create a RefundRequest instead of directly refunding
+      if (creditsToRefund > 0) {
+        await base44.entities.RefundRequest.create({
+          mailingBatchId: batchId,
+          userId: batch.userId,
+          organizationId: batch.organizationId || null,
+          creditsRequested: creditsToRefund,
+          refundTo: 'personal', // Default to personal, super admin can change when approving
+          status: 'pending',
+          rejectionReason: reason || 'No reason provided',
+          requestedBy: currentUser.id
+        });
+        
+        console.log(`Created refund request for ${creditsToRefund} credits`);
+      }
+      
+      // Update batch status to cancelled
       await base44.entities.MailingBatch.update(batchId, {
         status: 'cancelled',
         processingErrors: [
           ...(batch.processingErrors || []),
           {
             error: `Rejected by admin${reason ? `: ${reason}` : ''}`,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            refundRequested: creditsToRefund
           }
         ]
       });
@@ -331,7 +352,9 @@ export default function AdminSendDetails() {
       
       toast({
         title: 'Batch Rejected',
-        description: 'The batch has been cancelled. Credits may need to be refunded manually.',
+        description: creditsToRefund > 0 
+          ? `Batch cancelled. Refund request for ${creditsToRefund} credits submitted for approval.`
+          : 'Batch cancelled.',
         duration: 5000
       });
       
