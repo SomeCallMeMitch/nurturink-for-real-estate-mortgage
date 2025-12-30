@@ -7,6 +7,12 @@ const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://api.
 const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
 
 // ============================================================
+// ADMIN APPROVAL GATE
+// When true, batches stop at pending_review and require admin approval
+// ============================================================
+const REQUIRE_ADMIN_APPROVAL = Deno.env.get('REQUIRE_ADMIN_APPROVAL') === 'true';
+
+// ============================================================
 // SCRIBE HELPER FUNCTIONS
 // ============================================================
 
@@ -704,6 +710,44 @@ Deno.serve(async (req) => {
           }
         });
       }
+    }
+    
+    // ============================================================
+    // ADMIN APPROVAL GATE - Stop here if approval required
+    // ============================================================
+    
+    if (REQUIRE_ADMIN_APPROVAL) {
+      console.log(`[processMailingBatch] REQUIRE_ADMIN_APPROVAL is true - stopping at pending_review`);
+      
+      // Calculate total credits used
+      const creditsUsed = actualFromCompanyAllocated + actualFromCompanyPool + actualFromPersonalPurchased;
+      
+      // Update batch to pending_review status
+      await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, {
+        status: 'pending_review',
+        processedAt: currentTimestamp,
+        totalCreditsUsed: creditsUsed,
+        processingErrors: errors.length > 0 ? errors.map(e => ({
+          clientId: e.clientId,
+          error: e.error,
+          timestamp: currentTimestamp
+        })) : []
+      });
+      
+      return Response.json({
+        success: true,
+        status: 'pending_review',
+        message: 'Batch created and awaiting admin approval before sending to Scribe',
+        mailingBatchId,
+        noteCount: processedMailings.length,
+        creditsUsed: creditsUsed,
+        creditsDeducted: {
+          companyAllocated: actualFromCompanyAllocated,
+          personalPurchased: actualFromPersonalPurchased,
+          companyPool: actualFromCompanyPool,
+          total: creditsUsed
+        }
+      });
     }
     
     // ============================================================
