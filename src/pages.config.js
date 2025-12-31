@@ -35,6 +35,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import PillDemo from './pages/PillDemo';
 import QuickSendTemplates from './pages/QuickSendTemplates';
 import ReviewAndSend from './pages/ReviewAndSend';
+import ScribeTest from './pages/ScribeTest';
 import SelectDesign from './pages/SelectDesign';
 import SettingsAddresses from './pages/SettingsAddresses';
 import SettingsOrganization from './pages/SettingsOrganization';
@@ -55,7 +56,6 @@ import WLDemo from './pages/WLDemo';
 import Welcome from './pages/Welcome';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import ScribeTest from './pages/ScribeTest';
 import __Layout from './Layout.jsx';
 
 
@@ -97,6 +97,7 @@ export const PAGES = {
     "PillDemo": PillDemo,
     "QuickSendTemplates": QuickSendTemplates,
     "ReviewAndSend": ReviewAndSend,
+    "ScribeTest": ScribeTest,
     "SelectDesign": SelectDesign,
     "SettingsAddresses": SettingsAddresses,
     "SettingsOrganization": SettingsOrganization,
@@ -117,7 +118,6 @@ export const PAGES = {
     "Welcome": Welcome,
     "landing1": landing1,
     "lp": lp,
-    "ScribeTest": ScribeTest,
 }
 
 export const pagesConfig = {
