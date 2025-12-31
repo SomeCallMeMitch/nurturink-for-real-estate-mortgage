@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 // ============================================================
 // SCRIBE API CONFIGURATION
 // ============================================================
-const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://api.scribenurture.com';
+const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://scribenurture.com';
 const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
 
 // ============================================================
@@ -65,7 +65,8 @@ function mapToScribePlaceholders(text) {
     .replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}')
     .replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
     .replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}')
-    .replace(/\{\{client\.street\}\}/g, '{STREET}')
+    .replace(/\{\{client\.street\}\}/g, '{STREET_ADDRESS}')
+    .replace(/\{\{client\.address2\}\}/g, '{ADDRESS_2}')
     .replace(/\{\{client\.city\}\}/g, '{CITY}')
     .replace(/\{\{client\.state\}\}/g, '{STATE}')
     .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}');
@@ -113,49 +114,74 @@ function createCampaignGroupKey(message, cardDesignId, returnAddress) {
 
 /**
  * Determine text type based on message content
+ * Per Scribe docs: Short Text (max 110 words/13 lines) or Long Text (max 190 words/19 lines)
  */
 function determineTextType(message) {
-  if (!message) return 'standard';
+  if (!message) return 'Short Text';
+  
+  const wordCount = message.trim().split(/\s+/).length;
   const lineCount = (message.match(/\n/g) || []).length + 1;
-  const charCount = message.length;
-  // Use 'small' for shorter messages, 'standard' for longer
-  if (lineCount <= 8 && charCount < 400) return 'small';
-  return 'standard';
+  
+  // Use Long Text if exceeds Short Text limits
+  if (wordCount > 110 || lineCount > 13) {
+    return 'Long Text';
+  }
+  
+  return 'Short Text';
 }
 
 /**
  * Create a draft campaign in Scribe
+ * Endpoint: POST /api/create-campaign-id-v2
  */
 async function createScribeDraftCampaign() {
-  const response = await fetch(`${SCRIBE_API_BASE_URL}/api/v1/campaign/draft`, {
+  const url = `${SCRIBE_API_BASE_URL}/api/create-campaign-id-v2`;
+  
+  console.log('[Scribe] Creating draft campaign at:', url);
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({})
+    body: JSON.stringify({ status: 'draft' })
   });
   
+  const responseText = await response.text();
+  console.log('[Scribe] Create draft response:', response.status, responseText.substring(0, 200));
+  
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Scribe draft campaign creation failed: ${response.status} - ${errorText}`);
+    throw new Error(`Scribe draft campaign creation failed: ${response.status} - ${responseText.substring(0, 200)}`);
   }
   
-  const result = await response.json();
-  if (!result.campaign_id) {
-    throw new Error(`Scribe draft campaign creation failed: no campaign_id returned`);
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
   }
   
-  return result.campaign_id;
+  if (!result.success || !result.data?.id) {
+    throw new Error(`Scribe draft campaign creation failed: ${JSON.stringify(result)}`);
+  }
+  
+  console.log('[Scribe] Draft campaign created:', result.data.id);
+  return result.data.id;
 }
 
 /**
  * Add campaign details (message, ZIP, return address) to Scribe
+ * Endpoint: POST /api/add-campaign-v2
  * Uses multipart/form-data as required by Scribe API
  */
 async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer, returnAddress) {
-  const formData = new FormData();
+  const url = `${SCRIBE_API_BASE_URL}/api/add-campaign-v2`;
   
+  console.log('[Scribe] Adding campaign details to:', url);
+  console.log('[Scribe] Campaign ID:', campaignId, 'Text type:', textType, 'ZIP size:', zipBuffer?.byteLength);
+  
+  const formData = new FormData();
   formData.append('campaign_id', String(campaignId));
   formData.append('message', message);
   formData.append('text_type', textType);
@@ -174,9 +200,10 @@ async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer
       zip: returnAddress.zip || ''
     };
     formData.append('return_address', JSON.stringify(scribeReturnAddress));
+    console.log('[Scribe] Return address:', JSON.stringify(scribeReturnAddress));
   }
   
-  const response = await fetch(`${SCRIBE_API_BASE_URL}/api/add-campaign-v2`, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SCRIBE_API_TOKEN}`
@@ -185,24 +212,38 @@ async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer
     body: formData
   });
   
+  const responseText = await response.text();
+  console.log('[Scribe] Add details response:', response.status, responseText.substring(0, 200));
+  
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Scribe add campaign details failed: ${response.status} - ${errorText}`);
+    throw new Error(`Scribe add campaign details failed: ${response.status} - ${responseText.substring(0, 200)}`);
   }
   
-  const result = await response.json();
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
+  }
+  
   if (!result.success) {
     throw new Error(`Scribe add campaign details failed: ${JSON.stringify(result)}`);
   }
   
+  console.log('[Scribe] Campaign details added successfully');
   return result;
 }
 
 /**
  * Add contacts to a Scribe campaign in bulk
+ * Endpoint: POST /api/add-contacts-bulk
  */
 async function addScribeContacts(campaignId, contacts) {
-  const response = await fetch(`${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`, {
+  const url = `${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`;
+  
+  console.log('[Scribe] Adding', contacts.length, 'contacts to campaign', campaignId);
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
@@ -214,24 +255,38 @@ async function addScribeContacts(campaignId, contacts) {
     })
   });
   
+  const responseText = await response.text();
+  console.log('[Scribe] Add contacts response:', response.status, responseText.substring(0, 200));
+  
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Scribe add contacts failed: ${response.status} - ${errorText}`);
+    throw new Error(`Scribe add contacts failed: ${response.status} - ${responseText.substring(0, 200)}`);
   }
   
-  const result = await response.json();
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
+  }
+  
   if (!result.success) {
     throw new Error(`Scribe add contacts failed: ${JSON.stringify(result)}`);
   }
   
+  console.log('[Scribe] Contacts added successfully');
   return result;
 }
 
 /**
  * Submit a Scribe campaign for processing
+ * Endpoint: PUT /api/v1/campaign/send
  */
 async function submitScribeCampaign(campaignId) {
-  const response = await fetch(`${SCRIBE_API_BASE_URL}/api/v1/campaign/send`, {
+  const url = `${SCRIBE_API_BASE_URL}/api/v1/campaign/send`;
+  
+  console.log('[Scribe] Submitting campaign', campaignId, 'at:', url);
+  
+  const response = await fetch(url, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
@@ -240,18 +295,30 @@ async function submitScribeCampaign(campaignId) {
     body: JSON.stringify({ campaign_id: campaignId })
   });
   
+  const responseText = await response.text();
+  console.log('[Scribe] Submit response:', response.status, responseText.substring(0, 200));
+  
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Scribe submit failed: ${response.status} - ${errorText}`);
+    throw new Error(`Scribe submit failed: ${response.status} - ${responseText.substring(0, 200)}`);
   }
   
-  return await response.json();
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
+  }
+  
+  console.log('[Scribe] Campaign submitted successfully');
+  return result;
 }
 
 /**
  * Fetch ZIP file from private storage
  */
 async function fetchZipFromStorage(base44, fileUri) {
+  console.log('[Storage] Fetching ZIP from:', fileUri);
+  
   // Get signed URL for private file
   const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({
     file_uri: fileUri
@@ -263,7 +330,9 @@ async function fetchZipFromStorage(base44, fileUri) {
     throw new Error(`Failed to fetch ZIP: ${response.status}`);
   }
   
-  return await response.arrayBuffer();
+  const buffer = await response.arrayBuffer();
+  console.log('[Storage] ZIP fetched, size:', buffer.byteLength, 'bytes');
+  return buffer;
 }
 
 // ============================================================
@@ -326,6 +395,12 @@ function replacePlaceholders(text, client, user, organization) {
 }
 
 Deno.serve(async (req) => {
+  // Log configuration at startup
+  console.log('=== PROCESS MAILING BATCH ===');
+  console.log('SCRIBE_API_BASE_URL:', SCRIBE_API_BASE_URL);
+  console.log('SCRIBE_API_TOKEN set:', !!SCRIBE_API_TOKEN);
+  console.log('REQUIRE_ADMIN_APPROVAL:', REQUIRE_ADMIN_APPROVAL);
+  
   try {
     const base44 = createClientFromRequest(req);
     
@@ -752,6 +827,7 @@ Deno.serve(async (req) => {
     
     // ============================================================
     // SCRIBE INTEGRATION - Process campaigns after credit deduction
+    // (Only reached if REQUIRE_ADMIN_APPROVAL is false)
     // ============================================================
     
     const scribeCampaigns = [];
