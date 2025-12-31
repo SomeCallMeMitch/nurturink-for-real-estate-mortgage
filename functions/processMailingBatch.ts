@@ -12,43 +12,71 @@ const REQUIRE_ADMIN_APPROVAL = Deno.env.get('REQUIRE_ADMIN_APPROVAL') === 'true'
 // ============================================================
 
 /**
- * Resolve ONLY sender/organization placeholders - leave client placeholders intact
- * This is used to build the Scribe template message
+ * Resolve ONLY sender/user/organization placeholders - leave client placeholders intact
+ * Supports multiple syntax formats:
+ * - NEW: {{me.fullName}}, {{org.name}}
+ * - LEGACY: {{rep_full_name}}, {{rep_company_name}}
+ * - ALTERNATE: {{user.fullName}}, {{user.companyName}} (from UI signature templates)
  */
 function resolveSenderPlaceholders(text, user, organization) {
   if (!text) return '';
   let result = text;
   
   if (user) {
-    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
-    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
-    result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
-    result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
-    result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
-    result = result.replace(/\{\{me\.title\}\}/g, user.title || '');
-    result = result.replace(/\{\{me\.companyName\}\}/g, user.companyName || '');
-    result = result.replace(/\{\{me\.street\}\}/g, user.street || '');
-    result = result.replace(/\{\{me\.city\}\}/g, user.city || '');
-    result = result.replace(/\{\{me\.state\}\}/g, user.state || '');
-    result = result.replace(/\{\{me\.zipCode\}\}/g, user.zipCode || '');
+    const firstName = user.firstName || user.full_name?.split(' ')[0] || '';
+    const lastName = user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '';
+    const fullName = user.full_name || '';
+    const email = user.email || '';
+    const phone = user.phone || '';
+    const title = user.title || '';
+    const companyName = user.companyName || '';
+    
+    // NEW SYNTAX: {{me.*}}
+    result = result.replace(/\{\{me\.fullName\}\}/g, fullName);
+    result = result.replace(/\{\{me\.firstName\}\}/g, firstName);
+    result = result.replace(/\{\{me\.lastName\}\}/g, lastName);
+    result = result.replace(/\{\{me\.email\}\}/g, email);
+    result = result.replace(/\{\{me\.phone\}\}/g, phone);
+    result = result.replace(/\{\{me\.title\}\}/g, title);
+    result = result.replace(/\{\{me\.companyName\}\}/g, companyName);
+    
+    // ALTERNATE SYNTAX: {{user.*}} (used by UI/signature templates)
+    result = result.replace(/\{\{user\.fullName\}\}/g, fullName);
+    result = result.replace(/\{\{user\.firstName\}\}/g, firstName);
+    result = result.replace(/\{\{user\.lastName\}\}/g, lastName);
+    result = result.replace(/\{\{user\.email\}\}/g, email);
+    result = result.replace(/\{\{user\.phone\}\}/g, phone);
+    result = result.replace(/\{\{user\.title\}\}/g, title);
+    result = result.replace(/\{\{user\.companyName\}\}/g, companyName);
+    
+    // LEGACY SYNTAX: {{rep_*}}
+    result = result.replace(/\{\{rep_full_name\}\}/g, fullName);
+    result = result.replace(/\{\{rep_first_name\}\}/g, firstName);
+    result = result.replace(/\{\{rep_last_name\}\}/g, lastName);
+    result = result.replace(/\{\{rep_company_name\}\}/g, companyName);
+    result = result.replace(/\{\{rep_phone\}\}/g, phone);
+    result = result.replace(/\{\{rep_email\}\}/g, email);
   }
   
   if (organization) {
-    result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
-    result = result.replace(/\{\{org\.website\}\}/g, organization.website || '');
-    result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
-    result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
-    result = result.replace(/\{\{org\.street\}\}/g, organization.companyReturnAddress?.street || '');
-    result = result.replace(/\{\{org\.city\}\}/g, organization.companyReturnAddress?.city || '');
-    result = result.replace(/\{\{org\.state\}\}/g, organization.companyReturnAddress?.state || '');
-    result = result.replace(/\{\{org\.zipCode\}\}/g, organization.companyReturnAddress?.zip || '');
+    const orgName = organization.name || '';
+    const orgPhone = organization.phone || '';
+    const orgEmail = organization.email || '';
+    const orgWebsite = organization.website || '';
+    
+    // NEW SYNTAX: {{org.*}}
+    result = result.replace(/\{\{org\.name\}\}/g, orgName);
+    result = result.replace(/\{\{org\.phone\}\}/g, orgPhone);
+    result = result.replace(/\{\{org\.email\}\}/g, orgEmail);
+    result = result.replace(/\{\{org\.website\}\}/g, orgWebsite);
   }
   
   return result;
 }
 
 /**
- * Resolve ALL placeholders including client - used for display/audit message
+ * Resolve ALL placeholders - for display/audit message
+ * Supports all syntax formats for both client and sender
  */
 function resolveAllPlaceholders(text, client, user, organization) {
   if (!text) return '';
@@ -56,13 +84,18 @@ function resolveAllPlaceholders(text, client, user, organization) {
   // First resolve sender/org placeholders
   let result = resolveSenderPlaceholders(text, user, organization);
   
-  // Then resolve client placeholders
+  // Then resolve client placeholders (both new and legacy syntax)
   if (client) {
-    result = result.replace(/\{\{client\.firstName\}\}/g, client.firstName || '');
-    result = result.replace(/\{\{client\.lastName\}\}/g, client.lastName || '');
-    result = result.replace(/\{\{client\.fullName\}\}/g, client.fullName || '');
-    result = result.replace(/\{\{client\.initials\}\}/g, 
-      client.firstName && client.lastName ? `${client.firstName[0]}${client.lastName[0]}` : '');
+    const firstName = client.firstName || '';
+    const lastName = client.lastName || '';
+    const fullName = client.fullName || `${firstName} ${lastName}`.trim();
+    const initials = ((firstName?.[0] || '') + (lastName?.[0] || '')).toUpperCase();
+    
+    // NEW SYNTAX: {{client.*}}
+    result = result.replace(/\{\{client\.firstName\}\}/g, firstName);
+    result = result.replace(/\{\{client\.lastName\}\}/g, lastName);
+    result = result.replace(/\{\{client\.fullName\}\}/g, fullName);
+    result = result.replace(/\{\{client\.initials\}\}/g, initials);
     result = result.replace(/\{\{client\.email\}\}/g, client.email || '');
     result = result.replace(/\{\{client\.phone\}\}/g, client.phone || '');
     result = result.replace(/\{\{client\.street\}\}/g, client.street || '');
@@ -70,6 +103,16 @@ function resolveAllPlaceholders(text, client, user, organization) {
     result = result.replace(/\{\{client\.state\}\}/g, client.state || '');
     result = result.replace(/\{\{client\.zipCode\}\}/g, client.zipCode || '');
     result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
+    
+    // LEGACY SYNTAX: {{field}}
+    result = result.replace(/\{\{firstName\}\}/g, firstName);
+    result = result.replace(/\{\{lastName\}\}/g, lastName);
+    result = result.replace(/\{\{fullName\}\}/g, fullName);
+    result = result.replace(/\{\{company\}\}/g, client.company || '');
+    result = result.replace(/\{\{address1\}\}/g, client.street || '');
+    result = result.replace(/\{\{city\}\}/g, client.city || '');
+    result = result.replace(/\{\{state\}\}/g, client.state || '');
+    result = result.replace(/\{\{zip\}\}/g, client.zipCode || '');
   }
   
   return result;
@@ -77,11 +120,13 @@ function resolveAllPlaceholders(text, client, user, organization) {
 
 /**
  * Map RoofScribe client placeholders to Scribe format
- * {{client.firstName}} -> {FIRST_NAME}
+ * Supports both new and legacy syntax
+ * {{client.firstName}} OR {{firstName}} -> {FIRST_NAME}
  */
 function mapToScribePlaceholders(text) {
   if (!text) return '';
   return text
+    // NEW SYNTAX: {{client.*}}
     .replace(/\{\{client\.firstName\}\}/g, '{FIRST_NAME}')
     .replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}')
     .replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
@@ -92,7 +137,16 @@ function mapToScribePlaceholders(text) {
     .replace(/\{\{client\.address2\}\}/g, '{ADDRESS_2}')
     .replace(/\{\{client\.city\}\}/g, '{CITY}')
     .replace(/\{\{client\.state\}\}/g, '{STATE}')
-    .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}');
+    .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}')
+    // LEGACY SYNTAX: {{field}}
+    .replace(/\{\{firstName\}\}/g, '{FIRST_NAME}')
+    .replace(/\{\{lastName\}\}/g, '{LAST_NAME}')
+    .replace(/\{\{fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
+    .replace(/\{\{company\}\}/g, '{COMPANY_NAME}')
+    .replace(/\{\{address1\}\}/g, '{STREET_ADDRESS}')
+    .replace(/\{\{city\}\}/g, '{CITY}')
+    .replace(/\{\{state\}\}/g, '{STATE}')
+    .replace(/\{\{zip\}\}/g, '{ZIP}');
 }
 
 /**
@@ -201,7 +255,7 @@ Deno.serve(async (req) => {
       }, { status: 402 });
     }
     
-    // Calculate deduction plan (company allocated -> company pool -> personal)
+    // Calculate deduction plan
     let remaining = creditsNeeded;
     let fromCompanyAllocated = Math.min(companyAllocatedCredits, remaining);
     remaining -= fromCompanyAllocated;
@@ -240,40 +294,43 @@ Deno.serve(async (req) => {
     
     for (const client of clients) {
       try {
-        // Get raw message (may contain placeholders)
+        // Get raw message (contains placeholders)
         const rawClientMessage = batch.contentOverrides?.[client.id] || batch.globalMessage || '';
         
         // ============================================================
-        // CRITICAL FIX: Build TWO versions of the message
-        // 1. rawMessageWithGreeting: Contains {{client.*}} placeholders intact
-        // 2. displayMessage: All placeholders resolved (for audit/display)
+        // BUILD RAW MESSAGE WITH GREETING/SIGNATURE (placeholders intact)
         // ============================================================
         
         let rawMessageWithGreeting = '';
         
-        // Add greeting if enabled (keep client placeholders intact)
+        // Add greeting (keep placeholders intact)
         if (batch.includeGreeting && noteStyleProfile?.defaultGreeting) {
           rawMessageWithGreeting += noteStyleProfile.defaultGreeting + '\n\n';
         }
         
-        // Add main message (keep client placeholders intact)
+        // Add main message (keep placeholders intact)
         rawMessageWithGreeting += rawClientMessage;
         
-        // Add signature if enabled (keep client placeholders intact)
-        let signatureText = null;
+        // Add signature (keep placeholders intact)
+        let rawSignature = null;
         if (batch.includeSignature && noteStyleProfile?.signatureText) {
-          signatureText = noteStyleProfile.signatureText;
-          rawMessageWithGreeting += '\n\n' + signatureText;
+          rawSignature = noteStyleProfile.signatureText;
+          rawMessageWithGreeting += '\n\n' + rawSignature;
         }
         
-        // BUILD SCRIBE MESSAGE: Resolve sender placeholders, then map client placeholders to Scribe format
-        // This keeps {{client.firstName}} as {FIRST_NAME} for Scribe to resolve at print time
+        // ============================================================
+        // BUILD TWO MESSAGE VERSIONS
+        // ============================================================
+        
+        // 1. SCRIBE MESSAGE: Resolve sender placeholders, map client placeholders to Scribe format
+        //    Result: "Dear {FIRST_NAME}, ... Sincerely, Mitch Fields"
         const senderResolved = resolveSenderPlaceholders(rawMessageWithGreeting, user, organization);
         const scribeMessage = mapToScribePlaceholders(senderResolved);
         
-        // BUILD DISPLAY MESSAGE: Resolve ALL placeholders for audit/display
+        // 2. DISPLAY MESSAGE: Resolve ALL placeholders for this specific client
+        //    Result: "Dear Joshua, ... Sincerely, Mitch Fields"
         const displayMessage = resolveAllPlaceholders(rawMessageWithGreeting, client, user, organization);
-        const resolvedSignature = signatureText ? resolveAllPlaceholders(signatureText, client, user, organization) : null;
+        const resolvedSignature = rawSignature ? resolveAllPlaceholders(rawSignature, client, user, organization) : null;
         
         // Determine card design and return address mode
         const cardDesignId = batch.cardDesignOverrides?.[client.id] || batch.selectedCardDesignId;
@@ -338,7 +395,7 @@ Deno.serve(async (req) => {
           clientName: client.fullName,
           cardDesignId,
           returnAddressMode: returnMode,
-          scribeMessage  // For grouping verification
+          scribeMessage
         });
         
       } catch (clientError) {
@@ -359,7 +416,6 @@ Deno.serve(async (req) => {
     if (successfulSends > 0) {
       let remainingToDeduct = successfulSends;
       
-      // Company allocated first
       if (fromCompanyAllocated > 0) {
         actualFromCompanyAllocated = Math.min(fromCompanyAllocated, remainingToDeduct);
         remainingToDeduct -= actualFromCompanyAllocated;
@@ -378,7 +434,6 @@ Deno.serve(async (req) => {
         });
       }
       
-      // Company pool second
       if (remainingToDeduct > 0 && fromCompanyPool > 0 && organization) {
         actualFromCompanyPool = Math.min(fromCompanyPool, remainingToDeduct);
         remainingToDeduct -= actualFromCompanyPool;
@@ -397,7 +452,6 @@ Deno.serve(async (req) => {
         });
       }
       
-      // Personal purchased last
       if (remainingToDeduct > 0 && fromPersonalPurchased > 0) {
         actualFromPersonalPurchased = Math.min(fromPersonalPurchased, remainingToDeduct);
         
@@ -435,7 +489,7 @@ Deno.serve(async (req) => {
       return Response.json({
         success: true,
         status: 'pending_review',
-        message: 'Batch created and awaiting admin approval before sending to Scribe',
+        message: 'Batch created and awaiting admin approval',
         mailingBatchId,
         noteCount: processedMailings.length,
         creditsUsed,
@@ -448,12 +502,7 @@ Deno.serve(async (req) => {
       });
     }
     
-    // ============================================================
-    // DIRECT SCRIBE SUBMISSION (if REQUIRE_ADMIN_APPROVAL=false)
-    // Note: This path is currently not used since REQUIRE_ADMIN_APPROVAL=true
-    // ============================================================
-    
-    // Update batch to completed (Scribe integration happens via submitBatchToScribe)
+    // Direct completion (if REQUIRE_ADMIN_APPROVAL=false)
     await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, {
       status: 'completed',
       processedAt: currentTimestamp,
