@@ -171,12 +171,13 @@ async function createScribeDraftCampaign() {
       throw new Error(`Scribe returned non-JSON response: ${responseText.substring(0, 200)}`);
     }
     
-    if (!result.success || !result.data?.id) {
+    // Scribe returns success: 1 (number) and data.campaign_id (not data.id)
+    if (!result.success || !result.data?.campaign_id) {
       throw new Error(`Scribe create campaign failed: ${JSON.stringify(result)}`);
     }
     
-    console.log('Campaign ID created:', result.data.id);
-    return result.data.id;
+    console.log('Campaign ID created:', result.data.campaign_id);
+    return result.data.campaign_id;
     
   } catch (error) {
     console.error('createScribeDraftCampaign error:', error.message);
