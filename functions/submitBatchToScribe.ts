@@ -17,8 +17,8 @@ function resolveSenderPlaceholders(text, user, organization) {
   
   if (user) {
     result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
-    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || '');
-    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || '');
+    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
+    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
     result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
     result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
     result = result.replace(/\{\{me\.title\}\}/g, user.title || '');
@@ -37,58 +37,53 @@ function resolveSenderPlaceholders(text, user, organization) {
 
 /**
  * Map RoofScribe client placeholders to Scribe format
+ * Our format: {{client.firstName}} -> Scribe format: {FIRST_NAME}
  */
 function mapToScribePlaceholders(text) {
   if (!text) return '';
   
-  let result = text;
-  
-  result = result.replace(/\{\{client\.firstName\}\}/g, '{FIRST_NAME}');
-  result = result.replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}');
-  result = result.replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}');
-  result = result.replace(/\{\{client\.email\}\}/g, '{EMAIL}');
-  result = result.replace(/\{\{client\.phone\}\}/g, '{PHONE}');
-  result = result.replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}');
-  result = result.replace(/\{\{client\.street\}\}/g, '{STREET_ADDRESS}');
-  result = result.replace(/\{\{client\.address2\}\}/g, '{ADDRESS_2}');
-  result = result.replace(/\{\{client\.city\}\}/g, '{CITY}');
-  result = result.replace(/\{\{client\.state\}\}/g, '{STATE}');
-  result = result.replace(/\{\{client\.zipCode\}\}/g, '{ZIP}');
-  
-  return result;
+  return text
+    .replace(/\{\{client\.firstName\}\}/g, '{FIRST_NAME}')
+    .replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}')
+    .replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
+    .replace(/\{\{client\.email\}\}/g, '{EMAIL}')
+    .replace(/\{\{client\.phone\}\}/g, '{PHONE}')
+    .replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}')
+    .replace(/\{\{client\.street\}\}/g, '{STREET_ADDRESS}')
+    .replace(/\{\{client\.address2\}\}/g, '{ADDRESS_2}')
+    .replace(/\{\{client\.city\}\}/g, '{CITY}')
+    .replace(/\{\{client\.state\}\}/g, '{STATE}')
+    .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}');
 }
 
 /**
  * Resolve return address based on mode
  */
 function resolveReturnAddress(mode, user, organization) {
-  switch (mode) {
-    case 'company':
-      if (!organization?.companyReturnAddress?.street) return null;
-      return {
-        name: organization.companyReturnAddress.companyName || organization.name,
-        street: organization.companyReturnAddress.street,
-        address2: organization.companyReturnAddress.address2 || null,
-        city: organization.companyReturnAddress.city,
-        state: organization.companyReturnAddress.state,
-        zip: organization.companyReturnAddress.zip
-      };
-      
-    case 'rep':
-      if (!user?.street) return null;
-      return {
-        name: user.returnAddressName || user.full_name,
-        street: user.street,
-        address2: user.address2 || null,
-        city: user.city,
-        state: user.state,
-        zip: user.zipCode
-      };
-      
-    case 'none':
-    default:
-      return null;
+  if (mode === 'none') return null;
+  
+  if (mode === 'company' && organization?.companyReturnAddress?.street) {
+    const addr = organization.companyReturnAddress;
+    return {
+      name: addr.companyName || organization.name || '',
+      street: addr.street || '',
+      city: addr.city || '',
+      state: addr.state || '',
+      zip: addr.zip || ''
+    };
   }
+  
+  if (mode === 'rep' && user?.street) {
+    return {
+      name: user.returnAddressName || user.full_name || '',
+      street: user.street || '',
+      city: user.city || '',
+      state: user.state || '',
+      zip: user.zipCode || ''
+    };
+  }
+  
+  return null;
 }
 
 /**
@@ -118,13 +113,9 @@ function determineTextType(message) {
   if (!message) return 'Short Text';
   
   const wordCount = message.trim().split(/\s+/).length;
-  const lineCount = message.split('\n').length;
+  const lineCount = (message.match(/\n/g) || []).length + 1;
   
-  if (wordCount > 110 || lineCount > 13) {
-    return 'Long Text';
-  }
-  
-  return 'Short Text';
+  return (wordCount > 110 || lineCount > 13) ? 'Long Text' : 'Short Text';
 }
 
 // ============================================================
@@ -133,71 +124,61 @@ function determineTextType(message) {
 
 /**
  * Create a draft campaign in Scribe
+ * Endpoint: POST /api/create-campaign-id-v2
  */
 async function createScribeDraftCampaign() {
   const url = `${SCRIBE_API_BASE_URL}/api/create-campaign-id-v2`;
   
-  console.log('=== CREATE DRAFT CAMPAIGN ===');
-  console.log('URL:', url);
-  console.log('Method: POST');
+  console.log('[Scribe] Creating draft campaign...');
   
-  const requestBody = { status: 'draft' };
-  console.log('Body:', JSON.stringify(requestBody));
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ status: 'draft' })
+  });
   
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
-    
-    console.log('Response status:', response.status);
-    console.log('Response headers:', JSON.stringify(Object.fromEntries(response.headers.entries())));
-    
-    const responseText = await response.text();
-    console.log('Response body (first 500 chars):', responseText.substring(0, 500));
-    
-    if (!response.ok) {
-      throw new Error(`Scribe API error: ${response.status} - ${responseText.substring(0, 200)}`);
-    }
-    
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch (e) {
-      throw new Error(`Scribe returned non-JSON response: ${responseText.substring(0, 200)}`);
-    }
-    
-    // Scribe returns success: 1 (number) and data.campaign_id (not data.id)
-    if (!result.success || !result.data?.campaign_id) {
-      throw new Error(`Scribe create campaign failed: ${JSON.stringify(result)}`);
-    }
-    
-    console.log('Campaign ID created:', result.data.campaign_id);
-    return result.data.campaign_id;
-    
-  } catch (error) {
-    console.error('createScribeDraftCampaign error:', error.message);
-    throw error;
+  const responseText = await response.text();
+  console.log('[Scribe] Create draft response:', response.status);
+  
+  if (!response.ok) {
+    throw new Error(`Scribe draft creation failed: ${response.status} - ${responseText.substring(0, 200)}`);
   }
+  
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
+  }
+  
+  // Scribe returns data.campaign_id (not data.id)
+  const campaignId = result.data?.campaign_id || result.data?.id;
+  if (!result.success || !campaignId) {
+    throw new Error(`Scribe draft creation failed: ${JSON.stringify(result)}`);
+  }
+  
+  console.log('[Scribe] Draft campaign created:', campaignId);
+  return campaignId;
 }
 
 /**
- * Add campaign details (message, ZIP, return address) to Scribe
+ * Add campaign details (message, ZIP, return address) to an EXISTING draft campaign
+ * 
+ * CRITICAL FIX: Use /api/edit-campaign-v2 (not /api/add-campaign-v2)
+ * - add-campaign-v2 creates a NEW campaign
+ * - edit-campaign-v2 updates an EXISTING draft campaign
+ * 
+ * Endpoint: POST /api/edit-campaign-v2 (multipart/form-data)
  */
 async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer, returnAddress) {
-  const url = `${SCRIBE_API_BASE_URL}/api/add-campaign-v2`;
+  // FIXED: Changed from /api/add-campaign-v2 to /api/edit-campaign-v2
+  const url = `${SCRIBE_API_BASE_URL}/api/edit-campaign-v2`;
   
-  console.log('=== ADD CAMPAIGN DETAILS ===');
-  console.log('URL:', url);
-  console.log('Campaign ID:', campaignId);
-  console.log('Message length:', message?.length);
-  console.log('Text type:', textType);
-  console.log('ZIP size:', zipBuffer?.byteLength);
-  console.log('Return address:', returnAddress ? JSON.stringify(returnAddress) : 'none');
+  console.log('[Scribe] Adding campaign details to draft:', campaignId);
+  console.log('[Scribe] Message length:', message?.length, 'Text type:', textType);
   
   const formData = new FormData();
   formData.append('campaign_id', String(campaignId));
@@ -206,183 +187,147 @@ async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer
   formData.append('campaign_type', 'one-time');
   formData.append('attachment', new Blob([zipBuffer], { type: 'application/zip' }), 'design.zip');
   
-  // TEMPORARILY DISABLED FOR TESTING
-  // if (returnAddress) {
-  //   const scribeReturnAddress = {
-  //     firstName: returnAddress.name || '',
-  //     lastName: '',
-  //     street: returnAddress.street || '',
-  //     city: returnAddress.city || '',
-  //     state: returnAddress.state || '',
-  //     zip: returnAddress.zip || ''
-  //   };
-  //   formData.append('return_address', JSON.stringify(scribeReturnAddress));
-  //   console.log('Scribe return address:', JSON.stringify(scribeReturnAddress));
-  // }
-  console.log('Return address DISABLED for testing');
-  
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SCRIBE_API_TOKEN}`
-      },
-      body: formData
-    });
-    
-    console.log('Response status:', response.status);
-    
-    const responseText = await response.text();
-    console.log('Response body (first 500 chars):', responseText.substring(0, 500));
-    
-    if (!response.ok) {
-      throw new Error(`Scribe add details error: ${response.status} - ${responseText.substring(0, 200)}`);
-    }
-    
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch (e) {
-      throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
-    }
-    
-    if (!result.success) {
-      throw new Error(`Scribe add details failed: ${JSON.stringify(result)}`);
-    }
-    
-    console.log('Campaign details added successfully');
-    return result;
-    
-  } catch (error) {
-    console.error('addScribeCampaignDetails error:', error.message);
-    throw error;
+  if (returnAddress) {
+    const scribeReturnAddress = {
+      firstName: returnAddress.name || '',
+      lastName: '',
+      street: returnAddress.street || '',
+      city: returnAddress.city || '',
+      state: returnAddress.state || '',
+      zip: returnAddress.zip || ''
+    };
+    formData.append('return_address', JSON.stringify(scribeReturnAddress));
+    console.log('[Scribe] Return address:', JSON.stringify(scribeReturnAddress));
   }
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`
+      // Note: Do NOT set Content-Type - fetch sets it automatically with boundary for FormData
+    },
+    body: formData
+  });
+  
+  const responseText = await response.text();
+  console.log('[Scribe] Edit campaign response:', response.status);
+  
+  if (!response.ok) {
+    throw new Error(`Scribe edit campaign failed: ${response.status} - ${responseText.substring(0, 200)}`);
+  }
+  
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
+  }
+  
+  if (!result.success) {
+    throw new Error(`Scribe edit campaign failed: ${JSON.stringify(result)}`);
+  }
+  
+  console.log('[Scribe] Campaign details added successfully');
+  return result;
 }
 
 /**
  * Add contacts to a Scribe campaign in bulk
+ * Endpoint: POST /api/add-contacts-bulk
  */
 async function addScribeContacts(campaignId, contacts) {
   const url = `${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`;
   
-  console.log('=== ADD SCRIBE CONTACTS ===');
-  console.log('URL:', url);
-  console.log('Campaign ID:', campaignId);
-  console.log('Contact count:', contacts.length);
+  console.log('[Scribe] Adding', contacts.length, 'contacts to campaign', campaignId);
   
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        campaign_id: campaignId,
-        contacts: contacts
-      })
-    });
-    
-    console.log('Response status:', response.status);
-    const responseText = await response.text();
-    console.log('Response body (first 500 chars):', responseText.substring(0, 500));
-    
-    if (!response.ok) {
-      throw new Error(`Scribe add contacts error: ${response.status} - ${responseText.substring(0, 200)}`);
-    }
-    
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch (e) {
-      throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
-    }
-    
-    if (!result.success) {
-      throw new Error(`Scribe add contacts failed: ${JSON.stringify(result)}`);
-    }
-    
-    console.log('Contacts added successfully');
-    return result;
-    
-  } catch (error) {
-    console.error('addScribeContacts error:', error.message);
-    throw error;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      campaign_id: campaignId,
+      contacts: contacts
+    })
+  });
+  
+  const responseText = await response.text();
+  console.log('[Scribe] Add contacts response:', response.status);
+  
+  if (!response.ok) {
+    throw new Error(`Scribe add contacts failed: ${response.status} - ${responseText.substring(0, 200)}`);
   }
+  
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
+  }
+  
+  if (!result.success) {
+    throw new Error(`Scribe add contacts failed: ${JSON.stringify(result)}`);
+  }
+  
+  console.log('[Scribe] Contacts added successfully');
+  return result;
 }
 
 /**
  * Submit a Scribe campaign for processing
+ * Endpoint: PUT /api/v1/campaign/send
  */
 async function submitScribeCampaign(campaignId) {
   const url = `${SCRIBE_API_BASE_URL}/api/v1/campaign/send`;
   
-  console.log('=== SUBMIT SCRIBE CAMPAIGN ===');
-  console.log('URL:', url);
-  console.log('Campaign ID:', campaignId);
+  console.log('[Scribe] Submitting campaign', campaignId);
   
-  try {
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ campaign_id: campaignId })
-    });
-    
-    console.log('Response status:', response.status);
-    const responseText = await response.text();
-    console.log('Response body (first 500 chars):', responseText.substring(0, 500));
-    
-    if (!response.ok) {
-      throw new Error(`Scribe submit error: ${response.status} - ${responseText.substring(0, 200)}`);
-    }
-    
-    let result;
-    try {
-      result = JSON.parse(responseText);
-    } catch (e) {
-      throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
-    }
-    
-    console.log('Campaign submitted successfully');
-    return result;
-    
-  } catch (error) {
-    console.error('submitScribeCampaign error:', error.message);
-    throw error;
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ campaign_id: campaignId })
+  });
+  
+  const responseText = await response.text();
+  console.log('[Scribe] Submit response:', response.status);
+  
+  if (!response.ok) {
+    throw new Error(`Scribe submit failed: ${response.status} - ${responseText.substring(0, 200)}`);
   }
+  
+  let result;
+  try {
+    result = JSON.parse(responseText);
+  } catch (e) {
+    throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
+  }
+  
+  console.log('[Scribe] Campaign submitted successfully');
+  return result;
 }
 
 /**
  * Fetch ZIP file from private storage
  */
 async function fetchZipFromStorage(base44, fileUri) {
-  console.log('=== FETCH ZIP FROM STORAGE ===');
-  console.log('File URI:', fileUri);
+  console.log('[Storage] Fetching ZIP from:', fileUri);
   
-  try {
-    const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({
-      file_uri: fileUri
-    });
-    console.log('Signed URL generated');
-    
-    const response = await fetch(signedUrlResult.signed_url);
-    console.log('ZIP fetch response status:', response.status);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ZIP: ${response.status} - ${await response.text()}`);
-    }
-    
-    const buffer = await response.arrayBuffer();
-    console.log(`ZIP fetched successfully, size: ${buffer.byteLength} bytes`);
-    return buffer;
-    
-  } catch (error) {
-    console.error('fetchZipFromStorage error:', error.message);
-    throw error;
+  const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({
+    file_uri: fileUri
+  });
+  
+  const response = await fetch(signedUrlResult.signed_url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch ZIP: ${response.status}`);
   }
+  
+  const buffer = await response.arrayBuffer();
+  console.log('[Storage] ZIP fetched:', buffer.byteLength, 'bytes');
+  return buffer;
 }
 
 // ============================================================
@@ -390,16 +335,12 @@ async function fetchZipFromStorage(base44, fileUri) {
 // ============================================================
 
 Deno.serve(async (req) => {
-  console.log('=== DEBUG ===');
-  console.log('ENV SCRIBE_API_BASE_URL:', Deno.env.get('SCRIBE_API_BASE_URL'));
-  console.log('CONST SCRIBE_API_BASE_URL:', SCRIBE_API_BASE_URL);
+  console.log('=== SUBMIT BATCH TO SCRIBE ===');
+  console.log('SCRIBE_API_BASE_URL:', SCRIBE_API_BASE_URL);
   console.log('SCRIBE_API_TOKEN set:', !!SCRIBE_API_TOKEN);
-  console.log('Token preview:', SCRIBE_API_TOKEN ? SCRIBE_API_TOKEN.substring(0, 8) + '...' : 'NOT SET');
   
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Parse request body
     const { mailingBatchId } = await req.json();
     
     if (!mailingBatchId) {
@@ -416,25 +357,23 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check if user has admin privileges (super_admin role OR organization_owner/admin appRole)
     const isAdmin = adminUser.role === 'admin' || 
                     ['super_admin', 'organization_admin', 'organization_owner'].includes(adminUser.appRole);
     
     if (!isAdmin) {
-      return Response.json({ success: false, error: 'Unauthorized - admin access required' }, { status: 403 });
+      return Response.json({ success: false, error: 'Admin access required' }, { status: 403 });
     }
     
     console.log(`Admin ${adminUser.email} approving batch ${mailingBatchId}`);
     
     // Load batch
     const batchList = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
-    if (!batchList || batchList.length === 0) {
+    if (!batchList?.length) {
       return Response.json({ success: false, error: 'Batch not found' }, { status: 404 });
     }
     
     const batch = batchList[0];
     
-    // Verify status
     if (batch.status !== 'pending_review') {
       return Response.json({ 
         success: false, 
@@ -442,55 +381,44 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
     
-    // Update status to show we're processing
-    await base44.entities.MailingBatch.update(mailingBatchId, {
-      status: 'sending'
-    });
+    // Update status to processing
+    await base44.entities.MailingBatch.update(mailingBatchId, { status: 'sending' });
     
-    // Load the sender user (who created the batch)
+    // Load sender user and organization
     let senderUser = null;
+    let organization = null;
+    
     if (batch.userId) {
       const userList = await base44.entities.User.filter({ id: batch.userId });
-      if (userList?.length > 0) senderUser = userList[0];
+      if (userList?.length) senderUser = userList[0];
     }
     
-    // Load organization
-    let organization = null;
     if (batch.organizationId) {
       const orgList = await base44.entities.Organization.filter({ id: batch.organizationId });
-      if (orgList?.length > 0) organization = orgList[0];
+      if (orgList?.length) organization = orgList[0];
     }
     
-    // Load all notes for this batch
+    // Load notes for this batch
     const notes = await base44.entities.Note.filter({ mailingBatchId });
     
-    if (!notes || notes.length === 0) {
+    if (!notes?.length) {
       await base44.entities.MailingBatch.update(mailingBatchId, { status: 'failed' });
       return Response.json({ success: false, error: 'No notes found for this batch' }, { status: 400 });
     }
     
     console.log(`Processing ${notes.length} notes`);
     
-    // Load clients
+    // Load related data
     const clientIds = [...new Set(notes.map(n => n.clientId).filter(Boolean))];
-    const clientList = clientIds.length > 0 
-      ? await base44.entities.Client.filter({ id: { $in: clientIds } })
-      : [];
-    const clientMap = {};
-    clientList.forEach(c => { clientMap[c.id] = c; });
+    const clientList = clientIds.length ? await base44.entities.Client.filter({ id: { $in: clientIds } }) : [];
+    const clientMap = Object.fromEntries(clientList.map(c => [c.id, c]));
     
-    // Load card designs
     const designIds = [...new Set(notes.map(n => n.cardDesignId).filter(Boolean))];
-    const designList = designIds.length > 0
-      ? await base44.entities.CardDesign.filter({ id: { $in: designIds } })
-      : [];
-    const cardDesignMap = {};
-    designList.forEach(d => { cardDesignMap[d.id] = d; });
+    const designList = designIds.length ? await base44.entities.CardDesign.filter({ id: { $in: designIds } }) : [];
+    const cardDesignMap = Object.fromEntries(designList.map(d => [d.id, d]));
     
-    // Load mailings
     const mailingList = await base44.entities.Mailing.filter({ mailingBatchId });
-    const mailingMap = {};
-    mailingList.forEach(m => { mailingMap[m.noteId] = m; });
+    const mailingMap = Object.fromEntries(mailingList.map(m => [m.noteId, m]));
     
     // ============================================================
     // BUILD CAMPAIGN GROUPS
@@ -505,33 +433,29 @@ Deno.serve(async (req) => {
       const cardDesign = cardDesignMap[note.cardDesignId];
       
       if (!client) {
-        processingErrors.push({
-          clientId: note.clientId,
-          error: 'Client not found',
-          timestamp: new Date().toISOString()
-        });
+        processingErrors.push({ clientId: note.clientId, error: 'Client not found', timestamp: new Date().toISOString() });
         continue;
       }
       
       if (!cardDesign?.scribeZipUrl) {
-        processingErrors.push({
-          clientId: note.clientId,
-          error: 'Card design missing scribeZipUrl',
-          timestamp: new Date().toISOString()
-        });
+        processingErrors.push({ clientId: note.clientId, error: 'Card design missing scribeZipUrl', timestamp: new Date().toISOString() });
         continue;
       }
       
-      // Get the Scribe-formatted message
-      const scribeMessage = note.messageTemplate || mapToScribePlaceholders(
-        resolveSenderPlaceholders(note.message, senderUser, organization)
-      );
+      // CRITICAL: Use messageTemplate if available, otherwise we have a problem
+      // messageTemplate should contain Scribe placeholders like {FIRST_NAME}
+      // If it's not set, the note.message has already-resolved client names which breaks grouping
+      let scribeMessage = note.messageTemplate;
       
-      // Get return address
+      if (!scribeMessage) {
+        // Fallback: This won't work perfectly if note.message has resolved placeholders
+        // But we try our best - at least resolve sender placeholders and map what we can
+        console.warn(`Note ${note.id} missing messageTemplate - using fallback`);
+        scribeMessage = mapToScribePlaceholders(resolveSenderPlaceholders(note.message, senderUser, organization));
+      }
+      
       const returnAddressMode = note.returnAddressMode || batch.returnAddressModeGlobal || 'company';
       const returnAddress = resolveReturnAddress(returnAddressMode, senderUser, organization);
-      
-      // Create group key
       const groupKey = createCampaignGroupKey(scribeMessage, note.cardDesignId, returnAddress);
       
       if (!campaignGroups.has(groupKey)) {
@@ -547,15 +471,11 @@ Deno.serve(async (req) => {
         notesByGroupKey.set(groupKey, []);
       }
       
-      campaignGroups.get(groupKey).recipients.push({
-        clientId: note.clientId,
-        client,
-        noteId: note.id
-      });
+      campaignGroups.get(groupKey).recipients.push({ clientId: note.clientId, client, noteId: note.id });
       notesByGroupKey.get(groupKey).push(note);
     }
     
-    console.log(`Created ${campaignGroups.size} campaign groups`);
+    console.log(`Created ${campaignGroups.size} campaign groups from ${notes.length} notes`);
     
     // ============================================================
     // PROCESS EACH CAMPAIGN GROUP
@@ -567,25 +487,16 @@ Deno.serve(async (req) => {
       let scribeCampaignId = null;
       
       try {
-        console.log(`Creating Scribe campaign for group ${groupKey} with ${group.recipients.length} recipients`);
+        console.log(`Processing group with ${group.recipients.length} recipients`);
         
         // 1. Create draft campaign
         scribeCampaignId = await createScribeDraftCampaign();
-        console.log(`Created draft campaign: ${scribeCampaignId}`);
         
-        // 2. Fetch ZIP from storage
+        // 2. Fetch ZIP
         const zipBuffer = await fetchZipFromStorage(base44, group.cardDesign.scribeZipUrl);
-        console.log(`Fetched ZIP: ${zipBuffer.byteLength} bytes`);
         
-        // 3. Add campaign details with ZIP
-        await addScribeCampaignDetails(
-          scribeCampaignId,
-          group.scribeMessage,
-          group.textType,
-          zipBuffer,
-          group.returnAddress
-        );
-        console.log(`Added campaign details`);
+        // 3. Add campaign details (message, ZIP, return address) - USES edit-campaign-v2
+        await addScribeCampaignDetails(scribeCampaignId, group.scribeMessage, group.textType, zipBuffer, group.returnAddress);
         
         // 4. Build contacts array
         const contacts = group.recipients.map(r => ({
@@ -603,35 +514,25 @@ Deno.serve(async (req) => {
         
         // 5. Add contacts
         await addScribeContacts(scribeCampaignId, contacts);
-        console.log(`Added ${contacts.length} contacts`);
         
         // 6. Submit campaign
         await submitScribeCampaign(scribeCampaignId);
-        console.log(`Submitted campaign ${scribeCampaignId}`);
         
-        // 7. Update Notes with scribeCampaignId
+        // 7. Update Notes and Mailings
         for (const note of notesByGroupKey.get(groupKey)) {
-          await base44.entities.Note.update(note.id, { 
-            scribeCampaignId: String(scribeCampaignId),
-            status: 'sent'
-          });
+          await base44.entities.Note.update(note.id, { scribeCampaignId: String(scribeCampaignId), status: 'sent' });
         }
         
-        // 8. Update Mailings with scribeCampaignId
         for (const r of group.recipients) {
           const mailing = mailingMap[r.noteId];
           if (mailing) {
-            await base44.entities.Mailing.update(mailing.id, { 
-              scribeCampaignId: String(scribeCampaignId),
-              status: 'sent'
-            });
+            await base44.entities.Mailing.update(mailing.id, { scribeCampaignId: String(scribeCampaignId), status: 'sent' });
           }
         }
         
-        // Track successful campaign
         scribeCampaigns.push({
           scribeCampaignId: String(scribeCampaignId),
-          campaignGroupKey: groupKey,
+          campaignGroupKey: groupKey.substring(0, 100),
           cardDesignId: group.cardDesignId,
           returnAddressMode: group.returnAddressMode,
           clientIds: group.recipients.map(r => r.clientId),
@@ -641,34 +542,29 @@ Deno.serve(async (req) => {
           submittedAt: new Date().toISOString()
         });
         
-      } catch (error) {
-        console.error(`Scribe campaign failed for group ${groupKey}:`, error);
+        console.log(`Campaign ${scribeCampaignId} submitted with ${contacts.length} contacts`);
         
-        // Mark notes as failed
+      } catch (error) {
+        console.error(`Scribe campaign failed:`, error.message);
+        
         for (const note of notesByGroupKey.get(groupKey) || []) {
           await base44.entities.Note.update(note.id, { status: 'failed' });
         }
         
-        // Track failed campaign
         scribeCampaigns.push({
           scribeCampaignId: scribeCampaignId ? String(scribeCampaignId) : null,
-          campaignGroupKey: groupKey,
+          campaignGroupKey: groupKey.substring(0, 100),
           cardDesignId: group.cardDesignId,
           returnAddressMode: group.returnAddressMode,
           clientIds: group.recipients.map(r => r.clientId),
           contactCount: group.recipients.length,
           status: 'failed',
-          errorMessage: error.message || 'Unknown error',
+          errorMessage: error.message,
           submittedAt: new Date().toISOString()
         });
         
-        // Add to processing errors
         for (const r of group.recipients) {
-          processingErrors.push({
-            clientId: r.clientId,
-            error: `Scribe campaign failed: ${error.message}`,
-            timestamp: new Date().toISOString()
-          });
+          processingErrors.push({ clientId: r.clientId, error: `Scribe failed: ${error.message}`, timestamp: new Date().toISOString() });
         }
       }
     }
@@ -679,7 +575,6 @@ Deno.serve(async (req) => {
     
     const successfulCampaigns = scribeCampaigns.filter(c => c.status === 'submitted').length;
     const failedCampaigns = scribeCampaigns.filter(c => c.status === 'failed').length;
-    const totalContacts = scribeCampaigns.reduce((sum, c) => sum + c.contactCount, 0);
     
     const finalStatus = failedCampaigns > 0 
       ? (successfulCampaigns > 0 ? 'partial' : 'failed')
@@ -687,41 +582,35 @@ Deno.serve(async (req) => {
     
     await base44.entities.MailingBatch.update(mailingBatchId, {
       status: finalStatus,
-      scribeCampaigns: scribeCampaigns,
-      processingErrors: processingErrors.length > 0 ? processingErrors : batch.processingErrors
+      scribeCampaigns,
+      processingErrors: processingErrors.length ? processingErrors : batch.processingErrors
     });
     
-    console.log(`Batch ${mailingBatchId} completed with status: ${finalStatus}`);
+    console.log(`Batch completed: ${finalStatus} (${successfulCampaigns} success, ${failedCampaigns} failed)`);
     
     return Response.json({
       success: true,
       status: finalStatus,
       campaignsCreated: successfulCampaigns,
       campaignsFailed: failedCampaigns,
-      totalContacts: totalContacts,
-      scribeCampaigns: scribeCampaigns
+      totalContacts: scribeCampaigns.reduce((sum, c) => sum + c.contactCount, 0),
+      scribeCampaigns
     });
     
   } catch (error) {
     console.error('submitBatchToScribe error:', error);
     
-    // Try to update batch status to failed
     try {
       const base44 = createClientFromRequest(req);
       const body = await req.clone().json();
       if (body?.mailingBatchId) {
         await base44.entities.MailingBatch.update(body.mailingBatchId, {
           status: 'failed',
-          processingErrors: [{
-            error: error.message || 'Unknown error',
-            timestamp: new Date().toISOString()
-          }]
+          processingErrors: [{ error: error.message, timestamp: new Date().toISOString() }]
         });
       }
-    } catch (e) {
-      console.error('Failed to update batch status:', e);
-    }
+    } catch (e) { /* ignore */ }
     
-    return Response.json({ success: false, error: error.message || 'Unknown error' }, { status: 500 });
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 });
