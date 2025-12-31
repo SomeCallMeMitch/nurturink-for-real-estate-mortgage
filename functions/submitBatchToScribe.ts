@@ -8,7 +8,13 @@ const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
 // ============================================================
 
 /**
- * Resolve sender/organization placeholders to literal text
+ * Resolve ALL sender/user/organization placeholders to literal text
+ * Supports multiple syntax formats:
+ * - NEW: {{me.fullName}}, {{org.name}}
+ * - LEGACY: {{rep_full_name}}, {{rep_company_name}}
+ * - ALTERNATE: {{user.fullName}}, {{user.companyName}} (from UI)
+ * 
+ * Client placeholders are LEFT INTACT for Scribe to resolve
  */
 function resolveSenderPlaceholders(text, user, organization) {
   if (!text) return '';
@@ -16,20 +22,58 @@ function resolveSenderPlaceholders(text, user, organization) {
   let result = text;
   
   if (user) {
-    result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
-    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
-    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
-    result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
-    result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
-    result = result.replace(/\{\{me\.title\}\}/g, user.title || '');
-    result = result.replace(/\{\{me\.companyName\}\}/g, user.companyName || '');
+    const firstName = user.firstName || user.full_name?.split(' ')[0] || '';
+    const lastName = user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '';
+    const fullName = user.full_name || '';
+    const email = user.email || '';
+    const phone = user.phone || '';
+    const title = user.title || '';
+    const companyName = user.companyName || '';
+    
+    // NEW SYNTAX: {{me.*}}
+    result = result.replace(/\{\{me\.fullName\}\}/g, fullName);
+    result = result.replace(/\{\{me\.firstName\}\}/g, firstName);
+    result = result.replace(/\{\{me\.lastName\}\}/g, lastName);
+    result = result.replace(/\{\{me\.email\}\}/g, email);
+    result = result.replace(/\{\{me\.phone\}\}/g, phone);
+    result = result.replace(/\{\{me\.title\}\}/g, title);
+    result = result.replace(/\{\{me\.companyName\}\}/g, companyName);
+    
+    // ALTERNATE SYNTAX: {{user.*}} (used by UI/signature templates)
+    result = result.replace(/\{\{user\.fullName\}\}/g, fullName);
+    result = result.replace(/\{\{user\.firstName\}\}/g, firstName);
+    result = result.replace(/\{\{user\.lastName\}\}/g, lastName);
+    result = result.replace(/\{\{user\.email\}\}/g, email);
+    result = result.replace(/\{\{user\.phone\}\}/g, phone);
+    result = result.replace(/\{\{user\.title\}\}/g, title);
+    result = result.replace(/\{\{user\.companyName\}\}/g, companyName);
+    
+    // LEGACY SYNTAX: {{rep_*}}
+    result = result.replace(/\{\{rep_full_name\}\}/g, fullName);
+    result = result.replace(/\{\{rep_first_name\}\}/g, firstName);
+    result = result.replace(/\{\{rep_last_name\}\}/g, lastName);
+    result = result.replace(/\{\{rep_company_name\}\}/g, companyName);
+    result = result.replace(/\{\{rep_phone\}\}/g, phone);
+    result = result.replace(/\{\{rep_email\}\}/g, email);
   }
   
   if (organization) {
-    result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
-    result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
-    result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
-    result = result.replace(/\{\{org\.website\}\}/g, organization.website || '');
+    const orgName = organization.name || '';
+    const orgPhone = organization.phone || '';
+    const orgEmail = organization.email || '';
+    const orgWebsite = organization.website || '';
+    
+    // NEW SYNTAX: {{org.*}}
+    result = result.replace(/\{\{org\.name\}\}/g, orgName);
+    result = result.replace(/\{\{org\.phone\}\}/g, orgPhone);
+    result = result.replace(/\{\{org\.email\}\}/g, orgEmail);
+    result = result.replace(/\{\{org\.website\}\}/g, orgWebsite);
+    
+    // ALTERNATE: {{organization.*}}
+    result = result.replace(/\{\{organization\.name\}\}/g, orgName);
+    result = result.replace(/\{\{organization\.phone\}\}/g, orgPhone);
+    result = result.replace(/\{\{organization\.email\}\}/g, orgEmail);
+    result = result.replace(/\{\{organization\.website\}\}/g, orgWebsite);
   }
   
   return result;
@@ -37,12 +81,14 @@ function resolveSenderPlaceholders(text, user, organization) {
 
 /**
  * Map RoofScribe client placeholders to Scribe format
- * Our format: {{client.firstName}} -> Scribe format: {FIRST_NAME}
+ * Supports both new and legacy syntax
+ * {{client.firstName}} OR {{firstName}} -> {FIRST_NAME}
  */
 function mapToScribePlaceholders(text) {
   if (!text) return '';
   
   return text
+    // NEW SYNTAX: {{client.*}}
     .replace(/\{\{client\.firstName\}\}/g, '{FIRST_NAME}')
     .replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}')
     .replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
@@ -53,7 +99,16 @@ function mapToScribePlaceholders(text) {
     .replace(/\{\{client\.address2\}\}/g, '{ADDRESS_2}')
     .replace(/\{\{client\.city\}\}/g, '{CITY}')
     .replace(/\{\{client\.state\}\}/g, '{STATE}')
-    .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}');
+    .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}')
+    // LEGACY SYNTAX: {{field}}
+    .replace(/\{\{firstName\}\}/g, '{FIRST_NAME}')
+    .replace(/\{\{lastName\}\}/g, '{LAST_NAME}')
+    .replace(/\{\{fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
+    .replace(/\{\{company\}\}/g, '{COMPANY_NAME}')
+    .replace(/\{\{address1\}\}/g, '{STREET_ADDRESS}')
+    .replace(/\{\{city\}\}/g, '{CITY}')
+    .replace(/\{\{state\}\}/g, '{STATE}')
+    .replace(/\{\{zip\}\}/g, '{ZIP}');
 }
 
 /**
@@ -124,7 +179,6 @@ function determineTextType(message) {
 
 /**
  * Create a draft campaign in Scribe
- * Endpoint: POST /api/create-campaign-id-v2
  */
 async function createScribeDraftCampaign() {
   const url = `${SCRIBE_API_BASE_URL}/api/create-campaign-id-v2`;
@@ -154,7 +208,6 @@ async function createScribeDraftCampaign() {
     throw new Error(`Scribe returned non-JSON: ${responseText.substring(0, 200)}`);
   }
   
-  // Scribe returns data.campaign_id (not data.id)
   const campaignId = result.data?.campaign_id || result.data?.id;
   if (!result.success || !campaignId) {
     throw new Error(`Scribe draft creation failed: ${JSON.stringify(result)}`);
@@ -165,20 +218,17 @@ async function createScribeDraftCampaign() {
 }
 
 /**
- * Add campaign details (message, ZIP, return address) to an EXISTING draft campaign
+ * Add campaign details to an EXISTING draft campaign
  * 
- * CRITICAL FIX: Use /api/edit-campaign-v2 (not /api/add-campaign-v2)
- * - add-campaign-v2 creates a NEW campaign
- * - edit-campaign-v2 updates an EXISTING draft campaign
- * 
- * Endpoint: POST /api/edit-campaign-v2 (multipart/form-data)
+ * FIXED: Use /api/edit-campaign-v2 (not /api/add-campaign-v2)
+ * FIXED: Send return_address as properly formatted JSON or omit if null
  */
 async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer, returnAddress) {
-  // FIXED: Changed from /api/add-campaign-v2 to /api/edit-campaign-v2
   const url = `${SCRIBE_API_BASE_URL}/api/edit-campaign-v2`;
   
   console.log('[Scribe] Adding campaign details to draft:', campaignId);
   console.log('[Scribe] Message length:', message?.length, 'Text type:', textType);
+  console.log('[Scribe] Message preview:', message?.substring(0, 100));
   
   const formData = new FormData();
   formData.append('campaign_id', String(campaignId));
@@ -187,7 +237,9 @@ async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer
   formData.append('campaign_type', 'one-time');
   formData.append('attachment', new Blob([zipBuffer], { type: 'application/zip' }), 'design.zip');
   
-  if (returnAddress) {
+  // FIXED: Only send return_address if we have valid data
+  // Scribe API expects: { firstName, lastName, street, city, state, zip }
+  if (returnAddress && returnAddress.street) {
     const scribeReturnAddress = {
       firstName: returnAddress.name || '',
       lastName: '',
@@ -198,22 +250,23 @@ async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer
     };
     formData.append('return_address', JSON.stringify(scribeReturnAddress));
     console.log('[Scribe] Return address:', JSON.stringify(scribeReturnAddress));
+  } else {
+    console.log('[Scribe] No return address - omitting from request');
   }
   
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${SCRIBE_API_TOKEN}`
-      // Note: Do NOT set Content-Type - fetch sets it automatically with boundary for FormData
     },
     body: formData
   });
   
   const responseText = await response.text();
-  console.log('[Scribe] Edit campaign response:', response.status);
+  console.log('[Scribe] Edit campaign response:', response.status, responseText.substring(0, 300));
   
   if (!response.ok) {
-    throw new Error(`Scribe edit campaign failed: ${response.status} - ${responseText.substring(0, 200)}`);
+    throw new Error(`Scribe edit campaign failed: ${response.status} - ${responseText.substring(0, 300)}`);
   }
   
   let result;
@@ -233,7 +286,6 @@ async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer
 
 /**
  * Add contacts to a Scribe campaign in bulk
- * Endpoint: POST /api/add-contacts-bulk
  */
 async function addScribeContacts(campaignId, contacts) {
   const url = `${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`;
@@ -276,7 +328,6 @@ async function addScribeContacts(campaignId, contacts) {
 
 /**
  * Submit a Scribe campaign for processing
- * Endpoint: PUT /api/v1/campaign/send
  */
 async function submitScribeCampaign(campaignId) {
   const url = `${SCRIBE_API_BASE_URL}/api/v1/campaign/send`;
@@ -442,16 +493,14 @@ Deno.serve(async (req) => {
         continue;
       }
       
-      // CRITICAL: Use messageTemplate if available, otherwise we have a problem
-      // messageTemplate should contain Scribe placeholders like {FIRST_NAME}
-      // If it's not set, the note.message has already-resolved client names which breaks grouping
+      // Get Scribe message - prefer messageTemplate, fallback to converting message
       let scribeMessage = note.messageTemplate;
       
       if (!scribeMessage) {
-        // Fallback: This won't work perfectly if note.message has resolved placeholders
-        // But we try our best - at least resolve sender placeholders and map what we can
-        console.warn(`Note ${note.id} missing messageTemplate - using fallback`);
-        scribeMessage = mapToScribePlaceholders(resolveSenderPlaceholders(note.message, senderUser, organization));
+        // Fallback: resolve sender placeholders and map client placeholders
+        console.warn(`Note ${note.id} missing messageTemplate - rebuilding from message`);
+        const withSenderResolved = resolveSenderPlaceholders(note.message, senderUser, organization);
+        scribeMessage = mapToScribePlaceholders(withSenderResolved);
       }
       
       const returnAddressMode = note.returnAddressMode || batch.returnAddressModeGlobal || 'company';
@@ -488,6 +537,7 @@ Deno.serve(async (req) => {
       
       try {
         console.log(`Processing group with ${group.recipients.length} recipients`);
+        console.log(`Message preview: ${group.scribeMessage.substring(0, 150)}...`);
         
         // 1. Create draft campaign
         scribeCampaignId = await createScribeDraftCampaign();
@@ -495,7 +545,7 @@ Deno.serve(async (req) => {
         // 2. Fetch ZIP
         const zipBuffer = await fetchZipFromStorage(base44, group.cardDesign.scribeZipUrl);
         
-        // 3. Add campaign details (message, ZIP, return address) - USES edit-campaign-v2
+        // 3. Add campaign details - USES edit-campaign-v2
         await addScribeCampaignDetails(scribeCampaignId, group.scribeMessage, group.textType, zipBuffer, group.returnAddress);
         
         // 4. Build contacts array
