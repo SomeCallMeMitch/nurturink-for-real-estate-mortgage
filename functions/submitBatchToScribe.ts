@@ -387,8 +387,9 @@ async function fetchZipFromStorage(base44, fileUri) {
 // ============================================================
 
 Deno.serve(async (req) => {
-  console.log('=== SCRIBE CONFIG ===');
-  console.log('SCRIBE_API_BASE_URL:', SCRIBE_API_BASE_URL);
+  console.log('=== DEBUG ===');
+  console.log('ENV SCRIBE_API_BASE_URL:', Deno.env.get('SCRIBE_API_BASE_URL'));
+  console.log('CONST SCRIBE_API_BASE_URL:', SCRIBE_API_BASE_URL);
   console.log('SCRIBE_API_TOKEN set:', !!SCRIBE_API_TOKEN);
   console.log('Token preview:', SCRIBE_API_TOKEN ? SCRIBE_API_TOKEN.substring(0, 8) + '...' : 'NOT SET');
   
