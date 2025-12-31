@@ -206,18 +206,20 @@ async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer
   formData.append('campaign_type', 'one-time');
   formData.append('attachment', new Blob([zipBuffer], { type: 'application/zip' }), 'design.zip');
   
-  if (returnAddress) {
-    const scribeReturnAddress = {
-      firstName: returnAddress.name || '',
-      lastName: '',
-      street: returnAddress.street || '',
-      city: returnAddress.city || '',
-      state: returnAddress.state || '',
-      zip: returnAddress.zip || ''
-    };
-    formData.append('return_address', JSON.stringify(scribeReturnAddress));
-    console.log('Scribe return address:', JSON.stringify(scribeReturnAddress));
-  }
+  // TEMPORARILY DISABLED FOR TESTING
+  // if (returnAddress) {
+  //   const scribeReturnAddress = {
+  //     firstName: returnAddress.name || '',
+  //     lastName: '',
+  //     street: returnAddress.street || '',
+  //     city: returnAddress.city || '',
+  //     state: returnAddress.state || '',
+  //     zip: returnAddress.zip || ''
+  //   };
+  //   formData.append('return_address', JSON.stringify(scribeReturnAddress));
+  //   console.log('Scribe return address:', JSON.stringify(scribeReturnAddress));
+  // }
+  console.log('Return address DISABLED for testing');
   
   try {
     const response = await fetch(url, {
