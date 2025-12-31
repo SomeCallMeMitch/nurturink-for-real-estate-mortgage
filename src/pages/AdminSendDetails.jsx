@@ -30,13 +30,9 @@ import {
   RefreshCw,
   Mail,
   XCircle,
-  Copy,
-  Loader2,
-  Eye,
-  Send
+  Copy
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useToast } from '@/components/ui/use-toast';
 
 /**
  * Shared Status Utilities (inline)
@@ -56,7 +52,6 @@ function getStatusPillVariant(status) {
     queued_for_sending: 'warning',
     pending_print: 'warning',
     pending: 'warning',
-    pending_review: 'warning',
     failed: 'danger',
     cancelled: 'danger',
     partial: 'warning',
@@ -81,11 +76,11 @@ function formatStatus(status) {
  * - Batch summary with Scribe campaign breakdown
  * - List of individual Notes (cards) within the batch
  * - Processing errors if any
- * - APPROVAL CONTROLS for pending_review batches
+ * 
+ * IMPORTANT: Queries Notes by mailingBatchId (not userId + clientIds)
  */
 export default function AdminSendDetails() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const urlParams = new URLSearchParams(window.location.search);
   const batchId = urlParams.get('id');
   
@@ -107,10 +102,6 @@ export default function AdminSendDetails() {
   const [campaignsExpanded, setCampaignsExpanded] = useState(true);
   const [errorsExpanded, setErrorsExpanded] = useState(false);
   const [copiedId, setCopiedId] = useState(null);
-  
-  // Approval state
-  const [approving, setApproving] = useState(false);
-  const [rejecting, setRejecting] = useState(false);
 
   useEffect(() => {
     if (batchId) {
@@ -156,12 +147,13 @@ export default function AdminSendDetails() {
         }
       }
       
-      // Fetch notes by mailingBatchId
+      // Fetch notes by mailingBatchId (the correct way!)
       let noteList = [];
       try {
         noteList = await base44.entities.Note.filter({ mailingBatchId: batchId });
       } catch (e) {
         console.warn('Could not fetch notes by mailingBatchId, trying fallback:', e);
+        // Fallback: Query by userId + clientIds (old method, less reliable)
         if (batchData.selectedClientIds?.length > 0) {
           noteList = await base44.entities.Note.filter({
             userId: batchData.userId,
@@ -260,117 +252,6 @@ export default function AdminSendDetails() {
     navigate(createPageUrl('AdminSends'));
   };
 
-  // ============================================================
-  // APPROVAL HANDLERS
-  // ============================================================
-  
-  const handleApproveBatch = async () => {
-    const confirmed = window.confirm(
-      `Are you sure you want to send this batch to Scribe?\n\n` +
-      `This will submit ${notes.length} card(s) for printing and mailing.\n\n` +
-      `This action cannot be undone.`
-    );
-    
-    if (!confirmed) return;
-    
-    try {
-      setApproving(true);
-      
-      const result = await base44.functions.invoke('submitBatchToScribe', {
-        mailingBatchId: batchId
-      });
-      
-      if (result.success) {
-        toast({
-          title: 'Batch Submitted to Scribe',
-          description: `Successfully created ${result.campaignsCreated} campaign(s) with ${result.totalContacts} contact(s).`,
-          duration: 5000,
-          className: 'bg-green-50 border-green-200 text-green-900'
-        });
-        loadData(); // Refresh to show new status
-      } else {
-        throw new Error(result.error || 'Unknown error');
-      }
-    } catch (error) {
-      console.error('Failed to approve batch:', error);
-      toast({
-        title: 'Submission Failed',
-        description: error.message || 'Failed to send batch to Scribe',
-        variant: 'destructive',
-        duration: 5000
-      });
-      loadData(); // Refresh to show any status changes
-    } finally {
-      setApproving(false);
-    }
-  };
-
-  const handleRejectBatch = async () => {
-    const reason = window.prompt('Reason for rejection (optional):');
-    
-    if (reason === null) return; // User clicked cancel
-    
-    try {
-      setRejecting(true);
-      
-      const creditsToRefund = batch.totalCreditsUsed || notes.length;
-      const currentUser = await base44.auth.me();
-      
-      // Create a RefundRequest instead of directly refunding
-      if (creditsToRefund > 0) {
-        await base44.entities.RefundRequest.create({
-          mailingBatchId: batchId,
-          userId: batch.userId,
-          organizationId: batch.organizationId || null,
-          creditsRequested: creditsToRefund,
-          refundTo: 'personal', // Default to personal, super admin can change when approving
-          status: 'pending',
-          rejectionReason: reason || 'No reason provided',
-          requestedBy: currentUser.id
-        });
-        
-        console.log(`Created refund request for ${creditsToRefund} credits`);
-      }
-      
-      // Update batch status to cancelled
-      await base44.entities.MailingBatch.update(batchId, {
-        status: 'cancelled',
-        processingErrors: [
-          ...(batch.processingErrors || []),
-          {
-            error: `Rejected by admin${reason ? `: ${reason}` : ''}`,
-            timestamp: new Date().toISOString(),
-            refundRequested: creditsToRefund
-          }
-        ]
-      });
-      
-      // Update all notes to cancelled
-      for (const note of notes) {
-        await base44.entities.Note.update(note.id, { status: 'cancelled' });
-      }
-      
-      toast({
-        title: 'Batch Rejected',
-        description: creditsToRefund > 0 
-          ? `Batch cancelled. Refund request for ${creditsToRefund} credits submitted for approval.`
-          : 'Batch cancelled.',
-        duration: 5000
-      });
-      
-      navigate(createPageUrl('AdminSends'));
-    } catch (error) {
-      console.error('Failed to reject batch:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to reject batch',
-        variant: 'destructive'
-      });
-    } finally {
-      setRejecting(false);
-    }
-  };
-
   // Loading state
   if (loading) {
     return (
@@ -400,9 +281,8 @@ export default function AdminSendDetails() {
     );
   }
 
-  const cardCount = notes.length || batch?.selectedClientIds?.length || 0;
+  const cardCount = batch?.selectedClientIds?.length || 0;
   const globalDesign = cardDesigns[batch?.selectedCardDesignId];
-  const isPendingReview = batch?.status === 'pending_review';
 
   return (
     <div className="space-y-6">
@@ -425,50 +305,6 @@ export default function AdminSendDetails() {
           Refresh
         </Button>
       </div>
-
-      {/* PENDING REVIEW APPROVAL BANNER */}
-      {isPendingReview && (
-        <Card className="border-2 border-amber-400 bg-amber-50">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <AlertCircle className="w-6 h-6 text-amber-600" />
-                <div>
-                  <h3 className="font-semibold text-amber-800">Pending Review</h3>
-                  <p className="text-sm text-amber-700">
-                    This batch is ready to send. Review the cards below and approve when ready.
-                  </p>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={handleRejectBatch}
-                  disabled={rejecting || approving}
-                  className="text-red-600 border-red-200 hover:bg-red-50"
-                >
-                  {rejecting ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Rejecting...</>
-                  ) : (
-                    <><XCircle className="w-4 h-4 mr-2" />Reject</>
-                  )}
-                </Button>
-                <Button 
-                  onClick={handleApproveBatch}
-                  disabled={approving || rejecting}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {approving ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending to Scribe...</>
-                  ) : (
-                    <><Send className="w-4 h-4 mr-2" />Approve & Send to Scribe</>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Batch Summary Card */}
       <Card className="border border-subtle">
@@ -501,20 +337,18 @@ export default function AdminSendDetails() {
             <div>
               <p className="text-sm text-muted-foreground mb-1">Credits Used</p>
               <p className="font-semibold text-foreground">
-                {batch?.totalCreditsUsed || cardCount} credits
+                {batch?.totalCreditsUsed || 0} credits
               </p>
             </div>
             
             {/* Processed Date */}
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Created</p>
+              <p className="text-sm text-muted-foreground mb-1">Sent</p>
               <p className="font-semibold text-foreground flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
                 {batch?.processedAt 
                   ? format(new Date(batch.processedAt), 'MMM d, yyyy h:mm a')
-                  : batch?.created_at
-                    ? format(new Date(batch.created_at), 'MMM d, yyyy h:mm a')
-                    : 'Unknown'}
+                  : 'Not processed yet'}
               </p>
             </div>
             
@@ -551,22 +385,14 @@ export default function AdminSendDetails() {
                 </div>
               </div>
             )}
-            
-            {/* Return Address Mode */}
-            <div>
-              <p className="text-sm text-muted-foreground mb-1">Return Address</p>
-              <p className="font-semibold text-foreground capitalize">
-                {batch?.returnAddressModeGlobal || 'Company'}
-              </p>
-            </div>
           </div>
           
           {/* Global Message Preview */}
           {batch?.globalMessage && (
             <div className="mt-6 pt-6 border-t border-subtle">
-              <p className="text-sm text-muted-foreground mb-2">Message Template</p>
+              <p className="text-sm text-muted-foreground mb-2">Global Message</p>
               <div className="p-4 bg-surface-1 rounded-lg">
-                <p className="text-foreground whitespace-pre-wrap text-sm font-mono">
+                <p className="text-foreground whitespace-pre-wrap text-sm">
                   {batch.globalMessage}
                 </p>
               </div>
@@ -575,7 +401,7 @@ export default function AdminSendDetails() {
         </CardContent>
       </Card>
 
-      {/* Scribe Campaigns Section - only show if campaigns exist */}
+      {/* Scribe Campaigns Section */}
       {batch?.scribeCampaigns && batch.scribeCampaigns.length > 0 && (
         <Collapsible open={campaignsExpanded} onOpenChange={setCampaignsExpanded}>
           <Card className="border border-subtle">
@@ -699,7 +525,7 @@ export default function AdminSendDetails() {
                         <div className="flex items-start justify-between">
                           <div>
                             <p className="font-medium text-red-800">
-                              {client?.fullName || (err.clientId ? `Client ${err.clientId?.slice(-8)}` : 'System Error')}
+                              {client?.fullName || `Client ${err.clientId?.slice(-8)}`}
                             </p>
                             <p className="text-sm text-red-600">{err.error}</p>
                           </div>
@@ -760,10 +586,8 @@ export default function AdminSendDetails() {
                 // Use mailing address if available, otherwise fall back to client
                 const address = mailing?.recipientAddress || (client ? {
                   name: client.fullName,
-                  street: client.street,
                   city: client.city,
-                  state: client.state,
-                  zip: client.zipCode
+                  state: client.state
                 } : null);
                 
                 return (
@@ -790,10 +614,10 @@ export default function AdminSendDetails() {
                         </div>
                         
                         {/* Recipient info */}
-                        <div className="flex-1">
+                        <div>
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold text-foreground">
-                              {address?.name || client?.fullName || 'Unknown Recipient'}
+                              {note.recipientName || address?.name || 'Unknown Recipient'}
                             </h4>
                             <Pill variant={getStatusPillVariant(note.status)} size="sm">
                               {formatStatus(note.status)}
@@ -804,16 +628,30 @@ export default function AdminSendDetails() {
                             {address && (
                               <span className="flex items-center gap-1">
                                 <MapPin className="w-3.5 h-3.5" />
-                                {address.street && `${address.street}, `}{address.city}, {address.state} {address.zip}
+                                {address.city}, {address.state}
+                              </span>
+                            )}
+                            
+                            {note.scribeCampaignId && (
+                              <span className="flex items-center gap-1">
+                                <Package className="w-3.5 h-3.5" />
+                                Campaign #{note.scribeCampaignId}
+                              </span>
+                            )}
+                            
+                            {note.sentDate && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                {format(new Date(note.sentDate), 'MMM d, h:mm a')}
                               </span>
                             )}
                           </div>
                           
                           {/* Message preview */}
                           {note.message && (
-                            <p className="text-sm text-muted-foreground mt-1 line-clamp-1 font-mono">
-                              {note.message.substring(0, 100)}
-                              {note.message.length > 100 ? '...' : ''}
+                            <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                              {note.message.substring(0, 80)}
+                              {note.message.length > 80 ? '...' : ''}
                             </p>
                           )}
                         </div>
@@ -829,48 +667,6 @@ export default function AdminSendDetails() {
           )}
         </CardContent>
       </Card>
-      
-      {/* Bottom Approval Bar for pending_review - sticky */}
-      {isPendingReview && (
-        <div className="sticky bottom-4 mt-6">
-          <Card className="border-2 border-amber-400 bg-amber-50 shadow-lg">
-            <CardContent className="py-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-amber-800">
-                  <Eye className="w-5 h-5" />
-                  <span className="font-medium">
-                    Review complete? {notes.length} card(s) ready to send.
-                  </span>
-                </div>
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={handleRejectBatch}
-                    disabled={rejecting || approving}
-                    size="sm"
-                    className="text-red-600 border-red-200 hover:bg-red-50"
-                  >
-                    <XCircle className="w-4 h-4 mr-1" />
-                    Reject
-                  </Button>
-                  <Button 
-                    onClick={handleApproveBatch}
-                    disabled={approving || rejecting}
-                    size="sm"
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    {approving ? (
-                      <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Sending...</>
-                    ) : (
-                      <><Send className="w-4 h-4 mr-1" />Approve & Send</>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }
