@@ -466,10 +466,13 @@ Deno.serve(async (req) => {
         // CREATE NOTE RECORD
         // ========================================
         const noteData = {
-          userId: user.id,
-          organizationId: batch.organizationId,
+          senderUserId: user.id,
+          orgId: batch.organizationId,
           clientId: client.id,
           mailingBatchId: batch.id,
+          
+          // Sender info (required)
+          senderName: user.full_name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
           
           // Message versions
           message: fullyResolved,           // Display/audit version
@@ -515,11 +518,14 @@ Deno.serve(async (req) => {
         // CREATE MAILING RECORD
         // ========================================
         const mailingData = {
-          userId: user.id,
-          organizationId: batch.organizationId,
+          senderUserId: user.id,
+          orgId: batch.organizationId,
           noteId: createdNote.id,
           mailingBatchId: batch.id,
           clientId: client.id,
+          
+          // Sender info (required)
+          senderName: user.full_name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
           
           // Address snapshot
           recipientName: noteData.recipientName,
