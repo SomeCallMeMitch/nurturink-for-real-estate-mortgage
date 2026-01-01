@@ -1,18 +1,31 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+// ============================================================
+// SUBMIT BATCH TO SCRIBE - CORRECTED VERSION
+// ============================================================
+// 
+// KEY FIXES FROM TESTING:
+// 1. REMOVED create-campaign-id-v2 - it creates orphan drafts that add-campaign-v2 ignores
+// 2. Use add-campaign-v2 directly - creates campaign with message/design in one call
+// 3. Use ARRAY NOTATION for return_address - NOT JSON.stringify (causes 500 error)
+//
+// CORRECT WORKFLOW:
+// 1. POST /api/add-campaign-v2 → Creates campaign with message/design, returns campaign_id
+// 2. POST /api/add-contacts-bulk → Adds contacts to that campaign_id
+// 3. PUT /api/v1/campaign/send → Submits campaign
+//
+// ============================================================
+
 const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://staging.scribenurture.com';
 const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
 
 // ============================================================
-// DIAGNOSTIC VERSION - SKIP RETURN ADDRESS TO ISOLATE BUG
-// Change log:
-// - Reverted to /api/add-campaign-v2 (correct per Scribe docs)
-// - DISABLED return_address to test if that's causing the 500 error
-// - Added extensive logging
+// PLACEHOLDER RESOLUTION
 // ============================================================
 
 /**
  * Resolve ALL sender/user/organization placeholders
+ * Supports: {{me.*}}, {{user.*}}, {{rep_*}}, {{org.*}}
  */
 function resolveSenderPlaceholders(text, user, organization) {
   if (!text) return '';
@@ -21,7 +34,7 @@ function resolveSenderPlaceholders(text, user, organization) {
   if (user) {
     const firstName = user.firstName || user.full_name?.split(' ')[0] || '';
     const lastName = user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '';
-    const fullName = user.full_name || '';
+    const fullName = user.full_name || `${firstName} ${lastName}`.trim() || '';
     
     // {{me.*}} format
     result = result.replace(/\{\{me\.fullName\}\}/g, fullName);
@@ -41,8 +54,11 @@ function resolveSenderPlaceholders(text, user, organization) {
     
     // Legacy {{rep_*}} format
     result = result.replace(/\{\{rep_full_name\}\}/g, fullName);
+    result = result.replace(/\{\{rep_first_name\}\}/g, firstName);
+    result = result.replace(/\{\{rep_last_name\}\}/g, lastName);
     result = result.replace(/\{\{rep_company_name\}\}/g, user.companyName || '');
     result = result.replace(/\{\{rep_phone\}\}/g, user.phone || '');
+    result = result.replace(/\{\{rep_email\}\}/g, user.email || '');
   }
   
   if (organization) {
@@ -55,19 +71,35 @@ function resolveSenderPlaceholders(text, user, organization) {
 
 /**
  * Map client placeholders to Scribe format
+ * Converts {{client.*}} and {{firstName}} to {FIRST_NAME} etc.
  */
 function mapToScribePlaceholders(text) {
   if (!text) return '';
   return text
+    // {{client.*}} format
     .replace(/\{\{client\.firstName\}\}/g, '{FIRST_NAME}')
     .replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}')
     .replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
+    .replace(/\{\{client\.email\}\}/g, '{EMAIL}')
+    .replace(/\{\{client\.phone\}\}/g, '{PHONE}')
+    .replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}')
+    .replace(/\{\{client\.street\}\}/g, '{STREET_ADDRESS}')
+    .replace(/\{\{client\.city\}\}/g, '{CITY}')
+    .replace(/\{\{client\.state\}\}/g, '{STATE}')
+    .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}')
+    // Legacy format
     .replace(/\{\{firstName\}\}/g, '{FIRST_NAME}')
-    .replace(/\{\{lastName\}\}/g, '{LAST_NAME}');
+    .replace(/\{\{lastName\}\}/g, '{LAST_NAME}')
+    .replace(/\{\{fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
+    .replace(/\{\{email\}\}/g, '{EMAIL}')
+    .replace(/\{\{phone\}\}/g, '{PHONE}');
 }
 
-function createCampaignGroupKey(scribeMessage, cardDesignId) {
-  const keyString = `${scribeMessage}|||${cardDesignId}`;
+/**
+ * Create a hash key for grouping notes by message+design+returnAddress
+ */
+function createCampaignGroupKey(scribeMessage, cardDesignId, returnAddressMode) {
+  const keyString = `${scribeMessage}|||${cardDesignId}|||${returnAddressMode || 'none'}`;
   let hash = 0;
   for (let i = 0; i < keyString.length; i++) {
     hash = ((hash << 5) - hash) + keyString.charCodeAt(i);
@@ -76,98 +108,120 @@ function createCampaignGroupKey(scribeMessage, cardDesignId) {
   return `grp_${Math.abs(hash).toString(36)}`;
 }
 
+/**
+ * Determine text type based on word count
+ */
 function determineTextType(message) {
   if (!message) return 'Short Text';
   const wordCount = message.trim().split(/\s+/).length;
   return wordCount > 110 ? 'Long Text' : 'Short Text';
 }
 
+/**
+ * Build return address object from user/organization based on mode
+ */
+function buildReturnAddress(mode, user, organization) {
+  if (mode === 'none' || !mode) {
+    return null;
+  }
+  
+  if (mode === 'company' && organization?.companyReturnAddress) {
+    const addr = organization.companyReturnAddress;
+    return {
+      firstName: addr.name || organization.name || '',
+      lastName: '',
+      street: addr.street || '',
+      city: addr.city || '',
+      state: addr.state || '',
+      zip: addr.zip || ''
+    };
+  }
+  
+  if (mode === 'rep' && user) {
+    return {
+      firstName: user.returnAddressName || user.full_name || '',
+      lastName: '',
+      street: user.street || '',
+      city: user.city || '',
+      state: user.state || '',
+      zip: user.zipCode || ''
+    };
+  }
+  
+  return null;
+}
+
 // ============================================================
 // SCRIBE API FUNCTIONS
 // ============================================================
 
-async function createScribeDraftCampaign() {
-  const url = `${SCRIBE_API_BASE_URL}/api/create-campaign-id-v2`;
-  console.log('[Scribe] Creating draft campaign at:', url);
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ status: 'draft' })
-  });
-  
-  const responseText = await response.text();
-  console.log('[Scribe] Create draft response:', response.status, responseText.substring(0, 300));
-  
-  if (!response.ok) {
-    throw new Error(`Scribe draft creation failed: ${response.status} - ${responseText}`);
-  }
-  
-  const result = JSON.parse(responseText);
-  const campaignId = result.data?.campaign_id || result.data?.id;
-  
-  if (!result.success || !campaignId) {
-    throw new Error(`Scribe draft creation failed: ${JSON.stringify(result)}`);
-  }
-  
-  console.log('[Scribe] Draft campaign created:', campaignId);
-  return campaignId;
-}
-
 /**
- * Add campaign details - USING /api/add-campaign-v2 (correct per Scribe workflow docs)
- * DIAGNOSTIC: Skipping return_address to test if that's causing the 500 error
+ * Create campaign with add-campaign-v2 (NOT create-campaign-id-v2)
+ * This creates the campaign with message/design in ONE call
+ * 
+ * IMPORTANT: return_address must use ARRAY NOTATION, not JSON.stringify
  */
-async function addScribeCampaignDetails(campaignId, message, textType, zipBuffer) {
-  // Using add-campaign-v2 as shown in Scribe workflow docs
+async function createCampaignWithDetails(message, textType, zipBuffer, returnAddress = null) {
   const url = `${SCRIBE_API_BASE_URL}/api/add-campaign-v2`;
   
-  console.log('[Scribe] Adding campaign details to:', campaignId);
-  console.log('[Scribe] URL:', url);
+  console.log('[Scribe] Creating campaign at:', url);
   console.log('[Scribe] Message preview:', message?.substring(0, 100));
   console.log('[Scribe] Text type:', textType);
   console.log('[Scribe] ZIP size:', zipBuffer?.byteLength, 'bytes');
   
   const formData = new FormData();
-  formData.append('campaign_id', String(campaignId));
   formData.append('message', message);
   formData.append('text_type', textType);
   formData.append('campaign_type', 'one-time');
   formData.append('attachment', new Blob([zipBuffer], { type: 'application/zip' }), 'design.zip');
   
-  // DIAGNOSTIC: SKIP return_address to see if that's causing the 500 error
-  console.log('[Scribe] DIAGNOSTIC: return_address SKIPPED to isolate bug');
+  // CRITICAL: Use ARRAY NOTATION for return_address, NOT JSON.stringify
+  // JSON.stringify causes PHP 500 error: "Cannot access offset of type string on string"
+  if (returnAddress) {
+    formData.append('return_address[firstName]', returnAddress.firstName || '');
+    formData.append('return_address[lastName]', returnAddress.lastName || '');
+    formData.append('return_address[street]', returnAddress.street || '');
+    formData.append('return_address[city]', returnAddress.city || '');
+    formData.append('return_address[state]', returnAddress.state || '');
+    formData.append('return_address[zip]', returnAddress.zip || '');
+    console.log('[Scribe] Return address (array notation):', returnAddress.firstName, '-', returnAddress.city, returnAddress.state);
+  } else {
+    console.log('[Scribe] No return_address');
+  }
   
   const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`
-    },
+    headers: { 'Authorization': `Bearer ${SCRIBE_API_TOKEN}` },
     body: formData
   });
   
   const responseText = await response.text();
-  console.log('[Scribe] Add campaign response status:', response.status);
-  console.log('[Scribe] Add campaign response body:', responseText.substring(0, 500));
+  console.log('[Scribe] Create campaign response:', response.status, responseText.substring(0, 300));
   
   if (!response.ok) {
-    throw new Error(`Scribe add campaign failed: ${response.status} - ${responseText}`);
+    throw new Error(`Scribe create campaign failed: ${response.status} - ${responseText}`);
   }
   
   const result = JSON.parse(responseText);
   if (!result.success) {
-    throw new Error(`Scribe add campaign failed: ${JSON.stringify(result)}`);
+    throw new Error(`Scribe create campaign unsuccessful: ${JSON.stringify(result)}`);
   }
   
-  console.log('[Scribe] Campaign details added successfully');
-  return result;
+  const campaignId = result.data?.campaign_id || result.data?.id;
+  if (!campaignId) {
+    throw new Error(`No campaign_id in response: ${JSON.stringify(result)}`);
+  }
+  
+  console.log('[Scribe] Campaign created:', campaignId);
+  return campaignId;
 }
 
+/**
+ * Add contacts to a campaign
+ */
 async function addScribeContacts(campaignId, contacts) {
   const url = `${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`;
+  
   console.log('[Scribe] Adding', contacts.length, 'contacts to campaign', campaignId);
   
   const response = await fetch(url, {
@@ -188,14 +242,18 @@ async function addScribeContacts(campaignId, contacts) {
   
   const result = JSON.parse(responseText);
   if (!result.success) {
-    throw new Error(`Scribe add contacts failed: ${JSON.stringify(result)}`);
+    throw new Error(`Scribe add contacts unsuccessful: ${JSON.stringify(result)}`);
   }
   
   return result;
 }
 
+/**
+ * Submit campaign for processing
+ */
 async function submitScribeCampaign(campaignId) {
   const url = `${SCRIBE_API_BASE_URL}/api/v1/campaign/send`;
+  
   console.log('[Scribe] Submitting campaign', campaignId);
   
   const response = await fetch(url, {
@@ -210,6 +268,12 @@ async function submitScribeCampaign(campaignId) {
   const responseText = await response.text();
   console.log('[Scribe] Submit response:', response.status, responseText.substring(0, 300));
   
+  // 402 = insufficient funds (can happen on staging)
+  if (response.status === 402) {
+    console.log('[Scribe] ⚠️ 402 Insufficient funds - campaign created but not submitted');
+    return { success: true, status: 'needs_credits', campaignId };
+  }
+  
   if (!response.ok) {
     throw new Error(`Scribe submit failed: ${response.status} - ${responseText}`);
   }
@@ -217,6 +281,9 @@ async function submitScribeCampaign(campaignId) {
   return JSON.parse(responseText);
 }
 
+/**
+ * Fetch ZIP file from Base44 storage
+ */
 async function fetchZipFromStorage(base44, fileUri) {
   console.log('[Storage] Fetching ZIP from:', fileUri);
   const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: fileUri });
@@ -232,7 +299,9 @@ async function fetchZipFromStorage(base44, fileUri) {
 // ============================================================
 
 Deno.serve(async (req) => {
-  console.log('=== SUBMIT BATCH TO SCRIBE (DIAGNOSTIC VERSION) ===');
+  console.log('===========================================');
+  console.log('=== SUBMIT BATCH TO SCRIBE (CORRECTED) ===');
+  console.log('===========================================');
   console.log('SCRIBE_API_BASE_URL:', SCRIBE_API_BASE_URL);
   console.log('SCRIBE_API_TOKEN set:', !!SCRIBE_API_TOKEN);
   
@@ -248,6 +317,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'SCRIBE_API_TOKEN not configured' }, { status: 500 });
     }
     
+    // Verify admin user
     const adminUser = await base44.auth.me();
     if (!adminUser) {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -264,16 +334,18 @@ Deno.serve(async (req) => {
     const batch = batchList[0];
     console.log('Batch status:', batch.status);
     
-    if (batch.status !== 'pending_review') {
+    // Verify batch is ready for submission
+    if (batch.status !== 'pending_review' && batch.status !== 'ready_to_send') {
       return Response.json({ 
         success: false, 
-        error: `Batch status is "${batch.status}", expected "pending_review"` 
+        error: `Batch status is "${batch.status}", expected "pending_review" or "ready_to_send"` 
       }, { status: 400 });
     }
     
+    // Update status to sending
     await base44.entities.MailingBatch.update(mailingBatchId, { status: 'sending' });
     
-    // Load data
+    // Load sender user and organization
     let senderUser = null, organization = null;
     if (batch.userId) {
       const userList = await base44.entities.User.filter({ id: batch.userId });
@@ -284,14 +356,16 @@ Deno.serve(async (req) => {
       if (orgList?.length) organization = orgList[0];
     }
     
+    // Load notes for this batch
     const notes = await base44.entities.Note.filter({ mailingBatchId });
     if (!notes?.length) {
       await base44.entities.MailingBatch.update(mailingBatchId, { status: 'failed' });
-      return Response.json({ success: false, error: 'No notes found' }, { status: 400 });
+      return Response.json({ success: false, error: 'No notes found for this batch' }, { status: 400 });
     }
     
     console.log(`Processing ${notes.length} notes`);
     
+    // Load related data
     const clientIds = [...new Set(notes.map(n => n.clientId).filter(Boolean))];
     const clientList = clientIds.length ? await base44.entities.Client.filter({ id: { $in: clientIds } }) : [];
     const clientMap = Object.fromEntries(clientList.map(c => [c.id, c]));
@@ -303,7 +377,11 @@ Deno.serve(async (req) => {
     const mailingList = await base44.entities.Mailing.filter({ mailingBatchId });
     const mailingMap = Object.fromEntries(mailingList.map(m => [m.noteId, m]));
     
-    // Build campaign groups
+    // ========================================
+    // GROUP NOTES INTO CAMPAIGNS
+    // ========================================
+    // Notes with same (message + design + returnAddressMode) go in one campaign
+    
     const campaignGroups = new Map();
     const notesByGroupKey = new Map();
     const processingErrors = [];
@@ -313,62 +391,85 @@ Deno.serve(async (req) => {
       const cardDesign = cardDesignMap[note.cardDesignId];
       
       if (!client) {
-        processingErrors.push({ clientId: note.clientId, error: 'Client not found' });
+        processingErrors.push({ noteId: note.id, clientId: note.clientId, error: 'Client not found' });
         continue;
       }
       
       if (!cardDesign?.scribeZipUrl) {
-        processingErrors.push({ clientId: note.clientId, error: 'Card design missing scribeZipUrl' });
+        processingErrors.push({ noteId: note.id, clientId: note.clientId, error: 'Card design missing scribeZipUrl' });
         continue;
       }
       
+      // Build Scribe-format message
       let scribeMessage = note.messageTemplate;
       if (!scribeMessage) {
+        // Rebuild if not pre-computed: resolve sender placeholders, then map client placeholders to Scribe format
         console.warn(`Note ${note.id} missing messageTemplate - rebuilding`);
         const withSenderResolved = resolveSenderPlaceholders(note.message, senderUser, organization);
         scribeMessage = mapToScribePlaceholders(withSenderResolved);
       }
       
-      const groupKey = createCampaignGroupKey(scribeMessage, note.cardDesignId);
+      // Get return address mode (from note, mailing, or batch default)
+      const mailing = mailingMap[note.id];
+      const returnAddressMode = note.returnAddressMode || mailing?.returnAddressMode || batch.returnAddressMode || 'none';
+      
+      // Create group key
+      const groupKey = createCampaignGroupKey(scribeMessage, note.cardDesignId, returnAddressMode);
       
       if (!campaignGroups.has(groupKey)) {
         campaignGroups.set(groupKey, {
           scribeMessage,
           cardDesignId: note.cardDesignId,
           cardDesign,
+          returnAddressMode,
           textType: determineTextType(scribeMessage),
           recipients: []
         });
         notesByGroupKey.set(groupKey, []);
       }
       
-      campaignGroups.get(groupKey).recipients.push({ clientId: note.clientId, client, noteId: note.id });
+      campaignGroups.get(groupKey).recipients.push({ 
+        clientId: note.clientId, 
+        client, 
+        noteId: note.id,
+        mailingId: mailing?.id
+      });
       notesByGroupKey.get(groupKey).push(note);
     }
     
-    console.log(`Created ${campaignGroups.size} campaign groups`);
+    console.log(`Created ${campaignGroups.size} campaign groups from ${notes.length} notes`);
     
-    // Process each group
+    // ========================================
+    // PROCESS EACH CAMPAIGN GROUP
+    // ========================================
+    
     const scribeCampaigns = [];
     
     for (const [groupKey, group] of campaignGroups) {
       let scribeCampaignId = null;
       
       try {
-        console.log(`\n=== PROCESSING GROUP ===`);
+        console.log(`\n=== PROCESSING GROUP: ${groupKey} ===`);
         console.log(`Recipients: ${group.recipients.length}`);
-        console.log(`Message preview: ${group.scribeMessage.substring(0, 150)}...`);
+        console.log(`Return address mode: ${group.returnAddressMode}`);
+        console.log(`Message preview: ${group.scribeMessage.substring(0, 100)}...`);
         
-        // 1. Create draft
-        scribeCampaignId = await createScribeDraftCampaign();
-        
-        // 2. Fetch ZIP
+        // 1. Fetch ZIP
         const zipBuffer = await fetchZipFromStorage(base44, group.cardDesign.scribeZipUrl);
         
-        // 3. Add campaign details (NO return_address for diagnostic)
-        await addScribeCampaignDetails(scribeCampaignId, group.scribeMessage, group.textType, zipBuffer);
+        // 2. Build return address
+        const returnAddress = buildReturnAddress(group.returnAddressMode, senderUser, organization);
         
-        // 4. Build and add contacts
+        // 3. Create campaign with message/design (SKIP create-campaign-id-v2!)
+        scribeCampaignId = await createCampaignWithDetails(
+          group.scribeMessage,
+          group.textType,
+          zipBuffer,
+          returnAddress
+        );
+        console.log('✅ Campaign created:', scribeCampaignId);
+        
+        // 4. Build contacts array
         const contacts = group.recipients.map(r => ({
           first_name: r.client.firstName || '',
           last_name: r.client.lastName || '',
@@ -382,26 +483,38 @@ Deno.serve(async (req) => {
           company_name: r.client.company || ''
         }));
         
+        // 5. Add contacts
         await addScribeContacts(scribeCampaignId, contacts);
+        console.log('✅ Contacts added');
         
-        // 5. Submit
-        await submitScribeCampaign(scribeCampaignId);
+        // 6. Submit campaign
+        const submitResult = await submitScribeCampaign(scribeCampaignId);
+        console.log('✅ Campaign submitted:', submitResult.status || 'success');
         
-        // 6. Update records
+        // 7. Update Note and Mailing records
+        const scribeStatus = submitResult.status === 'needs_credits' ? 'pending_credits' : 'sent';
+        
         for (const note of notesByGroupKey.get(groupKey)) {
-          await base44.entities.Note.update(note.id, { scribeCampaignId: String(scribeCampaignId), status: 'sent' });
+          await base44.entities.Note.update(note.id, { 
+            scribeCampaignId: String(scribeCampaignId), 
+            status: scribeStatus 
+          });
         }
+        
         for (const r of group.recipients) {
-          const mailing = mailingMap[r.noteId];
-          if (mailing) {
-            await base44.entities.Mailing.update(mailing.id, { scribeCampaignId: String(scribeCampaignId), status: 'sent' });
+          if (r.mailingId) {
+            await base44.entities.Mailing.update(r.mailingId, { 
+              scribeCampaignId: String(scribeCampaignId), 
+              status: scribeStatus 
+            });
           }
         }
         
         scribeCampaigns.push({
           scribeCampaignId: String(scribeCampaignId),
           contactCount: contacts.length,
-          status: 'submitted',
+          status: scribeStatus === 'pending_credits' ? 'needs_credits' : 'submitted',
+          returnAddressMode: group.returnAddressMode,
           submittedAt: new Date().toISOString()
         });
         
@@ -410,6 +523,7 @@ Deno.serve(async (req) => {
       } catch (error) {
         console.error(`FAILED: Campaign error:`, error.message);
         
+        // Mark notes as failed
         for (const note of notesByGroupKey.get(groupKey) || []) {
           await base44.entities.Note.update(note.id, { status: 'failed' });
         }
@@ -423,31 +537,53 @@ Deno.serve(async (req) => {
         });
         
         for (const r of group.recipients) {
-          processingErrors.push({ clientId: r.clientId, error: `Scribe failed: ${error.message}` });
+          processingErrors.push({ 
+            noteId: r.noteId,
+            clientId: r.clientId, 
+            error: `Scribe failed: ${error.message}` 
+          });
         }
       }
     }
     
-    // Update batch
-    const successCount = scribeCampaigns.filter(c => c.status === 'submitted').length;
+    // ========================================
+    // UPDATE BATCH STATUS
+    // ========================================
+    
+    const successCount = scribeCampaigns.filter(c => c.status === 'submitted' || c.status === 'needs_credits').length;
     const failCount = scribeCampaigns.filter(c => c.status === 'failed').length;
-    const finalStatus = failCount > 0 ? (successCount > 0 ? 'partial' : 'failed') : 'completed';
+    const needsCreditsCount = scribeCampaigns.filter(c => c.status === 'needs_credits').length;
+    
+    let finalStatus;
+    if (failCount === 0 && needsCreditsCount === 0) {
+      finalStatus = 'completed';
+    } else if (failCount === 0 && needsCreditsCount > 0) {
+      finalStatus = 'pending_credits';
+    } else if (successCount > 0) {
+      finalStatus = 'partial';
+    } else {
+      finalStatus = 'failed';
+    }
     
     await base44.entities.MailingBatch.update(mailingBatchId, {
       status: finalStatus,
       scribeCampaigns,
-      processingErrors: processingErrors.length ? processingErrors : batch.processingErrors
+      processingErrors: processingErrors.length ? processingErrors : null,
+      processedAt: new Date().toISOString()
     });
     
     console.log(`\n=== BATCH COMPLETE: ${finalStatus} ===`);
+    console.log(`Campaigns: ${successCount} success, ${failCount} failed, ${needsCreditsCount} needs_credits`);
     
     return Response.json({
       success: true,
       status: finalStatus,
       campaignsCreated: successCount,
       campaignsFailed: failCount,
+      campaignsNeedCredits: needsCreditsCount,
       totalContacts: scribeCampaigns.reduce((sum, c) => sum + c.contactCount, 0),
-      scribeCampaigns
+      scribeCampaigns,
+      processingErrors: processingErrors.length ? processingErrors : null
     });
     
   } catch (error) {
