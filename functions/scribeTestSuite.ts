@@ -1,8 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // ============================================================
-// SCRIBE API TEST SUITE
+// SCRIBE API TEST SUITE v2
 // ============================================================
+// Updated with correct return_address format (array notation)
 // Run different test scenarios to verify API behavior:
 //
 // TEST 1: Single recipient + return address
@@ -73,9 +74,16 @@ async function createCampaign(message, textType, zipBuffer, returnAddress = null
   formData.append('campaign_type', 'one-time');
   formData.append('attachment', new Blob([zipBuffer], { type: 'application/zip' }), 'design.zip');
   
+  // CORRECT FORMAT: Array notation for return_address
+  // NOT JSON.stringify - that causes 500 errors!
   if (returnAddress) {
-    formData.append('return_address', JSON.stringify(returnAddress));
-    console.log('[API] Including return_address:', JSON.stringify(returnAddress));
+    formData.append('return_address[firstName]', returnAddress.firstName || '');
+    formData.append('return_address[lastName]', returnAddress.lastName || '');
+    formData.append('return_address[street]', returnAddress.street || '');
+    formData.append('return_address[city]', returnAddress.city || '');
+    formData.append('return_address[state]', returnAddress.state || '');
+    formData.append('return_address[zip]', returnAddress.zip || '');
+    console.log('[API] Return address (array notation):', returnAddress.firstName, '-', returnAddress.city, returnAddress.state, returnAddress.zip);
   } else {
     console.log('[API] No return_address');
   }
@@ -290,19 +298,27 @@ async function runTest3(base44, zipBuffer) {
 
 async function runTest4(base44, zipBuffer) {
   console.log('\n========================================');
-  console.log('TEST 4: Return address edge cases');
+  console.log('TEST 4: Return address with special characters');
   console.log('========================================');
-  console.log('Purpose: Test return addresses with special characters');
+  console.log("Purpose: Test Tom's Roofing & Sons, O'Brien Way");
   
-  // Test with special characters (apostrophes, accents, ampersand)
-  console.log('\n--- Testing special characters in return address ---');
-  console.log('Return address:', JSON.stringify(TEST_RETURN_ADDRESSES.withSpecialChars));
+  // Special chars test
+  const specialAddress = {
+    firstName: "Tom's Roofing & Sons",
+    lastName: '',
+    street: "456 O'Brien Way",
+    city: 'San Jose',
+    state: 'CA',
+    zip: '95101'
+  };
+  
+  console.log('Return address:', JSON.stringify(specialAddress));
   
   const campaignId = await createCampaign(
     TEST_MESSAGES.short,
     'Short Text',
     zipBuffer,
-    TEST_RETURN_ADDRESSES.withSpecialChars  // Has apostrophe, ampersand, accented char
+    specialAddress
   );
   console.log('✅ Campaign created with special chars:', campaignId);
   
@@ -316,8 +332,57 @@ async function runTest4(base44, zipBuffer) {
     test: 4, 
     success: true, 
     campaignId,
-    description: 'Return address with special characters (apostrophe, ampersand, accent)',
-    returnAddressUsed: TEST_RETURN_ADDRESSES.withSpecialChars
+    description: "Return address with special characters (apostrophe, ampersand)",
+    returnAddressUsed: specialAddress
+  };
+}
+
+async function runTest5(base44, zipBuffer) {
+  console.log('\n========================================');
+  console.log('TEST 5: Long message (Long Text type)');
+  console.log('========================================');
+  console.log('Purpose: Verify Long Text type works');
+  
+  // Long message - over 110 words
+  const longMessage = `Dear {FIRST_NAME},
+
+Thank you for choosing our company for your roofing needs. We truly appreciate the trust you have placed in us, and we are committed to delivering the highest quality workmanship.
+
+Our team worked diligently to ensure that every aspect of your roof installation meets our rigorous standards. From the initial inspection to the final cleanup, we aimed to exceed your expectations at every step.
+
+We understand that a new roof is a significant investment in your home. That is why we use only premium materials and employ skilled craftsmen who take pride in their work. Your satisfaction is our top priority.
+
+If you have any questions or concerns about your new roof, please do not hesitate to reach out. We also offer maintenance services to help extend the life of your roof.
+
+Thank you again for your business. We hope you will recommend us to friends and family who may need roofing services.
+
+Warm regards,
+The Roofing Team`;
+
+  const wordCount = longMessage.split(/\s+/).length;
+  console.log('Message word count:', wordCount);
+  
+  const campaignId = await createCampaign(
+    longMessage,
+    'Long Text',  // Using Long Text for messages over 110 words
+    zipBuffer,
+    TEST_RETURN_ADDRESSES.simple
+  );
+  console.log('✅ Campaign created:', campaignId);
+  
+  await addContacts(campaignId, [TEST_CONTACTS[0]]);
+  console.log('✅ Contact added');
+  
+  const submitResult = await submitCampaign(campaignId);
+  console.log('✅ Submit attempted');
+  
+  return { 
+    test: 5, 
+    success: true, 
+    campaignId,
+    description: 'Long message with Long Text type',
+    wordCount,
+    textType: 'Long Text'
   };
 }
 
@@ -397,6 +462,9 @@ Deno.serve(async (req) => {
       case 4:
         result = await runTest4(base44, zipBuffer);
         break;
+      case 5:
+        result = await runTest5(base44, zipBuffer);
+        break;
       case 'custom':
         result = await runTestCustom(base44, zipBuffer, body);
         break;
@@ -404,7 +472,14 @@ Deno.serve(async (req) => {
         return Response.json({ 
           success: false, 
           error: `Unknown test: ${testNumber}`,
-          availableTests: [1, 2, 3, 4, 'custom']
+          availableTests: {
+            1: 'Single recipient + return address',
+            2: 'Multiple recipients (3), same message',
+            3: 'Two separate campaigns (different messages)',
+            4: 'Return address with special characters',
+            5: 'Long message (Long Text type)',
+            custom: 'Custom test with your parameters'
+          }
         }, { status: 400 });
     }
     
@@ -434,12 +509,12 @@ Deno.serve(async (req) => {
 function getErrorHint(errorMessage) {
   if (errorMessage.includes('500')) {
     if (errorMessage.includes('Cannot access offset')) {
-      return 'This is usually caused by malformed return_address. Try without return_address or check the format.';
+      return 'This usually means return_address format is wrong. Should use array notation: return_address[firstName], not JSON.stringify.';
     }
     return 'Server error on Scribe side. Check if the ZIP file is valid (1375x2000 px images).';
   }
   if (errorMessage.includes('402')) {
-    return 'Insufficient credits on Scribe staging account. Contact Scribe to add test credits.';
+    return 'Insufficient credits on Scribe staging account. This means the API call WORKED! Contact Scribe to add test credits.';
   }
   if (errorMessage.includes('422')) {
     if (errorMessage.includes('message')) {
