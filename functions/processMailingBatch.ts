@@ -1,22 +1,32 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // ============================================================
-// CONFIGURATION
+// PROCESS MAILING BATCH - CORRECTED VERSION
 // ============================================================
-const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://scribenurture.com';
-const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
+//
+// This function runs when the user clicks "Send" on ReviewAndSend page.
+// It creates Note and Mailing records for each recipient.
+//
+// KEY FIX: Properly compose the full message with:
+//   1. Greeting (from NoteStyleProfile.defaultGreeting)
+//   2. Body (from batch.globalMessage or contentOverrides)
+//   3. Signature (from NoteStyleProfile.signatureText)
+//
+// Creates TWO message versions per note:
+//   - note.message = Fully resolved for display/audit (actual names)
+//   - note.messageTemplate = Scribe format with {FIRST_NAME} etc.
+//
+// ============================================================
+
 const REQUIRE_ADMIN_APPROVAL = Deno.env.get('REQUIRE_ADMIN_APPROVAL') === 'true';
 
 // ============================================================
-// PLACEHOLDER HELPER FUNCTIONS
+// PLACEHOLDER UTILITIES
 // ============================================================
 
 /**
- * Resolve ONLY sender/user/organization placeholders - leave client placeholders intact
- * Supports multiple syntax formats:
- * - NEW: {{me.fullName}}, {{org.name}}
- * - LEGACY: {{rep_full_name}}, {{rep_company_name}}
- * - ALTERNATE: {{user.fullName}}, {{user.companyName}} (from UI signature templates)
+ * Resolve sender/user/organization placeholders to actual values
+ * Supports: {{me.*}}, {{user.*}}, {{rep_*}}, {{org.*}}
  */
 function resolveSenderPlaceholders(text, user, organization) {
   if (!text) return '';
@@ -25,108 +35,86 @@ function resolveSenderPlaceholders(text, user, organization) {
   if (user) {
     const firstName = user.firstName || user.full_name?.split(' ')[0] || '';
     const lastName = user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '';
-    const fullName = user.full_name || '';
-    const email = user.email || '';
-    const phone = user.phone || '';
-    const title = user.title || '';
-    const companyName = user.companyName || '';
+    const fullName = user.full_name || `${firstName} ${lastName}`.trim() || '';
+    const companyName = user.companyName || organization?.name || '';
     
-    // NEW SYNTAX: {{me.*}}
+    // {{me.*}} format
     result = result.replace(/\{\{me\.fullName\}\}/g, fullName);
     result = result.replace(/\{\{me\.firstName\}\}/g, firstName);
     result = result.replace(/\{\{me\.lastName\}\}/g, lastName);
-    result = result.replace(/\{\{me\.email\}\}/g, email);
-    result = result.replace(/\{\{me\.phone\}\}/g, phone);
-    result = result.replace(/\{\{me\.title\}\}/g, title);
+    result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
+    result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
     result = result.replace(/\{\{me\.companyName\}\}/g, companyName);
     
-    // ALTERNATE SYNTAX: {{user.*}} (used by UI/signature templates)
+    // {{user.*}} format (from signatures)
     result = result.replace(/\{\{user\.fullName\}\}/g, fullName);
     result = result.replace(/\{\{user\.firstName\}\}/g, firstName);
     result = result.replace(/\{\{user\.lastName\}\}/g, lastName);
-    result = result.replace(/\{\{user\.email\}\}/g, email);
-    result = result.replace(/\{\{user\.phone\}\}/g, phone);
-    result = result.replace(/\{\{user\.title\}\}/g, title);
+    result = result.replace(/\{\{user\.email\}\}/g, user.email || '');
+    result = result.replace(/\{\{user\.phone\}\}/g, user.phone || '');
     result = result.replace(/\{\{user\.companyName\}\}/g, companyName);
     
-    // LEGACY SYNTAX: {{rep_*}}
+    // Legacy {{rep_*}} format
     result = result.replace(/\{\{rep_full_name\}\}/g, fullName);
     result = result.replace(/\{\{rep_first_name\}\}/g, firstName);
     result = result.replace(/\{\{rep_last_name\}\}/g, lastName);
     result = result.replace(/\{\{rep_company_name\}\}/g, companyName);
-    result = result.replace(/\{\{rep_phone\}\}/g, phone);
-    result = result.replace(/\{\{rep_email\}\}/g, email);
+    result = result.replace(/\{\{rep_phone\}\}/g, user.phone || '');
+    result = result.replace(/\{\{rep_email\}\}/g, user.email || '');
   }
   
   if (organization) {
-    const orgName = organization.name || '';
-    const orgPhone = organization.phone || '';
-    const orgEmail = organization.email || '';
-    const orgWebsite = organization.website || '';
-    
-    // NEW SYNTAX: {{org.*}}
-    result = result.replace(/\{\{org\.name\}\}/g, orgName);
-    result = result.replace(/\{\{org\.phone\}\}/g, orgPhone);
-    result = result.replace(/\{\{org\.email\}\}/g, orgEmail);
-    result = result.replace(/\{\{org\.website\}\}/g, orgWebsite);
+    result = result.replace(/\{\{org\.name\}\}/g, organization.name || '');
+    result = result.replace(/\{\{org\.phone\}\}/g, organization.phone || '');
+    result = result.replace(/\{\{org\.email\}\}/g, organization.email || '');
   }
   
   return result;
 }
 
 /**
- * Resolve ALL placeholders - for display/audit message
- * Supports all syntax formats for both client and sender
+ * Resolve client placeholders to actual values (for display/audit version)
+ * Supports: {{client.*}}, {{firstName}}, etc.
  */
-function resolveAllPlaceholders(text, client, user, organization) {
-  if (!text) return '';
+function resolveClientPlaceholders(text, client) {
+  if (!text || !client) return text || '';
+  let result = text;
   
-  // First resolve sender/org placeholders
-  let result = resolveSenderPlaceholders(text, user, organization);
+  const firstName = client.firstName || '';
+  const lastName = client.lastName || '';
+  const fullName = client.fullName || `${firstName} ${lastName}`.trim() || '';
   
-  // Then resolve client placeholders (both new and legacy syntax)
-  if (client) {
-    const firstName = client.firstName || '';
-    const lastName = client.lastName || '';
-    const fullName = client.fullName || `${firstName} ${lastName}`.trim();
-    const initials = ((firstName?.[0] || '') + (lastName?.[0] || '')).toUpperCase();
-    
-    // NEW SYNTAX: {{client.*}}
-    result = result.replace(/\{\{client\.firstName\}\}/g, firstName);
-    result = result.replace(/\{\{client\.lastName\}\}/g, lastName);
-    result = result.replace(/\{\{client\.fullName\}\}/g, fullName);
-    result = result.replace(/\{\{client\.initials\}\}/g, initials);
-    result = result.replace(/\{\{client\.email\}\}/g, client.email || '');
-    result = result.replace(/\{\{client\.phone\}\}/g, client.phone || '');
-    result = result.replace(/\{\{client\.street\}\}/g, client.street || '');
-    result = result.replace(/\{\{client\.city\}\}/g, client.city || '');
-    result = result.replace(/\{\{client\.state\}\}/g, client.state || '');
-    result = result.replace(/\{\{client\.zipCode\}\}/g, client.zipCode || '');
-    result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
-    
-    // LEGACY SYNTAX: {{field}}
-    result = result.replace(/\{\{firstName\}\}/g, firstName);
-    result = result.replace(/\{\{lastName\}\}/g, lastName);
-    result = result.replace(/\{\{fullName\}\}/g, fullName);
-    result = result.replace(/\{\{company\}\}/g, client.company || '');
-    result = result.replace(/\{\{address1\}\}/g, client.street || '');
-    result = result.replace(/\{\{city\}\}/g, client.city || '');
-    result = result.replace(/\{\{state\}\}/g, client.state || '');
-    result = result.replace(/\{\{zip\}\}/g, client.zipCode || '');
-  }
+  // {{client.*}} format
+  result = result.replace(/\{\{client\.firstName\}\}/g, firstName);
+  result = result.replace(/\{\{client\.lastName\}\}/g, lastName);
+  result = result.replace(/\{\{client\.fullName\}\}/g, fullName);
+  result = result.replace(/\{\{client\.email\}\}/g, client.email || '');
+  result = result.replace(/\{\{client\.phone\}\}/g, client.phone || '');
+  result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
+  result = result.replace(/\{\{client\.street\}\}/g, client.street || '');
+  result = result.replace(/\{\{client\.city\}\}/g, client.city || '');
+  result = result.replace(/\{\{client\.state\}\}/g, client.state || '');
+  result = result.replace(/\{\{client\.zipCode\}\}/g, client.zipCode || '');
+  
+  // Legacy format
+  result = result.replace(/\{\{firstName\}\}/g, firstName);
+  result = result.replace(/\{\{lastName\}\}/g, lastName);
+  result = result.replace(/\{\{fullName\}\}/g, fullName);
+  result = result.replace(/\{\{email\}\}/g, client.email || '');
+  result = result.replace(/\{\{phone\}\}/g, client.phone || '');
+  result = result.replace(/\{\{company\}\}/g, client.company || '');
   
   return result;
 }
 
 /**
- * Map RoofScribe client placeholders to Scribe format
- * Supports both new and legacy syntax
- * {{client.firstName}} OR {{firstName}} -> {FIRST_NAME}
+ * Convert client placeholders to Scribe format
+ * {{client.firstName}} → {FIRST_NAME}
  */
 function mapToScribePlaceholders(text) {
   if (!text) return '';
   return text
-    // NEW SYNTAX: {{client.*}}
+    // {{client.*}} format
     .replace(/\{\{client\.firstName\}\}/g, '{FIRST_NAME}')
     .replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}')
     .replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
@@ -134,31 +122,61 @@ function mapToScribePlaceholders(text) {
     .replace(/\{\{client\.phone\}\}/g, '{PHONE}')
     .replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}')
     .replace(/\{\{client\.street\}\}/g, '{STREET_ADDRESS}')
-    .replace(/\{\{client\.address2\}\}/g, '{ADDRESS_2}')
     .replace(/\{\{client\.city\}\}/g, '{CITY}')
     .replace(/\{\{client\.state\}\}/g, '{STATE}')
     .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}')
-    // LEGACY SYNTAX: {{field}}
+    // Legacy format
     .replace(/\{\{firstName\}\}/g, '{FIRST_NAME}')
     .replace(/\{\{lastName\}\}/g, '{LAST_NAME}')
     .replace(/\{\{fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
-    .replace(/\{\{company\}\}/g, '{COMPANY_NAME}')
-    .replace(/\{\{address1\}\}/g, '{STREET_ADDRESS}')
-    .replace(/\{\{city\}\}/g, '{CITY}')
-    .replace(/\{\{state\}\}/g, '{STATE}')
-    .replace(/\{\{zip\}\}/g, '{ZIP}');
+    .replace(/\{\{email\}\}/g, '{EMAIL}')
+    .replace(/\{\{phone\}\}/g, '{PHONE}')
+    .replace(/\{\{company\}\}/g, '{COMPANY_NAME}');
 }
 
 /**
- * Resolve return address based on mode
+ * Compose full message with greeting + body + signature
  */
-function resolveReturnAddress(mode, user, organization) {
-  if (mode === 'none') return null;
+function composeFullMessage(greeting, body, signature, includeGreeting, includeSignature) {
+  const parts = [];
   
-  if (mode === 'company' && organization?.companyReturnAddress?.street) {
+  if (includeGreeting && greeting) {
+    parts.push(greeting);
+  }
+  
+  if (body) {
+    parts.push(body);
+  }
+  
+  if (includeSignature && signature) {
+    parts.push(signature);
+  }
+  
+  return parts.join('\n\n');
+}
+
+/**
+ * Determine text type based on word count
+ */
+function determineTextType(message) {
+  if (!message) return 'Short Text';
+  const wordCount = message.trim().split(/\s+/).length;
+  return wordCount > 110 ? 'Long Text' : 'Short Text';
+}
+
+/**
+ * Build return address object based on mode
+ */
+function buildReturnAddress(mode, user, organization) {
+  if (mode === 'none' || !mode) {
+    return null;
+  }
+  
+  if (mode === 'company' && organization?.companyReturnAddress) {
     const addr = organization.companyReturnAddress;
     return {
-      name: addr.companyName || organization.name || '',
+      mode: 'company',
+      name: addr.name || organization.name || '',
       street: addr.street || '',
       city: addr.city || '',
       state: addr.state || '',
@@ -166,8 +184,9 @@ function resolveReturnAddress(mode, user, organization) {
     };
   }
   
-  if (mode === 'rep' && user?.street) {
+  if (mode === 'rep' && user) {
     return {
+      mode: 'rep',
       name: user.returnAddressName || user.full_name || '',
       street: user.street || '',
       city: user.city || '',
@@ -180,352 +199,392 @@ function resolveReturnAddress(mode, user, organization) {
 }
 
 // ============================================================
+// CREDIT HANDLING
+// ============================================================
+
+async function deductCredits(base44, user, organization, creditsNeeded) {
+  console.log(`[Credits] Deducting ${creditsNeeded} credits`);
+  
+  // Calculate available credits
+  const personalPurchased = user.personalPurchasedCredits || 0;
+  const companyAllocated = user.companyAllocatedCredits || 0;
+  const hasPoolAccess = user.hasCompanyPoolAccess || false;
+  const poolCredits = hasPoolAccess ? (organization?.creditBalance || 0) : 0;
+  
+  const totalAvailable = personalPurchased + companyAllocated + poolCredits;
+  
+  console.log(`[Credits] Available: personal=${personalPurchased}, allocated=${companyAllocated}, pool=${poolCredits}, total=${totalAvailable}`);
+  
+  if (totalAvailable < creditsNeeded) {
+    throw new Error(`Insufficient credits. Need ${creditsNeeded}, have ${totalAvailable}`);
+  }
+  
+  let remaining = creditsNeeded;
+  let deductFromPersonal = 0;
+  let deductFromAllocated = 0;
+  let deductFromPool = 0;
+  
+  // Deduct from allocated first
+  if (remaining > 0 && companyAllocated > 0) {
+    deductFromAllocated = Math.min(remaining, companyAllocated);
+    remaining -= deductFromAllocated;
+  }
+  
+  // Then from personal
+  if (remaining > 0 && personalPurchased > 0) {
+    deductFromPersonal = Math.min(remaining, personalPurchased);
+    remaining -= deductFromPersonal;
+  }
+  
+  // Finally from pool
+  if (remaining > 0 && poolCredits > 0) {
+    deductFromPool = Math.min(remaining, poolCredits);
+    remaining -= deductFromPool;
+  }
+  
+  console.log(`[Credits] Deducting: allocated=${deductFromAllocated}, personal=${deductFromPersonal}, pool=${deductFromPool}`);
+  
+  // Update user credits
+  if (deductFromAllocated > 0 || deductFromPersonal > 0) {
+    await base44.entities.User.update(user.id, {
+      companyAllocatedCredits: companyAllocated - deductFromAllocated,
+      personalPurchasedCredits: personalPurchased - deductFromPersonal
+    });
+  }
+  
+  // Update organization pool
+  if (deductFromPool > 0 && organization) {
+    await base44.entities.Organization.update(organization.id, {
+      creditBalance: (organization.creditBalance || 0) - deductFromPool
+    });
+  }
+  
+  return {
+    deductedFromAllocated: deductFromAllocated,
+    deductedFromPersonal: deductFromPersonal,
+    deductedFromPool: deductFromPool,
+    totalDeducted: creditsNeeded
+  };
+}
+
+// ============================================================
 // MAIN HANDLER
 // ============================================================
 
 Deno.serve(async (req) => {
-  console.log('=== PROCESS MAILING BATCH ===');
+  console.log('===========================================');
+  console.log('=== PROCESS MAILING BATCH (CORRECTED) ===');
+  console.log('===========================================');
   console.log('REQUIRE_ADMIN_APPROVAL:', REQUIRE_ADMIN_APPROVAL);
   
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
     const { mailingBatchId } = await req.json();
     
     if (!mailingBatchId) {
-      return Response.json({ error: 'mailingBatchId is required' }, { status: 400 });
+      return Response.json({ success: false, error: 'mailingBatchId is required' }, { status: 400 });
     }
     
-    // Load mailing batch
-    const batches = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
-    if (!batches?.length) {
-      return Response.json({ error: 'Mailing batch not found' }, { status: 404 });
+    // Get current user
+    const currentUser = await base44.auth.me();
+    if (!currentUser) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
     
-    const batch = batches[0];
+    console.log(`User ${currentUser.email} processing batch ${mailingBatchId}`);
     
-    // Verify ownership
-    if (batch.userId !== user.id && batch.organizationId !== user.orgId) {
-      return Response.json({ error: 'Unauthorized to process this batch' }, { status: 403 });
+    // ========================================
+    // LOAD BATCH AND RELATED DATA
+    // ========================================
+    
+    const batchList = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
+    if (!batchList?.length) {
+      return Response.json({ success: false, error: 'Batch not found' }, { status: 404 });
     }
     
-    // Validate batch data
-    if (!batch.selectedClientIds?.length) {
-      return Response.json({ error: 'No clients selected in batch' }, { status: 400 });
+    const batch = batchList[0];
+    console.log('Batch loaded:', batch.id, 'status:', batch.status);
+    
+    // Verify batch belongs to this user
+    if (batch.userId !== currentUser.id) {
+      return Response.json({ success: false, error: 'Not authorized to process this batch' }, { status: 403 });
     }
     
-    if (!batch.selectedCardDesignId) {
-      return Response.json({ error: 'No card design selected' }, { status: 400 });
-    }
-    
-    // ============================================================
-    // CREDIT VALIDATION & CALCULATION
-    // ============================================================
-    
-    const creditsNeeded = batch.selectedClientIds.length;
-    const companyAllocatedCredits = user.companyAllocatedCredits || 0;
-    const personalPurchasedCredits = user.personalPurchasedCredits || 0;
-    const canAccessCompanyPool = user.canAccessCompanyPool !== false;
-    
-    let companyPoolCredits = 0;
-    let organization = null;
-    
-    if (user.orgId) {
-      const orgs = await base44.asServiceRole.entities.Organization.filter({ id: user.orgId });
-      if (orgs?.length) {
-        organization = orgs[0];
-        companyPoolCredits = canAccessCompanyPool ? (organization.creditBalance || 0) : 0;
-      }
-    }
-    
-    const totalAvailable = companyAllocatedCredits + companyPoolCredits + personalPurchasedCredits;
-    
-    if (totalAvailable < creditsNeeded) {
+    // Check batch status
+    if (batch.status !== 'draft' && batch.status !== 'ready_to_send') {
       return Response.json({ 
-        error: 'Insufficient credits',
-        creditsNeeded,
-        totalAvailable,
-        breakdown: { companyAllocatedCredits, companyPoolCredits, personalPurchasedCredits, canAccessCompanyPool },
-        deficit: creditsNeeded - totalAvailable
-      }, { status: 402 });
+        success: false, 
+        error: `Batch status is "${batch.status}", expected "draft" or "ready_to_send"` 
+      }, { status: 400 });
     }
     
-    // Calculate deduction plan
-    let remaining = creditsNeeded;
-    let fromCompanyAllocated = Math.min(companyAllocatedCredits, remaining);
-    remaining -= fromCompanyAllocated;
+    // Load user with full data
+    const userList = await base44.entities.User.filter({ id: currentUser.id });
+    const user = userList?.[0] || currentUser;
     
-    let fromCompanyPool = 0;
-    if (remaining > 0 && canAccessCompanyPool) {
-      fromCompanyPool = Math.min(companyPoolCredits, remaining);
-      remaining -= fromCompanyPool;
+    // Load organization
+    let organization = null;
+    if (batch.organizationId) {
+      const orgList = await base44.entities.Organization.filter({ id: batch.organizationId });
+      organization = orgList?.[0] || null;
     }
     
-    let fromPersonalPurchased = Math.min(personalPurchasedCredits, remaining);
-    
-    // ============================================================
-    // LOAD DATA
-    // ============================================================
-    
-    const [clients, noteStyleProfile] = await Promise.all([
-      base44.asServiceRole.entities.Client.filter({ id: { $in: batch.selectedClientIds } }),
-      batch.selectedNoteStyleProfileId 
-        ? base44.asServiceRole.entities.NoteStyleProfile.filter({ id: batch.selectedNoteStyleProfileId })
-            .then(profiles => profiles?.[0] || null)
-        : Promise.resolve(null)
-    ]);
-    
-    if (clients.length !== batch.selectedClientIds.length) {
-      return Response.json({ error: 'Some clients could not be found' }, { status: 400 });
+    // Enrich user with org data
+    if (organization && !user.companyName) {
+      user.companyName = organization.name;
     }
     
-    // ============================================================
-    // PROCESS EACH CLIENT - CREATE NOTES & MAILINGS
-    // ============================================================
-    
-    const processedMailings = [];
-    const errors = [];
-    const currentTimestamp = new Date().toISOString();
-    
-    for (const client of clients) {
-      try {
-        // Get raw message (contains placeholders)
-        const rawClientMessage = batch.contentOverrides?.[client.id] || batch.globalMessage || '';
-        
-        // ============================================================
-        // BUILD RAW MESSAGE WITH GREETING/SIGNATURE (placeholders intact)
-        // ============================================================
-        
-        let rawMessageWithGreeting = '';
-        
-        // Add greeting (keep placeholders intact)
-        if (batch.includeGreeting && noteStyleProfile?.defaultGreeting) {
-          rawMessageWithGreeting += noteStyleProfile.defaultGreeting + '\n\n';
-        }
-        
-        // Add main message (keep placeholders intact)
-        rawMessageWithGreeting += rawClientMessage;
-        
-        // Add signature (keep placeholders intact)
-        let rawSignature = null;
-        if (batch.includeSignature && noteStyleProfile?.signatureText) {
-          rawSignature = noteStyleProfile.signatureText;
-          rawMessageWithGreeting += '\n\n' + rawSignature;
-        }
-        
-        // ============================================================
-        // BUILD TWO MESSAGE VERSIONS
-        // ============================================================
-        
-        // 1. SCRIBE MESSAGE: Resolve sender placeholders, map client placeholders to Scribe format
-        //    Result: "Dear {FIRST_NAME}, ... Sincerely, Mitch Fields"
-        const senderResolved = resolveSenderPlaceholders(rawMessageWithGreeting, user, organization);
-        const scribeMessage = mapToScribePlaceholders(senderResolved);
-        
-        // 2. DISPLAY MESSAGE: Resolve ALL placeholders for this specific client
-        //    Result: "Dear Joshua, ... Sincerely, Mitch Fields"
-        const displayMessage = resolveAllPlaceholders(rawMessageWithGreeting, client, user, organization);
-        const resolvedSignature = rawSignature ? resolveAllPlaceholders(rawSignature, client, user, organization) : null;
-        
-        // Determine card design and return address mode
-        const cardDesignId = batch.cardDesignOverrides?.[client.id] || batch.selectedCardDesignId;
-        const returnMode = batch.returnAddressModeOverrides?.[client.id] || batch.returnAddressModeGlobal || 'company';
-        const returnAddress = resolveReturnAddress(returnMode, user, organization);
-        
-        // Create Note with BOTH messages
-        const note = await base44.asServiceRole.entities.Note.create({
-          orgId: user.orgId,
-          userId: user.id,
-          clientId: client.id,
-          mailingBatchId: mailingBatchId,
-          cardDesignId: cardDesignId,
-          noteStyleProfileId: batch.selectedNoteStyleProfileId || null,
-          message: displayMessage,           // Fully resolved (for display/audit)
-          messageTemplate: scribeMessage,    // Scribe format with {FIRST_NAME} etc
-          signature: resolvedSignature,
-          status: 'queued_for_sending',
-          sentDate: currentTimestamp,
-          creditCost: 1,
-          recipientName: client.fullName,
-          senderUserId: user.id,
-          senderName: user.full_name,
-          returnAddressMode: returnMode
-        });
-        
-        // Create Mailing
-        const mailing = await base44.asServiceRole.entities.Mailing.create({
-          noteId: note.id,
-          orgId: user.orgId,
-          mailingBatchId: mailingBatchId,
-          recipientAddress: {
-            name: client.fullName || '',
-            street: client.street || '',
-            address2: client.address2 || null,
-            city: client.city || '',
-            state: client.state || '',
-            zip: client.zipCode || ''
-          },
-          returnAddress: returnAddress ? {
-            name: returnAddress.name || '',
-            street: returnAddress.street || '',
-            address2: null,
-            city: returnAddress.city || '',
-            state: returnAddress.state || '',
-            zip: returnAddress.zip || ''
-          } : null,
-          status: 'queued',
-          returnAddressMode: returnMode
-        });
-        
-        // Update Client tracking
-        await base44.asServiceRole.entities.Client.update(client.id, {
-          lastNoteSentDate: currentTimestamp,
-          totalNotesSent: (client.totalNotesSent || 0) + 1
-        });
-        
-        processedMailings.push({
-          noteId: note.id,
-          mailingId: mailing.id,
-          clientId: client.id,
-          clientName: client.fullName,
-          cardDesignId,
-          returnAddressMode: returnMode,
-          scribeMessage
-        });
-        
-      } catch (clientError) {
-        console.error(`Error processing client ${client.id}:`, clientError);
-        errors.push({ clientId: client.id, clientName: client.fullName, error: clientError.message });
-      }
+    // Load clients
+    const clientIds = batch.selectedClientIds || [];
+    if (!clientIds.length) {
+      return Response.json({ success: false, error: 'No clients selected' }, { status: 400 });
     }
     
-    // ============================================================
+    const clientList = await base44.entities.Client.filter({ id: { $in: clientIds } });
+    const clientMap = Object.fromEntries(clientList.map(c => [c.id, c]));
+    console.log(`Loaded ${clientList.length} clients`);
+    
+    // Load NoteStyleProfile (CRITICAL for greeting/signature)
+    let noteStyleProfile = null;
+    if (batch.selectedNoteStyleProfileId) {
+      const profileList = await base44.entities.NoteStyleProfile.filter({ id: batch.selectedNoteStyleProfileId });
+      noteStyleProfile = profileList?.[0] || null;
+    }
+    
+    if (!noteStyleProfile) {
+      console.warn('No NoteStyleProfile found - greeting/signature may be missing');
+    } else {
+      console.log('NoteStyleProfile loaded:', noteStyleProfile.name);
+      console.log('  defaultGreeting:', noteStyleProfile.defaultGreeting);
+      console.log('  signatureText:', noteStyleProfile.signatureText?.substring(0, 50) + '...');
+    }
+    
+    // Load card design
+    let cardDesign = null;
+    if (batch.selectedCardDesignId) {
+      const designList = await base44.entities.CardDesign.filter({ id: batch.selectedCardDesignId });
+      cardDesign = designList?.[0] || null;
+    }
+    
+    // Load card design overrides
+    const designOverrideIds = Object.values(batch.cardDesignOverrides || {}).filter(Boolean);
+    let cardDesignOverridesMap = {};
+    if (designOverrideIds.length) {
+      const overrideDesigns = await base44.entities.CardDesign.filter({ id: { $in: designOverrideIds } });
+      cardDesignOverridesMap = Object.fromEntries(overrideDesigns.map(d => [d.id, d]));
+    }
+    
+    // ========================================
     // DEDUCT CREDITS
-    // ============================================================
+    // ========================================
     
-    const successfulSends = processedMailings.length;
-    let actualFromCompanyAllocated = 0;
-    let actualFromCompanyPool = 0;
-    let actualFromPersonalPurchased = 0;
+    const creditsNeeded = clientIds.length;
+    const creditResult = await deductCredits(base44, user, organization, creditsNeeded);
+    console.log('Credits deducted:', creditResult);
     
-    if (successfulSends > 0) {
-      let remainingToDeduct = successfulSends;
+    // ========================================
+    // CREATE NOTES FOR EACH RECIPIENT
+    // ========================================
+    
+    const notes = [];
+    const mailings = [];
+    const errors = [];
+    
+    for (const clientId of clientIds) {
+      const client = clientMap[clientId];
       
-      if (fromCompanyAllocated > 0) {
-        actualFromCompanyAllocated = Math.min(fromCompanyAllocated, remainingToDeduct);
-        remainingToDeduct -= actualFromCompanyAllocated;
-        
-        const newBalance = companyAllocatedCredits - actualFromCompanyAllocated;
-        await base44.asServiceRole.entities.User.update(user.id, { companyAllocatedCredits: newBalance });
-        
-        await base44.asServiceRole.entities.Transaction.create({
-          fromAccountType: 'organization', fromAccountId: user.orgId,
-          toAccountId: user.id, toAccountType: 'user',
-          orgId: user.orgId, userId: user.id,
-          type: 'deduction', amount: -actualFromCompanyAllocated,
-          balanceAfter: newBalance, balanceType: 'user',
-          description: `Sent ${actualFromCompanyAllocated} handwritten note(s) (company-allocated)`,
-          metadata: { mailingBatchId, noteCount: actualFromCompanyAllocated, source: 'company_allocated' }
-        });
+      if (!client) {
+        errors.push({ clientId, error: 'Client not found' });
+        continue;
       }
       
-      if (remainingToDeduct > 0 && fromCompanyPool > 0 && organization) {
-        actualFromCompanyPool = Math.min(fromCompanyPool, remainingToDeduct);
-        remainingToDeduct -= actualFromCompanyPool;
+      try {
+        // Get message body (with possible override)
+        const messageBody = batch.contentOverrides?.[clientId] || batch.globalMessage || '';
         
-        const newBalance = companyPoolCredits - actualFromCompanyPool;
-        await base44.asServiceRole.entities.Organization.update(organization.id, { creditBalance: newBalance });
+        // Get greeting (with possible override)
+        // Check greetingOverrides first, then use profile default
+        let greetingTemplate = batch.greetingOverrides?.[clientId] || noteStyleProfile?.defaultGreeting || '';
         
-        await base44.asServiceRole.entities.Transaction.create({
-          fromAccountType: 'organization', fromAccountId: organization.id,
-          toAccountId: user.id, toAccountType: 'user',
-          orgId: user.orgId, userId: user.id,
-          type: 'deduction', amount: -actualFromCompanyPool,
-          balanceAfter: newBalance, balanceType: 'organization',
-          description: `Sent ${actualFromCompanyPool} handwritten note(s) (company pool)`,
-          metadata: { mailingBatchId, noteCount: actualFromCompanyPool, source: 'company_pool' }
-        });
-      }
-      
-      if (remainingToDeduct > 0 && fromPersonalPurchased > 0) {
-        actualFromPersonalPurchased = Math.min(fromPersonalPurchased, remainingToDeduct);
+        // Get signature (with possible override)
+        let signatureTemplate = batch.signatureOverrides?.[clientId] || noteStyleProfile?.signatureText || '';
         
-        const newBalance = personalPurchasedCredits - actualFromPersonalPurchased;
-        await base44.asServiceRole.entities.User.update(user.id, { personalPurchasedCredits: newBalance });
+        // Get include flags (with possible override)
+        const includeGreeting = batch.includeGreeting !== false;
+        const includeSignature = batch.includeSignature !== false;
         
-        await base44.asServiceRole.entities.Transaction.create({
-          fromAccountType: 'user', fromAccountId: user.id,
-          toAccountId: user.id, toAccountType: 'user',
-          orgId: user.orgId, userId: user.id,
-          type: 'deduction', amount: -actualFromPersonalPurchased,
-          balanceAfter: newBalance, balanceType: 'user',
-          description: `Sent ${actualFromPersonalPurchased} handwritten note(s) (personal)`,
-          metadata: { mailingBatchId, noteCount: actualFromPersonalPurchased, source: 'personal_purchased' }
-        });
+        // Get return address mode (with possible override)
+        const returnAddressMode = batch.returnAddressModeOverrides?.[clientId] || batch.returnAddressModeGlobal || 'none';
+        
+        // Get card design (with possible override)
+        const clientCardDesignId = batch.cardDesignOverrides?.[clientId] || batch.selectedCardDesignId;
+        const clientCardDesign = cardDesignOverridesMap[clientCardDesignId] || cardDesign;
+        
+        console.log(`\n--- Processing client: ${client.fullName || client.firstName} ---`);
+        console.log('  Greeting template:', greetingTemplate);
+        console.log('  Include greeting:', includeGreeting);
+        console.log('  Include signature:', includeSignature);
+        
+        // ========================================
+        // COMPOSE FULL MESSAGE (RAW with placeholders)
+        // ========================================
+        const rawFullMessage = composeFullMessage(
+          greetingTemplate,
+          messageBody,
+          signatureTemplate,
+          includeGreeting,
+          includeSignature
+        );
+        
+        console.log('  Raw full message (first 100 chars):', rawFullMessage.substring(0, 100));
+        
+        // ========================================
+        // CREATE TWO VERSIONS:
+        // 1. message = Fully resolved (for display/audit)
+        // 2. messageTemplate = Scribe format (for printing)
+        // ========================================
+        
+        // Step 1: Resolve sender placeholders ({{user.*}}, {{me.*}}, {{rep_*}})
+        const withSenderResolved = resolveSenderPlaceholders(rawFullMessage, user, organization);
+        
+        // Step 2a: For display - also resolve client placeholders
+        const fullyResolved = resolveClientPlaceholders(withSenderResolved, client);
+        
+        // Step 2b: For Scribe - convert client placeholders to {FIRST_NAME} format
+        const scribeTemplate = mapToScribePlaceholders(withSenderResolved);
+        
+        console.log('  Fully resolved (first 100 chars):', fullyResolved.substring(0, 100));
+        console.log('  Scribe template (first 100 chars):', scribeTemplate.substring(0, 100));
+        
+        // Build return address
+        const returnAddress = buildReturnAddress(returnAddressMode, user, organization);
+        
+        // Determine text type
+        const textType = determineTextType(scribeTemplate);
+        
+        // ========================================
+        // CREATE NOTE RECORD
+        // ========================================
+        const noteData = {
+          userId: user.id,
+          organizationId: batch.organizationId,
+          clientId: client.id,
+          mailingBatchId: batch.id,
+          
+          // Message versions
+          message: fullyResolved,           // Display/audit version
+          messageTemplate: scribeTemplate,  // Scribe version with {FIRST_NAME}
+          
+          // Components used to build message
+          greetingTemplate: greetingTemplate,
+          bodyTemplate: messageBody,
+          signatureTemplate: signatureTemplate,
+          includeGreeting: includeGreeting,
+          includeSignature: includeSignature,
+          
+          // Card design
+          cardDesignId: clientCardDesignId,
+          noteStyleProfileId: batch.selectedNoteStyleProfileId,
+          
+          // Recipient info (snapshot)
+          recipientName: client.fullName || `${client.firstName} ${client.lastName}`.trim(),
+          recipientAddress: {
+            street: client.street,
+            city: client.city,
+            state: client.state,
+            zip: client.zipCode
+          },
+          
+          // Return address (snapshot)
+          returnAddressMode: returnAddressMode,
+          returnAddress: returnAddress,
+          
+          // Scribe metadata
+          textType: textType,
+          
+          // Status
+          status: REQUIRE_ADMIN_APPROVAL ? 'pending_review' : 'queued_for_sending',
+          createdAt: new Date().toISOString()
+        };
+        
+        const createdNote = await base44.entities.Note.create(noteData);
+        notes.push(createdNote);
+        console.log('  Note created:', createdNote.id);
+        
+        // ========================================
+        // CREATE MAILING RECORD
+        // ========================================
+        const mailingData = {
+          userId: user.id,
+          organizationId: batch.organizationId,
+          noteId: createdNote.id,
+          mailingBatchId: batch.id,
+          clientId: client.id,
+          
+          // Address snapshot
+          recipientName: noteData.recipientName,
+          recipientStreet: client.street,
+          recipientCity: client.city,
+          recipientState: client.state,
+          recipientZip: client.zipCode,
+          
+          // Return address snapshot
+          returnAddressMode: returnAddressMode,
+          returnName: returnAddress?.name || null,
+          returnStreet: returnAddress?.street || null,
+          returnCity: returnAddress?.city || null,
+          returnState: returnAddress?.state || null,
+          returnZip: returnAddress?.zip || null,
+          
+          // Status
+          status: REQUIRE_ADMIN_APPROVAL ? 'pending_review' : 'queued',
+          createdAt: new Date().toISOString()
+        };
+        
+        const createdMailing = await base44.entities.Mailing.create(mailingData);
+        mailings.push(createdMailing);
+        console.log('  Mailing created:', createdMailing.id);
+        
+      } catch (err) {
+        console.error(`  Error processing client ${clientId}:`, err.message);
+        errors.push({ clientId, error: err.message });
       }
     }
     
-    const creditsUsed = actualFromCompanyAllocated + actualFromCompanyPool + actualFromPersonalPurchased;
+    // ========================================
+    // UPDATE BATCH STATUS
+    // ========================================
     
-    // ============================================================
-    // ADMIN APPROVAL GATE
-    // ============================================================
+    const newStatus = REQUIRE_ADMIN_APPROVAL ? 'pending_review' : 'sending';
     
-    if (REQUIRE_ADMIN_APPROVAL) {
-      console.log('REQUIRE_ADMIN_APPROVAL=true - stopping at pending_review');
-      
-      await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, {
-        status: 'pending_review',
-        processedAt: currentTimestamp,
-        totalCreditsUsed: creditsUsed,
-        processingErrors: errors.length ? errors.map(e => ({ clientId: e.clientId, error: e.error, timestamp: currentTimestamp })) : []
-      });
-      
-      return Response.json({
-        success: true,
-        status: 'pending_review',
-        message: 'Batch created and awaiting admin approval',
-        mailingBatchId,
-        noteCount: processedMailings.length,
-        creditsUsed,
-        creditsDeducted: {
-          companyAllocated: actualFromCompanyAllocated,
-          companyPool: actualFromCompanyPool,
-          personalPurchased: actualFromPersonalPurchased,
-          total: creditsUsed
-        }
-      });
-    }
-    
-    // Direct completion (if REQUIRE_ADMIN_APPROVAL=false)
-    await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, {
-      status: 'completed',
-      processedAt: currentTimestamp,
-      totalCreditsUsed: creditsUsed,
-      processingErrors: errors.length ? errors.map(e => ({ clientId: e.clientId, error: e.error, timestamp: currentTimestamp })) : []
+    await base44.entities.MailingBatch.update(mailingBatchId, {
+      status: newStatus,
+      totalCreditsUsed: creditsNeeded,
+      processedAt: new Date().toISOString(),
+      processingErrors: errors.length ? errors : null
     });
+    
+    console.log(`\n===========================================`);
+    console.log(`BATCH PROCESSING COMPLETE`);
+    console.log(`Status: ${newStatus}`);
+    console.log(`Notes created: ${notes.length}`);
+    console.log(`Mailings created: ${mailings.length}`);
+    console.log(`Errors: ${errors.length}`);
+    console.log(`===========================================`);
     
     return Response.json({
       success: true,
-      status: 'completed',
-      processedCount: processedMailings.length,
-      totalClients: clients.length,
-      creditsDeducted: {
-        companyAllocated: actualFromCompanyAllocated,
-        companyPool: actualFromCompanyPool,
-        personalPurchased: actualFromPersonalPurchased,
-        total: creditsUsed
-      },
-      errors: errors.length ? errors : undefined
+      status: newStatus,
+      processedCount: notes.length,
+      totalClients: clientIds.length,
+      creditsDeducted: creditResult.totalDeducted,
+      requiresAdminApproval: REQUIRE_ADMIN_APPROVAL,
+      partialSuccess: errors.length > 0 && notes.length > 0,
+      errors: errors.length ? errors : null
     });
     
   } catch (error) {
-    console.error('Error in processMailingBatch:', error);
-    return Response.json({ error: error.message || 'Failed to process mailing batch', details: error.stack }, { status: 500 });
+    console.error('processMailingBatch error:', error);
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 });
