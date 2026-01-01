@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, Play, CheckCircle, XCircle, AlertTriangle, Info } from 'lucide-react';
+import { Loader2, Play, CheckCircle, XCircle, AlertTriangle, Info, ChevronDown, ChevronRight, RefreshCw, Package, Calendar, User, Mail } from 'lucide-react';
+import { format } from 'date-fns';
 
 const TEST_CONFIGS = [
   {
@@ -306,6 +307,279 @@ export default function ScribeApiTest() {
           </CardContent>
         </Card>
       )}
+
+      {/* Recent Sends History Section */}
+      <RecentSendsHistory />
     </div>
+  );
+}
+
+// ============================================================
+// RECENT SENDS HISTORY COMPONENT
+// Shows last 6 MailingBatches with expandable details
+// ============================================================
+function RecentSendsHistory() {
+  const [batches, setBatches] = useState([]);
+  const [notes, setNotes] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [expandedBatch, setExpandedBatch] = useState(null);
+
+  const loadBatches = async () => {
+    setLoading(true);
+    try {
+      // Get last 6 batches that have been processed (not drafts)
+      const batchList = await base44.entities.MailingBatch.filter(
+        { status: { $ne: 'draft' } },
+        '-created_date',
+        6
+      );
+      setBatches(batchList);
+
+      // Load notes for each batch
+      const notesMap = {};
+      for (const batch of batchList) {
+        if (batch.id) {
+          const batchNotes = await base44.entities.Note.filter(
+            { mailingBatchId: batch.id },
+            '-created_date',
+            20
+          );
+          notesMap[batch.id] = batchNotes;
+        }
+      }
+      setNotes(notesMap);
+    } catch (err) {
+      console.error('Failed to load batches:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadBatches();
+  }, []);
+
+  const toggleExpand = (batchId) => {
+    setExpandedBatch(expandedBatch === batchId ? null : batchId);
+  };
+
+  const getStatusBadge = (status) => {
+    const colors = {
+      completed: 'bg-green-100 text-green-800',
+      sending: 'bg-blue-100 text-blue-800',
+      ready_to_send: 'bg-yellow-100 text-yellow-800',
+      pending_review: 'bg-orange-100 text-orange-800',
+      failed: 'bg-red-100 text-red-800',
+      partial: 'bg-orange-100 text-orange-800'
+    };
+    return colors[status] || 'bg-gray-100 text-gray-800';
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Package className="w-5 h-5" />
+            Recent Sends History
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+            <span className="ml-2 text-gray-500">Loading recent sends...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Package className="w-5 h-5" />
+            Recent Sends History (Last 6)
+          </CardTitle>
+          <Button variant="outline" size="sm" onClick={loadBatches}>
+            <RefreshCw className="w-4 h-4 mr-1" /> Refresh
+          </Button>
+        </div>
+        <CardDescription>
+          Click to expand and see exactly what was sent to Scribe
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {batches.length === 0 ? (
+          <p className="text-gray-500 text-center py-4">No sends found</p>
+        ) : (
+          <div className="space-y-3">
+            {batches.map((batch) => {
+              const isExpanded = expandedBatch === batch.id;
+              const batchNotes = notes[batch.id] || [];
+              
+              return (
+                <div key={batch.id} className="border rounded-lg overflow-hidden">
+                  {/* Collapsed Header */}
+                  <button
+                    onClick={() => toggleExpand(batch.id)}
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-4">
+                      {isExpanded ? (
+                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                      ) : (
+                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                      )}
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">
+                            Batch #{batch.id?.slice(-8).toUpperCase()}
+                          </span>
+                          <span className={`text-xs px-2 py-0.5 rounded ${getStatusBadge(batch.status)}`}>
+                            {batch.status?.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-500 flex items-center gap-3 mt-1">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {batch.created_date ? format(new Date(batch.created_date), 'MMM d, yyyy h:mm a') : 'Unknown'}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Mail className="w-3.5 h-3.5" />
+                            {batch.selectedClientIds?.length || 0} recipients
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right text-sm text-gray-500">
+                      {batch.scribeCampaigns?.length || 0} campaign(s)
+                    </div>
+                  </button>
+
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="border-t bg-gray-50 p-4 space-y-4">
+                      {/* Global Message */}
+                      {batch.globalMessage && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-1">Global Message:</h4>
+                          <pre className="text-xs bg-white p-3 rounded border whitespace-pre-wrap font-mono">
+                            {batch.globalMessage}
+                          </pre>
+                        </div>
+                      )}
+
+                      {/* Scribe Campaigns */}
+                      {batch.scribeCampaigns?.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Scribe Campaigns:</h4>
+                          <div className="space-y-2">
+                            {batch.scribeCampaigns.map((campaign, idx) => (
+                              <div key={idx} className="bg-white p-3 rounded border text-sm">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium">
+                                    Campaign ID: {campaign.scribeCampaignId || 'N/A'}
+                                  </span>
+                                  <span className={`text-xs px-2 py-0.5 rounded ${
+                                    campaign.status === 'submitted' ? 'bg-green-100 text-green-800' :
+                                    campaign.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {campaign.status}
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                  <div>Contacts: {campaign.contactCount || 0}</div>
+                                  <div>Return Address: {campaign.returnAddressMode || 'none'}</div>
+                                  <div>Card Design: {campaign.cardDesignId?.slice(-8) || 'N/A'}</div>
+                                  {campaign.submittedAt && (
+                                    <div>Submitted: {format(new Date(campaign.submittedAt), 'MMM d, h:mm a')}</div>
+                                  )}
+                                </div>
+                                {campaign.errorMessage && (
+                                  <div className="mt-2 p-2 bg-red-50 text-red-700 text-xs rounded">
+                                    Error: {campaign.errorMessage}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Individual Notes/Cards */}
+                      {batchNotes.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">
+                            Individual Cards ({batchNotes.length}):
+                          </h4>
+                          <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {batchNotes.map((note) => (
+                              <details key={note.id} className="bg-white rounded border">
+                                <summary className="p-2 cursor-pointer hover:bg-gray-50 text-sm">
+                                  <span className="font-medium">{note.recipientName}</span>
+                                  <span className="text-gray-500 ml-2">
+                                    - {note.status}
+                                    {note.scribeCampaignId && ` (Campaign: ${note.scribeCampaignId})`}
+                                  </span>
+                                </summary>
+                                <div className="p-3 border-t bg-gray-50 text-xs space-y-2">
+                                  {/* Message sent to Scribe (with placeholders) */}
+                                  {note.messageTemplate && (
+                                    <div>
+                                      <span className="font-medium text-gray-700">Message Template (sent to Scribe):</span>
+                                      <pre className="mt-1 bg-white p-2 rounded border whitespace-pre-wrap font-mono">
+                                        {note.messageTemplate}
+                                      </pre>
+                                    </div>
+                                  )}
+                                  {/* Resolved message (for display) */}
+                                  <div>
+                                    <span className="font-medium text-gray-700">Resolved Message:</span>
+                                    <pre className="mt-1 bg-white p-2 rounded border whitespace-pre-wrap font-mono">
+                                      {note.message}
+                                    </pre>
+                                  </div>
+                                  {/* Return address mode */}
+                                  {note.returnAddressMode && (
+                                    <div>
+                                      <span className="font-medium text-gray-700">Return Address Mode:</span>
+                                      <span className="ml-1">{note.returnAddressMode}</span>
+                                    </div>
+                                  )}
+                                  {/* Scribe contact ID */}
+                                  {note.scribeContactId && (
+                                    <div>
+                                      <span className="font-medium text-gray-700">Scribe Contact ID:</span>
+                                      <span className="ml-1 font-mono">{note.scribeContactId}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              </details>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Raw Batch Data */}
+                      <details className="mt-2">
+                        <summary className="text-xs text-gray-500 cursor-pointer hover:text-gray-700">
+                          View raw batch data
+                        </summary>
+                        <pre className="text-xs overflow-auto bg-white p-2 rounded border mt-1 max-h-48">
+                          {JSON.stringify(batch, null, 2)}
+                        </pre>
+                      </details>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
