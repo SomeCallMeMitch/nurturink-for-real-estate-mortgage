@@ -119,16 +119,29 @@ function determineTextType(message) {
 
 /**
  * Build return address object from user/organization based on mode
+ * 
+ * For Scribe API:
+ *   - firstName: company name (for company mode) or user's return address name (for rep mode)
+ *   - lastName: empty string
+ *   - street, city, state, zip: from respective source
+ * 
+ * Note: organization.companyReturnAddress uses 'companyName' field (not 'name')
  */
 function buildReturnAddress(mode, user, organization) {
   if (mode === 'none' || !mode) {
     return null;
   }
   
-  if (mode === 'company' && organization?.companyReturnAddress) {
-    const addr = organization.companyReturnAddress;
+  if (mode === 'company') {
+    const addr = organization?.companyReturnAddress;
+    if (!addr) {
+      console.warn('[Return Address] Company mode but no companyReturnAddress on organization');
+      return null;
+    }
+    
     return {
-      firstName: addr.name || organization.name || '',
+      // companyName is the correct field (not 'name')
+      firstName: addr.companyName || organization?.name || '',
       lastName: '',
       street: addr.street || '',
       city: addr.city || '',
@@ -137,8 +150,14 @@ function buildReturnAddress(mode, user, organization) {
     };
   }
   
-  if (mode === 'rep' && user) {
+  if (mode === 'rep') {
+    if (!user) {
+      console.warn('[Return Address] Rep mode but no user provided');
+      return null;
+    }
+    
     return {
+      // returnAddressName is preferred, fallback to full_name
       firstName: user.returnAddressName || user.full_name || '',
       lastName: '',
       street: user.street || '',
@@ -148,6 +167,7 @@ function buildReturnAddress(mode, user, organization) {
     };
   }
   
+  console.warn(`[Return Address] Unknown mode: ${mode}`);
   return null;
 }
 
