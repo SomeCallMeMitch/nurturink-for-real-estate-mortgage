@@ -1,5 +1,28 @@
 import React, { useMemo } from 'react';
 
+// ============================================================
+// DEFAULT PREVIEW SETTINGS
+// These are used when previewSettings is missing or incomplete
+// ============================================================
+const DEFAULT_PREVIEW_SETTINGS = {
+  fontSize: 22,
+  lineHeight: 1,
+  baseTextWidth: 360,
+  baseMarginLeft: 40,
+  shortCardMaxLines: 13,
+  maxPreviewLines: 19,
+  topHalfPaddingTop: 345,
+  longCardTopPadding: 110,
+  gapAboveFold: 14,
+  gapBelowFold: 14,
+  maxIndent: 16,
+  indentAmplitude: 6,
+  indentNoise: 2,
+  indentFrequency: 0.35,
+  frameWidth: 412,
+  frameHeight: 600
+};
+
 // Utility function for font mapping
 const getFontClass = (fontName) => {
   const fontMap = {
@@ -13,7 +36,6 @@ const getFontClass = (fontName) => {
 
 // Replace placeholders in text with actual values
 // Supports {{client.firstName}}, {{me.fullName}}, {{org.name}} format
-// Must match placeholders defined in PlaceholderModal.js
 const replacePlaceholders = (text, client, user, organization) => {
   if (!text) return '';
   
@@ -38,19 +60,19 @@ const replacePlaceholders = (text, client, user, organization) => {
     result = result.replace(/\{\{client\.company\}\}/g, client.company || '');
   }
   
-  // User placeholders
+  // User/Me placeholders
   if (user) {
-    result = result.replace(/\{\{user\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
-    result = result.replace(/\{\{user\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
-    result = result.replace(/\{\{user\.fullName\}\}/g, user.full_name || '');
-    result = result.replace(/\{\{user\.email\}\}/g, user.email || '');
-    result = result.replace(/\{\{user\.phone\}\}/g, user.phone || '');
-    result = result.replace(/\{\{user\.title\}\}/g, user.title || '');
-    result = result.replace(/\{\{user\.companyName\}\}/g, user.companyName || '');
-    result = result.replace(/\{\{user\.street\}\}/g, user.street || '');
-    result = result.replace(/\{\{user\.city\}\}/g, user.city || '');
-    result = result.replace(/\{\{user\.state\}\}/g, user.state || '');
-    result = result.replace(/\{\{user\.zipCode\}\}/g, user.zipCode || '');
+    result = result.replace(/\{\{me\.firstName\}\}/g, user.firstName || user.full_name?.split(' ')[0] || '');
+    result = result.replace(/\{\{me\.lastName\}\}/g, user.lastName || user.full_name?.split(' ').slice(1).join(' ') || '');
+    result = result.replace(/\{\{me\.fullName\}\}/g, user.full_name || '');
+    result = result.replace(/\{\{me\.email\}\}/g, user.email || '');
+    result = result.replace(/\{\{me\.phone\}\}/g, user.phone || '');
+    result = result.replace(/\{\{me\.title\}\}/g, user.title || '');
+    result = result.replace(/\{\{me\.companyName\}\}/g, user.companyName || '');
+    result = result.replace(/\{\{me\.street\}\}/g, user.street || '');
+    result = result.replace(/\{\{me\.city\}\}/g, user.city || '');
+    result = result.replace(/\{\{me\.state\}\}/g, user.state || '');
+    result = result.replace(/\{\{me\.zipCode\}\}/g, user.zipCode || '');
   }
   
   // Organization placeholders
@@ -92,11 +114,16 @@ const messageToLines = (message, config) => {
   
   const { fontFamily, fontSize, lineHeight, maxWidth, maxIndent } = config;
   
+  // Guard against invalid values
+  const safeFontSize = fontSize || 22;
+  const safeMaxWidth = maxWidth || 360;
+  const safeMaxIndent = maxIndent || 16;
+  
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
-  context.font = `${fontSize}px ${fontFamily}`;
+  context.font = `${safeFontSize}px ${fontFamily}`;
   
-  const effectiveMaxWidth = maxWidth - maxIndent;
+  const effectiveMaxWidth = safeMaxWidth - safeMaxIndent;
   
   const paragraphs = message.split('\n');
   const allLines = [];
@@ -170,6 +197,15 @@ const CardPreview = ({
   randomIndentEnabled = true
 }) => {
 
+  // ============================================================
+  // MERGE SETTINGS WITH DEFAULTS
+  // This ensures all values exist even if previewSettings is incomplete
+  // ============================================================
+  const settings = useMemo(() => ({
+    ...DEFAULT_PREVIEW_SETTINGS,
+    ...(previewSettings || {})
+  }), [previewSettings]);
+
   const composedMessage = useMemo(() => 
     composeCompleteMessage(
       includeGreeting ? (noteStyleProfile?.defaultGreeting || '') : '',
@@ -182,7 +218,8 @@ const CardPreview = ({
     [message, client, user, organization, noteStyleProfile, includeGreeting, includeSignature]
   );
 
-  const { fontSize, lineHeight, baseTextWidth, maxIndent } = previewSettings;
+  // Destructure from merged settings (guaranteed to have all values)
+  const { fontSize, lineHeight, baseTextWidth, maxIndent } = settings;
 
   const lines = useMemo(() => 
     messageToLines(composedMessage, {
@@ -208,7 +245,7 @@ const CardPreview = ({
     indentFrequency,
     frameWidth,
     frameHeight
-  } = previewSettings;
+  } = settings;
 
   const isShortCard = lines.length <= shortCardMaxLines;
   const topPadding = isShortCard ? topHalfPaddingTop : longCardTopPadding;
