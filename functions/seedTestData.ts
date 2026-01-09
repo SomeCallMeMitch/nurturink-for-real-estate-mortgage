@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.11';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
 const sampleClients = [
   {
@@ -170,25 +170,11 @@ Deno.serve(async (req) => {
     const createdClients = [];
     
     for (const sampleClient of sampleClients) {
-      // Explicitly construct the payload to ensure all fields are present
-      const clientData = {
-        firstName: sampleClient.firstName,
-        lastName: sampleClient.lastName,
-        fullName: sampleClient.fullName,
-        company: sampleClient.company,
-        email: sampleClient.email,
-        phone: sampleClient.phone,
-        street: sampleClient.street,
-        city: sampleClient.city,
-        state: sampleClient.state,
-        zipCode: sampleClient.zipCode,
+      const client = await base44.entities.Client.create({
+        ...sampleClient,
         orgId: orgId,
-        ownerId: user.id,
-        source: 'manual', // Set default source
-        tags: ['Test Data'] // Add a tag to identify these
-      };
-
-      const client = await base44.entities.Client.create(clientData);
+        ownerId: user.id
+      });
       createdClients.push(client);
     }
     
