@@ -2,10 +2,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { Resend } from 'npm:resend@2.0.0';
 
 Deno.serve(async (req) => {
+  // Parse body FIRST before SDK consumes it
+  let bodyData = {};
   try {
-    // Clone request before consuming body
     const clonedReq = req.clone();
-    
+    const bodyText = await clonedReq.text();
+    if (bodyText) {
+      bodyData = JSON.parse(bodyText);
+    }
+  } catch {
+    // No body or invalid JSON
+  }
+
+  try {
     const base44 = createClientFromRequest(req);
     
     // Verify user is authenticated
@@ -14,28 +23,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse request body for optional recipient email
-    let toEmail = user.email;
-    let customSubject = null;
-    let customHtmlContent = null;
-    
-    try {
-      const bodyText = await clonedReq.text();
-      if (bodyText) {
-        const body = JSON.parse(bodyText);
-        if (body.toEmail) {
-          toEmail = body.toEmail;
-        }
-        if (body.subject) {
-          customSubject = body.subject;
-        }
-        if (body.htmlContent) {
-          customHtmlContent = body.htmlContent;
-        }
-      }
-    } catch {
-      // No body provided or invalid JSON, use defaults
-    }
+    // Extract parameters from parsed body
+    const toEmail = bodyData.toEmail || user.email;
+    const customSubject = bodyData.subject || null;
+    const customHtmlContent = bodyData.htmlContent || null;
 
     // Initialize Resend with API key
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
