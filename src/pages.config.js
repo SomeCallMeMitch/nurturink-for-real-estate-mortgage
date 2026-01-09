@@ -11,6 +11,7 @@ import AdminPricing from './pages/AdminPricing';
 import AdminRefunds from './pages/AdminRefunds';
 import AdminSendDetails from './pages/AdminSendDetails';
 import AdminSends from './pages/AdminSends';
+import AdminTestEmails from './pages/AdminTestEmails';
 import AdminUploadWhiteImage from './pages/AdminUploadWhiteImage';
 import CreateContent from './pages/CreateContent';
 import CreateContent2 from './pages/CreateContent2';
@@ -56,7 +57,6 @@ import WLDemo from './pages/WLDemo';
 import Welcome from './pages/Welcome';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import AdminTestEmails from './pages/AdminTestEmails';
 import LandingPremium from './pages/LandingPremium';
 import __Layout from './Layout.jsx';
 
@@ -75,6 +75,7 @@ export const PAGES = {
     "AdminRefunds": AdminRefunds,
     "AdminSendDetails": AdminSendDetails,
     "AdminSends": AdminSends,
+    "AdminTestEmails": AdminTestEmails,
     "AdminUploadWhiteImage": AdminUploadWhiteImage,
     "CreateContent": CreateContent,
     "CreateContent2": CreateContent2,
@@ -120,7 +121,6 @@ export const PAGES = {
     "Welcome": Welcome,
     "landing1": landing1,
     "lp": lp,
-    "AdminTestEmails": AdminTestEmails,
     "LandingPremium": LandingPremium,
 }
 
