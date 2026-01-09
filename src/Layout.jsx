@@ -26,7 +26,7 @@ export default function Layout({ children, currentPageName }) {
         setIsAuthChecked(true);
         
         const normalizedPath = location.pathname.toLowerCase();
-        const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome';
+        const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing';
         
         // Check if user is on AcceptInvitation page (handle ?page= query param)
         const searchParams = new URLSearchParams(location.search);
@@ -111,8 +111,8 @@ export default function Layout({ children, currentPageName }) {
   // Check if this is AcceptInvitation page via query param
   const isAcceptInvitationPageCheck = pageParam?.toLowerCase() === 'acceptinvitation';
   
-  // Check if this is Welcome page (root path without AcceptInvitation query param)
-  const isWelcomePage = (normalizedPath === '/' || normalizedPath === '/welcome') && !isAcceptInvitationPageCheck;
+  // Check if this is Welcome/Landing page (root path without AcceptInvitation query param)
+  const isWelcomePage = (normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing') && !isAcceptInvitationPageCheck;
   
   return (
     <>
