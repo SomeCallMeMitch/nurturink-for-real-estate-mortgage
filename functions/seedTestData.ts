@@ -170,8 +170,16 @@ Deno.serve(async (req) => {
     const createdClients = [];
     
     for (const sampleClient of sampleClients) {
+      // Ensure required name fields are always present
+      const firstName = sampleClient.firstName || 'Test';
+      const lastName = sampleClient.lastName || 'Client';
+      const fullName = sampleClient.fullName || `${firstName} ${lastName}`;
+
       const client = await base44.entities.Client.create({
         ...sampleClient,
+        firstName,
+        lastName,
+        fullName,
         orgId: orgId,
         ownerId: user.id
       });
