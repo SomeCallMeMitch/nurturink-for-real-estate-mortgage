@@ -1,139 +1,132 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { Check, Star } from "lucide-react";
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Check } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
-export default function LPPricingSection() {
-  const plans = [
-    {
-      name: "Rookie",
-      credits: 5,
-      price: 1997,
-      pricePerCard: 399,
-      features: [
-        "5 handwritten notecards",
-        "Envelope & postage included",
-        "Choose from 20+ designs",
-        "Basic templates library"
-      ],
-      highlighted: false
-    },
+const LPPricingSection = () => {
+  const tiers = [
     {
       name: "Starter",
+      credits: 5,
+      price: "$19.97",
+      pricePerNote: "$3.99",
+      popular: false,
+      features: [
+        "5 handwritten notes",
+        "Real ink, real stamps",
+        "Custom message & signature",
+        "24-48 hour turnaround",
+        "Quality cardstock"
+      ]
+    },
+    {
+      name: "Professional",
       credits: 20,
-      price: 5997,
-      pricePerCard: 299,
+      price: "$69.97",
+      pricePerNote: "$3.50",
+      popular: true,
       features: [
-        "20 handwritten notecards",
-        "Envelope & postage included",
-        "All card designs",
-        "Full template library",
-        "Priority processing"
-      ],
-      highlighted: false
-    },
-    {
-      name: "Growth Pack",
-      credits: 50,
-      price: 5997,
-      originalPrice: 7497,
-      pricePerCard: 119,
-      features: [
-        "50 handwritten notecards",
-        "Envelope & postage included",
-        "All card designs",
-        "Full template library",
+        "20 handwritten notes",
+        "All Starter features",
         "Priority processing",
-        "Team collaboration tools",
-        "Best value per card"
-      ],
-      highlighted: true,
-      badge: "Most Popular"
+        "Custom return address",
+        "Template library access",
+        "Team collaboration tools"
+      ]
     },
     {
-      name: "Pro",
-      credits: 100,
-      price: 9997,
-      pricePerCard: 99,
+      name: "Growth",
+      credits: 50,
+      price: "$149.97",
+      pricePerNote: "$3.00",
+      popular: false,
       features: [
-        "100 handwritten notecards",
-        "Everything in Growth Pack",
-        "Dedicated account manager",
-        "Custom templates",
-        "Advanced analytics",
-        "API access"
-      ],
-      highlighted: false
+        "50 handwritten notes",
+        "All Professional features",
+        "Dedicated account support",
+        "Bulk upload & send",
+        "CRM integrations",
+        "Advanced analytics"
+      ]
     }
   ];
 
-  const formatPrice = (cents) => `$${(cents / 100).toFixed(2)}`;
+  const handleGetStarted = () => {
+    base44.auth.redirectToLogin('/Home');
+  };
 
   return (
-    <section className="bg-white py-16">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+    <section id="pricing" className="bg-gray-50 py-16 lg:py-24">
+      <div className="max-w-[1400px] mx-auto px-6">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-[36px] lg:text-[36px] font-bold text-[#1a2332] mb-4">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl text-gray-600">
-            No subscriptions. No hidden fees. Just pay for what you use.
+          <p className="text-[18px] text-[#4a5568] max-w-3xl mx-auto">
+            No subscriptions. No hidden fees. Just credits that never expire.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans.map((plan, index) => (
-            <div
-              key={index}
-              className={`relative rounded-2xl p-6 ${
-                plan.highlighted
-                  ? 'bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-500 shadow-xl scale-105'
-                  : 'bg-white border border-gray-200 shadow-sm'
+        {/* Pricing Tiers */}
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {tiers.map((tier) => (
+            <div 
+              key={tier.name}
+              className={`bg-white rounded-2xl p-8 relative ${
+                tier.popular 
+                  ? 'border-2 shadow-xl scale-105' 
+                  : 'border border-gray-200 shadow-sm'
               }`}
+              style={tier.popular ? { borderColor: '#16a34a' } : {}}
             >
-              {plan.badge && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-bold flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-white" />
-                    {plan.badge}
-                  </div>
+              {/* Popular Badge */}
+              {tier.popular && (
+                <div 
+                  className="absolute -top-4 left-1/2 transform -translate-x-1/2 px-4 py-1 rounded-full text-white text-sm font-semibold"
+                  style={{ backgroundColor: '#16a34a' }}
+                >
+                  Most Popular
                 </div>
               )}
 
+              {/* Tier Header */}
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-                <div className="mb-1">
-                  {plan.originalPrice && (
-                    <span className="text-lg text-gray-400 line-through mr-2">
-                      {formatPrice(plan.originalPrice)}
-                    </span>
-                  )}
-                  <span className="text-4xl font-bold text-gray-900">
-                    {formatPrice(plan.price)}
+                <h3 className="text-2xl font-bold text-[#1a2332] mb-2">
+                  {tier.name}
+                </h3>
+                <div className="mb-2">
+                  <span className="text-4xl font-bold text-[#1a2332]">
+                    {tier.price}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600">
-                  {formatPrice(plan.pricePerCard)} per card
+                <p className="text-sm text-[#6b7280]">
+                  {tier.pricePerNote} per note
                 </p>
-                <p className="text-sm font-semibold text-orange-600 mt-1">
-                  {plan.credits} Credits
+                <p className="text-sm font-medium" style={{ color: '#16a34a' }}>
+                  {tier.credits} credits
                 </p>
               </div>
 
-              <ul className="space-y-3 mb-6">
-                {plan.features.map((feature, fIndex) => (
-                  <li key={fIndex} className="flex items-start gap-2">
-                    <Check className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <span className="text-sm text-gray-700">{feature}</span>
+              {/* Features List */}
+              <ul className="space-y-3 mb-8">
+                {tier.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: '#16a34a' }} />
+                    <span className="text-[#4a5568]">{feature}</span>
                   </li>
                 ))}
               </ul>
 
+              {/* CTA Button */}
               <Button
-                className={`w-full ${
-                  plan.highlighted
-                    ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                    : 'bg-gray-900 hover:bg-gray-800 text-white'
+                onClick={handleGetStarted}
+                className={`w-full font-semibold ${
+                  tier.popular ? 'text-white' : ''
                 }`}
+                style={tier.popular ? { backgroundColor: '#16a34a' } : {}}
+                variant={tier.popular ? 'default' : 'outline'}
+                size="lg"
               >
                 Get Started
               </Button>
@@ -141,10 +134,18 @@ export default function LPPricingSection() {
           ))}
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-8">
-          All plans include envelope, postage, and mailing service
-        </p>
+        {/* Bottom Text */}
+        <div className="text-center mt-12">
+          <p className="text-[#4a5568] mb-2">
+            Need more? <span className="font-semibold" style={{ color: '#FF7A00' }}>Enterprise plans</span> available for teams sending 100+ notes/month.
+          </p>
+          <p className="text-sm text-[#6b7280]">
+            Credits never expire. Use them whenever you need them.
+          </p>
+        </div>
       </div>
     </section>
   );
-}
+};
+
+export default LPPricingSection;

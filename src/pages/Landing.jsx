@@ -1,49 +1,67 @@
-import React, { useState } from "react";
-import HeroSection from "@/components/landing/HeroSection";
-import ProblemSection from "@/components/landing/ProblemSection";
-import { Button } from "@/components/ui/button";
-import { RotateCw } from "lucide-react";
+import React from 'react';
+import LPHeader from '../components/landing/LPHeader';
+import LPHeroSection from '../components/landing/LPHeroSection';
+import LPSocialProofLogos from '../components/landing/LPSocialProofLogos';
+import LPIndustriesSection from '../components/landing/LPIndustriesSection';
+import LPStatsBanner from '../components/landing/LPStatsBanner';
+import LPFeaturesSection from '../components/landing/LPFeaturesSection';
+import LPHowItWorksSection from '../components/landing/LPHowItWorksSection';
+import LPPricingSection from '../components/landing/LPPricingSection';
+import LPFAQSection from '../components/landing/LPFAQSection';
+import LPContactFormSection from '../components/landing/LPContactFormSection';
+import LPFooter from '../components/landing/LPFooter';
+import LPNoLayoutWrapper from '../components/landing/LPNoLayoutWrapper';
 
+/**
+ * NurturInk Landing Page
+ * 
+ * Complete rebrand from RoofScribe to NurturInk.
+ * Multi-industry handwritten notecard service for sales professionals.
+ * 
+ * Brand Identity:
+ * - Primary Orange: #FF7A00
+ * - Navy Blue: #1a2332
+ * - Success Green: #16a34a
+ * - Tagline: "Personalized follow-up"
+ */
 export default function Landing() {
-  const [heroVariation, setHeroVariation] = useState(1);
-  const [problemVariation, setProblemVariation] = useState(1);
-
-  const cycleHero = () => {
-    setHeroVariation((prev) => (prev % 5) + 1);
-  };
-
-  const cycleProblem = () => {
-    setProblemVariation((prev) => (prev % 3) + 1);
-  };
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Test Controls - Sticky Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
-        <Button
-          onClick={cycleHero}
-          className="bg-indigo-600 hover:bg-indigo-700 shadow-lg gap-2"
-          size="lg"
-        >
-          <RotateCw className="w-4 h-4" />
-          Hero {heroVariation}/5
-        </Button>
-        
-        <Button
-          onClick={cycleProblem}
-          className="bg-purple-600 hover:bg-purple-700 shadow-lg gap-2"
-          size="lg"
-        >
-          <RotateCw className="w-4 h-4" />
-          Problem {problemVariation}/3
-        </Button>
-      </div>
+    <LPNoLayoutWrapper>
+      {/* Fixed Header Navigation */}
+      <LPHeader />
 
-      {/* Hero Section */}
-      <HeroSection variation={heroVariation} />
-      
-      {/* Problem Section */}
-      <ProblemSection variation={problemVariation} />
-    </div>
+      {/* Main Content - Add pt-20 to account for fixed header */}
+      <main className="pt-20">
+        {/* Hero Section */}
+        <LPHeroSection />
+
+        {/* Trust Indicators Banner */}
+        <LPSocialProofLogos />
+
+        {/* Industries We Serve */}
+        <LPIndustriesSection />
+
+        {/* Why Handwritten Notes Work */}
+        <LPStatsBanner />
+
+        {/* Additional Benefits */}
+        <LPFeaturesSection />
+
+        {/* How It Works (4 Steps) */}
+        <LPHowItWorksSection />
+
+        {/* Pricing Tiers */}
+        <LPPricingSection />
+
+        {/* FAQ Accordion */}
+        <LPFAQSection />
+
+        {/* Contact Form */}
+        <LPContactFormSection />
+      </main>
+
+      {/* Footer */}
+      <LPFooter />
+    </LPNoLayoutWrapper>
   );
 }

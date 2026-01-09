@@ -1,94 +1,137 @@
-import React from "react";
-import { Mail, Phone, MapPin } from "lucide-react";
+import React from 'react';
 
-export default function LPFooter() {
+const LPFooter = () => {
+  const currentYear = new Date().getFullYear();
+
+  const footerLinks = {
+    product: [
+      { label: "How It Works", href: "#how-it-works" },
+      { label: "Pricing", href: "#pricing" },
+      { label: "Industries", href: "#industries" },
+      { label: "Templates", href: "#" },
+      { label: "Integrations", href: "#" }
+    ],
+    company: [
+      { label: "About Us", href: "#" },
+      { label: "Blog", href: "#" },
+      { label: "Careers", href: "#" },
+      { label: "Contact", href: "#contact" },
+      { label: "Support", href: "#" }
+    ],
+    legal: [
+      { label: "Privacy Policy", href: "#" },
+      { label: "Terms of Service", href: "#" },
+      { label: "Cookie Policy", href: "#" },
+      { label: "GDPR", href: "#" }
+    ]
+  };
+
+  const scrollToSection = (href) => {
+    if (href.startsWith('#')) {
+      const element = document.querySelector(href);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
-    <footer className="bg-gray-900 text-gray-300 py-12">
+    <footer style={{ backgroundColor: '#1a2332' }} className="text-white py-12">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
-          {/* Company Info */}
+        {/* Main Footer Content */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          {/* Brand Column */}
           <div>
-            <h3 className="text-white text-xl font-bold mb-4">RoofScribe</h3>
-            <p className="text-sm leading-relaxed mb-4">
-              Helping roofing companies close more deals with personalized handwritten notecards.
+            <div className="mb-4">
+              <div className="text-2xl font-bold">
+                <span className="text-white">Nurtur</span>
+                <span style={{ color: '#FF7A00' }}>Ink</span>
+              </div>
+              <p className="text-sm text-gray-400 mt-1">Personalized follow-up</p>
+            </div>
+            <p className="text-gray-400 text-sm leading-relaxed mb-4">
+              Handwritten notes that help sales professionals stand out and close more deals.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="hover:text-white transition-colors">
-                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">
-                  f
-                </div>
+            {/* Social Links */}
+            <div className="flex gap-3">
+              <a href="#" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <span className="text-sm font-semibold">X</span>
               </a>
-              <a href="#" className="hover:text-white transition-colors">
-                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">
-                  t
-                </div>
+              <a href="#" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <span className="text-sm font-semibold">in</span>
               </a>
-              <a href="#" className="hover:text-white transition-colors">
-                <div className="w-8 h-8 bg-gray-800 rounded-full flex items-center justify-center">
-                  in
-                </div>
+              <a href="#" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors">
+                <span className="text-sm font-semibold">FB</span>
               </a>
             </div>
           </div>
 
-          {/* Product */}
+          {/* Product Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Product</h4>
-            <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-white transition-colors">How It Works</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Card Designs</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Templates</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Free Sample</a></li>
+            <h3 className="font-semibold mb-4">Product</h3>
+            <ul className="space-y-3">
+              {footerLinks.product.map((link) => (
+                <li key={link.label}>
+                  <button
+                    onClick={() => scrollToSection(link.href)}
+                    className="text-gray-400 hover:text-white transition-colors text-sm"
+                  >
+                    {link.label}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Company */}
+          {/* Company Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Company</h4>
-            <ul className="space-y-2 text-sm">
-              <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Case Studies</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
+            <h3 className="font-semibold mb-4">Company</h3>
+            <ul className="space-y-3">
+              {footerLinks.company.map((link) => (
+                <li key={link.label}>
+                  <button
+                    onClick={() => scrollToSection(link.href)}
+                    className="text-gray-400 hover:text-white transition-colors text-sm"
+                  >
+                    {link.label}
+                  </button>
+                </li>
+              ))}
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Legal Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Contact</h4>
-            <ul className="space-y-3 text-sm">
-              <li className="flex items-start gap-2">
-                <Mail className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <a href="mailto:hello@roofscribe.com" className="hover:text-white transition-colors">
-                  hello@roofscribe.com
-                </a>
-              </li>
-              <li className="flex items-start gap-2">
-                <Phone className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <a href="tel:+15551234567" className="hover:text-white transition-colors">
-                  (555) 123-4567
-                </a>
-              </li>
-              <li className="flex items-start gap-2">
-                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>123 Main Street<br />Anytown, USA 12345</span>
-              </li>
+            <h3 className="font-semibold mb-4">Legal</h3>
+            <ul className="space-y-3">
+              {footerLinks.legal.map((link) => (
+                <li key={link.label}>
+                  <a
+                    href={link.href}
+                    className="text-gray-400 hover:text-white transition-colors text-sm"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-          <p>&copy; 2025 RoofScribe. All rights reserved.</p>
-          <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white transition-colors">Cookie Policy</a>
+        <div className="pt-8 border-t border-white/10">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-400 text-sm">
+              © {currentYear} NurturInk. All rights reserved.
+            </p>
+            <p className="text-gray-400 text-sm">
+              Built with ❤️ for sales professionals everywhere
+            </p>
           </div>
         </div>
       </div>
     </footer>
   );
-}
+};
+
+export default LPFooter;

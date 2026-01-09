@@ -1,63 +1,77 @@
-import React from "react";
-import { Users, MessageSquare, Send } from "lucide-react";
+import React from 'react';
+import { Upload, Edit3, Send, CheckCircle } from 'lucide-react';
 
-export default function LPHowItWorksSection() {
+const LPHowItWorksSection = () => {
   const steps = [
     {
+      icon: Upload,
       number: "1",
-      icon: Users,
-      title: "Choose Your Recipients",
-      description: "Select clients from your CRM or upload a list. Tag and organize however you like."
+      title: "Upload Your Contacts",
+      description: "Import your list or integrate with your CRM. Add clients one at a time or in bulk—whatever works for your workflow."
     },
     {
+      icon: Edit3,
       number: "2",
-      icon: MessageSquare,
       title: "Personalize Your Message",
-      description: "Use templates or write custom messages. Add merge fields for personal touches."
+      description: "Choose from proven templates or write your own. Add merge fields like {First Name} and {Company} to make each note feel personal."
     },
     {
-      number: "3",
       icon: Send,
-      title: "We Handle the Rest",
-      description: "Our robots write with real pens, address envelopes, add postage, and mail them out."
+      number: "3",
+      title: "We Write & Mail It",
+      description: "Our robots replicate your handwriting (or choose from our fonts). We stuff, stamp, and mail each note within 24-48 hours."
+    },
+    {
+      icon: CheckCircle,
+      number: "4",
+      title: "Watch the Responses Roll In",
+      description: "Your prospects receive real, physical mail that stands out. They remember you—and they're more likely to book that call or close the deal."
     }
   ];
 
   return (
-    <section className="bg-gray-50 py-16">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            How It Works in 3 Simple Steps
+    <section id="how-it-works" className="bg-white py-16 lg:py-24">
+      <div className="max-w-[1400px] mx-auto px-6">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <h2 className="text-[36px] lg:text-[36px] font-bold text-[#1a2332] mb-4">
+            How It Works
           </h2>
-          <p className="text-xl text-gray-600">
-            From upload to mailbox in minutes
+          <p className="text-[18px] text-[#4a5568] max-w-3xl mx-auto">
+            Send authentic handwritten notes in four simple steps—no handwriting required.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {steps.map((step, index) => {
+        {/* Steps */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {steps.map((step) => {
             const Icon = step.icon;
             return (
-              <div key={index} className="relative">
-                <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-200 h-full">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center text-white text-2xl font-bold flex-shrink-0">
-                      {step.number}
-                    </div>
-                    <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                      <Icon className="w-6 h-6 text-orange-600" />
-                    </div>
+              <div key={step.number} className="text-center">
+                {/* Icon Circle */}
+                <div className="relative inline-block mb-6">
+                  <div 
+                    className="w-20 h-20 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: '#fff7ed' }}
+                  >
+                    <Icon className="w-10 h-10" style={{ color: '#FF7A00' }} />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{step.title}</h3>
-                  <p className="text-gray-600 leading-relaxed">{step.description}</p>
+                  {/* Step Number Badge */}
+                  <div 
+                    className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                    style={{ backgroundColor: '#16a34a' }}
+                  >
+                    {step.number}
+                  </div>
                 </div>
-                
-                {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-                    <div className="w-8 h-0.5 bg-orange-300"></div>
-                  </div>
-                )}
+
+                {/* Content */}
+                <h3 className="text-xl font-semibold text-[#1a2332] mb-3">
+                  {step.title}
+                </h3>
+                <p className="text-[#4a5568] leading-relaxed">
+                  {step.description}
+                </p>
               </div>
             );
           })}
@@ -65,4 +79,6 @@ export default function LPHowItWorksSection() {
       </div>
     </section>
   );
-}
+};
+
+export default LPHowItWorksSection;

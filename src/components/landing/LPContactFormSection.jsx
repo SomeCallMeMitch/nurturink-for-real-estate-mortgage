@@ -1,23 +1,19 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Mail } from "lucide-react";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Mail, MessageCircle, Phone } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
-export default function LPContactFormSection() {
+const LPContactFormSection = () => {
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
-    company: "",
-    message: ""
+    name: '',
+    email: '',
+    company: '',
+    message: ''
   });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Add form submission logic here
-  };
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -26,99 +22,172 @@ export default function LPContactFormSection() {
     });
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    // TODO: Implement actual form submission to backend
+    // For now, simulate submission
+    setTimeout(() => {
+      toast({
+        title: "Message sent!",
+        description: "We'll get back to you within 24 hours.",
+      });
+      setFormData({ name: '', email: '', company: '', message: '' });
+      setIsSubmitting(false);
+    }, 1000);
+  };
+
   return (
-    <section className="relative py-16 bg-gradient-to-br from-blue-600 via-purple-600 to-red-500 overflow-hidden">
-      <div className="absolute inset-0 bg-black opacity-10"></div>
-      
-      <div className="relative max-w-7xl mx-auto px-6">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 lg:p-12">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Mail className="w-8 h-8 text-orange-600" />
+    <section id="contact" className="bg-gray-50 py-16 lg:py-24">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="grid lg:grid-cols-2 gap-12">
+          {/* Left Column - Contact Info */}
+          <div>
+            <h2 className="text-[36px] font-bold text-[#1a2332] mb-4">
+              Get In Touch
+            </h2>
+            <p className="text-[18px] text-[#4a5568] mb-8">
+              Have questions about NurturInk? Want to discuss enterprise pricing or custom integrations? We'd love to hear from you.
+            </p>
+
+            {/* Contact Methods */}
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: '#fff7ed' }}
+                >
+                  <Mail className="w-6 h-6" style={{ color: '#FF7A00' }} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#1a2332] mb-1">Email Us</h3>
+                  <p className="text-[#4a5568]">support@nurturink.com</p>
+                </div>
               </div>
-              <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
-                Get Your Free Sample Card
-              </h2>
-              <p className="text-lg text-gray-600">
-                See the quality for yourself. We'll send you a real handwritten notecard at no cost.
-              </p>
+
+              <div className="flex items-start gap-4">
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: '#fff7ed' }}
+                >
+                  <Phone className="w-6 h-6" style={{ color: '#FF7A00' }} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#1a2332] mb-1">Call Us</h3>
+                  <p className="text-[#4a5568]">1-800-NURTUR-INK</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div 
+                  className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: '#fff7ed' }}
+                >
+                  <MessageCircle className="w-6 h-6" style={{ color: '#FF7A00' }} />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#1a2332] mb-1">Live Chat</h3>
+                  <p className="text-[#4a5568]">Available Mon-Fri, 9am-5pm EST</p>
+                </div>
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+            {/* Social Media Links (Placeholder) */}
+            <div className="mt-8">
+              <p className="text-sm text-[#6b7280] mb-3">Follow us on social media</p>
+              <div className="flex gap-4">
+                <a href="#" className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:border-[#FF7A00] transition-colors">
+                  <span className="text-sm font-semibold" style={{ color: '#1a2332' }}>X</span>
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:border-[#FF7A00] transition-colors">
+                  <span className="text-sm font-semibold" style={{ color: '#1a2332' }}>in</span>
+                </a>
+                <a href="#" className="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center hover:border-[#FF7A00] transition-colors">
+                  <span className="text-sm font-semibold" style={{ color: '#1a2332' }}>FB</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Contact Form */}
+          <div>
+            <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-lg">
+              <div className="space-y-6">
                 <div>
+                  <label className="block text-sm font-medium text-[#1a2332] mb-2">
+                    Name *
+                  </label>
                   <Input
                     type="text"
                     name="name"
-                    placeholder="Your Name"
                     value={formData.name}
                     onChange={handleChange}
                     required
-                    className="h-12"
+                    className="w-full"
+                    placeholder="Your full name"
                   />
                 </div>
+
                 <div>
+                  <label className="block text-sm font-medium text-[#1a2332] mb-2">
+                    Email *
+                  </label>
                   <Input
                     type="email"
                     name="email"
-                    placeholder="Email Address"
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="h-12"
+                    className="w-full"
+                    placeholder="you@company.com"
                   />
                 </div>
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Input
-                    type="tel"
-                    name="phone"
-                    placeholder="Phone Number"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="h-12"
-                  />
-                </div>
-                <div>
+                  <label className="block text-sm font-medium text-[#1a2332] mb-2">
+                    Company
+                  </label>
                   <Input
                     type="text"
                     name="company"
-                    placeholder="Company Name"
                     value={formData.company}
                     onChange={handleChange}
-                    className="h-12"
+                    className="w-full"
+                    placeholder="Your company name"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#1a2332] mb-2">
+                    Message *
+                  </label>
+                  <Textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                    className="w-full h-32"
+                    placeholder="Tell us about your needs..."
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  style={{ backgroundColor: '#16a34a' }}
+                  className="w-full text-white font-semibold"
+                  size="lg"
+                >
+                  {isSubmitting ? 'Sending...' : 'Send Message'}
+                </Button>
               </div>
-
-              <div>
-                <Textarea
-                  name="message"
-                  placeholder="Tell us about your roofing business (optional)"
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="h-32"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white text-lg py-6 font-semibold"
-              >
-                Get Your Free Sample Now
-              </Button>
-
-              <p className="text-xs text-center text-gray-500">
-                No credit card required. We'll mail it to you within 3-5 business days.
-              </p>
             </form>
           </div>
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default LPContactFormSection;
