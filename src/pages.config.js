@@ -57,6 +57,7 @@ import Welcome from './pages/Welcome';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
 import AdminTestEmails from './pages/AdminTestEmails';
+import LandingPremium from './pages/LandingPremium';
 import __Layout from './Layout.jsx';
 
 
@@ -120,6 +121,7 @@ export const PAGES = {
     "landing1": landing1,
     "lp": lp,
     "AdminTestEmails": AdminTestEmails,
+    "LandingPremium": LandingPremium,
 }
 
 export const pagesConfig = {
