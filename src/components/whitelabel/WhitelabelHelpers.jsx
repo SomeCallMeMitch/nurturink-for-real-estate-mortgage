@@ -82,13 +82,13 @@ export function PillPreview({ bg, fg, label }) {
  */
 export const DEFAULT_WHITELABEL_SETTINGS = {
   // Branding
-  brandName: "RoofScribe",
+  brandName: "NurturInk",
   logoUrl: null,
   faviconUrl: null,
 
   // Core Colors
-  primaryColor: "#0477d1",
-  accentColor: "#c87533",
+  primaryColor: "#2563eb", // Blue-600
+  accentColor: "#f97316", // Orange-500
   backgroundColor: "#ffffff",
   foregroundColor: "#222222",
 
@@ -102,7 +102,7 @@ export const DEFAULT_WHITELABEL_SETTINGS = {
   // Input & Form
   inputBackground: "#e3e3e3",
   inputBorder: "#e3e3e3",
-  ringColor: "#0477d1",
+  ringColor: "#2563eb",
 
   // Muted
   mutedBackground: "#eeeeee",
@@ -154,14 +154,14 @@ export const DEFAULT_WHITELABEL_SETTINGS = {
   navMuted: "#9ca3af",
   navBorder: "#e5e7eb",
   navItemHoverBg: "#fef3e2",
-  navItemActiveBg: "#fef3e2",
-  navItemActiveFg: "#c87533",
-  navAccent: "#c87533",
+  navItemActiveBg: "#ffedd5", // Orange-100
+  navItemActiveFg: "#f97316", // Orange-500
+  navAccent: "#f97316",
 
   // Brand/CTA
-  brandAccent: "#c87533",
+  brandAccent: "#f97316",
   brandAccentForeground: "#ffffff",
-  ctaPrimary: "#c87533",
+  ctaPrimary: "#f97316",
   ctaPrimaryForeground: "#ffffff",
   focusRing: "#3b82f6",
 
@@ -173,7 +173,7 @@ export const DEFAULT_WHITELABEL_SETTINGS = {
 
   // Selection/Active States
   selectionBg: "#EFF6FF",
-  selectionBorder: "#0477d1",
+  selectionBorder: "#2563eb",
   selectionText: "#222222",
 
   // Typography
