@@ -21,6 +21,7 @@ import EditTemplate from './pages/EditTemplate';
 import FindClients from './pages/FindClients';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
+import LandingPremium from './pages/LandingPremium';
 import MailingConfirmation from './pages/MailingConfirmation';
 import MobileClientAdd from './pages/MobileClientAdd';
 import MobileClientEdit from './pages/MobileClientEdit';
@@ -57,7 +58,6 @@ import WLDemo from './pages/WLDemo';
 import Welcome from './pages/Welcome';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import LandingPremium from './pages/LandingPremium';
 import __Layout from './Layout.jsx';
 
 
@@ -85,6 +85,7 @@ export const PAGES = {
     "FindClients": FindClients,
     "Home": Home,
     "Landing": Landing,
+    "LandingPremium": LandingPremium,
     "MailingConfirmation": MailingConfirmation,
     "MobileClientAdd": MobileClientAdd,
     "MobileClientEdit": MobileClientEdit,
@@ -121,7 +122,6 @@ export const PAGES = {
     "Welcome": Welcome,
     "landing1": landing1,
     "lp": lp,
-    "LandingPremium": LandingPremium,
 }
 
 export const pagesConfig = {
