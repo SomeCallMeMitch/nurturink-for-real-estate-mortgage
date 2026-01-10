@@ -7,6 +7,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import { useIsMobile } from "./components/hooks/use-mobile";
 import { CreditProvider } from "./components/context/CreditContext";
+import WhitelabelThemeProvider from "./components/whitelabel/WhitelabelThemeProvider";
 
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
@@ -115,7 +116,7 @@ export default function Layout({ children, currentPageName }) {
   const isWelcomePage = (normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing') && !isAcceptInvitationPageCheck;
   
   return (
-    <>
+    <WhitelabelThemeProvider>
       {/* Google Fonts for handwritten card preview */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -159,6 +160,6 @@ export default function Layout({ children, currentPageName }) {
       
       {/* Global Toaster - will auto-dismiss after 3 seconds */}
       <Toaster />
-    </>
+    </WhitelabelThemeProvider>
   );
 }
