@@ -133,9 +133,9 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       <Link
         to={createPageUrl(item.path)}
         title={isCollapsed ? item.label : ""}
-        className={`flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors text-sm font-semibold ${
+        className={`flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors text-[17px] font-semibold ${
           isActive
-            ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-bold"
+            ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-extrabold"
             : "text-[var(--navForeground)] hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
         }`}
       >
@@ -152,9 +152,9 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
         <button
           onClick={() => setExpanded(!expanded)}
           title={isCollapsed ? title : ""}
-          className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors text-sm font-semibold ${
+          className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors text-[17px] font-semibold ${
             isActive
-              ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-bold"
+              ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-extrabold"
               : "text-[var(--navForeground)] hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
           }`}
         >
@@ -183,16 +183,16 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
 
   return (
     <aside
-      className={`bg-[var(--sidebarBackground)] border-r border-[var(--sidebarBorder)] flex flex-col h-full transition-all duration-300 ease-in-out ${
+      className={`bg-white border-r border-gray-200 flex flex-col h-full transition-all duration-300 ease-in-out ${
         isCollapsed ? "w-20" : "w-64"
       }`}
     >
       {/* Header with Logo and Collapse Toggle */}
-      <div className="p-4 border-b border-[var(--sidebarBorder)] flex items-center justify-between h-[68px]">
+      <div className="p-4 border-b border-gray-200 flex items-center justify-between h-[68px]">
         {!isCollapsed && (
           <Link to={createPageUrl("Home")} className="flex items-center gap-2 overflow-hidden">
             {logoUrl ? (
-              <img src={logoUrl} alt={brandName} className="h-14 w-auto object-contain" />
+              <img src={logoUrl} alt={brandName} className="h-18 w-auto object-contain" />
             ) : (
               <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xl">
                 {getInitials(brandName)}
@@ -201,7 +201,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
           </Link>
         )}
         {isCollapsed && logoUrl && (
-          <img src={logoUrl} alt={brandName} className="h-14 w-auto object-contain mx-auto" />
+          <img src={logoUrl} alt={brandName} className="h-18 w-auto object-contain mx-auto" />
         )}
         {isCollapsed && !logoUrl && (
           <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xl mx-auto">
@@ -222,7 +222,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       </nav>
 
       {/* Footer with User Menu */}
-      <div className="p-2 border-t border-[var(--sidebarBorder)]">
+      <div className="p-2 border-t border-gray-200">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start text-left h-auto py-2 px-3">
