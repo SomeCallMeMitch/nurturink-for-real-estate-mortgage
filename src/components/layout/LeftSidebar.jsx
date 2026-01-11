@@ -133,9 +133,9 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       <Link
         to={createPageUrl(item.path)}
         title={isCollapsed ? item.label : ""}
-        className={`flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium ${
+        className={`flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors text-sm font-semibold ${
           isActive
-            ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-semibold"
+            ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-bold"
             : "text-[var(--navForeground)] hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
         }`}
       >
@@ -152,9 +152,9 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
         <button
           onClick={() => setExpanded(!expanded)}
           title={isCollapsed ? title : ""}
-          className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors text-sm font-medium ${
+          className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-lg transition-colors text-sm font-semibold ${
             isActive
-              ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-semibold"
+              ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-bold"
               : "text-[var(--navForeground)] hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
           }`}
         >
@@ -192,7 +192,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
         {!isCollapsed && (
           <Link to={createPageUrl("Home")} className="flex items-center gap-2 overflow-hidden">
             {logoUrl ? (
-              <img src={logoUrl} alt={brandName} className="h-10 w-auto object-contain" />
+              <img src={logoUrl} alt={brandName} className="h-14 w-auto object-contain" />
             ) : (
               <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xl">
                 {getInitials(brandName)}
@@ -201,7 +201,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
           </Link>
         )}
         {isCollapsed && logoUrl && (
-          <img src={logoUrl} alt={brandName} className="h-10 w-10 object-contain mx-auto" />
+          <img src={logoUrl} alt={brandName} className="h-14 w-auto object-contain mx-auto" />
         )}
         {isCollapsed && !logoUrl && (
           <div className="h-10 w-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold text-xl mx-auto">
