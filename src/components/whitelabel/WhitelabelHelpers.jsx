@@ -143,7 +143,7 @@ export const DEFAULT_WHITELABEL_SETTINGS = {
   pillColor3Bg: "#CCFBF1",
   pillColor3Fg: "#0F766E",
 
-  // Navigation/Sidebar
+  // Navigation/Sidebar - UPDATED TO AMBER COLORS
   sidebarBackground: "#ffffff",
   sidebarForeground: "#374151",
   sidebarBorder: "#e5e7eb",
@@ -153,10 +153,10 @@ export const DEFAULT_WHITELABEL_SETTINGS = {
   navForeground: "#374151",
   navMuted: "#9ca3af",
   navBorder: "#e5e7eb",
-  navItemHoverBg: "#fef3e2",
-  navItemActiveBg: "#ffedd5", // Orange-100
-  navItemActiveFg: "#f97316", // Orange-500
-  navAccent: "#f97316",
+  navItemHoverBg: "#fffbeb", // Amber-50
+  navItemActiveBg: "#fffbeb", // Amber-50
+  navItemActiveFg: "#b45309", // Amber-700
+  navAccent: "#b45309", // Amber-700
 
   // Brand/CTA
   brandAccent: "#f97316",
