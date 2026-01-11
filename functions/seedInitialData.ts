@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 // --- DATA TO SEED ---
 
@@ -106,67 +106,90 @@ Deno.serve(async (req) => {
     }
 
     // Determine if this is an individual or organization user
+    // Individual users: tags/data owned by userId, orgId is null
+    // Organization members: tags/data owned by orgId, userId is null (for ownership)
     const isIndividual = !orgId;
-    const ownerIdField = isIndividual ? 'userId' : 'orgId';
-    const ownerId = isIndividual ? userId : orgId;
 
     // Use asServiceRole to perform seeding operations
     const adminBase44 = base44.asServiceRole;
 
+    // Build filter and ownership fields based on user type
+    const ownershipFields = isIndividual 
+      ? { userId: userId, orgId: null }
+      : { orgId: orgId, userId: null };
+    
+    const filterField = isIndividual ? { userId: userId } : { orgId: orgId };
+
     // 1. Seed Template Categories (Idempotent)
-    const existingCategories = await adminBase44.entities.TemplateCategory.filter({ [ownerIdField]: ownerId });
+    const existingCategories = await adminBase44.entities.TemplateCategory.filter(filterField);
     if (existingCategories.length === 0) {
         const categoriesToCreate = TEMPLATE_CATEGORIES.map(c => ({ 
           ...c, 
-          [ownerIdField]: ownerId,
-          type: 'platform' 
+          ...ownershipFields,
+          type: 'platform',
+          createdByUserId: userId
         }));
         await adminBase44.entities.TemplateCategory.bulkCreate(categoriesToCreate);
     }
 
     // 2. Seed Note Style Profiles (Idempotent)
-    const existingStyles = await adminBase44.entities.NoteStyleProfile.filter({ [ownerIdField]: ownerId });
+    // NoteStyleProfile requires both userId and orgId fields
+    const styleOwnership = {
+      userId: userId,
+      orgId: orgId || userId, // For individuals, use userId as orgId fallback
+      createdByUserId: userId,
+      type: isIndividual ? 'personal' : 'organization'
+    };
+    
+    const existingStyles = await adminBase44.entities.NoteStyleProfile.filter({ 
+      userId: userId,
+      type: styleOwnership.type 
+    });
+    
     if (existingStyles.length === 0) {
         const stylesToCreate = NOTE_STYLE_PROFILES.map(s => ({ 
           ...s, 
-          [ownerIdField]: ownerId,
-          type: 'platform', 
-          handwritingFont: 'Caveat' 
+          ...styleOwnership,
+          handwritingFont: 'Caveat'
         }));
         await adminBase44.entities.NoteStyleProfile.bulkCreate(stylesToCreate);
     }
 
-    // 3. Seed Tags (Universal + Industry-Specific)
-    const universalTags = TAGS.universal;
-    const industryTags = TAGS[industry] || TAGS.other;
-    const tagsToCreate = [...universalTags, ...industryTags];
+    // 3. Seed Tags (Universal + Industry-Specific) - Idempotent check
+    const existingTags = await adminBase44.entities.Tag.filter({
+      ...filterField,
+      isSystemDefault: true
+    });
     
-    const tagRecords = tagsToCreate.map(t => ({ 
-      name: t.name,
-      slug: t.slug,
-      color: t.color,
-      isSystemDefault: true,
-      [ownerIdField]: ownerId,
-    }));
-    
-    await adminBase44.entities.Tag.bulkCreate(tagRecords);
+    if (existingTags.length === 0) {
+      const universalTags = TAGS.universal;
+      const industryTags = TAGS[industry] || TAGS.other;
+      const tagsToCreate = [...universalTags, ...industryTags];
+      
+      // Tags follow the ownership pattern: either userId OR orgId is set, never both
+      const tagRecords = tagsToCreate.map(t => ({ 
+        name: t.name,
+        slug: t.slug,
+        color: t.color,
+        isSystemDefault: true,
+        ...ownershipFields
+      }));
+      
+      await adminBase44.entities.Tag.bulkCreate(tagRecords);
+    }
 
     // 4. Seed QuickSend Templates (Idempotent)
     const existingQuickSends = await adminBase44.entities.QuickSendTemplate.filter({ 
-      [ownerIdField]: ownerId, 
+      ...filterField,
       type: 'platform' 
     });
     
     if (existingQuickSends.length === 0) {
-        // This part is more complex as it requires finding the IDs of templates and card designs by slug
-        // For this implementation, we assume slugs are unique and a helper function `findBySlug` exists
-        // In a real scenario, you would query to get the actual IDs.
-        // const templates = await adminBase44.entities.Template.filter(...)
-        // const designs = await adminBase44.entities.CardDesign.filter(...)
-        // For now, we will just create them with placeholder IDs
+        // Note: In production, you'd query for actual template/design IDs by slug
+        // For now, using placeholder IDs that should be replaced with actual lookups
         const quickSendsToCreate = QUICK_SEND_TEMPLATES.map(qs => ({
             ...qs,
-            [ownerIdField]: ownerId,
+            ...ownershipFields,
             type: 'platform',
             isActive: true,
             createdByUserId: userId,
@@ -177,11 +200,23 @@ Deno.serve(async (req) => {
         await adminBase44.entities.QuickSendTemplate.bulkCreate(quickSendsToCreate);
     }
 
+    // 5. Update User and Organization with industry (if provided)
+    if (industry) {
+      // Update the user's industry
+      await adminBase44.entities.User.update(userId, { industry: industry });
+      
+      // If part of an organization, update the org's industry too
+      if (orgId) {
+        await adminBase44.entities.Organization.update(orgId, { industry: industry });
+      }
+    }
+
     return new Response(JSON.stringify({ 
       success: true, 
       message: 'Initial data seeded successfully.',
       isIndividual,
-      tagsCreated: tagsToCreate.length 
+      industry: industry || 'not specified',
+      tagsSeeded: existingTags?.length === 0
     }), { status: 200 });
 
   } catch (error) {
