@@ -182,9 +182,9 @@ export function AppSidebar({ whitelabelSettings, user }) {
         <div className="flex items-center justify-between p-2">
            <div className="flex items-center gap-2 group-data-[collapsible=icon]:hidden overflow-hidden">
              {whitelabelSettings?.logoUrl ? (
-               <img src={whitelabelSettings.logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
+               <img src={whitelabelSettings.logoUrl} alt="Logo" className="h-10 w-auto object-contain" />
              ) : (
-               <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">
+               <div className="size-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shrink-0">
                  R
                </div>
              )}
