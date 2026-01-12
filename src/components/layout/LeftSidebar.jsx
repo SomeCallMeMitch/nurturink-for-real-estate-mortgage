@@ -40,19 +40,6 @@ import {
 export default function LeftSidebar({ whitelabelSettings, user }) {
   const location = useLocation();
 
-  // Debug: Log CSS variables on mount
-  useEffect(() => {
-    const root = document.documentElement;
-    const computedStyle = getComputedStyle(root);
-    console.log("=== LeftSidebar CSS Variables Debug ===");
-    console.log("--navItemActiveBg:", computedStyle.getPropertyValue("--navItemActiveBg"));
-    console.log("--navItemActiveFg:", computedStyle.getPropertyValue("--navItemActiveFg"));
-    console.log("--navItemHoverBg:", computedStyle.getPropertyValue("--navItemHoverBg"));
-    console.log("--sidebarBackground:", computedStyle.getPropertyValue("--sidebarBackground"));
-    console.log("--sidebarBorder:", computedStyle.getPropertyValue("--sidebarBorder"));
-    console.log("whitelabelSettings:", whitelabelSettings);
-  }, [whitelabelSettings]);
-
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem("sidebar_collapsed");
     return saved ? JSON.parse(saved) : false;
@@ -95,15 +82,6 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
 
   const brandName = whitelabelSettings?.brandName || "NurturInk";
   const logoUrl = whitelabelSettings?.logoUrl;
-
-  // Get colors from whitelabelSettings with fallbacks
-  const colors = {
-    activeBg: whitelabelSettings?.navItemActiveBg || "#fffbeb",
-    activeFg: whitelabelSettings?.navItemActiveFg || "#b45309",
-    hoverBg: whitelabelSettings?.navItemHoverBg || "#fffbeb",
-    sidebarBg: whitelabelSettings?.sidebarBackground || "#ffffff",
-    sidebarBorder: whitelabelSettings?.sidebarBorder || "#e5e7eb",
-  };
 
   const mainMenuItems = [
     {
@@ -321,21 +299,19 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
   const renderMenuItem = (item, isSubmenu = false) => {
     const Icon = item.icon;
     const isActive = isMenuItemActive(item.path);
-    
-    const baseClasses = isSubmenu
-      ? "flex items-center gap-3 px-4 py-0.5 rounded-lg transition-colors text-[15px]"
-      : "flex items-center gap-3 px-4 py-1 rounded-lg transition-colors text-[17px]";
-    
-    const activeClasses = isSubmenu ? "font-bold" : "font-extrabold";
-    const inactiveClasses = "text-gray-600 font-semibold";
-    
-    const iconSize = isSubmenu ? "w-4 h-4" : "w-5 h-5";
+    const itemClasses = isSubmenu
+      ? `flex items-center gap-3 px-4 py-0.5 rounded-lg transition-colors text-[15px] ${
+          isActive
+            ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-bold"
+            : "text-gray-600 font-semibold hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
+        }`
+      : `flex items-center gap-3 px-4 py-1 rounded-lg transition-colors text-[17px] ${
+          isActive
+            ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)] font-extrabold"
+            : "text-gray-600 font-semibold hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
+        }`;
 
-    // Inline styles for active/hover states
-    const activeStyle = {
-      backgroundColor: colors.activeBg,
-      color: colors.activeFg,
-    };
+    const iconSize = isSubmenu ? "w-4 h-4" : "w-5 h-5";
 
     if (isCollapsed) {
       return (
@@ -346,21 +322,10 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
                 <Link
                   to={createPageUrl(item.path)}
                   className={`flex items-center justify-center p-3 rounded-lg transition-colors ${
-                    isActive ? "" : "text-gray-600"
+                    isActive
+                      ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)]"
+                      : "text-gray-600 hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
                   }`}
-                  style={isActive ? activeStyle : {}}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = colors.hoverBg;
-                      e.currentTarget.style.color = colors.activeFg;
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = "";
-                      e.currentTarget.style.color = "";
-                    }
-                  }}
                 >
                   <Icon className={iconSize} />
                 </Link>
@@ -381,24 +346,8 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.15 }}
       >
-        <Link
-          to={createPageUrl(item.path)}
-          className={`${baseClasses} ${isActive ? activeClasses : inactiveClasses}`}
-          style={isActive ? activeStyle : {}}
-          onMouseEnter={(e) => {
-            if (!isActive) {
-              e.currentTarget.style.backgroundColor = colors.hoverBg;
-              e.currentTarget.style.color = colors.activeFg;
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isActive) {
-              e.currentTarget.style.backgroundColor = "";
-              e.currentTarget.style.color = "";
-            }
-          }}
-        >
-          <Icon className={iconSize} style={isActive ? { color: colors.activeFg } : {}} />
+        <Link to={createPageUrl(item.path)} className={itemClasses}>
+          <Icon className={`${iconSize} ${isActive ? "text-[var(--navItemActiveFg)]" : ""}`} />
           <span>{item.label}</span>
         </Link>
       </motion.div>
@@ -409,13 +358,9 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
     <aside
       className={`${
         isCollapsed ? "w-20" : "w-[16rem]"
-      } border-r flex flex-col h-full transition-all duration-300`}
-      style={{
-        backgroundColor: colors.sidebarBg,
-        borderColor: colors.sidebarBorder,
-      }}
+      } bg-[var(--sidebarBackground)] border-r border-[var(--sidebarBorder)] flex flex-col h-full transition-all duration-300`}
     >
-      <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: colors.sidebarBorder }}>
+      <div className="p-4 border-b border-[var(--sidebarBorder)] flex items-center justify-between">
         {!isCollapsed && (
           <div className="flex items-center gap-3">
             {logoUrl ? (
@@ -453,21 +398,10 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
                     <button
                       onClick={() => setSettingsExpanded(!settingsExpanded)}
                       className={`w-full flex items-center justify-center p-3 rounded-lg transition-colors ${
-                        isAnySubmenuActive(visibleSettingsItems) ? "" : "text-gray-700"
+                        isAnySubmenuActive(visibleSettingsItems)
+                          ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)]"
+                          : "text-gray-700 hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
                       }`}
-                      style={isAnySubmenuActive(visibleSettingsItems) ? { backgroundColor: colors.activeBg, color: colors.activeFg } : {}}
-                      onMouseEnter={(e) => {
-                        if (!isAnySubmenuActive(visibleSettingsItems)) {
-                          e.currentTarget.style.backgroundColor = colors.hoverBg;
-                          e.currentTarget.style.color = colors.activeFg;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isAnySubmenuActive(visibleSettingsItems)) {
-                          e.currentTarget.style.backgroundColor = "";
-                          e.currentTarget.style.color = "";
-                        }
-                      }}
                     >
                       <Settings className="w-5 h-5" />
                     </button>
@@ -481,24 +415,13 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
               <button
                 onClick={() => setSettingsExpanded(!settingsExpanded)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-1 rounded-lg transition-colors text-[17px] font-bold ${
-                  isAnySubmenuActive(visibleSettingsItems) ? "" : "text-gray-700"
+                  isAnySubmenuActive(visibleSettingsItems)
+                    ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)]"
+                    : "text-gray-700 hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
                 }`}
-                style={isAnySubmenuActive(visibleSettingsItems) ? { backgroundColor: colors.activeBg, color: colors.activeFg } : {}}
-                onMouseEnter={(e) => {
-                  if (!isAnySubmenuActive(visibleSettingsItems)) {
-                    e.currentTarget.style.backgroundColor = colors.hoverBg;
-                    e.currentTarget.style.color = colors.activeFg;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isAnySubmenuActive(visibleSettingsItems)) {
-                    e.currentTarget.style.backgroundColor = "";
-                    e.currentTarget.style.color = "";
-                  }
-                }}
               >
                 <div className="flex items-center gap-3">
-                  <Settings className="w-5 h-5" style={isAnySubmenuActive(visibleSettingsItems) ? { color: colors.activeFg } : {}} />
+                  <Settings className={`w-5 h-5 ${isAnySubmenuActive(visibleSettingsItems) ? "text-[var(--navItemActiveFg)]" : ""}`} />
                   <span>Settings</span>
                 </div>
                 {settingsExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -532,21 +455,10 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
                     <button
                       onClick={() => setAdminExpanded(!adminExpanded)}
                       className={`w-full flex items-center justify-center p-3 rounded-lg transition-colors ${
-                        isAnySubmenuActive(visibleAdminItems) ? "" : "text-gray-700"
+                        isAnySubmenuActive(visibleAdminItems)
+                          ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)]"
+                          : "text-gray-700 hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
                       }`}
-                      style={isAnySubmenuActive(visibleAdminItems) ? { backgroundColor: colors.activeBg, color: colors.activeFg } : {}}
-                      onMouseEnter={(e) => {
-                        if (!isAnySubmenuActive(visibleAdminItems)) {
-                          e.currentTarget.style.backgroundColor = colors.hoverBg;
-                          e.currentTarget.style.color = colors.activeFg;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isAnySubmenuActive(visibleAdminItems)) {
-                          e.currentTarget.style.backgroundColor = "";
-                          e.currentTarget.style.color = "";
-                        }
-                      }}
                     >
                       <Shield className="w-5 h-5" />
                     </button>
@@ -560,24 +472,13 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
               <button
                 onClick={() => setAdminExpanded(!adminExpanded)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-1 rounded-lg transition-colors text-[17px] font-bold ${
-                  isAnySubmenuActive(visibleAdminItems) ? "" : "text-gray-700"
+                  isAnySubmenuActive(visibleAdminItems)
+                    ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)]"
+                    : "text-gray-700 hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
                 }`}
-                style={isAnySubmenuActive(visibleAdminItems) ? { backgroundColor: colors.activeBg, color: colors.activeFg } : {}}
-                onMouseEnter={(e) => {
-                  if (!isAnySubmenuActive(visibleAdminItems)) {
-                    e.currentTarget.style.backgroundColor = colors.hoverBg;
-                    e.currentTarget.style.color = colors.activeFg;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isAnySubmenuActive(visibleAdminItems)) {
-                    e.currentTarget.style.backgroundColor = "";
-                    e.currentTarget.style.color = "";
-                  }
-                }}
               >
                 <div className="flex items-center gap-3">
-                  <Shield className="w-5 h-5" style={isAnySubmenuActive(visibleAdminItems) ? { color: colors.activeFg } : {}} />
+                  <Shield className={`w-5 h-5 ${isAnySubmenuActive(visibleAdminItems) ? "text-[var(--navItemActiveFg)]" : ""}`} />
                   <span>Admin Portal</span>
                 </div>
                 {adminExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -611,21 +512,10 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
                     <button
                       onClick={() => setWhitelabelExpanded(!whitelabelExpanded)}
                       className={`w-full flex items-center justify-center p-3 rounded-lg transition-colors ${
-                        isAnySubmenuActive(visibleWhitelabelItems) ? "" : "text-gray-700"
+                        isAnySubmenuActive(visibleWhitelabelItems)
+                          ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)]"
+                          : "text-gray-700 hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
                       }`}
-                      style={isAnySubmenuActive(visibleWhitelabelItems) ? { backgroundColor: colors.activeBg, color: colors.activeFg } : {}}
-                      onMouseEnter={(e) => {
-                        if (!isAnySubmenuActive(visibleWhitelabelItems)) {
-                          e.currentTarget.style.backgroundColor = colors.hoverBg;
-                          e.currentTarget.style.color = colors.activeFg;
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isAnySubmenuActive(visibleWhitelabelItems)) {
-                          e.currentTarget.style.backgroundColor = "";
-                          e.currentTarget.style.color = "";
-                        }
-                      }}
                     >
                       <Palette className="w-5 h-5" />
                     </button>
@@ -639,24 +529,13 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
               <button
                 onClick={() => setWhitelabelExpanded(!whitelabelExpanded)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-1 rounded-lg transition-colors text-[17px] font-bold ${
-                  isAnySubmenuActive(visibleWhitelabelItems) ? "" : "text-gray-700"
+                  isAnySubmenuActive(visibleWhitelabelItems)
+                    ? "bg-[var(--navItemActiveBg)] text-[var(--navItemActiveFg)]"
+                    : "text-gray-700 hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)]"
                 }`}
-                style={isAnySubmenuActive(visibleWhitelabelItems) ? { backgroundColor: colors.activeBg, color: colors.activeFg } : {}}
-                onMouseEnter={(e) => {
-                  if (!isAnySubmenuActive(visibleWhitelabelItems)) {
-                    e.currentTarget.style.backgroundColor = colors.hoverBg;
-                    e.currentTarget.style.color = colors.activeFg;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isAnySubmenuActive(visibleWhitelabelItems)) {
-                    e.currentTarget.style.backgroundColor = "";
-                    e.currentTarget.style.color = "";
-                  }
-                }}
               >
                 <div className="flex items-center gap-3">
-                  <Palette className="w-5 h-5" style={isAnySubmenuActive(visibleWhitelabelItems) ? { color: colors.activeFg } : {}} />
+                  <Palette className={`w-5 h-5 ${isAnySubmenuActive(visibleWhitelabelItems) ? "text-[var(--navItemActiveFg)]" : ""}`} />
                   <span>Whitelabel</span>
                 </div>
                 {whitelabelExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -682,7 +561,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
         )}
       </nav>
 
-      <div className="p-4 border-t" style={{ borderColor: colors.sidebarBorder }}>
+      <div className="p-4 border-t border-[var(--sidebarBorder)]">
         {isCollapsed ? (
           <TooltipProvider delayDuration={0}>
             <Tooltip>
@@ -693,15 +572,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="p-2 rounded-lg text-gray-600 transition-colors"
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = colors.hoverBg;
-                      e.currentTarget.style.color = colors.activeFg;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = "";
-                      e.currentTarget.style.color = "";
-                    }}
+                    className="p-2 rounded-lg text-gray-600 hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)] transition-colors"
                   >
                     <LogOut className="w-5 h-5" />
                   </button>
@@ -715,14 +586,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
           </TooltipProvider>
         ) : (
           <>
-            <button className="mb-2 flex items-center gap-3 px-2 w-full rounded-lg transition-colors py-1.5"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colors.hoverBg;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "";
-              }}
-            >
+            <button className="mb-2 flex items-center gap-3 px-2 w-full rounded-lg hover:bg-[var(--navItemHoverBg)] transition-colors py-1.5">
               <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-semibold text-sm flex-shrink-0">
                 {user?.full_name ? user.full_name.charAt(0).toUpperCase() : "U"}
               </div>
@@ -733,15 +597,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
             </button>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 transition-colors w-full"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = colors.hoverBg;
-                e.currentTarget.style.color = colors.activeFg;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "";
-                e.currentTarget.style.color = "";
-              }}
+              className="flex items-center gap-3 px-4 py-2 rounded-lg text-gray-600 hover:bg-[var(--navItemHoverBg)] hover:text-[var(--navItemActiveFg)] transition-colors w-full"
             >
               <LogOut className="w-5 h-5" />
               <span>Logout</span>
