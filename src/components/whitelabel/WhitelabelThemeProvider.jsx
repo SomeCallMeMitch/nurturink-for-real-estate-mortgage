@@ -60,8 +60,11 @@ const generateCssVariables = (settings) => {
     '--accentColor': settings.accentColor || '#f97316',
     '--ctaPrimary': settings.ctaPrimary || '#f97316',
     '--ctaPrimaryForeground': settings.ctaPrimaryForeground || '#ffffff',
-    '--navItemActiveBg': settings.navItemActiveBg || '#ffedd5',
-    '--navItemActiveFg': settings.navItemActiveFg || '#f97316',
+    '--navItemActiveBg': settings.navItemActiveBg || '#fffbeb',
+    '--navItemActiveFg': settings.navItemActiveFg || '#b45309',
+    '--navItemHoverBg': settings.navItemHoverBg || '#fffbeb',
+    '--sidebarBackground': settings.sidebarBackground || '#ffffff',
+    '--sidebarBorder': settings.sidebarBorder || '#e5e7eb',
   };
 
   return `:root {\n${Object.entries(cssVars).map(([key, value]) => `  ${key}: ${value};`).join('\n')}\n}`;
