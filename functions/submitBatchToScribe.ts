@@ -1,16 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { formatMessageForScribe } from './formatMessageForScribe.js';
 
 // ============================================================
-// SUBMIT BATCH TO SCRIBE - CORRECTED VERSION
+// SUBMIT BATCH TO SCRIBE - REFACTORED VERSION
 // ============================================================
 // 
-// KEY FIXES FROM TESTING:
-// 1. REMOVED create-campaign-id-v2 - it creates orphan drafts that add-campaign-v2 ignores
-// 2. Use add-campaign-v2 directly - creates campaign with message/design in one call
-// 3. Use ARRAY NOTATION for return_address - NOT JSON.stringify (causes 500 error)
+// KEY CHANGES:
+// 1. Hybrid placeholder strategy (greeting-only vs body placeholders)
+// 2. Message formatting with formatMessageForScribe() for proper line breaks
+// 3. Groups by FORMATTED message (not template)
+// 4. Rate limiting (60 requests/minute)
+// 5. Per-note error handling
 //
-// CORRECT WORKFLOW:
-// 1. POST /api/add-campaign-v2 → Creates campaign with message/design, returns campaign_id
+// WORKFLOW:
+// 1. POST /api/add-campaign-v2 → Creates campaign with formatted message/design
 // 2. POST /api/add-contacts-bulk → Adds contacts to that campaign_id
 // 3. PUT /api/v1/campaign/send → Submits campaign
 //
@@ -18,6 +21,71 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://staging.scribenurture.com';
 const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
+
+// ============================================================
+// RATE LIMITER
+// ============================================================
+
+class ScribeAPIQueue {
+  constructor() {
+    this.queue = [];
+    this.requestsThisMinute = 0;
+    this.lastResetTime = Date.now();
+    this.maxRequestsPerMinute = 60;
+    this.processing = false;
+  }
+
+  async enqueue(fn) {
+    return new Promise((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          const result = await fn();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      
+      if (!this.processing) {
+        this.processQueue();
+      }
+    });
+  }
+
+  async processQueue() {
+    if (this.queue.length === 0) {
+      this.processing = false;
+      return;
+    }
+
+    this.processing = true;
+
+    // Reset counter every minute
+    const now = Date.now();
+    if (now - this.lastResetTime >= 60000) {
+      this.requestsThisMinute = 0;
+      this.lastResetTime = now;
+    }
+
+    // Check if we can make another request
+    if (this.requestsThisMinute < this.maxRequestsPerMinute) {
+      const fn = this.queue.shift();
+      if (fn) {
+        this.requestsThisMinute++;
+        await fn();
+        // Process next immediately
+        setTimeout(() => this.processQueue(), 0);
+      }
+    } else {
+      // Wait until next minute
+      const waitTime = 60000 - (now - this.lastResetTime) + 100;
+      console.log(`[RateLimit] Reached ${this.maxRequestsPerMinute} req/min. Waiting ${Math.ceil(waitTime / 1000)}s...`);
+      setTimeout(() => this.processQueue(), waitTime);
+    }
+  }
+}
+
+const apiQueue = new ScribeAPIQueue();
 
 // ============================================================
 // PLACEHOLDER RESOLUTION
@@ -70,13 +138,67 @@ function resolveSenderPlaceholders(text, user, organization) {
 }
 
 /**
- * Map client placeholders to Scribe format
- * Converts {{client.*}} and {{firstName}} to {FIRST_NAME} etc.
+ * HYBRID PLACEHOLDER STRATEGY
+ * 
+ * Checks if template has placeholders ONLY in greeting (first line)
+ * If yes: use Scribe merge tags {FIRST_NAME}
+ * If no: fully resolve placeholders per recipient
  */
-function mapToScribePlaceholders(text) {
-  if (!text) return '';
+function hasPlaceholderOnlyInGreeting(template) {
+  if (!template) return false;
+  
+  const lines = template.split('\n');
+  const firstLine = lines[0] || '';
+  const restOfMessage = lines.slice(1).join('\n');
+
+  const placeholderRegex = /\{\{client\.\w+\}\}/g;
+  
+  const hasInGreeting = placeholderRegex.test(firstLine);
+  const hasInBody = placeholderRegex.test(restOfMessage);
+
+  return hasInGreeting && !hasInBody;
+}
+
+/**
+ * Resolve ALL client placeholders with actual client data
+ * Used when placeholders appear in message body
+ */
+function resolveClientPlaceholders(text, client) {
+  if (!text || !client) return text || '';
+  
+  const firstName = client.firstName || '';
+  const lastName = client.lastName || '';
+  const fullName = client.fullName || `${firstName} ${lastName}`.trim();
+  
   return text
     // {{client.*}} format
+    .replace(/\{\{client\.firstName\}\}/g, firstName)
+    .replace(/\{\{client\.lastName\}\}/g, lastName)
+    .replace(/\{\{client\.fullName\}\}/g, fullName)
+    .replace(/\{\{client\.email\}\}/g, client.email || '')
+    .replace(/\{\{client\.phone\}\}/g, client.phone || '')
+    .replace(/\{\{client\.company\}\}/g, client.company || '')
+    .replace(/\{\{client\.street\}\}/g, client.street || '')
+    .replace(/\{\{client\.city\}\}/g, client.city || '')
+    .replace(/\{\{client\.state\}\}/g, client.state || '')
+    .replace(/\{\{client\.zipCode\}\}/g, client.zipCode || '')
+    // Legacy format
+    .replace(/\{\{firstName\}\}/g, firstName)
+    .replace(/\{\{lastName\}\}/g, lastName)
+    .replace(/\{\{fullName\}\}/g, fullName)
+    .replace(/\{\{email\}\}/g, client.email || '')
+    .replace(/\{\{phone\}\}/g, client.phone || '');
+}
+
+/**
+ * Convert client placeholders to Scribe merge tags
+ * Only used for greeting-only placeholders
+ */
+function convertToScribeMergeTags(template) {
+  if (!template) return '';
+  
+  return template
+    // {{client.*}} format → {PARAM} format
     .replace(/\{\{client\.firstName\}\}/g, '{FIRST_NAME}')
     .replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}')
     .replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
@@ -109,12 +231,13 @@ function createCampaignGroupKey(scribeMessage, cardDesignId, returnAddressMode) 
 }
 
 /**
- * Determine text type based on word count
+ * Determine text type based on line count
+ * (Word count validation removed per requirements)
  */
 function determineTextType(message) {
   if (!message) return 'Short Text';
-  const wordCount = message.trim().split(/\s+/).length;
-  return wordCount > 110 ? 'Long Text' : 'Short Text';
+  const lineCount = message.split('\n').length;
+  return lineCount > 13 ? 'Long Text' : 'Short Text';
 }
 
 /**
@@ -156,129 +279,134 @@ function buildReturnAddress(mode, user, organization) {
 // ============================================================
 
 /**
- * Create campaign with add-campaign-v2 (NOT create-campaign-id-v2)
- * This creates the campaign with message/design in ONE call
+ * Create campaign with add-campaign-v2
+ * Sends FORMATTED message with proper line breaks
  * 
  * IMPORTANT: return_address must use ARRAY NOTATION, not JSON.stringify
  */
 async function createCampaignWithDetails(message, textType, zipBuffer, returnAddress = null) {
-  const url = `${SCRIBE_API_BASE_URL}/api/add-campaign-v2`;
-  
-  console.log('[Scribe] Creating campaign at:', url);
-  console.log('[Scribe] Message preview:', message?.substring(0, 100));
-  console.log('[Scribe] Text type:', textType);
-  console.log('[Scribe] ZIP size:', zipBuffer?.byteLength, 'bytes');
-  
-  const formData = new FormData();
-  formData.append('message', message);
-  formData.append('text_type', textType);
-  formData.append('campaign_type', 'one-time');
-  formData.append('attachment', new Blob([zipBuffer], { type: 'application/zip' }), 'design.zip');
-  
-  // CRITICAL: Use ARRAY NOTATION for return_address, NOT JSON.stringify
-  // JSON.stringify causes PHP 500 error: "Cannot access offset of type string on string"
-  if (returnAddress) {
-    formData.append('return_address[firstName]', returnAddress.firstName || '');
-    formData.append('return_address[lastName]', returnAddress.lastName || '');
-    formData.append('return_address[street]', returnAddress.street || '');
-    formData.append('return_address[city]', returnAddress.city || '');
-    formData.append('return_address[state]', returnAddress.state || '');
-    formData.append('return_address[zip]', returnAddress.zip || '');
-    console.log('[Scribe] Return address (array notation):', returnAddress.firstName, '-', returnAddress.city, returnAddress.state);
-  } else {
-    console.log('[Scribe] No return_address');
-  }
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${SCRIBE_API_TOKEN}` },
-    body: formData
+  return apiQueue.enqueue(async () => {
+    const url = `${SCRIBE_API_BASE_URL}/api/add-campaign-v2`;
+    
+    console.log('[Scribe] Creating campaign at:', url);
+    console.log('[Scribe] Message preview:', message?.substring(0, 100));
+    console.log('[Scribe] Text type:', textType);
+    console.log('[Scribe] ZIP size:', zipBuffer?.byteLength, 'bytes');
+    
+    const formData = new FormData();
+    formData.append('message', message);
+    formData.append('text_type', textType);
+    formData.append('campaign_type', 'one-time');
+    formData.append('attachment', new Blob([zipBuffer], { type: 'application/zip' }), 'design.zip');
+    
+    // CRITICAL: Use ARRAY NOTATION for return_address, NOT JSON.stringify
+    if (returnAddress) {
+      formData.append('return_address[firstName]', returnAddress.firstName || '');
+      formData.append('return_address[lastName]', returnAddress.lastName || '');
+      formData.append('return_address[street]', returnAddress.street || '');
+      formData.append('return_address[city]', returnAddress.city || '');
+      formData.append('return_address[state]', returnAddress.state || '');
+      formData.append('return_address[zip]', returnAddress.zip || '');
+      console.log('[Scribe] Return address (array notation):', returnAddress.firstName, '-', returnAddress.city, returnAddress.state);
+    } else {
+      console.log('[Scribe] No return_address');
+    }
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${SCRIBE_API_TOKEN}` },
+      body: formData
+    });
+    
+    const responseText = await response.text();
+    console.log('[Scribe] Create campaign response:', response.status, responseText.substring(0, 300));
+    
+    if (!response.ok) {
+      throw new Error(`Scribe create campaign failed: ${response.status} - ${responseText}`);
+    }
+    
+    const result = JSON.parse(responseText);
+    if (!result.success) {
+      throw new Error(`Scribe create campaign unsuccessful: ${JSON.stringify(result)}`);
+    }
+    
+    const campaignId = result.data?.campaign_id || result.data?.id;
+    if (!campaignId) {
+      throw new Error(`No campaign_id in response: ${JSON.stringify(result)}`);
+    }
+    
+    console.log('[Scribe] Campaign created:', campaignId);
+    return campaignId;
   });
-  
-  const responseText = await response.text();
-  console.log('[Scribe] Create campaign response:', response.status, responseText.substring(0, 300));
-  
-  if (!response.ok) {
-    throw new Error(`Scribe create campaign failed: ${response.status} - ${responseText}`);
-  }
-  
-  const result = JSON.parse(responseText);
-  if (!result.success) {
-    throw new Error(`Scribe create campaign unsuccessful: ${JSON.stringify(result)}`);
-  }
-  
-  const campaignId = result.data?.campaign_id || result.data?.id;
-  if (!campaignId) {
-    throw new Error(`No campaign_id in response: ${JSON.stringify(result)}`);
-  }
-  
-  console.log('[Scribe] Campaign created:', campaignId);
-  return campaignId;
 }
 
 /**
- * Add contacts to a campaign
+ * Add contacts to a campaign (rate limited)
  */
 async function addScribeContacts(campaignId, contacts) {
-  const url = `${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`;
-  
-  console.log('[Scribe] Adding', contacts.length, 'contacts to campaign', campaignId);
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ campaign_id: campaignId, contacts })
+  return apiQueue.enqueue(async () => {
+    const url = `${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`;
+    
+    console.log('[Scribe] Adding', contacts.length, 'contacts to campaign', campaignId);
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ campaign_id: campaignId, contacts })
+    });
+    
+    const responseText = await response.text();
+    console.log('[Scribe] Add contacts response:', response.status, responseText.substring(0, 300));
+    
+    if (!response.ok) {
+      throw new Error(`Scribe add contacts failed: ${response.status} - ${responseText}`);
+    }
+    
+    const result = JSON.parse(responseText);
+    if (!result.success) {
+      throw new Error(`Scribe add contacts unsuccessful: ${JSON.stringify(result)}`);
+    }
+    
+    return result;
   });
-  
-  const responseText = await response.text();
-  console.log('[Scribe] Add contacts response:', response.status, responseText.substring(0, 300));
-  
-  if (!response.ok) {
-    throw new Error(`Scribe add contacts failed: ${response.status} - ${responseText}`);
-  }
-  
-  const result = JSON.parse(responseText);
-  if (!result.success) {
-    throw new Error(`Scribe add contacts unsuccessful: ${JSON.stringify(result)}`);
-  }
-  
-  return result;
 }
 
 /**
- * Submit campaign for processing
+ * Submit campaign for processing (rate limited)
  */
 async function submitScribeCampaign(campaignId) {
-  const url = `${SCRIBE_API_BASE_URL}/api/v1/campaign/send`;
-  
-  console.log('[Scribe] Submitting campaign', campaignId);
-  
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ campaign_id: campaignId })
+  return apiQueue.enqueue(async () => {
+    const url = `${SCRIBE_API_BASE_URL}/api/v1/campaign/send`;
+    
+    console.log('[Scribe] Submitting campaign', campaignId);
+    
+    const response = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ campaign_id: campaignId })
+    });
+    
+    const responseText = await response.text();
+    console.log('[Scribe] Submit response:', response.status, responseText.substring(0, 300));
+    
+    // 402 = insufficient funds (can happen on staging)
+    if (response.status === 402) {
+      console.log('[Scribe] ⚠️ 402 Insufficient funds - campaign created but not submitted');
+      return { success: true, status: 'needs_credits', campaignId };
+    }
+    
+    if (!response.ok) {
+      throw new Error(`Scribe submit failed: ${response.status} - ${responseText}`);
+    }
+    
+    return JSON.parse(responseText);
   });
-  
-  const responseText = await response.text();
-  console.log('[Scribe] Submit response:', response.status, responseText.substring(0, 300));
-  
-  // 402 = insufficient funds (can happen on staging)
-  if (response.status === 402) {
-    console.log('[Scribe] ⚠️ 402 Insufficient funds - campaign created but not submitted');
-    return { success: true, status: 'needs_credits', campaignId };
-  }
-  
-  if (!response.ok) {
-    throw new Error(`Scribe submit failed: ${response.status} - ${responseText}`);
-  }
-  
-  return JSON.parse(responseText);
 }
 
 /**
@@ -380,7 +508,7 @@ Deno.serve(async (req) => {
     // ========================================
     // GROUP NOTES INTO CAMPAIGNS
     // ========================================
-    // Notes with same (message + design + returnAddressMode) go in one campaign
+    // Notes with same (FORMATTED message + design + returnAddressMode) go in one campaign
     
     const campaignGroups = new Map();
     const notesByGroupKey = new Map();
@@ -400,29 +528,70 @@ Deno.serve(async (req) => {
         continue;
       }
       
-      // Build Scribe-format message
-      let scribeMessage = note.messageTemplate;
-      if (!scribeMessage) {
-        // Rebuild if not pre-computed: resolve sender placeholders, then map client placeholders to Scribe format
+      // Step 1: Get message with sender placeholders already resolved
+      let messageWithSenderResolved = note.messageTemplate;
+      if (!messageWithSenderResolved) {
+        // Fallback: resolve sender placeholders if not pre-computed
         console.warn(`Note ${note.id} missing messageTemplate - rebuilding`);
-        const withSenderResolved = resolveSenderPlaceholders(note.message, senderUser, organization);
-        scribeMessage = mapToScribePlaceholders(withSenderResolved);
+        messageWithSenderResolved = resolveSenderPlaceholders(note.message, senderUser, organization);
       }
       
-      // Get return address mode (from note, mailing, or batch default)
+      // Step 2: HYBRID STRATEGY - Check if placeholder only in greeting
+      const useScribeMergeTags = hasPlaceholderOnlyInGreeting(messageWithSenderResolved);
+      
+      let messageToFormat;
+      
+      if (useScribeMergeTags) {
+        // Mode A: Greeting-only placeholders → Use Scribe merge tags
+        console.log(`[Note ${note.id}] Using Scribe merge tags (greeting-only placeholders)`);
+        messageToFormat = convertToScribeMergeTags(messageWithSenderResolved);
+      } else {
+        // Mode B: Body placeholders → Fully resolve per recipient
+        console.log(`[Note ${note.id}] Fully resolving placeholders (body placeholders detected)`);
+        messageToFormat = resolveClientPlaceholders(messageWithSenderResolved, client);
+      }
+      
+      // Step 3: Format the message with proper line breaks and indentation
+      let formatted;
+      let textType;
+      
+      try {
+        // Try Short Text first
+        textType = 'Short Text';
+        formatted = formatMessageForScribe(messageToFormat, textType);
+        console.log(`[Note ${note.id}] Formatted as Short Text (${formatted.lineCount} lines)`);
+      } catch (error) {
+        // If Short Text fails, try Long Text
+        try {
+          textType = 'Long Text';
+          formatted = formatMessageForScribe(messageToFormat, textType);
+          console.log(`[Note ${note.id}] Formatted as Long Text (${formatted.lineCount} lines)`);
+        } catch (longError) {
+          // Message too long even for Long Text
+          processingErrors.push({
+            noteId: note.id,
+            clientId: note.clientId,
+            error: `Message too long: ${longError.message}`
+          });
+          continue;
+        }
+      }
+      
+      // Step 4: Get return address mode
       const mailing = mailingMap[note.id];
-      const returnAddressMode = note.returnAddressMode || mailing?.returnAddressMode || batch.returnAddressMode || 'none';
+      const returnAddressMode = note.returnAddressMode || mailing?.returnAddressMode || batch.returnAddressModeGlobal || 'none';
       
-      // Create group key
-      const groupKey = createCampaignGroupKey(scribeMessage, note.cardDesignId, returnAddressMode);
+      // Step 5: Create group key with FORMATTED message
+      const groupKey = createCampaignGroupKey(formatted.formatted, note.cardDesignId, returnAddressMode);
       
+      // Step 6: Add to campaign group
       if (!campaignGroups.has(groupKey)) {
         campaignGroups.set(groupKey, {
-          scribeMessage,
+          formattedMessage: formatted.formatted, // Fully resolved and formatted
           cardDesignId: note.cardDesignId,
           cardDesign,
           returnAddressMode,
-          textType: determineTextType(scribeMessage),
+          textType: formatted.textType,
           recipients: []
         });
         notesByGroupKey.set(groupKey, []);
@@ -438,6 +607,7 @@ Deno.serve(async (req) => {
     }
     
     console.log(`Created ${campaignGroups.size} campaign groups from ${notes.length} notes`);
+    console.log(`Processing errors: ${processingErrors.length}`);
     
     // ========================================
     // PROCESS EACH CAMPAIGN GROUP
@@ -460,9 +630,9 @@ Deno.serve(async (req) => {
         // 2. Build return address
         const returnAddress = buildReturnAddress(group.returnAddressMode, senderUser, organization);
         
-        // 3. Create campaign with message/design (SKIP create-campaign-id-v2!)
+        // 3. Create campaign with FORMATTED message/design
         scribeCampaignId = await createCampaignWithDetails(
-          group.scribeMessage,
+          group.formattedMessage, // NEW: Use formatted message
           group.textType,
           zipBuffer,
           returnAddress
