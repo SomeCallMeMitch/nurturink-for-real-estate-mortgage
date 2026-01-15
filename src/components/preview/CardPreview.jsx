@@ -173,10 +173,19 @@ const CardPreview = ({
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
   useEffect(() => {
+    const fontName = noteStyleProfile?.handwritingFont || 'Caveat';
+    
+    // Wait for document.fonts.ready AND verify the specific font is loaded
     document.fonts.ready.then(() => {
-      setFontsLoaded(true);
+      // Double-check by trying to load the specific font
+      document.fonts.load(`${previewSettings.fontSize}px "${fontName}"`).then(() => {
+        // Add a small delay to ensure canvas context has the font
+        setTimeout(() => {
+          setFontsLoaded(true);
+        }, 50);
+      });
     });
-  }, []);
+  }, [noteStyleProfile, previewSettings.fontSize]);
 
   const composedMessage = useMemo(() => 
     composeCompleteMessage(
@@ -224,6 +233,7 @@ const CardPreview = ({
 
   // Calculate signature line count
   const signatureLineCount = useMemo(() => {
+    if (!fontsLoaded) return 0; // Wait for fonts to load
     if (!includeSignature || !noteStyleProfile?.signatureText) return 0;
     
     const rawSignature = replacePlaceholders(
@@ -242,7 +252,7 @@ const CardPreview = ({
     });
     
     return sigLines.length;
-  }, [includeSignature, noteStyleProfile, client, user, organization, fontSize, lineHeight, baseTextWidth, maxIndent]);
+  }, [fontsLoaded, includeSignature, noteStyleProfile, client, user, organization, fontSize, lineHeight, baseTextWidth, maxIndent]);
 
   // Calculate dynamic split point with signature protection
   const { topHalfLines, bottomHalfLines } = useMemo(() => {
