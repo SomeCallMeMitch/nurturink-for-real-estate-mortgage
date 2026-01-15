@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { formatMessageForScribe } from './formatMessageForScribe.ts';
 
 // ============================================================
 // SUBMIT BATCH TO SCRIBE - REFACTORED VERSION
@@ -21,6 +20,98 @@ import { formatMessageForScribe } from './formatMessageForScribe.ts';
 
 const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://staging.scribenurture.com';
 const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
+
+// ============================================================
+// MESSAGE FORMATTER (INLINED)
+// ============================================================
+
+function createSeededRandom(seed) {
+  let state = seed;
+  return () => {
+    state = (state * 1664525 + 1013904223) % 4294967296;
+    return state / 4294967296;
+  };
+}
+
+function wrapText(text, maxWidth) {
+  const words = text.split(/\s+/);
+  const lines = [];
+  let currentLine = '';
+  for (const word of words) {
+    if (word.length > maxWidth) {
+      if (currentLine) lines.push(currentLine.trim());
+      currentLine = '';
+      for (let i = 0; i < word.length; i += maxWidth) {
+        lines.push(word.substring(i, i + maxWidth));
+      }
+      continue;
+    }
+    const testLine = currentLine ? `${currentLine} ${word}` : word;
+    if (testLine.length <= maxWidth) {
+      currentLine = testLine;
+    } else {
+      if (currentLine) lines.push(currentLine.trim());
+      currentLine = word;
+    }
+  }
+  if (currentLine) lines.push(currentLine.trim());
+  return lines.length > 0 ? lines : [''];
+}
+
+function formatMessageForScribe(message, textType, seed) {
+  const MAX_CHARS_PER_LINE = 52;
+  const MAX_INDENT_SPACES = 3;
+  const MAX_LINES_SHORT = 13;
+  const MAX_LINES_LONG = 19;
+  const maxLines = textType === 'Short Text' ? MAX_LINES_SHORT : MAX_LINES_LONG;
+  const actualSeed = seed !== undefined ? seed : message.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const rng = createSeededRandom(actualSeed);
+  const rawLines = message.split('\n');
+  const processedLines = [];
+  for (const rawLine of rawLines) {
+    const trimmed = rawLine.trim();
+    if (trimmed === '') {
+      processedLines.push('');
+      continue;
+    }
+    const maxContentChars = MAX_CHARS_PER_LINE - MAX_INDENT_SPACES;
+    const wrappedLines = wrapText(trimmed, maxContentChars);
+    processedLines.push(...wrappedLines);
+  }
+  const indentedLines = [];
+  for (let i = 0; i < processedLines.length; i++) {
+    const line = processedLines[i];
+    if (i === 0 || i === processedLines.length - 1 || line === '') {
+      indentedLines.push(line);
+      continue;
+    }
+    const indentSpaces = Math.floor(rng() * MAX_INDENT_SPACES) + 1;
+    const indent = ' '.repeat(indentSpaces);
+    indentedLines.push(indent + line);
+  }
+  const finalLines = [];
+  for (let i = 0; i < indentedLines.length; i++) {
+    const line = indentedLines[i];
+    if (line.length <= MAX_CHARS_PER_LINE) {
+      finalLines.push(line);
+      continue;
+    }
+    const indentMatch = line.match(/^\s*/);
+    const indent = indentMatch ? indentMatch[0] : '';
+    const content = line.trim();
+    const maxContentWidth = MAX_CHARS_PER_LINE - indent.length;
+    const rewrappedLines = wrapText(content, maxContentWidth);
+    for (const rewrappedLine of rewrappedLines) {
+      finalLines.push(indent + rewrappedLine);
+    }
+  }
+  const formatted = finalLines.join('\n');
+  const lineCount = finalLines.length;
+  if (lineCount > maxLines) {
+    throw new Error(`Message exceeds ${maxLines} lines for ${textType}. Current: ${lineCount} lines.`);
+  }
+  return { formatted, lineCount, textType, exceedsLimit: false };
+}
 
 // ============================================================
 // RATE LIMITER
