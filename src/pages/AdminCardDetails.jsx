@@ -477,18 +477,6 @@ export default function AdminCardDetails() {
                     </p>
                   </div>
                 </div>
-                
-                {/* Signature */}
-                {note?.signature && (
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-2">Signature</p>
-                    <div className="p-4 bg-surface-1 rounded-lg border border-subtle">
-                      <p className="whitespace-pre-wrap text-foreground font-caveat text-lg">
-                        {note.signature}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
