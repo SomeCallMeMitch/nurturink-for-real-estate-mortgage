@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { formatMessageForScribe } from '/functions/formatMessageForScribe.js';
+import { formatMessageForScribe } from '/functions/formatMessageForScribe.ts';
 
 // ============================================================
 // SUBMIT BATCH TO SCRIBE - REFACTORED VERSION
