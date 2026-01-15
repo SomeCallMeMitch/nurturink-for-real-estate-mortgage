@@ -555,11 +555,14 @@ Deno.serve(async (req) => {
       let formatted;
       let textType;
       
+      console.log(`[Note ${note.id}] 🔍 DEBUG: messageToFormat BEFORE formatting:`, messageToFormat.substring(0, 150));
+      
       try {
         // Try Short Text first
         textType = 'Short Text';
         formatted = formatMessageForScribe(messageToFormat, textType);
-        console.log(`[Note ${note.id}] Formatted as Short Text (${formatted.lineCount} lines)`);
+        console.log(`[Note ${note.id}] ✅ Formatted as Short Text (${formatted.lineCount} lines)`);
+        console.log(`[Note ${note.id}] 🔍 DEBUG: formatted.formatted AFTER formatting:`, formatted.formatted.substring(0, 150));
       } catch (error) {
         // If Short Text fails, try Long Text
         try {
@@ -586,6 +589,7 @@ Deno.serve(async (req) => {
       
       // Step 6: Add to campaign group
       if (!campaignGroups.has(groupKey)) {
+        console.log(`[Note ${note.id}] 🔍 DEBUG: Creating new group with formattedMessage:`, formatted.formatted.substring(0, 150));
         campaignGroups.set(groupKey, {
           formattedMessage: formatted.formatted, // Fully resolved and formatted
           cardDesignId: note.cardDesignId,
@@ -622,7 +626,8 @@ Deno.serve(async (req) => {
         console.log(`\n=== PROCESSING GROUP: ${groupKey} ===`);
         console.log(`Recipients: ${group.recipients.length}`);
         console.log(`Return address mode: ${group.returnAddressMode}`);
-        console.log(`Message preview: ${group.scribeMessage.substring(0, 100)}...`);
+        console.log(`🔍 DEBUG: group.formattedMessage:`, group.formattedMessage.substring(0, 150));
+        console.log(`Message preview: ${group.formattedMessage.substring(0, 100)}...`);
         
         // 1. Fetch ZIP
         const zipBuffer = await fetchZipFromStorage(base44, group.cardDesign.scribeZipUrl);
