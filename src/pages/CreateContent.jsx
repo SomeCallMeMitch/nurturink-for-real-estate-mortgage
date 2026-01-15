@@ -828,7 +828,7 @@ export default function CreateContent() {
                 
                 <div className="flex justify-center px-4">
                   {instanceSettings && (
-                    <div className="w-full max-w-[440px]">
+                    <div className="h-full flex items-center justify-center">
                       <CardPreview
                         message={getCurrentMessage()}
                         client={getCurrentClient()}
@@ -836,7 +836,7 @@ export default function CreateContent() {
                         organization={organization} 
                         noteStyleProfile={selectedNoteStyleProfile}
                         selectedDesign={null}
-                        previewSettings={instanceSettings.cardPreviewSettings}
+                        previewSettings={instanceSettings?.cardPreviewSettings || FALLBACK_SETTINGS.cardPreviewSettings}
                         includeGreeting={getCurrentIncludeGreeting()}
                         includeSignature={getCurrentIncludeSignature()}
                         randomIndentEnabled={true}
