@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 
 // Utility function for font mapping
 const getFontClass = (fontName) => {
@@ -169,6 +169,14 @@ const CardPreview = ({
   includeSignature = true,
   randomIndentEnabled = true
 }) => {
+  // Wait for custom fonts to load before calculating line breaks
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  useEffect(() => {
+    document.fonts.ready.then(() => {
+      setFontsLoaded(true);
+    });
+  }, []);
 
   const composedMessage = useMemo(() => 
     composeCompleteMessage(
@@ -184,16 +192,16 @@ const CardPreview = ({
 
   const { fontSize, lineHeight, baseTextWidth, maxIndent } = previewSettings;
 
-  const lines = useMemo(() => 
-    messageToLines(composedMessage, {
+  const lines = useMemo(() => {
+    if (!fontsLoaded) return []; // Don't calculate until fonts load
+    return messageToLines(composedMessage, {
       fontFamily: noteStyleProfile?.handwritingFont || 'Caveat',
       fontSize: fontSize,
       lineHeight: lineHeight,
       maxWidth: baseTextWidth,
       maxIndent: maxIndent
-    }),
-    [composedMessage, noteStyleProfile, fontSize, lineHeight, baseTextWidth, maxIndent]
-  );
+    });
+  }, [composedMessage, noteStyleProfile, fontSize, lineHeight, baseTextWidth, maxIndent, fontsLoaded]);
 
   const {
     baseMarginLeft,
