@@ -235,9 +235,12 @@ export default function AdminSendDetails() {
     setApproving(true);
     
     try {
-      const result = await base44.functions.invoke('submitBatchToScribe', {
+      const response = await base44.functions.invoke('submitBatchToScribe', {
         mailingBatchId: batchId
       });
+      
+      // Response is an Axios response object - actual data is in response.data
+      const result = response.data;
       
       if (result.success) {
         toast({
