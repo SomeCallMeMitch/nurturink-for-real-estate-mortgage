@@ -55,29 +55,30 @@ Deno.serve(async (req) => {
     console.log('[seedDefaultAutomationRules] Building trigger type map:', Object.keys(triggerTypeMap));
 
     const templateMap = {
-      'birthday': 'birthday_default',
-      'new_client_welcome': 'new_client_welcome_default',
-      'renewal_reminder': 'renewal_reminder_default',
-      'referral_request': 'referral_request_default',
+      'birthday': 'Birthday - Default',
+      'new_client_welcome': 'New Client Welcome - Default',
+      'renewal_reminder': 'Renewal Reminder - Default',
+      'referral_request': 'Referral Request - Default',
     };
 
     const templateIdMap = {};
-    const templateKeys = Object.values(templateMap);
+    const triggerKeys = Object.keys(templateMap);
 
-    for (const templateKey of templateKeys) {
+    for (const triggerKey of triggerKeys) {
       try {
+        const templateName = templateMap[triggerKey];
         const templates = await base44.entities.Template.filter({
-          key: templateKey,
+          name: templateName,
         });
 
         if (templates && templates.length > 0) {
-          templateIdMap[templateKey] = templates[0].id;
-          console.log(`[seedDefaultAutomationRules] Found template: ${templateKey} (ID: ${templates[0].id})`);
+          templateIdMap[triggerKey] = templates[0].id;
+          console.log(`[seedDefaultAutomationRules] Found template: ${templateName} (ID: ${templates[0].id})`);
         } else {
-          console.warn(`[seedDefaultAutomationRules] Template not found: ${templateKey}`);
+          console.warn(`[seedDefaultAutomationRules] Template not found: ${templateName}`);
         }
       } catch (error) {
-        console.error(`[seedDefaultAutomationRules] Error fetching template ${templateKey}:`, error);
+        console.error(`[seedDefaultAutomationRules] Error fetching template for trigger ${triggerKey}:`, error);
       }
     }
 
