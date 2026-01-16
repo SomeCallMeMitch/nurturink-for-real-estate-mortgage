@@ -68,7 +68,6 @@ Deno.serve(async (req) => {
       try {
         const templates = await base44.entities.Template.filter({
           key: templateKey,
-          created_by: currentUser.id,
         });
 
         if (templates && templates.length > 0) {
