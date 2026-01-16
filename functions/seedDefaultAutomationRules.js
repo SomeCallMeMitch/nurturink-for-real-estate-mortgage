@@ -47,27 +47,41 @@ Deno.serve(async (req) => {
 
     console.log(`[seedDefaultAutomationRules] Found ${triggerTypes.length} active trigger types`);
 
-    const templates = await base44.entities.Template.filter({
-      created_by: currentUser.id,
-    });
-
-    const cardDesigns = await base44.entities.CardDesign.filter({
-      created_by: currentUser.id,
-    });
-
-    const noteStyleProfiles = await base44.entities.NoteStyleProfile.filter({
-      created_by: currentUser.id,
-    });
-
-    console.log(`[seedDefaultAutomationRules] User has ${templates?.length || 0} templates, ${cardDesigns?.length || 0} card designs, ${noteStyleProfiles?.length || 0} note styles`);
-
-    const defaultTemplateId = templates && templates.length > 0 ? templates[0].id : null;
-    const defaultCardDesignId = cardDesigns && cardDesigns.length > 0 ? cardDesigns[0].id : null;
-    const defaultNoteStyleProfileId = noteStyleProfiles && noteStyleProfiles.length > 0 ? noteStyleProfiles[0].id : null;
-
-    if (!defaultTemplateId || !defaultCardDesignId || !defaultNoteStyleProfileId) {
-      console.warn('[seedDefaultAutomationRules] User is missing templates, card designs, or note styles. Rules will be created with null values where missing.');
+    const triggerTypeMap = {};
+    for (const triggerType of triggerTypes) {
+      triggerTypeMap[triggerType.key] = triggerType.id;
     }
+
+    console.log('[seedDefaultAutomationRules] Building trigger type map:', Object.keys(triggerTypeMap));
+
+    const templateMap = {
+      'birthday': 'birthday_default',
+      'new_client_welcome': 'new_client_welcome_default',
+      'renewal_reminder': 'renewal_reminder_default',
+      'referral_request': 'referral_request_default',
+    };
+
+    const defaultTemplates = await base44.entities.Template.filter({
+      key: { $in: Object.values(templateMap) },
+      created_by: currentUser.id,
+    });
+
+    if (!defaultTemplates || defaultTemplates.length === 0) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          error: 'Default templates not found. Please run seedDefaultTemplatesAndDesigns first.',
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const templateIdMap = {};
+    for (const template of defaultTemplates) {
+      templateIdMap[template.key] = template.id;
+    }
+
+    console.log('[seedDefaultAutomationRules] Found default templates:', Object.keys(templateIdMap));
 
     const created = [];
     const skipped = [];
@@ -88,6 +102,18 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        const templateKey = templateMap[triggerType.key];
+        const templateId = templateIdMap[templateKey];
+
+        if (!templateId) {
+          console.error(`[seedDefaultAutomationRules] No template found for trigger type "${triggerType.key}"`);
+          errors.push({
+            triggerType: triggerType.name,
+            error: `No template found for trigger type "${triggerType.key}"`,
+          });
+          continue;
+        }
+
         let frequencyCap = 'annually';
         if (triggerType.key === 'new_client_welcome') {
           frequencyCap = 'once';
@@ -97,9 +123,7 @@ Deno.serve(async (req) => {
 
         const ruleData = {
           triggerTypeId: triggerType.id,
-          templateId: defaultTemplateId,
-          cardDesignId: defaultCardDesignId,
-          noteStyleProfileId: defaultNoteStyleProfileId,
+          templateId: templateId,
           daysBefore: triggerType.defaultDaysBefore,
           daysAfter: triggerType.defaultDaysAfter,
           frequencyCap,
