@@ -113,8 +113,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const templateKey = templateMap[triggerType.key];
-        const templateId = templateIdMap[templateKey];
+        const templateId = templateIdMap[triggerType.key];
 
         if (!templateId) {
           console.error(`[seedDefaultAutomationRules] No template found for trigger type "${triggerType.key}"`);
