@@ -1,0 +1,97 @@
+{
+  "name": "Client",
+  "description": "Client/contact information for automation targeting",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Full name of the client",
+      "required": true
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email address of the client",
+      "required": true
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number of the client",
+      "required": false
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name associated with the client",
+      "required": false
+    },
+    "street_address": {
+      "type": "string",
+      "description": "Street address for card mailing",
+      "required": false
+    },
+    "city": {
+      "type": "string",
+      "description": "City for card mailing address",
+      "required": false
+    },
+    "state": {
+      "type": "string",
+      "description": "State/province for card mailing address",
+      "required": false
+    },
+    "zip_code": {
+      "type": "string",
+      "description": "ZIP/postal code for card mailing address",
+      "required": false
+    },
+    "birthday": {
+      "type": "string",
+      "format": "date",
+      "description": "Client's birthday (YYYY-MM-DD) for birthday automation",
+      "required": false
+    },
+    "renewal_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Client's renewal date (YYYY-MM-DD) for renewal reminder automation",
+      "required": false
+    },
+    "referral_status": {
+      "type": "string",
+      "enum": ["none", "pending", "completed"],
+      "description": "Status of referral request for referral automation",
+      "required": false,
+      "default": "none"
+    },
+    "automation_status": {
+      "type": "string",
+      "enum": ["active", "paused", "opted_out"],
+      "description": "Whether automations are active for this client",
+      "required": false,
+      "default": "active"
+    },
+    "last_automation_trigger": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the last automation trigger for this client",
+      "required": false
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes about the client",
+      "required": false
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for organizing and filtering clients",
+      "required": false
+    },
+    "custom_fields": {
+      "type": "object",
+      "description": "Custom fields for storing additional client data",
+      "required": false
+    }
+  }
+}

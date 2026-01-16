@@ -1,0 +1,66 @@
+{
+  "name": "TriggerType",
+  "description": "Types of events that can trigger automated card sends",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name of the trigger type (e.g., 'Birthday')",
+      "required": true
+    },
+    "key": {
+      "type": "string",
+      "description": "Unique identifier for the trigger type (e.g., 'birthday')",
+      "required": true
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of when this trigger fires",
+      "required": false
+    },
+    "icon": {
+      "type": "string",
+      "description": "Icon name for UI display (e.g., 'cake' for birthday)",
+      "required": false
+    },
+    "isActive": {
+      "type": "boolean",
+      "description": "Whether this trigger type is available for use",
+      "required": true,
+      "default": true
+    },
+    "defaultDaysBefore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 365,
+      "description": "Default number of days before trigger to send card",
+      "required": true,
+      "default": 0
+    },
+    "defaultDaysAfter": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 365,
+      "description": "Default number of days after trigger to send card",
+      "required": true,
+      "default": 0
+    },
+    "defaultFrequencyCap": {
+      "type": "string",
+      "enum": ["once", "annually", "monthly", "per_event"],
+      "description": "Default frequency cap for this trigger type",
+      "required": true,
+      "default": "annually"
+    },
+    "clientFieldRequired": {
+      "type": "string",
+      "description": "Which client field is required for this trigger (e.g., 'birthday', 'renewal_date')",
+      "required": false
+    },
+    "sortOrder": {
+      "type": "integer",
+      "description": "Display order in UI",
+      "required": false,
+      "default": 0
+    }
+  }
+}

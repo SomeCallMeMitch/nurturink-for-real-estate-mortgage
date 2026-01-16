@@ -1,0 +1,72 @@
+{
+  "name": "AutomationRule",
+  "description": "Configuration for automated card sending based on triggers",
+  "properties": {
+    "triggerTypeId": {
+      "type": "string",
+      "description": "Reference to the TriggerType that activates this rule",
+      "required": true
+    },
+    "templateId": {
+      "type": "string",
+      "description": "Reference to the Template used for cards sent by this rule",
+      "required": true
+    },
+    "daysBefore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 365,
+      "description": "Number of days before the trigger date to send the card",
+      "required": true,
+      "default": 0
+    },
+    "daysAfter": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 365,
+      "description": "Number of days after the trigger date to send the card",
+      "required": true,
+      "default": 0
+    },
+    "frequencyCap": {
+      "type": "string",
+      "enum": ["once", "annually", "monthly", "per_event"],
+      "description": "How often to send cards for this trigger per client",
+      "required": true,
+      "default": "annually"
+    },
+    "isActive": {
+      "type": "boolean",
+      "description": "Whether this automation rule is currently active",
+      "required": true,
+      "default": true
+    },
+    "customMessage": {
+      "type": "string",
+      "description": "Optional custom message to append to the template",
+      "required": false
+    },
+    "last_run_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the last time this rule was executed",
+      "required": false
+    },
+    "next_run_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the next scheduled execution",
+      "required": false
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this automation rule",
+      "required": false
+    },
+    "client_filter": {
+      "type": "object",
+      "description": "Optional filter to limit which clients this rule applies to (e.g., by tag or custom field)",
+      "required": false
+    }
+  }
+}

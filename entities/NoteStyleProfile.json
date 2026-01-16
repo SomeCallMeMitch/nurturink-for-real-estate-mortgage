@@ -1,0 +1,73 @@
+{
+  "name": "NoteStyleProfile",
+  "description": "Note style profiles that define handwriting and formatting for automated cards",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name of the note style profile (e.g., 'Casual')",
+      "required": true
+    },
+    "key": {
+      "type": "string",
+      "description": "Unique identifier for the profile (e.g., 'casual')",
+      "required": true
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the note style",
+      "required": false
+    },
+    "handwritingStyle": {
+      "type": "string",
+      "description": "Handwriting style identifier from Scribe API",
+      "required": false
+    },
+    "fontFamily": {
+      "type": "string",
+      "description": "Font family used for the note",
+      "required": false
+    },
+    "fontSize": {
+      "type": "string",
+      "description": "Font size for the note",
+      "required": false
+    },
+    "lineSpacing": {
+      "type": "string",
+      "description": "Line spacing for the note",
+      "required": false
+    },
+    "alignment": {
+      "type": "string",
+      "enum": ["left", "center", "right"],
+      "description": "Text alignment for the note",
+      "required": false,
+      "default": "left"
+    },
+    "tone": {
+      "type": "string",
+      "enum": ["casual", "professional", "formal", "warm", "grateful"],
+      "description": "Tone conveyed by this style",
+      "required": false,
+      "default": "casual"
+    },
+    "isActive": {
+      "type": "boolean",
+      "description": "Whether this profile is available for use",
+      "required": true,
+      "default": true
+    },
+    "isDefault": {
+      "type": "boolean",
+      "description": "Whether this is a default profile provided by NurturInk",
+      "required": false,
+      "default": false
+    },
+    "sortOrder": {
+      "type": "integer",
+      "description": "Display order in UI",
+      "required": false,
+      "default": 0
+    }
+  }
+}

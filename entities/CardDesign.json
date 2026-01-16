@@ -1,0 +1,50 @@
+{
+  "name": "CardDesign",
+  "description": "Available card designs for automated card sends",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name of the card design (e.g., 'Thank you - Plain White')",
+      "required": true
+    },
+    "key": {
+      "type": "string",
+      "description": "Unique identifier for the card design (e.g., 'thank_you_plain_white')",
+      "required": true
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the card design",
+      "required": false
+    },
+    "category": {
+      "type": "string",
+      "description": "Category of card design (e.g., 'Thank You', 'Birthday', 'Congratulations')",
+      "required": false
+    },
+    "imageUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to preview image of the card design",
+      "required": false
+    },
+    "isActive": {
+      "type": "boolean",
+      "description": "Whether this card design is available for use",
+      "required": true,
+      "default": true
+    },
+    "isDefault": {
+      "type": "boolean",
+      "description": "Whether this is a default card design provided by Scribe",
+      "required": false,
+      "default": false
+    },
+    "sortOrder": {
+      "type": "integer",
+      "description": "Display order in UI",
+      "required": false,
+      "default": 0
+    }
+  }
+}

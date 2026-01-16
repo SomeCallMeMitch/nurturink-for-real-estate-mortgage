@@ -1,0 +1,75 @@
+{
+  "name": "AutomationHistory",
+  "description": "Tracks all automated cards sent through the automation system",
+  "properties": {
+    "automationRuleId": {
+      "type": "string",
+      "description": "Reference to the AutomationRule that triggered this send",
+      "required": true
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Reference to the Client who received the card",
+      "required": true
+    },
+    "triggerType": {
+      "type": "string",
+      "enum": ["birthday", "new_client_welcome", "renewal_reminder", "referral_request"],
+      "description": "Type of trigger that caused this card to be sent",
+      "required": true
+    },
+    "templateId": {
+      "type": "string",
+      "description": "Reference to the Template used for this card",
+      "required": true
+    },
+    "sentDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the card was sent",
+      "required": true
+    },
+    "scribeBatchId": {
+      "type": "string",
+      "description": "Batch ID returned by Scribe API for tracking fulfillment",
+      "required": false
+    },
+    "status": {
+      "type": "string",
+      "enum": ["sent", "failed", "pending", "cancelled"],
+      "description": "Current status of the automated card send",
+      "required": true,
+      "default": "pending"
+    },
+    "errorMessage": {
+      "type": "string",
+      "description": "Error message if status is 'failed'",
+      "required": false
+    },
+    "recipientName": {
+      "type": "string",
+      "description": "Name of the card recipient",
+      "required": false
+    },
+    "recipientEmail": {
+      "type": "string",
+      "description": "Email of the card recipient",
+      "required": false
+    },
+    "cardDesign": {
+      "type": "string",
+      "description": "Card design used (e.g., 'Thank you - Plain White')",
+      "required": false
+    },
+    "noteStyle": {
+      "type": "string",
+      "description": "Note style profile used (e.g., 'casual')",
+      "required": false
+    },
+    "messageContent": {
+      "type": "string",
+      "description": "Rendered message content sent on the card",
+      "required": false
+    }
+  }
+}
