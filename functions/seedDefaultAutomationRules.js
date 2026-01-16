@@ -61,12 +61,28 @@ Deno.serve(async (req) => {
       'referral_request': 'referral_request_default',
     };
 
-    const defaultTemplates = await base44.entities.Template.filter({
-      key: { $in: Object.values(templateMap) },
-      created_by: currentUser.id,
-    });
+    const templateIdMap = {};
+    const templateKeys = Object.values(templateMap);
 
-    if (!defaultTemplates || defaultTemplates.length === 0) {
+    for (const templateKey of templateKeys) {
+      try {
+        const templates = await base44.entities.Template.filter({
+          key: templateKey,
+          created_by: currentUser.id,
+        });
+
+        if (templates && templates.length > 0) {
+          templateIdMap[templateKey] = templates[0].id;
+          console.log(`[seedDefaultAutomationRules] Found template: ${templateKey} (ID: ${templates[0].id})`);
+        } else {
+          console.warn(`[seedDefaultAutomationRules] Template not found: ${templateKey}`);
+        }
+      } catch (error) {
+        console.error(`[seedDefaultAutomationRules] Error fetching template ${templateKey}:`, error);
+      }
+    }
+
+    if (Object.keys(templateIdMap).length === 0) {
       return new Response(
         JSON.stringify({
           success: false,
@@ -74,11 +90,6 @@ Deno.serve(async (req) => {
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
-    }
-
-    const templateIdMap = {};
-    for (const template of defaultTemplates) {
-      templateIdMap[template.key] = template.id;
     }
 
     console.log('[seedDefaultAutomationRules] Found default templates:', Object.keys(templateIdMap));
