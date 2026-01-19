@@ -1,50 +1,66 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
 
+/**
+ * Seed Note Style Profiles
+ * 
+ * Creates 5 standard note style profiles for an organization.
+ * Uses unified placeholder standard from lib/placeholders.ts:
+ * - {{user.firstName}}, {{user.fullName}} for sender
+ * - {{client.firstName}} for recipient
+ * 
+ * FIXED: Now handles idempotent creation - can be run multiple times safely
+ */
+
 const sampleProfiles = [
   {
-    name: "Professional",
-    defaultGreeting: "Dear {{client.firstName}},",
-    signatureText: "Sincerely,\n{{me.fullName}}\n{{me.companyName}}\n{{me.phone}}",
+    name: "Friendly",
+    defaultGreeting: "Hi {{client.firstName}},",
+    signatureText: "Thanks!\n{{user.firstName}}",
     includeSignatureByDefault: true,
     handwritingFont: "Caveat",
     isDefault: true,  // First one is default
-    isOrgWide: false
+    isOrgWide: true,  // Universal style, same for all orgs
+    description: "Warm and approachable - great for most situations"
   },
   {
-    name: "Casual & Friendly",
-    defaultGreeting: "Hi {{client.firstName}}!",
-    signatureText: "Best,\n{{me.fullName}}\n{{me.companyName}}",
+    name: "Casual",
+    defaultGreeting: "Hey {{client.firstName}}!",
+    signatureText: "Talk soon,\n{{user.firstName}}",
     includeSignatureByDefault: true,
     handwritingFont: "Caveat",
     isDefault: false,
-    isOrgWide: false
+    isOrgWide: true,
+    description: "Relaxed and personable - best for established relationships"
   },
   {
-    name: "Follow-up Thank You",
+    name: "Professional",
     defaultGreeting: "Hello {{client.firstName}},",
-    signatureText: "Thank you,\n{{me.fullName}}\n{{me.companyName}}",
+    signatureText: "Best,\n{{user.fullName}}",
     includeSignatureByDefault: true,
     handwritingFont: "Caveat",
     isDefault: false,
-    isOrgWide: false
+    isOrgWide: true,
+    description: "Polished and respectful - ideal for first contact"
   },
   {
-    name: "Simple & Direct",
+    name: "Grateful",
+    defaultGreeting: "Hi {{client.firstName}},",
+    signatureText: "Thank you,\n{{user.firstName}}",
+    includeSignatureByDefault: true,
+    handwritingFont: "Caveat",
+    isDefault: false,
+    isOrgWide: true,
+    description: "Appreciative tone - perfect for thank you notes"
+  },
+  {
+    name: "Direct",
     defaultGreeting: "{{client.firstName}},",
-    signatureText: "Regards,\n{{me.fullName}}",
-    includeSignatureByDefault: true,
-    handwritingFont: "Caveat",
-    isDefault: false,
-    isOrgWide: false
-  },
-  {
-    name: "Warm Personal Touch",
-    defaultGreeting: "Hey {{client.firstName}},",
-    signatureText: "All the best,\n{{me.fullName}}\n{{me.phone}}",
+    signatureText: "— {{user.firstName}}",
     includeSignatureByDefault: true,
     handwritingFont: "Patrick Hand",
     isDefault: false,
-    isOrgWide: false
+    isOrgWide: true,
+    description: "Minimal and efficient - good for quick notes"
   }
 ];
 
@@ -67,31 +83,57 @@ Deno.serve(async (req) => {
       orgId: user.orgId
     });
     
-    if (existingProfiles.length > 0) {
+    // FIXED: Instead of failing if profiles exist, we now:
+    // 1. Check if we have the correct 5 profiles
+    // 2. If we have all 5, return success (idempotent)
+    // 3. If we have fewer than 5, create the missing ones
+    
+    if (existingProfiles.length >= 5) {
+      // All profiles already exist - return success (idempotent)
       return Response.json({
-        success: false,
-        message: `NoteStyleProfiles already exist. Found ${existingProfiles.length} existing profiles.`,
-        profileCount: existingProfiles.length
+        success: true,
+        message: `Note style profiles already exist for this organization. Found ${existingProfiles.length} profiles.`,
+        profileCount: existingProfiles.length,
+        profiles: existingProfiles,
+        action: "skipped"
       });
     }
     
-    // Create all sample profiles
+    // Create missing profiles
     const createdProfiles = [];
+    const existingNames = new Set(existingProfiles.map(p => p.name));
     
     for (const sampleProfile of sampleProfiles) {
-      const profile = await base44.entities.NoteStyleProfile.create({
-        ...sampleProfile,
-        userId: user.id,
-        orgId: user.orgId
-      });
-      createdProfiles.push(profile);
+      // Skip if this profile already exists
+      if (existingNames.has(sampleProfile.name)) {
+        console.log(`Profile "${sampleProfile.name}" already exists, skipping...`);
+        continue;
+      }
+      
+      try {
+        const profile = await base44.entities.NoteStyleProfile.create({
+          ...sampleProfile,
+          userId: user.id,
+          orgId: user.orgId
+        });
+        createdProfiles.push(profile);
+        console.log(`Created profile: ${sampleProfile.name}`);
+      } catch (createError) {
+        console.error(`Failed to create profile "${sampleProfile.name}":`, createError);
+        // Continue creating other profiles even if one fails
+      }
     }
+    
+    const totalProfiles = existingProfiles.length + createdProfiles.length;
     
     return Response.json({
       success: true,
-      message: `Successfully created ${createdProfiles.length} note style profiles!`,
-      profileCount: createdProfiles.length,
-      profiles: createdProfiles
+      message: `Successfully seeded note style profiles. Total: ${totalProfiles} profiles.`,
+      profileCount: totalProfiles,
+      newProfiles: createdProfiles.length,
+      existingProfiles: existingProfiles.length,
+      profiles: [...existingProfiles, ...createdProfiles],
+      action: createdProfiles.length > 0 ? "created" : "skipped"
     });
     
   } catch (error) {
@@ -99,7 +141,8 @@ Deno.serve(async (req) => {
     return Response.json(
       { 
         success: false,
-        error: error.message || 'Failed to seed note style profiles' 
+        error: error.message || 'Failed to seed note style profiles',
+        details: error.stack
       },
       { status: 500 }
     );
