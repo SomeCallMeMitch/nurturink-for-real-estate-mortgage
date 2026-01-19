@@ -1,0 +1,218 @@
+{
+  "user": {
+    "firstName": {
+      "format": "{{user.firstName}}",
+      "description": "User first name",
+      "dataType": "string",
+      "required": true,
+      "example": "John"
+    },
+    "lastName": {
+      "format": "{{user.lastName}}",
+      "description": "User last name",
+      "dataType": "string",
+      "required": true,
+      "example": "Smith"
+    },
+    "fullName": {
+      "format": "{{user.fullName}}",
+      "description": "User full name (first + last)",
+      "dataType": "string",
+      "required": true,
+      "example": "John Smith"
+    },
+    "email": {
+      "format": "{{user.email}}",
+      "description": "User email address",
+      "dataType": "email",
+      "required": false,
+      "example": "john@example.com"
+    },
+    "phone": {
+      "format": "{{user.phone}}",
+      "description": "User phone number",
+      "dataType": "phone",
+      "required": false,
+      "example": "(555) 123-4567"
+    },
+    "companyName": {
+      "format": "{{user.companyName}}",
+      "description": "User company name",
+      "dataType": "string",
+      "required": false,
+      "example": "Acme Roofing"
+    },
+    "title": {
+      "format": "{{user.title}}",
+      "description": "User job title",
+      "dataType": "string",
+      "required": false,
+      "example": "Sales Manager"
+    },
+    "street": {
+      "format": "{{user.street}}",
+      "description": "User street address",
+      "dataType": "string",
+      "required": false,
+      "example": "123 Main St"
+    },
+    "city": {
+      "format": "{{user.city}}",
+      "description": "User city",
+      "dataType": "string",
+      "required": false,
+      "example": "Denver"
+    },
+    "state": {
+      "format": "{{user.state}}",
+      "description": "User state/province",
+      "dataType": "string",
+      "required": false,
+      "example": "CO"
+    },
+    "zipCode": {
+      "format": "{{user.zipCode}}",
+      "description": "User ZIP/postal code",
+      "dataType": "string",
+      "required": false,
+      "example": "80202"
+    }
+  },
+  "client": {
+    "firstName": {
+      "format": "{{client.firstName}}",
+      "description": "Client first name",
+      "dataType": "string",
+      "required": true,
+      "example": "Jane"
+    },
+    "lastName": {
+      "format": "{{client.lastName}}",
+      "description": "Client last name",
+      "dataType": "string",
+      "required": true,
+      "example": "Doe"
+    },
+    "fullName": {
+      "format": "{{client.fullName}}",
+      "description": "Client full name (first + last)",
+      "dataType": "string",
+      "required": true,
+      "example": "Jane Doe"
+    },
+    "email": {
+      "format": "{{client.email}}",
+      "description": "Client email address",
+      "dataType": "email",
+      "required": false,
+      "example": "jane@example.com"
+    },
+    "phone": {
+      "format": "{{client.phone}}",
+      "description": "Client phone number",
+      "dataType": "phone",
+      "required": false,
+      "example": "(555) 987-6543"
+    },
+    "company": {
+      "format": "{{client.company}}",
+      "description": "Client company name",
+      "dataType": "string",
+      "required": false,
+      "example": "ABC Construction"
+    },
+    "street": {
+      "format": "{{client.street}}",
+      "description": "Client street address",
+      "dataType": "string",
+      "required": false,
+      "example": "456 Oak Ave"
+    },
+    "city": {
+      "format": "{{client.city}}",
+      "description": "Client city",
+      "dataType": "string",
+      "required": false,
+      "example": "Boulder"
+    },
+    "state": {
+      "format": "{{client.state}}",
+      "description": "Client state/province",
+      "dataType": "string",
+      "required": false,
+      "example": "CO"
+    },
+    "zipCode": {
+      "format": "{{client.zipCode}}",
+      "description": "Client ZIP/postal code",
+      "dataType": "string",
+      "required": false,
+      "example": "80301"
+    },
+    "initials": {
+      "format": "{{client.initials}}",
+      "description": "Client initials (first letter of first and last name)",
+      "dataType": "string",
+      "required": false,
+      "example": "JD"
+    }
+  },
+  "org": {
+    "name": {
+      "format": "{{org.name}}",
+      "description": "Organization name",
+      "dataType": "string",
+      "required": true,
+      "example": "Acme Roofing Inc"
+    },
+    "email": {
+      "format": "{{org.email}}",
+      "description": "Organization email address",
+      "dataType": "email",
+      "required": false,
+      "example": "info@acmeroofing.com"
+    },
+    "phone": {
+      "format": "{{org.phone}}",
+      "description": "Organization phone number",
+      "dataType": "phone",
+      "required": false,
+      "example": "(555) 123-4567"
+    },
+    "website": {
+      "format": "{{org.website}}",
+      "description": "Organization website URL",
+      "dataType": "string",
+      "required": false,
+      "example": "www.acmeroofing.com"
+    },
+    "street": {
+      "format": "{{org.street}}",
+      "description": "Organization street address",
+      "dataType": "string",
+      "required": false,
+      "example": "123 Main St"
+    },
+    "city": {
+      "format": "{{org.city}}",
+      "description": "Organization city",
+      "dataType": "string",
+      "required": false,
+      "example": "Denver"
+    },
+    "state": {
+      "format": "{{org.state}}",
+      "description": "Organization state/province",
+      "dataType": "string",
+      "required": false,
+      "example": "CO"
+    },
+    "zipCode": {
+      "format": "{{org.zipCode}}",
+      "description": "Organization ZIP/postal code",
+      "dataType": "string",
+      "required": false,
+      "example": "80202"
+    }
+  }
+}
