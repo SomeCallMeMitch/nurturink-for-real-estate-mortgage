@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -49,6 +49,8 @@ export default function Home() {
   const [pricingSeedResult, setPricingSeedResult] = useState(null);
   const [seedingCredits, setSeedingCredits] = useState(false);
   const [creditsSeedResult, setCreditsSeedResult] = useState(null);
+  const [seedingProfiles, setSeedingProfiles] = useState(false);
+  const [profileSeedResult, setProfileSeedResult] = useState(null);
 
   const handleSeedData = async () => {
     try {
@@ -197,6 +199,43 @@ export default function Home() {
       });
     } finally {
       setSeedingPricing(false);
+    }
+  };
+
+  const handleSeedNoteStyleProfiles = async () => {
+    try {
+      setSeedingProfiles(true);
+      setProfileSeedResult(null);
+      
+      const response = await base44.functions.invoke('seedNoteStyleProfiles');
+      
+      setProfileSeedResult({
+        success: response.data.success,
+        message: response.data.message,
+        profileCount: response.data.profileCount,
+        action: response.data.action
+      });
+      
+      toast({
+        title: response.data.action === 'created' ? 'Profiles Created! ✓' : 'Profiles Already Exist',
+        description: response.data.message,
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
+    } catch (error) {
+      console.error('Failed to seed note style profiles:', error);
+      setProfileSeedResult({
+        success: false,
+        message: error.response?.data?.error || 'Failed to seed note style profiles'
+      });
+      
+      toast({
+        title: 'Failed to Create Profiles',
+        description: error.response?.data?.error || 'Failed to seed note style profiles',
+        variant: 'destructive'
+      });
+    } finally {
+      setSeedingProfiles(false);
     }
   };
 
@@ -479,7 +518,7 @@ export default function Home() {
             </Card>
           </motion.div>
 
-          {/* Seed Templates & Profiles */}
+          {/* Seed Note Style Profiles */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -490,13 +529,78 @@ export default function Home() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
+                    <div className="p-3 bg-indigo-100 rounded-lg">
+                      <Mail className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <div>
+                      <CardTitle>Note Style Profiles</CardTitle>
+                      <CardDescription>
+                        Create the 5 standard note style profiles (Friendly, Casual, Professional, Grateful, Direct)
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={handleSeedNoteStyleProfiles}
+                    variant="outline"
+                    disabled={seedingProfiles}
+                    className="border-indigo-600 text-indigo-600 hover:bg-indigo-50"
+                  >
+                    {seedingProfiles ? 'Creating...' : 'Seed Profiles'}
+                  </Button>
+                </div>
+              </CardHeader>
+
+              {profileSeedResult && (
+                <CardContent>
+                  <div className={`flex items-start gap-3 p-4 rounded-lg ${
+                    profileSeedResult.success 
+                      ? 'bg-green-50 border border-green-200' 
+                      : 'bg-yellow-50 border border-yellow-200'
+                  }`}>
+                    {profileSeedResult.success ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`font-medium ${
+                        profileSeedResult.success ? 'text-green-900' : 'text-yellow-900'
+                      }`}>
+                        {profileSeedResult.message}
+                      </p>
+                      {profileSeedResult.success && (
+                        <p className="text-sm text-green-700 mt-1">
+                          {profileSeedResult.action === 'created' 
+                            ? `${profileSeedResult.profileCount} profiles created and ready to use!`
+                            : `${profileSeedResult.profileCount} profiles already exist!`
+                        }
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          </motion.div>
+
+          {/* Seed Templates */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
                     <div className="p-3 bg-green-100 rounded-lg">
                       <Mail className="w-6 h-6 text-green-600" />
                     </div>
                     <div>
-                      <CardTitle>Templates & Profiles</CardTitle>
+                      <CardTitle>Templates</CardTitle>
                       <CardDescription>
-                        Create sample templates and note style profiles
+                        Create sample message templates
                       </CardDescription>
                     </div>
                   </div>
@@ -545,7 +649,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
             whileHover={{ y: -4 }}
           >
             <Card>
