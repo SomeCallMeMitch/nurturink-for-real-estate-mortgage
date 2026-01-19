@@ -49,7 +49,6 @@ export default function SettingsWritingStyle() {
     name: '',
     defaultGreeting: '',
     signatureText: '',
-    handwritingFont: 'Caveat',
     includeSignatureByDefault: true
   });
 
@@ -91,8 +90,7 @@ export default function SettingsWritingStyle() {
     setFormData({
       name: '',
       defaultGreeting: 'Dear {{client.firstName}},',
-      signatureText: 'Sincerely,\n{{user.fullName}}\n{{user.companyName}}\n{{user.phone}}',
-      handwritingFont: 'Caveat',
+      signatureText: 'Sincerely,\n{{user.fullName}}',
       includeSignatureByDefault: true
     });
     setShowForm(true);
@@ -104,7 +102,6 @@ export default function SettingsWritingStyle() {
       name: profile.name,
       defaultGreeting: profile.defaultGreeting || '',
       signatureText: profile.signatureText || '',
-      handwritingFont: profile.handwritingFont || 'Caveat',
       includeSignatureByDefault: profile.includeSignatureByDefault ?? true
     });
     setShowForm(true);
@@ -471,24 +468,6 @@ export default function SettingsWritingStyle() {
                   />
                 </div>
 
-                {/* Font Selection */}
-                <div>
-                  <Label htmlFor="font">Handwriting Font</Label>
-                  <Select
-                    value={formData.handwritingFont}
-                    onValueChange={(value) => setFormData({ ...formData, handwritingFont: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Caveat">Caveat</SelectItem>
-                      <SelectItem value="Kalam">Kalam</SelectItem>
-                      <SelectItem value="Patrick Hand">Patrick Hand</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Default Greeting */}
                 <div>
                   <Label htmlFor="greeting">Default Greeting</Label>
@@ -687,13 +666,9 @@ function StyleCard({ profile, isFavorited, togglingFavorite, copying, onToggleFa
             {profile.signatureText && (
               <p>
                 <span className="font-medium">Signature:</span>{' '}
-                {profile.signatureText.split('\n')[0]}
-                {profile.signatureText.split('\n').length > 1 && '...'}
+                <span className="whitespace-pre-line">{profile.signatureText}</span>
               </p>
             )}
-            <p>
-              <span className="font-medium">Font:</span> {profile.handwritingFont}
-            </p>
           </div>
 
           {/* Parent/Origin Indicator */}

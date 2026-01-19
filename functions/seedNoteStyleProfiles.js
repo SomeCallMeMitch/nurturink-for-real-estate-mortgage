@@ -17,7 +17,7 @@ const sampleProfiles = [
     defaultGreeting: "Hi {{client.firstName}},",
     signatureText: "Thanks!\n{{user.firstName}}",
     includeSignatureByDefault: true,
-    handwritingFont: "Caveat",
+    type: "platform",
     isDefault: true,  // First one is default
     isOrgWide: true,  // Universal style, same for all orgs
     description: "Warm and approachable - great for most situations"
@@ -27,7 +27,7 @@ const sampleProfiles = [
     defaultGreeting: "Hey {{client.firstName}}!",
     signatureText: "Talk soon,\n{{user.firstName}}",
     includeSignatureByDefault: true,
-    handwritingFont: "Caveat",
+    type: "platform",
     isDefault: false,
     isOrgWide: true,
     description: "Relaxed and personable - best for established relationships"
@@ -37,7 +37,7 @@ const sampleProfiles = [
     defaultGreeting: "Hello {{client.firstName}},",
     signatureText: "Best,\n{{user.fullName}}",
     includeSignatureByDefault: true,
-    handwritingFont: "Caveat",
+    type: "platform",
     isDefault: false,
     isOrgWide: true,
     description: "Polished and respectful - ideal for first contact"
@@ -47,7 +47,7 @@ const sampleProfiles = [
     defaultGreeting: "Hi {{client.firstName}},",
     signatureText: "Thank you,\n{{user.firstName}}",
     includeSignatureByDefault: true,
-    handwritingFont: "Caveat",
+    type: "platform",
     isDefault: false,
     isOrgWide: true,
     description: "Appreciative tone - perfect for thank you notes"
@@ -57,7 +57,7 @@ const sampleProfiles = [
     defaultGreeting: "{{client.firstName}},",
     signatureText: "— {{user.firstName}}",
     includeSignatureByDefault: true,
-    handwritingFont: "Patrick Hand",
+    type: "platform",
     isDefault: false,
     isOrgWide: true,
     description: "Minimal and efficient - good for quick notes"
@@ -111,8 +111,10 @@ Deno.serve(async (req) => {
       }
       
       try {
+        // Remove handwritingFont as it's not configurable
+        const { handwritingFont, ...profileData } = sampleProfile;
         const profile = await base44.entities.NoteStyleProfile.create({
-          ...sampleProfile,
+          ...profileData,
           userId: user.id,
           orgId: user.orgId
         });
