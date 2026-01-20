@@ -23,7 +23,8 @@ export default function SettingsProfile() {
     title: '',
     phone: '',
     companyName: '',
-    isOrgOwner: false
+    isOrgOwner: false,
+    orgId: ''
   });
 
   useEffect(() => {
@@ -43,7 +44,8 @@ export default function SettingsProfile() {
         title: currentUser.title || '',
         phone: currentUser.phone || '',
         companyName: currentUser.companyName || '',
-        isOrgOwner: currentUser.isOrgOwner || false
+        isOrgOwner: currentUser.isOrgOwner || false,
+        orgId: currentUser.orgId || ''
       });
     } catch (error) {
       console.error('Failed to load user:', error);
@@ -71,7 +73,8 @@ export default function SettingsProfile() {
         title: formData.title,
         phone: formData.phone,
         companyName: formData.companyName,
-        isOrgOwner: formData.isOrgOwner
+        isOrgOwner: formData.isOrgOwner,
+        orgId: formData.orgId
       });
 
       setSuccessMessage('Profile updated successfully!');
@@ -233,9 +236,27 @@ export default function SettingsProfile() {
               </div>
             )}
 
-            {/* Is Org Owner Toggle - Only visible to super_admin for testing */}
+            {/* Super Admin Dev Tools */}
             {user?.appRole === 'super_admin' && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg space-y-4">
+                <p className="text-sm font-medium text-yellow-800">Dev/Testing Tools (Super Admin Only)</p>
+                
+                {/* Org ID Input */}
+                <div>
+                  <Label htmlFor="orgId">Organization ID</Label>
+                  <Input
+                    id="orgId"
+                    value={formData.orgId}
+                    onChange={(e) => setFormData({ ...formData, orgId: e.target.value })}
+                    placeholder="Enter organization ID"
+                    className="mt-1"
+                  />
+                  <p className="text-xs text-yellow-700 mt-1">
+                    Assigns you to an organization for testing org-level features
+                  </p>
+                </div>
+                
+                {/* Is Org Owner Checkbox */}
                 <div className="flex items-center space-x-3">
                   <Checkbox
                     id="isOrgOwner"
@@ -247,7 +268,7 @@ export default function SettingsProfile() {
                       Is Organization Owner
                     </Label>
                     <p className="text-xs text-yellow-700 mt-1">
-                      Dev/Testing: Enables org owner permission checks while keeping super_admin role
+                      Enables org owner permission checks while keeping super_admin role
                     </p>
                   </div>
                 </div>
