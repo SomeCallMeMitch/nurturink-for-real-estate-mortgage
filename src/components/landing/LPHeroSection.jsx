@@ -65,19 +65,17 @@ const LPHeroSection = () => {
             </div>
           </div>
 
-          {/* Right Column - Video/Image Placeholder (2/5) */}
+          {/* Right Column - Hero Image (2/5) */}
           <div className="lg:col-span-2">
-            <div className="relative rounded-xl overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.1)] bg-gray-100">
-              {/* Placeholder for video or hero image */}
-              <div className="aspect-[4/3] flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg mx-auto mb-4 cursor-pointer hover:scale-110 transition-transform">
-                    <Play className="w-10 h-10 text-[#FF7A00] ml-1" />
-                  </div>
-                  <p className="text-gray-500">Video Placeholder</p>
-                  <p className="text-sm text-gray-400 mt-2">Replace with demo video or hero image</p>
-                </div>
-              </div>
+            <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+              {/* Hero image showing robot pen writing */}
+              <img 
+                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696020df49a02437cf7a3031/c314e0a0b_PenWriting.jpg"
+                alt="Robot pen writing a handwritten note"
+                className="w-full h-auto object-cover"
+              />
+              {/* Subtle overlay gradient for polish */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
             </div>
           </div>
         </div>
