@@ -1,5 +1,6 @@
 import React from 'react';
 import { Phone } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 /**
  * WelcomeFooter
@@ -108,10 +109,7 @@ const WelcomeFooter = () => {
           {/* Login link - small and subtle at bottom */}
           <div className="mt-6 text-center">
             <button
-              onClick={() => {
-                const { base44 } = require('@/api/base44Client');
-                base44.auth.redirectToLogin('/Home');
-              }}
+              onClick={() => base44.auth.redirectToLogin('/Home')}
               className="text-xs text-gray-500 hover:text-gray-400 transition-colors"
             >
               Team Member Login
