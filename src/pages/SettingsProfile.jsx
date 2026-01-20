@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Save } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function SettingsProfile() {
   const [user, setUser] = useState(null);
@@ -21,7 +22,8 @@ export default function SettingsProfile() {
     email: '',
     title: '',
     phone: '',
-    companyName: ''
+    companyName: '',
+    isOrgOwner: false
   });
 
   useEffect(() => {
@@ -40,7 +42,8 @@ export default function SettingsProfile() {
         email: currentUser.email || '',
         title: currentUser.title || '',
         phone: currentUser.phone || '',
-        companyName: currentUser.companyName || ''
+        companyName: currentUser.companyName || '',
+        isOrgOwner: currentUser.isOrgOwner || false
       });
     } catch (error) {
       console.error('Failed to load user:', error);
@@ -67,7 +70,8 @@ export default function SettingsProfile() {
         full_name: formData.full_name,
         title: formData.title,
         phone: formData.phone,
-        companyName: formData.companyName
+        companyName: formData.companyName,
+        isOrgOwner: formData.isOrgOwner
       });
 
       setSuccessMessage('Profile updated successfully!');
@@ -225,6 +229,27 @@ export default function SettingsProfile() {
                     {user.appRole === 'organization_owner' && 'Organization Owner'}
                     {user.appRole === 'sales_rep' && 'Sales Representative'}
                   </span>
+                </div>
+              </div>
+            )}
+
+            {/* Is Org Owner Toggle - Only visible to super_admin for testing */}
+            {user?.appRole === 'super_admin' && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <Checkbox
+                    id="isOrgOwner"
+                    checked={formData.isOrgOwner}
+                    onCheckedChange={(checked) => setFormData({ ...formData, isOrgOwner: checked })}
+                  />
+                  <div>
+                    <Label htmlFor="isOrgOwner" className="font-medium cursor-pointer">
+                      Is Organization Owner
+                    </Label>
+                    <p className="text-xs text-yellow-700 mt-1">
+                      Dev/Testing: Enables org owner permission checks while keeping super_admin role
+                    </p>
+                  </div>
                 </div>
               </div>
             )}
