@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
@@ -10,9 +10,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    console.log('[initializeMailingBatch] User authenticated:', user.id, 'orgId:', user.orgId);
+    
     // Parse request body
     const body = await req.json();
     const { clientIds, quickSendTemplateId } = body;
+    
+    console.log('[initializeMailingBatch] Received clientIds:', clientIds?.length, 'quickSendTemplateId:', quickSendTemplateId);
     
     // Validate input
     if (!clientIds || !Array.isArray(clientIds) || clientIds.length === 0) {
@@ -23,12 +27,20 @@ Deno.serve(async (req) => {
     }
     
     // Verify all clients belong to user's organization
-    const clients = await base44.entities.Client.filter({
-      id: { $in: clientIds },
+    // Fetch all org clients and filter by the provided IDs (safer than $in operator)
+    const allOrgClients = await base44.entities.Client.filter({
       orgId: user.orgId
     });
     
+    console.log('[initializeMailingBatch] Org clients found:', allOrgClients.length);
+    
+    const clientIdSet = new Set(clientIds);
+    const clients = allOrgClients.filter(c => clientIdSet.has(c.id));
+    
+    console.log('[initializeMailingBatch] Matched clients:', clients.length);
+    
     if (clients.length !== clientIds.length) {
+      console.log('[initializeMailingBatch] Client count mismatch - requested:', clientIds.length, 'found:', clients.length);
       return Response.json(
         { error: 'Some selected clients do not exist or do not belong to your organization' },
         { status: 403 }
