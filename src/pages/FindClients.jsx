@@ -379,16 +379,29 @@ export default function FindClients() {
       setInitializing(true);
       setError(null);
 
+      console.log('Starting Custom Message workflow...');
+      console.log('Selected client IDs:', selectedClientIds);
+      console.log('Current user:', user);
+      console.log('Current organization:', organization);
+
       const response = await base44.functions.invoke('initializeMailingBatch', {
         clientIds: selectedClientIds
       });
 
+      console.log('initializeMailingBatch response:', response);
       const { mailingBatchId } = response.data;
 
+      console.log('Mailing batch created:', mailingBatchId);
       navigate(createPageUrl(`CreateContent?mailingBatchId=${mailingBatchId}`));
 
     } catch (err) {
       console.error('Failed to initialize mailing batch:', err);
+      console.error('Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+        config: err.config
+      });
       setError(err.response?.data?.error || 'Failed to start workflow. Please try again.');
       setInitializing(false);
     }
