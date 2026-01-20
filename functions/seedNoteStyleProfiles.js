@@ -116,7 +116,8 @@ Deno.serve(async (req) => {
         const profile = await base44.entities.NoteStyleProfile.create({
           ...profileData,
           userId: user.id,
-          orgId: user.orgId
+          orgId: user.orgId,
+          createdByUserId: user.id
         });
         createdProfiles.push(profile);
         console.log(`Created profile: ${sampleProfile.name}`);
