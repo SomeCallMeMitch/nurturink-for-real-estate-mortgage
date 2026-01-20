@@ -77,6 +77,8 @@ Deno.serve(async (req) => {
     }
     
     // Create new MailingBatch
+    console.log('[initializeMailingBatch] Creating MailingBatch...');
+    
     const mailingBatch = await base44.entities.MailingBatch.create({
       userId: user.id,
       organizationId: user.orgId,
@@ -92,13 +94,16 @@ Deno.serve(async (req) => {
       includeSignature: templateData.includeSignature !== undefined ? templateData.includeSignature : true
     });
     
+    console.log('[initializeMailingBatch] MailingBatch created:', mailingBatch.id);
+    
     return Response.json({
       mailingBatchId: mailingBatch.id,
       clientCount: clientIds.length
     });
     
   } catch (error) {
-    console.error('Error in initializeMailingBatch:', error);
+    console.error('[initializeMailingBatch] Error:', error);
+    console.error('[initializeMailingBatch] Error stack:', error.stack);
     return Response.json(
       { error: error.message || 'Failed to initialize mailing batch' },
       { status: 500 }
