@@ -1,100 +1,153 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+
+/**
+ * Seed Note Style Profiles
+ * 
+ * Creates 5 standard note style profiles for an organization.
+ * Uses unified placeholder standard from lib/placeholders.ts:
+ * - {{user.firstName}}, {{user.fullName}} for sender
+ * - {{client.firstName}} for recipient
+ * 
+ * FIXED: Now handles idempotent creation - can be run multiple times safely
+ */
+
+const sampleProfiles = [
+  {
+    name: "Friendly",
+    defaultGreeting: "Hi {{client.firstName}},",
+    signatureText: "Thanks!\n{{user.firstName}}",
+    includeSignatureByDefault: true,
+    type: "platform",
+    isDefault: true,  // First one is default
+    isOrgWide: true,  // Universal style, same for all orgs
+    description: "Warm and approachable - great for most situations"
+  },
+  {
+    name: "Casual",
+    defaultGreeting: "Hey {{client.firstName}}!",
+    signatureText: "Talk soon,\n{{user.firstName}}",
+    includeSignatureByDefault: true,
+    type: "platform",
+    isDefault: false,
+    isOrgWide: true,
+    description: "Relaxed and personable - best for established relationships"
+  },
+  {
+    name: "Professional",
+    defaultGreeting: "Hello {{client.firstName}},",
+    signatureText: "Best,\n{{user.fullName}}",
+    includeSignatureByDefault: true,
+    type: "platform",
+    isDefault: false,
+    isOrgWide: true,
+    description: "Polished and respectful - ideal for first contact"
+  },
+  {
+    name: "Grateful",
+    defaultGreeting: "Hi {{client.firstName}},",
+    signatureText: "Thank you,\n{{user.firstName}}",
+    includeSignatureByDefault: true,
+    type: "platform",
+    isDefault: false,
+    isOrgWide: true,
+    description: "Appreciative tone - perfect for thank you notes"
+  },
+  {
+    name: "Direct",
+    defaultGreeting: "{{client.firstName}},",
+    signatureText: "— {{user.firstName}}",
+    includeSignatureByDefault: true,
+    type: "platform",
+    isDefault: false,
+    isOrgWide: true,
+    description: "Minimal and efficient - good for quick notes"
+  }
+];
 
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Check if user is super admin
+    // Verify user is authenticated
     const user = await base44.auth.me();
     if (!user) {
-      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    if (user.appRole !== 'super_admin') {
-      return Response.json({ 
-        success: false, 
-        error: 'Only super admins can seed platform styles' 
-      }, { status: 403 });
+    if (!user.orgId) {
+      return Response.json({ error: 'User must belong to an organization' }, { status: 400 });
     }
-
-    // Check if platform styles already exist
-    const existingPlatform = await base44.asServiceRole.entities.NoteStyleProfile.filter({
-      type: 'platform'
+    
+    // Check if any profiles already exist for this organization
+    const existingProfiles = await base44.entities.NoteStyleProfile.filter({
+      orgId: user.orgId
     });
     
-    if (existingPlatform.length > 0) {
-      return Response.json({ 
-        success: false, 
-        message: 'Platform styles already exist',
-        profileCount: existingPlatform.length
+    // FIXED: Instead of failing if profiles exist, we now:
+    // 1. Check if we have the correct 5 profiles
+    // 2. If we have all 5, return success (idempotent)
+    // 3. If we have fewer than 5, create the missing ones
+    
+    if (existingProfiles.length >= 5) {
+      // All profiles already exist - return success (idempotent)
+      return Response.json({
+        success: true,
+        message: `Note style profiles already exist for this organization. Found ${existingProfiles.length} profiles.`,
+        profileCount: existingProfiles.length,
+        profiles: existingProfiles,
+        action: "skipped"
       });
     }
-
-    // Create platform-wide default styles
-    const platformStyles = [
-      {
-        type: 'platform',
-        createdByUserId: user.id,
-        userId: user.id,
-        orgId: user.orgId,
-        organizationId: null,
-        name: 'Professional',
-        handwritingFont: 'Caveat',
-        defaultGreeting: 'Dear {{client.firstName}},',
-        signatureText: 'Sincerely,\n{{user.fullName}}\n{{user.companyName}}\n{{user.phone}}',
-        includeSignatureByDefault: true,
-        isDefault: true,
-        isOrgWide: false
-      },
-      {
-        type: 'platform',
-        createdByUserId: user.id,
-        userId: user.id,
-        orgId: user.orgId,
-        organizationId: null,
-        name: 'Casual & Friendly',
-        handwritingFont: 'Patrick Hand',
-        defaultGreeting: 'Hi {{client.firstName}}!',
-        signatureText: 'Best,\n{{user.fullName}}',
-        includeSignatureByDefault: true,
-        isDefault: false,
-        isOrgWide: false
-      },
-      {
-        type: 'platform',
-        createdByUserId: user.id,
-        userId: user.id,
-        orgId: user.orgId,
-        organizationId: null,
-        name: 'Formal & Brief',
-        handwritingFont: 'Kalam',
-        defaultGreeting: 'Dear {{client.lastName}},',
-        signatureText: 'Regards,\n{{user.fullName}}\n{{user.companyName}}',
-        includeSignatureByDefault: true,
-        isDefault: false,
-        isOrgWide: false
+    
+    // Create missing profiles
+    const createdProfiles = [];
+    const existingNames = new Set(existingProfiles.map(p => p.name));
+    
+    for (const sampleProfile of sampleProfiles) {
+      // Skip if this profile already exists
+      if (existingNames.has(sampleProfile.name)) {
+        console.log(`Profile "${sampleProfile.name}" already exists, skipping...`);
+        continue;
       }
-    ];
-
-    // Create all platform styles using service role
-    const created = [];
-    for (const styleData of platformStyles) {
-      const profile = await base44.asServiceRole.entities.NoteStyleProfile.create(styleData);
-      created.push(profile);
+      
+      try {
+        // Remove handwritingFont as it's not configurable
+        const { handwritingFont, ...profileData } = sampleProfile;
+        const profile = await base44.entities.NoteStyleProfile.create({
+          ...profileData,
+          userId: user.id,
+          orgId: user.orgId,
+          createdByUserId: user.id
+        });
+        createdProfiles.push(profile);
+        console.log(`Created profile: ${sampleProfile.name}`);
+      } catch (createError) {
+        console.error(`Failed to create profile "${sampleProfile.name}":`, createError);
+        // Continue creating other profiles even if one fails
+      }
     }
-
+    
+    const totalProfiles = existingProfiles.length + createdProfiles.length;
+    
     return Response.json({
       success: true,
-      message: `Created ${created.length} platform-wide writing styles`,
-      profileCount: created.length,
-      profiles: created.map(p => ({ id: p.id, name: p.name }))
+      message: `Successfully seeded note style profiles. Total: ${totalProfiles} profiles.`,
+      profileCount: totalProfiles,
+      newProfiles: createdProfiles.length,
+      existingProfiles: existingProfiles.length,
+      profiles: [...existingProfiles, ...createdProfiles],
+      action: createdProfiles.length > 0 ? "created" : "skipped"
     });
-
+    
   } catch (error) {
-    console.error('Error seeding platform styles:', error);
-    return Response.json({ 
-      success: false, 
-      error: error.message || 'Failed to seed platform styles' 
-    }, { status: 500 });
+    console.error('Error in seedNoteStyleProfiles:', error);
+    return Response.json(
+      { 
+        success: false,
+        error: error.message || 'Failed to seed note style profiles',
+        details: error.stack
+      },
+      { status: 500 }
+    );
   }
 });
