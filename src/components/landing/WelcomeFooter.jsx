@@ -105,6 +105,18 @@ const WelcomeFooter = () => {
               <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
             </div>
           </div>
+          {/* Login link - small and subtle at bottom */}
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                const { base44 } = require('@/api/base44Client');
+                base44.auth.redirectToLogin('/Home');
+              }}
+              className="text-xs text-gray-500 hover:text-gray-400 transition-colors"
+            >
+              Team Member Login
+            </button>
+          </div>
         </div>
       </div>
     </footer>

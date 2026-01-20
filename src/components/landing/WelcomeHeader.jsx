@@ -11,6 +11,9 @@ const WelcomeHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Logo URL
+  const logoUrl = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696020df49a02437cf7a3031/d1689d419_NurturInklogoTiny.png';
+
   const navLinks = [
     { label: "How It Works", href: "#how-it-works" },
     { label: "Industries", href: "#industries" },
@@ -55,15 +58,15 @@ const WelcomeHeader = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between h-20">
+        {/* Height increased ~15% from h-20 (80px) to h-[92px] */}
+        <div className="flex items-center justify-between h-[92px]">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <div className="h-12 flex items-center">
-              <div className="text-2xl font-bold">
-                <span style={{ color: '#1a2332' }}>Nurtur</span>
-                <span style={{ color: '#FF7A00' }}>Ink</span>
-              </div>
-            </div>
+            <img 
+              src={logoUrl} 
+              alt="NurturInk Logo" 
+              className="h-16 w-auto"
+            />
           </div>
 
           {/* Desktop Navigation */}
@@ -79,15 +82,8 @@ const WelcomeHeader = () => {
             ))}
           </nav>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Auth Buttons - Sign In moved to footer */}
           <div className="hidden lg:flex items-center gap-4">
-            <Button
-              variant="ghost"
-              onClick={handleSignIn}
-              className="text-gray-700 hover:text-[#FF7A00]"
-            >
-              Sign In
-            </Button>
             <Button
               onClick={handleGetSample}
               style={{ backgroundColor: '#FF7A00' }}
@@ -125,13 +121,6 @@ const WelcomeHeader = () => {
               </button>
             ))}
             <div className="pt-4 space-y-3">
-              <Button
-                variant="outline"
-                onClick={handleSignIn}
-                className="w-full"
-              >
-                Sign In
-              </Button>
               <Button
                 onClick={handleGetSample}
                 style={{ backgroundColor: '#FF7A00' }}

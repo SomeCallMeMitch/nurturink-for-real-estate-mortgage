@@ -51,7 +51,7 @@ const WelcomeCalendlySection = () => {
         <div className="max-w-4xl mx-auto">
           <div 
             className="calendly-inline-widget rounded-2xl overflow-hidden shadow-2xl border border-gray-200" 
-            data-url="https://calendly.com/nurturink?hide_gdpr_banner=1&primary_color=FF7A00"
+            data-url="https://calendly.com/nurturink/30min?hide_gdpr_banner=1&primary_color=FF7A00"
             style={{ 
               minWidth: '320px', 
               height: '700px',

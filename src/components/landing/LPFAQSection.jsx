@@ -10,7 +10,7 @@ const LPFAQSection = () => {
   const faqs = [
     {
       question: "How much do handwritten notes cost?",
-      answer: "Our notes start at $3.99 each for small volumes and go down to $3.00 per note when you buy in bulk. There are no monthly fees or subscriptions—just buy credits and use them whenever you need them."
+      answer: "Our notes start at $3.49 each and go as low as less than $2.49 per note when you buy in bulk. There are no monthly fees or subscriptions—just buy credits and use them whenever you need them."
     },
     {
       question: "Are these really handwritten?",
@@ -21,8 +21,8 @@ const LPFAQSection = () => {
       answer: "We write, address, and mail your notes within 24-48 hours of your order. Standard USPS delivery times apply after that—typically 3-5 business days for domestic mail."
     },
     {
-      question: "Can I customize the message and signature?",
-      answer: "Absolutely! Every note is fully customizable. Write your own message, use our proven templates, add your signature, and include your return address. You can even use merge fields to personalize each recipient's note."
+      question: "Can I customize the message?",
+      answer: "Absolutely! Every note is fully customizable. Write your own message, use our proven templates, and include your return address. You can even use merge fields to personalize each recipient's note."
     },
     {
       question: "What if I need to send bulk campaigns?",
@@ -31,10 +31,6 @@ const LPFAQSection = () => {
     {
       question: "Do you offer team accounts?",
       answer: "Yes! Our team features let you manage multiple users, allocate credits, share templates, and track usage—all from one central dashboard. Perfect for agencies, brokerages, and sales teams."
-    },
-    {
-      question: "Can I integrate NurturInk with my CRM?",
-      answer: "We support integrations with popular CRMs and can work with you on custom integrations for enterprise clients. Contact us to discuss your specific needs."
     },
     {
       question: "What kind of results can I expect?",
