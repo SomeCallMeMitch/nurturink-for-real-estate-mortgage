@@ -131,7 +131,14 @@ export default function TeamManagement() {
         return;
       }
       
+      console.log('TeamManagement: Invoking getOrganizationTeamData...');
       const response = await base44.functions.invoke('getOrganizationTeamData');
+      console.log('TeamManagement: Response received:', response);
+      
+      if (!response.data) {
+        throw new Error('Invalid response from getOrganizationTeamData - no data property');
+      }
+      
       setMembers(response.data.members || []);
       setSummaryStats(response.data.summaryStats || {
         totalMembers: 0,
@@ -139,10 +146,17 @@ export default function TeamManagement() {
         admins: 0,
         cardsSent: 0
       });
+      console.log('TeamManagement: Data loaded successfully');
       
     } catch (err) {
       console.error('Failed to load team data:', err);
-      setError(err.response?.data?.error || 'Failed to load team data');
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        fullError: err
+      });
+      setError(err.response?.data?.error || err.message || 'Failed to load team data');
     } finally {
       setLoading(false);
     }
