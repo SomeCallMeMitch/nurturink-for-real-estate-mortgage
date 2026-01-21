@@ -48,9 +48,11 @@ Deno.serve(async (req) => {
       orgId: targetOrgId
     });
     
-    // NOTE: Invitation entity does not exist in this system
-    // Pending invitations would be fetched here if the entity existed
-    const pendingInvitations = [];
+    // Fetch pending invitations
+    const pendingInvitations = await base44.asServiceRole.entities.Invitation.filter({
+      orgId: targetOrgId,
+      status: 'pending'
+    });
     
     // Get current month date range for stats
     const now = new Date();
@@ -121,8 +123,7 @@ Deno.serve(async (req) => {
     );
     
     // Add pending invitations to the list
-    // NOTE: Invitation entity does not exist, so pendingMembers is always empty
-    const pendingMembers = pendingInvitations.length > 0 ? pendingInvitations.map(invitation => ({
+    const pendingMembers = pendingInvitations.map(invitation => ({
       invitationId: invitation.id,
       userId: null,
       name: invitation.email,
@@ -134,10 +135,10 @@ Deno.serve(async (req) => {
       credits: 0,
       cardsSent: 0,
       cardsSentThisMonth: 0,
-      lastActive: invitation.created_date,
-      createdAt: invitation.created_date,
+      lastActive: invitation.createdAt,
+      createdAt: invitation.createdAt,
       expiresAt: invitation.expiresAt
-    })) : [];
+    }));
     
     // Combine active members and pending invitations
     const allMembers = [...membersWithStats, ...pendingMembers];

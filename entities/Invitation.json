@@ -1,0 +1,75 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization that is inviting"
+    },
+    "invitedByUserId": {
+      "type": "string",
+      "description": "Organization owner who sent the invitation"
+    },
+    "invitedByName": {
+      "type": "string",
+      "description": "Full name of inviter (denormalized for email template)"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address of invitee"
+    },
+    "role": {
+      "type": "string",
+      "description": "Role to assign when invitation is accepted (e.g., 'sales_rep', 'organization_owner')"
+    },
+    "token": {
+      "type": "string",
+      "description": "Unique token for acceptance link (UUID)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "expired",
+        "revoked"
+      ],
+      "default": "pending",
+      "description": "Current status of invitation"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When invitation was sent"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When invitation expires (7 days from creation)"
+    },
+    "acceptedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When invitation was accepted"
+    },
+    "acceptedByUserId": {
+      "type": "string",
+      "nullable": true,
+      "description": "User ID created after acceptance"
+    }
+  },
+  "required": [
+    "orgId",
+    "email",
+    "role",
+    "token",
+    "invitedByUserId",
+    "invitedByName",
+    "expiresAt"
+  ],
+  "name": "Invitation"
+}
