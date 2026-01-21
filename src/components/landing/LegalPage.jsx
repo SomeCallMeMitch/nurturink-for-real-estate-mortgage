@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ArrowLeft } from 'lucide-react';
+import { useLocation } from 'wouter';
 import {
   Collapsible,
   CollapsibleContent,
@@ -12,6 +13,7 @@ import {
  * This can be expanded later with more detailed sections
  */
 const LegalPage = () => {
+  const [, setLocation] = useLocation();
   const [openSections, setOpenSections] = useState([]);
 
   const sections = [
@@ -214,6 +216,19 @@ For urgent privacy concerns or data requests, please include "URGENT" in the sub
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Back Button */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-6 py-4">
+          <button
+            onClick={() => setLocation('/')}
+            className="flex items-center gap-2 text-[#FF7A00] hover:text-[#E56A00] transition-colors font-semibold"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back to Home
+          </button>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="bg-gradient-to-br from-[#1a2332] to-[#2d3e52] text-white py-16">
         <div className="max-w-4xl mx-auto px-6">
@@ -315,10 +330,19 @@ For urgent privacy concerns or data requests, please include "URGENT" in the sub
 
       {/* Footer Note */}
       <div className="bg-gray-50 border-t border-gray-200 py-8">
-        <div className="max-w-4xl mx-auto px-6 text-center text-[#4a5568] text-sm">
-          <p>
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-center text-[#4a5568] text-sm mb-6">
             By using NurturInk, you acknowledge that you have read and agree to these terms and privacy policy.
           </p>
+          <div className="flex justify-center">
+            <button
+              onClick={() => setLocation('/')}
+              className="flex items-center gap-2 text-[#FF7A00] hover:text-[#E56A00] transition-colors font-semibold"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              Back to Home
+            </button>
+          </div>
         </div>
       </div>
     </div>

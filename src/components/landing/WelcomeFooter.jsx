@@ -1,5 +1,6 @@
 import React from 'react';
 import { Phone } from 'lucide-react';
+import { useLocation } from 'wouter';
 import { base44 } from '@/api/base44Client';
 
 /**
@@ -9,6 +10,8 @@ import { base44 } from '@/api/base44Client';
  */
 const WelcomeFooter = () => {
   const currentYear = new Date().getFullYear();
+
+  const [, setLocation] = useLocation();
 
   const scrollToSection = (href) => {
     if (href.startsWith('#')) {
@@ -102,8 +105,8 @@ const WelcomeFooter = () => {
               © {currentYear} NurturInk. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+              <button onClick={() => setLocation('/legal')} className="hover:text-white transition-colors">Privacy Policy</button>
+              <button onClick={() => setLocation('/legal')} className="hover:text-white transition-colors">Terms of Service</button>
             </div>
           </div>
           {/* Login link - small and subtle at bottom */}
