@@ -19,7 +19,7 @@ const LPHowItWorksSection = () => {
       icon: Send,
       number: "3",
       title: "We Write & Mail It",
-      description: "We don't replicate anyone's handwriting or allow them to choose fonts. Instead, our AI will automatically vary each letter just like a human would. We stuff, stamp, and mail each note within 24-48 hours."
+      description: "Our AI will automatically vary each letter just like a human would. We stuff, stamp, and mail each note within 24-48 hours."
     },
     {
       icon: CheckCircle,
