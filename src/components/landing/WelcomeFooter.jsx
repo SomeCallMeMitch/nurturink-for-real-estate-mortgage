@@ -105,8 +105,8 @@ const WelcomeFooter = () => {
               © {currentYear} NurturInk. All rights reserved.
             </p>
             <div className="flex gap-6 text-sm text-gray-400">
-              <button onClick={() => setLocation('/legal')} className="hover:text-white transition-colors">Privacy Policy</button>
-              <button onClick={() => setLocation('/legal')} className="hover:text-white transition-colors">Terms of Service</button>
+              <button onClick={() => navigate(createPageUrl('Legal'))} className="hover:text-white transition-colors">Privacy Policy</button>
+              <button onClick={() => navigate(createPageUrl('Legal'))} className="hover:text-white transition-colors">Terms of Service</button>
             </div>
           </div>
           {/* Login link - small and subtle at bottom */}
