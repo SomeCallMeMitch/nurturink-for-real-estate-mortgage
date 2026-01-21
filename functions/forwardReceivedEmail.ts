@@ -20,6 +20,61 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Verify webhook signature (Svix headers)
+    const signature = req.headers.get('svix-signature');
+    const svixId = req.headers.get('svix-id');
+    const svixTimestamp = req.headers.get('svix-timestamp');
+
+    if (!signature || !svixId || !svixTimestamp) {
+      console.error('Missing webhook signature headers');
+      return Response.json({ error: 'Missing webhook headers' }, { status: 401 });
+    }
+
+    const webhookSecret = Deno.env.get('RESEND_WEBHOOK_SECRET');
+    if (!webhookSecret) {
+      console.error('RESEND_WEBHOOK_SECRET not configured');
+      return Response.json({ error: 'Server configuration error' }, { status: 500 });
+    }
+
+    // Read the raw body for signature verification
+    const rawBody = await req.text();
+
+    // Verify the webhook signature using Svix verification
+    const signedContent = `${svixId}.${svixTimestamp}.${rawBody}`;
+    const secretBytes = webhookSecret.startsWith('whsec_') 
+      ? Uint8Array.from(atob(webhookSecret.slice(6)), c => c.charCodeAt(0))
+      : new TextEncoder().encode(webhookSecret);
+
+    const key = await crypto.subtle.importKey(
+      'raw',
+      secretBytes,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+
+    const signatureBytes = await crypto.subtle.sign(
+      'HMAC',
+      key,
+      new TextEncoder().encode(signedContent)
+    );
+
+    const expectedSignature = btoa(String.fromCharCode(...new Uint8Array(signatureBytes)));
+    
+    // Svix signature format: v1,<base64signature> (may have multiple)
+    const signatures = signature.split(' ');
+    const isValid = signatures.some(sig => {
+      const [version, sigValue] = sig.split(',');
+      return version === 'v1' && sigValue === expectedSignature;
+    });
+
+    if (!isValid) {
+      console.error('Invalid webhook signature');
+      return Response.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+
+    console.log('Webhook signature verified successfully');
+
     const resendApiKey = Deno.env.get('RESEND_API_KEY');
     if (!resendApiKey) {
       console.error('RESEND_API_KEY not configured');
@@ -28,8 +83,8 @@ Deno.serve(async (req) => {
 
     const resend = new Resend(resendApiKey);
 
-    // Parse the webhook payload
-    const webhookEvent = await req.json();
+    // Parse the webhook payload from raw body
+    const webhookEvent = JSON.parse(rawBody);
     console.log('Received webhook event:', JSON.stringify(webhookEvent, null, 2));
 
     // Only process email.received events
