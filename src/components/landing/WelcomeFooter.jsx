@@ -1,7 +1,8 @@
 import React from 'react';
 import { Phone } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
+import { createPageUrl } from '@/utils';
 
 /**
  * WelcomeFooter
@@ -10,8 +11,7 @@ import { base44 } from '@/api/base44Client';
  */
 const WelcomeFooter = () => {
   const currentYear = new Date().getFullYear();
-
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
 
   const scrollToSection = (href) => {
     if (href.startsWith('#')) {
