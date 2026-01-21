@@ -7,7 +7,7 @@ const LPHowItWorksSection = () => {
       icon: Upload,
       number: "1",
       title: "Upload Your Contacts",
-      description: "Import your list or integrate with your CRM. Add clients one at a time or in bulk—whatever works for your workflow."
+      description: "Import your list or add clients one at a time or in bulk whatever works for your workflow."
     },
     {
       icon: Edit3,
@@ -19,13 +19,13 @@ const LPHowItWorksSection = () => {
       icon: Send,
       number: "3",
       title: "We Write & Mail It",
-      description: "Our robots replicate your handwriting (or choose from our fonts). We stuff, stamp, and mail each note within 24-48 hours."
+      description: "We don't replicate anyone's handwriting or allow them to choose fonts. Instead, our AI will automatically vary each letter just like a human would. We stuff, stamp, and mail each note within 24-48 hours."
     },
     {
       icon: CheckCircle,
       number: "4",
       title: "Watch the Responses Roll In",
-      description: "Your prospects receive real, physical mail that stands out. They remember you—and they're more likely to book that call or close the deal."
+      description: "Your prospects receive real, physical mail that stands out. They're more likely to answer your call, refer friends and leave a great review."
     }
   ];
 
@@ -66,10 +66,10 @@ const LPHowItWorksSection = () => {
                 </div>
 
                 {/* Content */}
-                <h3 className="text-xl font-semibold text-[#1a2332] mb-3">
+                <h3 className="text-[22px] font-semibold text-[#1a2332] mb-3">
                   {step.title}
                 </h3>
-                <p className="text-[#4a5568] leading-relaxed">
+                <p className="text-[#4a5568] leading-relaxed text-base">
                   {step.description}
                 </p>
               </div>

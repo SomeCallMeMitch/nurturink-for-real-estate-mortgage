@@ -10,7 +10,7 @@ const LPFAQSection = () => {
   const faqs = [
     {
       question: "How much do handwritten notes cost?",
-      answer: "Our notes start at $3.49 each and go as low as less than $2.49 per note when you buy in bulk. There are no monthly fees or subscriptions—just buy credits and use them whenever you need them."
+      answer: "Our notes start at $3.49 each and go as low as less than $2.49 per note when you buy in bulk. There are no monthly fees or subscriptions just buy credits and use them whenever you need them."
     },
     {
       question: "Are these really handwritten?",
@@ -18,7 +18,7 @@ const LPFAQSection = () => {
     },
     {
       question: "How long does it take to receive a note?",
-      answer: "We write, address, and mail your notes within 24-48 hours of your order. Standard USPS delivery times apply after that—typically 3-5 business days for domestic mail."
+      answer: "We write, address, and mail your notes within 24-48 hours of your order. Standard USPS delivery times apply after that typically 3-5 business days for domestic mail."
     },
     {
       question: "Can I customize the message?",
@@ -30,7 +30,7 @@ const LPFAQSection = () => {
     },
     {
       question: "Do you offer team accounts?",
-      answer: "Yes! Our team features let you manage multiple users, allocate credits, share templates, and track usage—all from one central dashboard. Perfect for agencies, brokerages, and sales teams."
+      answer: "Yes! Our team features let you manage multiple users, allocate credits, share templates, and track usage all from one central dashboard. Perfect for agencies, brokerages, and sales teams."
     },
     {
       question: "What kind of results can I expect?",
@@ -71,7 +71,7 @@ const LPFAQSection = () => {
             >
               <div className="bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
                 <CollapsibleTrigger className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-gray-100 transition-colors">
-                  <h3 className="text-lg font-semibold text-[#1a2332] pr-4">
+                  <h3 className="text-[18px] font-semibold text-[#1a2332] pr-4">
                     {faq.question}
                   </h3>
                   <ChevronDown 

@@ -31,7 +31,7 @@ const LPFeaturesSection = () => {
     {
       icon: Settings,
       title: "Fully Customizable",
-      description: "Your message, your signature, your return address. Every note feels personally written by you."
+      description: "Your message and return address. Every note feels personally written by you."
     }
   ];
 
@@ -40,10 +40,10 @@ const LPFeaturesSection = () => {
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-[36px] lg:text-[36px] font-bold text-[#1a2332] mb-4">
+          <h2 className="text-[40px] lg:text-[40px] font-bold text-[#1a2332] mb-4">
             Everything You Need to Stand Out
           </h2>
-          <p className="text-[18px] text-[#4a5568] max-w-3xl mx-auto">
+          <p className="text-[21.6px] text-[#4a5568] max-w-3xl mx-auto">
             Built for busy sales professionals who want maximum impact with minimum effort.
           </p>
         </div>
@@ -63,10 +63,10 @@ const LPFeaturesSection = () => {
                 >
                   <Icon className="w-6 h-6" style={{ color: '#FF7A00' }} />
                 </div>
-                <h3 className="text-lg font-semibold text-[#1a2332] mb-2">
+                <h3 className="text-[19.8px] font-semibold text-[#1a2332] mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-[#4a5568] leading-relaxed">
+                <p className="text-[#4a5568] leading-relaxed text-base">
                   {feature.description}
                 </p>
               </div>

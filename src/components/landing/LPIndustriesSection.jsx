@@ -40,11 +40,11 @@ const LPIndustriesSection = () => {
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-[36px] lg:text-[36px] font-bold text-[#1a2332] mb-4">
+          <h2 className="text-[40px] lg:text-[40px] font-bold text-[#1a2332] mb-4">
             Built for Sales Professionals Across Every Industry
           </h2>
-          <p className="text-[18px] text-[#4a5568] max-w-3xl mx-auto">
-            Whether you're in real estate, insurance, or any high-touch sales role—handwritten notes help you stand out and close more deals.
+          <p className="text-[21.6px] text-[#4a5568] max-w-3xl mx-auto">
+            Whether you're in real estate, insurance, or any high-touch sales role handwritten notes help you stand out and close more deals.
           </p>
         </div>
 
@@ -55,7 +55,7 @@ const LPIndustriesSection = () => {
             return (
               <div 
                 key={industry.name}
-                className="bg-white rounded-xl p-6 border border-gray-200 text-center hover:shadow-lg hover:border-[#FF7A00]/20 transition-all cursor-pointer"
+                className="bg-white rounded-xl p-6 border-2 border-gray-500 text-center hover:shadow-lg hover:border-[#FF7A00]/20 transition-all cursor-pointer"
               >
                 <div 
                   className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -63,10 +63,10 @@ const LPIndustriesSection = () => {
                 >
                   <Icon className="w-7 h-7" style={{ color: '#FF7A00' }} />
                 </div>
-                <h3 className="font-semibold text-[#1a2332] mb-1">
+                <h3 className="font-semibold text-[#1a2332] mb-1 text-[19.8px]">
                   {industry.name}
                 </h3>
-                <p className="text-sm text-[#6b7280]">
+                <p className="text-base text-[#1a2332]">
                   {industry.description}
                 </p>
               </div>
@@ -75,7 +75,7 @@ const LPIndustriesSection = () => {
         </div>
 
         {/* Bottom Text */}
-        <p className="text-center text-gray-600 mt-8">
+        <p className="text-center text-gray-800 mt-8 text-[21.6px] font-semibold">
           Don't see your industry? Handwritten notes work for any relationship-based business.
         </p>
       </div>

@@ -36,13 +36,13 @@ const WelcomeCalendlySection = () => {
             </div>
           </div>
           
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4" style={{ color: '#1a2332' }}>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4" style={{ color: '#1a2332' }}>
             Demonstrations & Free Samples
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-2">
+          <p className="text-2xl text-gray-600 max-w-2xl mx-auto mb-2 font-semibold">
             by Appointment
           </p>
-          <p className="text-lg text-gray-500 max-w-xl mx-auto">
+          <p className="text-xl text-gray-500 max-w-xl mx-auto">
             Schedule a personalized demo and receive free sample cards mailed directly to you
           </p>
         </div>
@@ -64,16 +64,16 @@ const WelcomeCalendlySection = () => {
         <div className="mt-12 text-center">
           <div className="flex flex-wrap items-center justify-center gap-8 text-gray-600">
             <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" style={{ color: '#FF7A00' }} />
-              <span>15-minute demo</span>
+              <Calendar className="w-6 h-6" style={{ color: '#FF7A00' }} />
+              <span className="text-lg">15-minute demo</span>
             </div>
             <div className="flex items-center gap-2">
-              <Gift className="w-5 h-5" style={{ color: '#FF7A00' }} />
-              <span>Free sample cards included</span>
+              <Gift className="w-6 h-6" style={{ color: '#FF7A00' }} />
+              <span className="text-lg">Free sample cards included</span>
             </div>
             <div className="flex items-center gap-2">
-              <Presentation className="w-5 h-5" style={{ color: '#FF7A00' }} />
-              <span>No obligation</span>
+              <Presentation className="w-6 h-6" style={{ color: '#FF7A00' }} />
+              <span className="text-lg">No obligation</span>
             </div>
           </div>
         </div>
