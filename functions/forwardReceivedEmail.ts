@@ -10,7 +10,7 @@
 
 import { Resend } from 'npm:resend@3.0.0';
 
-const FORWARD_TO_EMAIL = 'mitch@lynxecom.com';
+const FORWARD_TO_EMAIL = 'aatman.base44@gmail.com';
 const RESEND_API_URL = 'https://api.resend.com';
 
 Deno.serve(async (req) => {
