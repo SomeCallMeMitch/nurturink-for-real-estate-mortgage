@@ -24,7 +24,7 @@ const steps = [
     number: '01',
     icon: Users,
     title: 'Import Your Clients',
-    description: 'Upload your contact list or connect your CRM. We support CSV imports and direct integrations with popular platforms.',
+    description: 'Upload your contact list or connect your CRM... We support CSV imports and direct integrations with popular platforms.',
     color: '#FF7A00',
     highlights: ['CSV Import', 'CRM Sync', 'Manual Entry'],
   },
