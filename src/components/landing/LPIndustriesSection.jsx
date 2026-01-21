@@ -29,9 +29,9 @@ const LPIndustriesSection = () => {
       description: "Advisors & Planners"
     },
     { 
-      name: "Roofing", 
+      name: "Coaching & MLM", 
       icon: Users,
-      description: "Contractors & Sales"
+      description: "Network Marketing"
     }
   ];
 
