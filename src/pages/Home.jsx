@@ -51,6 +51,8 @@ export default function Home() {
   const [creditsSeedResult, setCreditsSeedResult] = useState(null);
   const [seedingProfiles, setSeedingProfiles] = useState(false);
   const [profileSeedResult, setProfileSeedResult] = useState(null);
+  const [seedingPoolCredits, setSeedingPoolCredits] = useState(false);
+  const [poolCreditsSeedResult, setPoolCreditsSeedResult] = useState(null);
 
   const handleSeedData = async () => {
     try {

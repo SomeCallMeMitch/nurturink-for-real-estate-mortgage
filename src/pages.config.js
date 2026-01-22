@@ -22,6 +22,7 @@ import FindClients from './pages/FindClients';
 import Home from './pages/Home';
 import Landing from './pages/Landing';
 import LandingPremium from './pages/LandingPremium';
+import Legal from './pages/Legal';
 import MailingConfirmation from './pages/MailingConfirmation';
 import MobileClientAdd from './pages/MobileClientAdd';
 import MobileClientEdit from './pages/MobileClientEdit';
@@ -56,9 +57,9 @@ import TestEmail from './pages/TestEmail';
 import UpdateUserRole from './pages/UpdateUserRole';
 import WLDemo from './pages/WLDemo';
 import Welcome from './pages/Welcome';
+import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import WelcomeRoof from './pages/WelcomeRoof';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +88,7 @@ export const PAGES = {
     "Home": Home,
     "Landing": Landing,
     "LandingPremium": LandingPremium,
+    "Legal": Legal,
     "MailingConfirmation": MailingConfirmation,
     "MobileClientAdd": MobileClientAdd,
     "MobileClientEdit": MobileClientEdit,
@@ -121,9 +123,9 @@ export const PAGES = {
     "UpdateUserRole": UpdateUserRole,
     "WLDemo": WLDemo,
     "Welcome": Welcome,
+    "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
-    "WelcomeRoof": WelcomeRoof,
 }
 
 export const pagesConfig = {
