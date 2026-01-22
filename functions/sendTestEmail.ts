@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     console.log('📧 Sending test email to:', user.email);
 
     const result = await resend.emails.send({
-      from: 'RoofScribe <billing@roofscribe.com>',
+      from: 'NurturInk <support@nurturink.com>',
       to: user.email,
       subject: 'Test Email from RoofScribe',
       html: `

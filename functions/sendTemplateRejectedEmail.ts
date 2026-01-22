@@ -27,7 +27,7 @@ const createTemplateRejectedHTML = ({
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 40px 40px 30px; text-align: center;">
-              <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; margin-bottom: 20px;" />
+              <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; margin-bottom: 20px;" />
               <h1 style="color: #ffffff; font-size: 24px; font-weight: bold; margin: 0; line-height: 1.3;">
                 Template Review Feedback
               </h1>
@@ -107,14 +107,14 @@ const createTemplateRejectedHTML = ({
           <tr>
             <td style="background-color: #f9fafb; padding: 30px 40px; border-top: 1px solid #e5e7eb; text-align: center;">
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 12px 0;">
-                <strong style="color: #FF7A00;">RoofScribe</strong><br>
+                <strong style="color: #FF7A00;">NurturInk</strong><br>
                 Authentic handwritten notes that build real relationships
               </p>
               <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0 0 8px 0;">
-                Questions? Email us at <a href="mailto:support@roofscribe.com" style="color: #FF7A00; text-decoration: none;">support@roofscribe.com</a>
+                Questions? Email us at <a href="mailto:support@nurturink.com" style="color: #FF7A00; text-decoration: none;">support@nurturink.com</a>
               </p>
               <p style="color: #9ca3af; font-size: 11px; margin: 0;">
-                © 2024 RoofScribe. All rights reserved.
+                © 2024 NurturInk. All rights reserved.
               </p>
             </td>
           </tr>
@@ -128,7 +128,7 @@ const createTemplateRejectedHTML = ({
 `;
 
 const createTemplateRejectedText = (props) => `
-RoofScribe - Template Review Feedback
+NurturInk - Template Review Feedback
 
 Hi ${props.creator_firstName},
 
@@ -150,8 +150,8 @@ Edit & Resubmit Template: ${props.edit_template_url}
 
 Need help? Our support team is happy to provide guidance on creating effective templates.
 
-Questions? Email us at support@roofscribe.com
-© 2024 RoofScribe. All rights reserved.
+Questions? Email us at support@nurturink.com
+© 2024 NurturInk. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'RoofScribe <notifications@roofscribe.com>',
+      from: 'NurturInk <support@nurturink.com>',
       to: data.creator_email,
       subject: `Your template "${data.template_name}" was not approved`,
       html: createTemplateRejectedHTML(emailData),

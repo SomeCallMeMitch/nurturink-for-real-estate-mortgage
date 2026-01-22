@@ -15,7 +15,7 @@ const createWelcomeEmailHTML = ({
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to RoofScribe</title>
+  <title>Welcome to NurturInk</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb;">
@@ -26,7 +26,7 @@ const createWelcomeEmailHTML = ({
           <!-- Header -->
           <tr>
             <td style="background-color: #ffffff; padding: 40px; text-align: center;">
-              <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; max-width: 200px;" />
+              <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; max-width: 200px;" />
             </td>
           </tr>
           
@@ -34,7 +34,7 @@ const createWelcomeEmailHTML = ({
           <tr>
             <td style="padding: 0 40px 30px;">
               <h1 style="margin: 0 0 10px; font-size: 24px; font-weight: bold; color: #111827;">Hi ${user_firstName},</h1>
-              <p style="margin: 0 0 20px; font-size: 20px; font-weight: bold; color: #1f2937;">Welcome to RoofScribe! 🎉</p>
+              <p style="margin: 0 0 20px; font-size: 20px; font-weight: bold; color: #1f2937;">Welcome to NurturInk! 🎉</p>
               <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">You're all set up and ready to send authentic handwritten notes that build real relationships.</p>
             </td>
           </tr>
@@ -108,8 +108,8 @@ const createWelcomeEmailHTML = ({
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
               <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
-              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@roofscribe.com" style="color: #FF7A00; text-decoration: none;">support@roofscribe.com</a></p>
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 RoofScribe. All rights reserved.</p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@nurturink.com" style="color: #FF7A00; text-decoration: none;">support@nurturink.com</a></p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
             </td>
           </tr>
           
@@ -124,7 +124,7 @@ const createWelcomeEmailHTML = ({
 const createWelcomeEmailText = ({ user_firstName, send_note_url, templates_url, dashboard_url, support_url }) => `
 Hi ${user_firstName},
 
-Welcome to RoofScribe! 🎉
+Welcome to NurturInk! 🎉
 
 You're all set up and ready to send authentic handwritten notes that build real relationships.
 
@@ -146,9 +146,9 @@ Browse Templates: ${templates_url}
 Visit Dashboard: ${dashboard_url}
 Get Help: ${support_url}
 
-Questions? Contact us at support@roofscribe.com
+Questions? Contact us at support@nurturink.com
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -179,9 +179,9 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'RoofScribe <hello@roofscribe.com>',
+      from: 'NurturInk <support@nurturink.com>',
       to: user_email,
-      subject: "Welcome to RoofScribe! 🎉 Let's send your first handwritten note",
+      subject: "Welcome to NurturInk! 🎉 Let's send your first handwritten note",
       html: createWelcomeEmailHTML(emailData),
       text: createWelcomeEmailText(emailData)
     });

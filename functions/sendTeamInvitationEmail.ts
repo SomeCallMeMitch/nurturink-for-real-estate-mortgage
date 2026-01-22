@@ -29,7 +29,7 @@ const createInvitationEmailHTML = ({
           ${app_logo_url ? `
           <tr>
             <td style="background-color: #ffffff; padding: 40px; text-align: center;">
-              <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; max-width: 200px;" />
+              <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; max-width: 200px;" />
             </td>
           </tr>
           ` : `
@@ -117,8 +117,8 @@ const createInvitationEmailHTML = ({
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
               <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
-              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@roofscribe.com" style="color: #FF7A00; text-decoration: none;">support@roofscribe.com</a></p>
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 RoofScribe. All rights reserved.</p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@nurturink.com" style="color: #FF7A00; text-decoration: none;">support@nurturink.com</a></p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
             </td>
           </tr>
           
@@ -162,9 +162,9 @@ ${accept_url
 
 ${accept_url && invitation_expires !== 'N/A' ? `⏰ This invitation expires in ${invitation_expires}. Accept soon to join the team!` : ''}
 
-Questions? Contact us at support@roofscribe.com
+Questions? Contact us at support@nurturink.com
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -209,7 +209,7 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'RoofScribe <hello@roofscribe.com>',
+      from: 'NurturInk <support@nurturink.com>',
       to: invitee_email,
       subject: `${inviter_fullName} invited you to join ${organization_name} on RoofScribe`,
       html: createInvitationEmailHTML(emailData),
