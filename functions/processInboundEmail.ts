@@ -28,13 +28,51 @@ Deno.serve(async (req) => {
     const data = body.data || {};
 
     console.log(`Processing event type: ${eventType}`);
-    console.log(`From: ${data.from}, To: ${data.to}, Subject: ${data.subject}`);
 
-    // For now, just return 200 OK for any email.received event
+    // For email.received event
     if (eventType === 'email.received') {
       console.log('✅ Email received event detected');
       
-      // Try to forward
+      // CRITICAL: Get the email_id from the webhook
+      const emailId = data.email_id;
+      
+      if (!emailId) {
+        console.error('❌ No email_id in webhook payload');
+        return Response.json({
+          success: false,
+          error: 'No email_id in payload'
+        }, { status: 200 });
+      }
+
+      console.log(`📧 Fetching email content for ID: ${emailId}`);
+
+      // STEP 1: Fetch the full email content using the Resend API
+      // This is the CRITICAL step that was missing!
+      let emailContent;
+      try {
+        const emailResponse = await resend.emails.receiving.get(emailId);
+        
+        if (emailResponse.error) {
+          console.error('❌ Error fetching email:', emailResponse.error);
+          throw new Error(emailResponse.error.message);
+        }
+        
+        emailContent = emailResponse.data;
+        console.log('✅ Email content fetched successfully');
+        console.log('Email has HTML:', !!emailContent?.html);
+        console.log('Email has text:', !!emailContent?.text);
+      } catch (fetchError) {
+        console.error('❌ Failed to fetch email content:', fetchError);
+        
+        // Fallback: forward with just the metadata we have
+        emailContent = {
+          html: null,
+          text: '[Email content could not be retrieved]',
+          headers: {}
+        };
+      }
+
+      // STEP 2: Now forward the email with the actual content
       try {
         const forwardResult = await resend.emails.send({
           from: 'NurturInk Inbox <notifications@nurturink.com>',
@@ -45,20 +83,21 @@ Deno.serve(async (req) => {
               <div style="background-color: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <p style="margin: 0; font-size: 14px; color: #666;">
                   <strong>From:</strong> ${data.from || 'Unknown'}<br/>
-                  <strong>To:</strong> ${data.to || 'Unknown'}<br/>
+                  <strong>To:</strong> ${Array.isArray(data.to) ? data.to.join(', ') : data.to || 'Unknown'}<br/>
                   <strong>Subject:</strong> ${data.subject || 'No Subject'}<br/>
-                  <strong>Received:</strong> ${new Date(data.created_at || Date.now()).toLocaleString()}
+                  <strong>Received:</strong> ${new Date(data.created_at || Date.now()).toLocaleString()}<br/>
+                  <strong>Email ID:</strong> ${emailId}
                 </p>
               </div>
               <div style="border-left: 4px solid #FF7A00; padding-left: 15px; margin: 20px 0;">
-                ${data.html || `<pre style="white-space: pre-wrap; word-wrap: break-word;">${data.text || 'No content'}</pre>`}
+                ${emailContent?.html || `<pre style="white-space: pre-wrap; word-wrap: break-word;">${emailContent?.text || 'No content available'}</pre>`}
               </div>
               <div style="margin-top: 30px; padding-top: 15px; border-top: 1px solid #eee; font-size: 12px; color: #999;">
                 <p style="margin: 0;">This email was forwarded by NurturInk's inbound email system.</p>
               </div>
             </div>
           `,
-          text: `From: ${data.from}\nTo: ${data.to}\nSubject: ${data.subject}\n\n${data.text || data.html}\n\n---\nForwarded by NurturInk`
+          text: `From: ${data.from}\nTo: ${data.to}\nSubject: ${data.subject}\nEmail ID: ${emailId}\n\n${emailContent?.text || 'No content'}\n\n---\nForwarded by NurturInk`
         });
         
         console.log('✅ Email forwarded successfully:', forwardResult.data?.id);
@@ -66,8 +105,10 @@ Deno.serve(async (req) => {
         return Response.json({
           success: true,
           message: 'Email received and forwarded',
+          emailId: emailId,
           forwardedId: forwardResult.data?.id
         }, { status: 200 });
+        
       } catch (forwardError) {
         console.error('❌ Error forwarding email:', forwardError);
         return Response.json({
