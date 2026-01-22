@@ -337,7 +337,7 @@ For urgent privacy concerns or data requests, please include "URGENT" in the sub
           </p>
           <div className="flex justify-center">
             <button
-              onClick={() => setLocation('/')}
+              onClick={() => navigate(createPageUrl('Welcome'))}
               className="flex items-center gap-2 text-[#FF7A00] hover:text-[#E56A00] transition-colors font-semibold"
             >
               <ArrowLeft className="w-5 h-5" />
