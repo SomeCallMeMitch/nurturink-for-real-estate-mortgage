@@ -29,7 +29,7 @@ const WelcomePricingBanner = () => {
             {' '}per card
           </h2>
           
-          <p className="text-[17px] md:text-2xl leading-[1.0] text-gray-300 mb-8">
+          <p className="text-[17px] md:text-2xl leading-[1.1] text-gray-300 mb-8">
             Including postage and handling
           </p>
 

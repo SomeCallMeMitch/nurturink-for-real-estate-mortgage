@@ -56,7 +56,7 @@ const LPFAQSection = () => {
           <h2 className="text-[28px] lg:text-[36px] leading-[1.1] font-bold text-[#1a2332] mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-[17px] leading-[1.0] text-[#4a5568]">
+          <p className="text-[17px] leading-[1.1] text-[#4a5568]">
             Everything you need to know about NurturInk
           </p>
         </div>
@@ -83,7 +83,7 @@ const LPFAQSection = () => {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="px-6 pb-5">
-                    <p className="text-[#4a5568] leading-relaxed">
+                    <p className="text-[#4a5568] leading-[1.1]">
                       {faq.answer}
                     </p>
                   </div>

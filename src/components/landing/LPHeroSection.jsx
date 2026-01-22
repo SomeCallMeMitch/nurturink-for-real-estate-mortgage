@@ -45,7 +45,7 @@ const LPHeroSection = () => {
               The Follow-Up System Your Prospects Will Actually Remember
             </h1>
 
-            <p className="text-[17px] leading-[1.0] font-normal text-[#4a5568]">
+            <p className="text-[17px] leading-[1.1] font-normal text-[#4a5568]">
               Stop losing deals to forgettable emails. Send authentic handwritten notes that get opened, read, and remembered—turning more leads into loyal customers who refer their friends.
             </p>
 

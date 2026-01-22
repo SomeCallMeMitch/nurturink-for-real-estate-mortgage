@@ -31,7 +31,7 @@ const LPStatsBanner = () => {
           <h2 className="text-[28px] lg:text-[36px] leading-[1.1] font-bold text-[#1a2332] mb-4">
             Why Handwritten Notes Outperform Digital
           </h2>
-          <p className="text-[17px] leading-[1.0] text-[#4a5568] max-w-3xl mx-auto">
+          <p className="text-[17px] leading-[1.1] text-[#4a5568] max-w-3xl mx-auto">
             In a world of digital noise, a personal touch makes all the difference.
           </p>
         </div>
@@ -57,7 +57,7 @@ const LPStatsBanner = () => {
                 <h3 className="text-xl font-semibold text-[#1a2332] mb-3">
                   {benefit.title}
                 </h3>
-                <p className="text-[#4a5568] leading-relaxed">
+                <p className="text-[#4a5568] leading-[1.1]">
                   {benefit.description}
                 </p>
               </div>

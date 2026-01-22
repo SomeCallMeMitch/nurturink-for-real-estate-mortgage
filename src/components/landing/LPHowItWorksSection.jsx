@@ -37,7 +37,7 @@ const LPHowItWorksSection = () => {
           <h2 className="text-[28px] lg:text-[36px] leading-[1.1] font-bold text-[#1a2332] mb-4">
             How It Works
           </h2>
-          <p className="text-[17px] leading-[1.0] text-[#4a5568] max-w-3xl mx-auto">
+          <p className="text-[17px] leading-[1.1] text-[#4a5568] max-w-3xl mx-auto">
             Send authentic handwritten notes in four simple steps—no handwriting required.
           </p>
         </div>
@@ -69,7 +69,7 @@ const LPHowItWorksSection = () => {
                 <h3 className="text-[22px] font-semibold text-[#1a2332] mb-3">
                   {step.title}
                 </h3>
-                <p className="text-[#4a5568] leading-relaxed text-base">
+                <p className="text-[#4a5568] leading-[1.1] text-base">
                   {step.description}
                 </p>
               </div>

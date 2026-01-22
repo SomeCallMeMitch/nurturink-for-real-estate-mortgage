@@ -39,10 +39,10 @@ const WelcomeCalendlySection = () => {
           <h2 className="text-[28px] md:text-5xl lg:text-6xl leading-[1.1] font-extrabold mb-4" style={{ color: '#1a2332' }}>
             Demonstrations & Free Samples
           </h2>
-          <p className="text-[17px] leading-[1.0] text-gray-600 max-w-2xl mx-auto mb-2 font-semibold">
+          <p className="text-[17px] leading-[1.1] text-gray-600 max-w-2xl mx-auto mb-2 font-semibold">
             by Appointment
           </p>
-          <p className="text-[17px] leading-[1.0] text-gray-500 max-w-xl mx-auto">
+          <p className="text-[17px] leading-[1.1] text-gray-500 max-w-xl mx-auto">
             Schedule a personalized demo and receive free sample cards mailed directly to you
           </p>
         </div>

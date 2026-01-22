@@ -43,7 +43,7 @@ const LPFeaturesSection = () => {
           <h2 className="text-[28px] lg:text-[40px] leading-[1.1] font-bold text-[#1a2332] mb-4">
             Everything You Need to Stand Out
           </h2>
-          <p className="text-[17px] leading-[1.0] text-[#4a5568] max-w-3xl mx-auto">
+          <p className="text-[17px] leading-[1.1] text-[#4a5568] max-w-3xl mx-auto">
             Built for busy sales professionals who want maximum impact with minimum effort.
           </p>
         </div>
@@ -66,7 +66,7 @@ const LPFeaturesSection = () => {
                 <h3 className="text-[19.8px] font-semibold text-[#1a2332] mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-[#4a5568] leading-relaxed text-base">
+                <p className="text-[#4a5568] leading-[1.1] text-base">
                   {feature.description}
                 </p>
               </div>
