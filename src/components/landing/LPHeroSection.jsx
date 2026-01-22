@@ -65,15 +65,23 @@ const LPHeroSection = () => {
             </div>
           </div>
 
-          {/* Right Column - Hero Image (2/5) */}
+          {/* Right Column - Hero Video (2/5) */}
           <div className="lg:col-span-2">
             <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
-              {/* Hero image showing robot pen writing */}
-              <img 
-                src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696020df49a02437cf7a3031/c314e0a0b_PenWriting.jpg"
-                alt="Robot pen writing a handwritten note"
+              {/* Cloudinary video showing handwritten note process */}
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
                 className="w-full h-auto object-cover"
-              />
+              >
+                <source 
+                  src="https://res.cloudinary.com/dge8qy1ps/video/upload/Handwritten_Note_process_zuyc3z.mp4" 
+                  type="video/mp4" 
+                />
+                Your browser does not support the video tag.
+              </video>
               {/* Subtle overlay gradient for polish */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
             </div>
