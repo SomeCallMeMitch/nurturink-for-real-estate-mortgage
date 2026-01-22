@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ArrowLeft } from 'lucide-react';
-import { useLocation } from 'wouter';
+import { useNavigate } from 'react-router-dom';
+import { createPageUrl } from '@/utils';
 import {
   Collapsible,
   CollapsibleContent,
@@ -13,7 +14,7 @@ import {
  * This can be expanded later with more detailed sections
  */
 const LegalPage = () => {
-  const [, setLocation] = useLocation();
+  const navigate = useNavigate();
   const [openSections, setOpenSections] = useState([]);
 
   const sections = [
