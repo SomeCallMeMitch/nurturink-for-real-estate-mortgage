@@ -437,6 +437,68 @@ export default function Home() {
             </Card>
           </motion.div>
 
+          {/* Test Company Pool Credits */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-orange-100 rounded-lg">
+                      <DollarSign className="w-6 h-6 text-orange-600" />
+                    </div>
+                    <div>
+                      <CardTitle>Company Pool Credits</CardTitle>
+                      <CardDescription>
+                        Add 200 test credits to the company pool (Testing Feature)
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={handleSeedPoolCredits}
+                    variant="outline"
+                    disabled={seedingPoolCredits}
+                    className="border-orange-600 text-orange-600 hover:bg-orange-50"
+                  >
+                    {seedingPoolCredits ? 'Adding...' : 'Add 200 Pool Credits'}
+                  </Button>
+                </div>
+              </CardHeader>
+
+              {poolCreditsSeedResult && (
+                <CardContent>
+                  <div className={`flex items-start gap-3 p-4 rounded-lg ${
+                    poolCreditsSeedResult.success 
+                      ? 'bg-green-50 border border-green-200' 
+                      : 'bg-yellow-50 border border-yellow-200'
+                  }`}>
+                    {poolCreditsSeedResult.success ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                    )}
+                    <div className="flex-1">
+                      <p className={`font-medium ${
+                        poolCreditsSeedResult.success ? 'text-green-900' : 'text-yellow-900'
+                      }`}>
+                        {poolCreditsSeedResult.message}
+                      </p>
+                      {poolCreditsSeedResult.success && (
+                        <p className="text-sm text-green-700 mt-1">
+                          200 credits added to the company pool!
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          </motion.div>
+
           {/* Seed Test Data */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
