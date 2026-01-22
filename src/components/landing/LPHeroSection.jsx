@@ -41,11 +41,11 @@ const LPHeroSection = () => {
 
           {/* Left Column - Content (3/5) */}
           <div className="lg:col-span-3 space-y-6 lg:space-y-8">
-            <h1 className="text-[28px] lg:text-[48px] leading-[0.9] font-bold text-[#1a2332]">
+            <h1 className="text-[28px] lg:text-[48px] leading-[1.1] font-bold text-[#1a2332]">
               The Follow-Up System Your Prospects Will Actually Remember
             </h1>
 
-            <p className="text-[14px] lg:text-[14px] leading-[1.2] font-normal text-[#4a5568]">
+            <p className="text-[17px] leading-[1.0] font-normal text-[#4a5568]">
               Stop losing deals to forgettable emails. Send authentic handwritten notes that get opened, read, and remembered—turning more leads into loyal customers who refer their friends.
             </p>
 
