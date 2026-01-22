@@ -106,7 +106,7 @@ const createWelcomeEmailHTML = ({
           <!-- Footer -->
           <tr>
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
+              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">NurturInk</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@nurturink.com" style="color: #FF7A00; text-decoration: none;">support@nurturink.com</a></p>
               <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'NurturInk <support@nurturink.com>',
+      from: 'NurturInk <hello@nurturink.com>',
       to: user_email,
       subject: "Welcome to NurturInk! 🎉 Let's send your first handwritten note",
       html: createWelcomeEmailHTML(emailData),

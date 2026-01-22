@@ -28,7 +28,7 @@ const createPasswordResetHTML = ({
           <!-- Header -->
           <tr>
             <td style="background-color: #ffffff; padding: 40px; text-align: center;">
-              <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; max-width: 200px;" />
+              <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; max-width: 200px;" />
             </td>
           </tr>
           
@@ -37,7 +37,7 @@ const createPasswordResetHTML = ({
             <td style="padding: 0 40px 30px;">
               <h1 style="margin: 0 0 10px; font-size: 24px; font-weight: bold; color: #111827;">Hi ${user_firstName || 'there'},</h1>
               <h2 style="margin: 0 0 15px; font-size: 20px; font-weight: bold; color: #1f2937;">Reset your password</h2>
-              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">We received a request to reset your RoofScribe password. Click the button below to choose a new password.</p>
+              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">We received a request to reset your NurturInk password. Click the button below to choose a new password.</p>
             </td>
           </tr>
           
@@ -95,10 +95,10 @@ const createPasswordResetHTML = ({
           <!-- Footer -->
           <tr>
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
+              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">NurturInk</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
-              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@roofscribe.com" style="color: #FF7A00; text-decoration: none;">support@roofscribe.com</a></p>
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 RoofScribe. All rights reserved.</p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@nurturink.com" style="color: #FF7A00; text-decoration: none;">support@nurturink.com</a></p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
             </td>
           </tr>
           
@@ -123,7 +123,7 @@ Hi ${user_firstName || 'there'},
 
 RESET YOUR PASSWORD
 
-We received a request to reset your RoofScribe password. Click the link below to choose a new password.
+We received a request to reset your NurturInk password. Click the link below to choose a new password.
 
 Reset Password: ${reset_url}
 
@@ -137,7 +137,7 @@ If you didn't request this password reset, you can safely ignore this email. You
 
 Need help? Contact our support team: ${support_url}
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -185,9 +185,9 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'RoofScribe Security <security@roofscribe.com>',
+      from: 'NurturInk Security <security@nurturink.com>',
       to: user_email,
-      subject: 'Reset your RoofScribe password',
+      subject: 'Reset your NurturInk password',
       html: createPasswordResetHTML(emailData),
       text: createPasswordResetText(emailData)
     });

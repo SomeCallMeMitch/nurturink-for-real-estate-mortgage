@@ -206,7 +206,7 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'NurturInk <support@nurturink.com>',
+      from: 'NurturInk <hello@nurturink.com>',
       to: data.user_email,
       subject: `Your week in review: ${data.notes_sent || 0} notes sent`,
       html: createWeeklyDigestHTML(emailData),

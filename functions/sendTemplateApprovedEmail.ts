@@ -131,7 +131,7 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'NurturInk <support@nurturink.com>',
+      from: 'NurturInk <hello@nurturink.com>',
       to: data.creator_email,
       subject: `Your template "${data.template_name}" has been approved!`,
       html: createTemplateApprovedHTML(emailData),

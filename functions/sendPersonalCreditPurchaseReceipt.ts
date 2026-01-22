@@ -38,7 +38,7 @@ const createReceiptHTML = ({
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="text-align: left;">
-                    <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; max-width: 200px;" />
+                    <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; max-width: 200px;" />
                   </td>
                   <td style="text-align: right;">
                     <span style="display: inline-block; background-color: #FF7A00; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: bold;">RECEIPT</span>
@@ -142,18 +142,18 @@ const createReceiptHTML = ({
           <!-- Support -->
           <tr>
             <td style="padding: 0 40px 40px; text-align: center;">
-              <p style="margin: 0; font-size: 14px; color: #6b7280;">Questions about your purchase? Contact <a href="mailto:billing@roofscribe.com" style="color: #FF7A00; text-decoration: none;">billing@roofscribe.com</a></p>
+              <p style="margin: 0; font-size: 14px; color: #6b7280;">Questions about your purchase? Contact <a href="mailto:billing@nurturink.com" style="color: #FF7A00; text-decoration: none;">billing@nurturink.com</a></p>
             </td>
           </tr>
           
           <!-- Billing Footer -->
           <tr>
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
+              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">NurturInk</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
-              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Billing questions? Contact us at <a href="mailto:billing@roofscribe.com" style="color: #FF7A00; text-decoration: none;">billing@roofscribe.com</a></p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Billing questions? Contact us at <a href="mailto:billing@nurturink.com" style="color: #FF7A00; text-decoration: none;">billing@nurturink.com</a></p>
               <p style="margin: 0 0 15px; font-size: 12px; color: #9ca3af;">This is a transactional email. Credits are non-refundable once used.</p>
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 RoofScribe. All rights reserved.</p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
             </td>
           </tr>
           
@@ -166,7 +166,7 @@ const createReceiptHTML = ({
 `;
 
 const createReceiptText = (props) => `
-RoofScribe - Purchase Receipt
+NurturInk - Purchase Receipt
 
 Thanks for your purchase, ${props.user_firstName}!
 
@@ -191,10 +191,10 @@ Each credit includes a handwritten card, envelope, postage, and mailing.
 Send Your Note: ${props.send_note_url}
 Download Receipt: ${props.receipt_url}
 
-Questions about your purchase? Contact billing@roofscribe.com
+Questions about your purchase? Contact billing@nurturink.com
 
 This is a transactional email. Credits are non-refundable once used.
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -240,9 +240,9 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'RoofScribe <billing@roofscribe.com>',
+      from: 'NurturInk <billing@nurturink.com>',
       to: user_email,
-      subject: `Your RoofScribe Credit Purchase - Receipt #${order_number}`,
+      subject: `Your NurturInk Credit Purchase - Receipt #${order_number}`,
       html: createReceiptHTML(emailData),
       text: createReceiptText(emailData)
     });

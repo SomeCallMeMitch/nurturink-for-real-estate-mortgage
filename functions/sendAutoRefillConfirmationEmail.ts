@@ -31,7 +31,7 @@ const createAutoRefillHTML = ({
           <!-- Header -->
           <tr>
             <td style="background-color: #FF7A00; padding: 40px 40px 30px; text-align: center;">
-              <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; margin-bottom: 20px;" />
+              <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; margin-bottom: 20px;" />
               <span style="display: inline-block; background-color: rgba(255,255,255,0.2); color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: bold;">AUTO-REFILL</span>
             </td>
           </tr>
@@ -96,17 +96,17 @@ const createAutoRefillHTML = ({
           <tr>
             <td style="background-color: #f9fafb; padding: 30px 40px; border-top: 1px solid #e5e7eb; text-align: center;">
               <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 12px 0;">
-                <strong style="color: #FF7A00;">RoofScribe</strong><br>
+                <strong style="color: #FF7A00;">NurturInk</strong><br>
                 Authentic handwritten notes that build real relationships
               </p>
               <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0 0 8px 0;">
-                Billing questions? Contact us at <a href="mailto:billing@roofscribe.com" style="color: #FF7A00; text-decoration: none;">billing@roofscribe.com</a>
+                Billing questions? Contact us at <a href="mailto:billing@nurturink.com" style="color: #FF7A00; text-decoration: none;">billing@nurturink.com</a>
               </p>
               <p style="color: #9ca3af; font-size: 11px; line-height: 1.4; margin: 0 0 8px 0;">
                 This is a transactional email. Credits are non-refundable once used.
               </p>
               <p style="color: #9ca3af; font-size: 11px; margin: 0;">
-                © 2024 RoofScribe. All rights reserved.
+                © 2024 NurturInk. All rights reserved.
               </p>
             </td>
           </tr>
@@ -120,7 +120,7 @@ const createAutoRefillHTML = ({
 `;
 
 const createAutoRefillText = (props) => `
-RoofScribe - Auto-Refill Confirmation
+NurturInk - Auto-Refill Confirmation
 
 Hi ${props.user_firstName},
 
@@ -137,8 +137,8 @@ New Balance: ${props.new_balance} credits
 Manage Auto-Refill Settings: ${props.manage_settings_url}
 View Transaction History: ${props.transaction_history_url}
 
-Billing questions? Contact billing@roofscribe.com
-© 2024 RoofScribe. All rights reserved.
+Billing questions? Contact billing@nurturink.com
+© 2024 NurturInk. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'RoofScribe <billing@roofscribe.com>',
+      from: 'NurturInk <billing@nurturink.com>',
       to: data.user_email,
       subject: `Auto-refill: ${data.credits_purchased} credits added to your account`,
       html: createAutoRefillHTML(emailData),

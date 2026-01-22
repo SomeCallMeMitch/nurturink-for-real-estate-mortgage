@@ -55,7 +55,7 @@ const createPaymentFailedHTML = ({
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="text-align: left;">
-                    <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; max-width: 200px;" />
+                    <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; max-width: 200px;" />
                   </td>
                   <td style="text-align: right;">
                     <span style="display: inline-block; background-color: #3b82f6; color: #ffffff; padding: 6px 16px; border-radius: 4px; font-size: 12px; font-weight: bold;">NOTICE</span>
@@ -159,11 +159,11 @@ const createPaymentFailedHTML = ({
           <!-- Billing Footer -->
           <tr>
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
+              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">NurturInk</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
-              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Billing questions? Contact us at <a href="mailto:billing@roofscribe.com" style="color: #FF7A00; text-decoration: none;">billing@roofscribe.com</a></p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Billing questions? Contact us at <a href="mailto:billing@nurturink.com" style="color: #FF7A00; text-decoration: none;">billing@nurturink.com</a></p>
               <p style="margin: 0 0 15px; font-size: 12px; color: #9ca3af;">This is a transactional email. Credits are non-refundable once used.</p>
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 RoofScribe. All rights reserved.</p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
             </td>
           </tr>
           
@@ -176,7 +176,7 @@ const createPaymentFailedHTML = ({
 `;
 
 const createPaymentFailedText = (props) => `
-RoofScribe - Payment Failed
+NurturInk - Payment Failed
 
 Hi ${props.user_firstName},
 
@@ -208,8 +208,8 @@ Contact Support: ${props.support_url}
 
 If you need help, reference code: ${props.failure_code}
 
-Billing questions? Contact billing@roofscribe.com
-© 2024 RoofScribe. All rights reserved.
+Billing questions? Contact billing@nurturink.com
+© 2024 NurturInk. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -246,7 +246,7 @@ Deno.serve(async (req) => {
 
     const emailPromises = recipients.map(email =>
       resend.emails.send({
-        from: 'RoofScribe <billing@roofscribe.com>',
+        from: 'NurturInk <billing@nurturink.com>',
         to: email,
         subject: 'Payment Failed - Action Required',
         html: createPaymentFailedHTML(emailData),

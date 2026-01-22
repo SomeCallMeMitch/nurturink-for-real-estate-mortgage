@@ -40,7 +40,7 @@ const createOrgReceiptHTML = ({
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="text-align: left;">
-                    <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; max-width: 200px;" />
+                    <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; max-width: 200px;" />
                   </td>
                   <td style="text-align: right;">
                     <span style="display: inline-block; background-color: #FF7A00; color: #ffffff; padding: 6px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">BUSINESS RECEIPT</span>
@@ -150,11 +150,11 @@ const createOrgReceiptHTML = ({
           <!-- Billing Footer -->
           <tr>
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
+              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">NurturInk</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
-              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Billing questions? Contact us at <a href="mailto:billing@roofscribe.com" style="color: #FF7A00; text-decoration: none;">billing@roofscribe.com</a></p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Billing questions? Contact us at <a href="mailto:billing@nurturink.com" style="color: #FF7A00; text-decoration: none;">billing@nurturink.com</a></p>
               <p style="margin: 0 0 15px; font-size: 12px; color: #9ca3af;">This is a transactional email. Credits are non-refundable once used.</p>
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 RoofScribe. All rights reserved.</p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
             </td>
           </tr>
           
@@ -167,7 +167,7 @@ const createOrgReceiptHTML = ({
 `;
 
 const createOrgReceiptText = (props) => `
-RoofScribe - Business Purchase Receipt
+NurturInk - Business Purchase Receipt
 
 Thanks for your purchase, ${props.admin_firstName}!
 
@@ -195,10 +195,10 @@ Your team can now use credits from the organization pool to send handwritten not
 Manage Team: ${props.team_management_url}
 Download Receipt: ${props.receipt_url}
 
-Billing questions? Contact billing@roofscribe.com
+Billing questions? Contact billing@nurturink.com
 
 This is a transactional email. Credits are non-refundable once used.
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -226,7 +226,7 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'RoofScribe <billing@roofscribe.com>',
+      from: 'NurturInk <billing@nurturink.com>',
       to: data.admin_email,
       subject: `${data.organization_name} Credit Purchase - Receipt #${data.order_number}`,
       html: createOrgReceiptHTML(emailData),

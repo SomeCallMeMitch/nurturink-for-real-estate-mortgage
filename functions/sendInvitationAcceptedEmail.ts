@@ -29,7 +29,7 @@ const createAcceptedEmailHTML = ({
           <!-- Header -->
           <tr>
             <td style="background-color: #ffffff; padding: 40px; text-align: center;">
-              <img src="${app_logo_url}" alt="RoofScribe" style="height: 40px; max-width: 200px;" />
+              <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; max-width: 200px;" />
             </td>
           </tr>
           
@@ -86,10 +86,10 @@ const createAcceptedEmailHTML = ({
           <!-- Footer -->
           <tr>
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
+              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">NurturInk</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
-              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@roofscribe.com" style="color: #FF7A00; text-decoration: none;">support@roofscribe.com</a></p>
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 RoofScribe. All rights reserved.</p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@nurturink.com" style="color: #FF7A00; text-decoration: none;">support@nurturink.com</a></p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
             </td>
           </tr>
           
@@ -130,9 +130,9 @@ SUGGESTED NEXT STEPS:
 View Team: ${team_management_url}
 View ${new_member_fullName}'s profile: ${member_profile_url}
 
-Questions? Contact us at support@roofscribe.com
+Questions? Contact us at support@nurturink.com
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -175,9 +175,9 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'RoofScribe <notifications@roofscribe.com>',
+      from: 'NurturInk <notifications@nurturink.com>',
       to: admin_email,
-      subject: `${new_member_fullName} joined your team on RoofScribe`,
+      subject: `${new_member_fullName} joined your team on NurturInk`,
       html: createAcceptedEmailHTML(emailData),
       text: createAcceptedEmailText(emailData)
     });

@@ -35,7 +35,7 @@ const createInvitationEmailHTML = ({
           ` : `
           <tr>
             <td style="background-color: #ffffff; padding: 40px; text-align: center;">
-              <h1 style="margin: 0; font-size: 28px; font-weight: bold; color: #FF7A00;">RoofScribe</h1>
+              <h1 style="margin: 0; font-size: 28px; font-weight: bold; color: #FF7A00;">NurturInk</h1>
             </td>
           </tr>
           `}
@@ -44,15 +44,15 @@ const createInvitationEmailHTML = ({
           <tr>
             <td style="padding: 0 40px 30px;">
               <h1 style="margin: 0 0 15px; font-size: 24px; font-weight: bold; color: #111827;">${inviter_firstName} invited you to join ${organization_name}</h1>
-              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">${inviter_fullName} wants you to join their team on RoofScribe.</p>
+              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">${inviter_fullName} wants you to join their team on NurturInk.</p>
             </td>
           </tr>
           
-          <!-- What is RoofScribe -->
+          <!-- What is NurturInk -->
           <tr>
             <td style="padding: 0 40px 30px;">
-              <h2 style="margin: 0 0 15px; font-size: 20px; font-weight: bold; color: #1f2937;">What is RoofScribe?</h2>
-              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">RoofScribe makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.</p>
+              <h2 style="margin: 0 0 15px; font-size: 20px; font-weight: bold; color: #1f2937;">What is NurturInk?</h2>
+              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">NurturInk makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.</p>
             </td>
           </tr>
           
@@ -90,8 +90,8 @@ const createInvitationEmailHTML = ({
               <h2 style="margin: 0 0 15px; font-size: 20px; font-weight: bold; color: #1f2937;">What happens next?</h2>
               <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">
                 ${accept_url 
-                  ? `If you already have a RoofScribe account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
-                  : `You've been added to ${organization_name}. Log in to your RoofScribe account to access your organization's features.`
+                  ? `If you already have a NurturInk account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
+                  : `You've been added to ${organization_name}. Log in to your NurturInk account to access your organization's features.`
                 }
               </p>
             </td>
@@ -115,7 +115,7 @@ const createInvitationEmailHTML = ({
           <!-- Footer -->
           <tr>
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">RoofScribe</p>
+              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">NurturInk</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@nurturink.com" style="color: #FF7A00; text-decoration: none;">support@nurturink.com</a></p>
               <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
@@ -141,10 +141,10 @@ const createInvitationEmailText = ({
 }) => `
 ${inviter_firstName} invited you to join ${organization_name}
 
-${inviter_fullName} wants you to join their team on RoofScribe.
+${inviter_fullName} wants you to join their team on NurturInk.
 
 WHAT IS ROOFSCRIBE?
-RoofScribe makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.
+NurturInk makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.
 
 YOUR ROLE: ${role_display}
 ${is_admin 
@@ -156,8 +156,8 @@ ${accept_url ? `Accept Invitation: ${accept_url}` : ''}
 
 WHAT HAPPENS NEXT?
 ${accept_url 
-  ? `If you already have a RoofScribe account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
-  : `You've been added to ${organization_name}. Log in to your RoofScribe account to access your organization's features.`
+  ? `If you already have a NurturInk account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
+  : `You've been added to ${organization_name}. Log in to your NurturInk account to access your organization's features.`
 }
 
 ${accept_url && invitation_expires !== 'N/A' ? `⏰ This invitation expires in ${invitation_expires}. Accept soon to join the team!` : ''}
@@ -209,9 +209,9 @@ Deno.serve(async (req) => {
     };
 
     const result = await resend.emails.send({
-      from: 'NurturInk <support@nurturink.com>',
+      from: 'NurturInk <hello@nurturink.com>',
       to: invitee_email,
-      subject: `${inviter_fullName} invited you to join ${organization_name} on RoofScribe`,
+      subject: `${inviter_fullName} invited you to join ${organization_name} on NurturInk`,
       html: createInvitationEmailHTML(emailData),
       text: createInvitationEmailText(emailData)
     });
