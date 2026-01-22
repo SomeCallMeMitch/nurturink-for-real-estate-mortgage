@@ -1,0 +1,63 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "resendEmailId": {
+      "type": "string",
+      "description": "Email ID from Resend webhook"
+    },
+    "from": {
+      "type": "string",
+      "description": "Sender email address"
+    },
+    "to": {
+      "type": "string",
+      "description": "Recipient email address (e.g., mitch@nurturink.com)"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Email subject line"
+    },
+    "text": {
+      "type": "string",
+      "description": "Plain text email body"
+    },
+    "html": {
+      "type": "string",
+      "description": "HTML email body"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Array of attachment objects from Resend"
+    },
+    "forwardedTo": {
+      "type": "string",
+      "description": "Email address it was forwarded to (e.g., mitch@lynxecom.com)"
+    },
+    "forwardedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When the email was forwarded"
+    },
+    "receivedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the email was received"
+    }
+  },
+  "required": [
+    "resendEmailId",
+    "from",
+    "to",
+    "subject",
+    "forwardedTo"
+  ],
+  "name": "IncomingEmail"
+}
