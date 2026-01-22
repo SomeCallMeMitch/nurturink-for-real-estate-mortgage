@@ -40,10 +40,10 @@ const LPIndustriesSection = () => {
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-[40px] lg:text-[40px] font-bold text-[#1a2332] mb-4">
+          <h2 className="text-[28px] lg:text-[40px] leading-[1.1] font-bold text-[#1a2332] mb-4">
             Built for Sales Professionals Across Every Industry
           </h2>
-          <p className="text-[21.6px] text-[#4a5568] max-w-3xl mx-auto">
+          <p className="text-[17px] leading-[1.0] text-[#4a5568] max-w-3xl mx-auto">
             Whether you're in real estate, insurance, or any high-touch sales role handwritten notes help you stand out and close more deals.
           </p>
         </div>
@@ -75,7 +75,7 @@ const LPIndustriesSection = () => {
         </div>
 
         {/* Bottom Text */}
-        <p className="text-center text-gray-800 mt-8 text-[21.6px] font-semibold">
+        <p className="text-center text-gray-800 mt-8 text-[17px] leading-[1.0] font-semibold">
           Don't see your industry? Handwritten notes work for any relationship-based business.
         </p>
       </div>

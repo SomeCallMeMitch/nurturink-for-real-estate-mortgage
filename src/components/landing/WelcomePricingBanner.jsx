@@ -23,13 +23,13 @@ const WelcomePricingBanner = () => {
           </div>
 
           {/* Main pricing message */}
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-4">
+          <h2 className="text-[28px] md:text-5xl lg:text-6xl leading-[1.1] font-extrabold text-white mb-4">
             Less than{' '}
             <span style={{ color: '#FF7A00' }}>$2.49</span>
             {' '}per card
           </h2>
           
-          <p className="text-xl md:text-2xl text-gray-300 mb-8">
+          <p className="text-[17px] md:text-2xl leading-[1.0] text-gray-300 mb-8">
             Including postage and handling
           </p>
 

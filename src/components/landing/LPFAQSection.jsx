@@ -53,10 +53,10 @@ const LPFAQSection = () => {
       <div className="max-w-4xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
-          <h2 className="text-[36px] lg:text-[36px] font-bold text-[#1a2332] mb-4">
+          <h2 className="text-[28px] lg:text-[36px] leading-[1.1] font-bold text-[#1a2332] mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-[18px] text-[#4a5568]">
+          <p className="text-[17px] leading-[1.0] text-[#4a5568]">
             Everything you need to know about NurturInk
           </p>
         </div>
