@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * Welcome Email Template
- * Sent when a new user signs up for RoofScribe
+ * Sent when a new user signs up for NurturInk
  */
 export default function WelcomeEmail({
   user_firstName,
@@ -50,7 +50,7 @@ export default function WelcomeEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -62,7 +62,7 @@ export default function WelcomeEmail({
                       lineHeight: '1.3',
                       margin: '0'
                     }}>
-                      Welcome to RoofScribe! 🎉
+                      Welcome to NurturInk! 🎉
                     </h1>
                   </td>
                 </tr>
@@ -102,7 +102,7 @@ export default function WelcomeEmail({
                             color: '#111827',
                             margin: '0 0 12px 0'
                           }}>
-                            Here's what you can do with RoofScribe:
+                            Here's what you can do with NurturInk:
                           </p>
                           <table role="presentation" cellSpacing="0" cellPadding="0" border="0">
                             <tr>
@@ -240,7 +240,7 @@ export default function WelcomeEmail({
                       textAlign: 'center',
                       margin: '0 0 8px 0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                     <p style={{
                       fontSize: '13px',
@@ -248,7 +248,7 @@ export default function WelcomeEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      You're receiving this email because you signed up for RoofScribe.
+                      You're receiving this email because you signed up for NurturInk.
                     </p>
                   </td>
                 </tr>
@@ -271,11 +271,11 @@ export const welcomeEmailPlainText = ({
 }) => `
 Hi ${user_firstName},
 
-Welcome to RoofScribe! 🎉
+Welcome to NurturInk! 🎉
 
 You're all set up and ready to send authentic handwritten notes that build real relationships.
 
-Here's what you can do with RoofScribe:
+Here's what you can do with NurturInk:
 ✓ Real handwriting, not printed
 ✓ Send in 2 minutes or less
 ✓ Track delivery and impact
@@ -293,6 +293,6 @@ Helpful resources:
 • Visit Dashboard: ${dashboard_url}
 • Get Help: ${support_url}
 
-© 2024 RoofScribe. All rights reserved.
-You're receiving this email because you signed up for RoofScribe.
+© 2024 NurturInk. All rights reserved.
+You're receiving this email because you signed up for NurturInk.
 `;

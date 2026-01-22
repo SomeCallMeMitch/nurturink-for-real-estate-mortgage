@@ -53,7 +53,7 @@ export default function TeamInvitationEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -79,10 +79,10 @@ export default function TeamInvitationEmail({
                       lineHeight: '1.6',
                       margin: '0 0 24px 0'
                     }}>
-                      {inviter_fullName} wants you to join their team on RoofScribe.
+                      {inviter_fullName} wants you to join their team on NurturInk.
                     </p>
 
-                    {/* What is RoofScribe Box */}
+                    {/* What is NurturInk Box */}
                     <table role="presentation" width="100%" cellSpacing="0" cellPadding="0" border="0" style={{
                       backgroundColor: '#f9fafb',
                       borderRadius: '8px',
@@ -97,7 +97,7 @@ export default function TeamInvitationEmail({
                             lineHeight: '1.6',
                             margin: '0'
                           }}>
-                            RoofScribe makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.
+                            NurturInk makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.
                           </p>
                         </td>
                       </tr>
@@ -166,7 +166,7 @@ export default function TeamInvitationEmail({
                         lineHeight: '1.6',
                         margin: '0 0 8px 0'
                       }}>
-                        If you already have a RoofScribe account, we'll connect it to {organization_name}.
+                        If you already have a NurturInk account, we'll connect it to {organization_name}.
                       </p>
                       <p style={{
                         fontSize: '14px',
@@ -213,7 +213,7 @@ export default function TeamInvitationEmail({
                       textAlign: 'center',
                       margin: '0 0 8px 0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                     <p style={{
                       fontSize: '13px',
@@ -246,10 +246,10 @@ export const teamInvitationEmailPlainText = ({
 }) => `
 ${inviter_fullName} invited you to join ${organization_name}
 
-${inviter_fullName} wants you to join their team on RoofScribe.
+${inviter_fullName} wants you to join their team on NurturInk.
 
-What is RoofScribe?
-RoofScribe makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.
+What is NurturInk?
+NurturInk makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.
 
 Your role: ${role_display}
 ${is_admin 
@@ -260,11 +260,11 @@ ${is_admin
 Accept Invitation: ${accept_url}
 
 What Happens Next:
-• If you already have a RoofScribe account, we'll connect it to ${organization_name}.
+• If you already have a NurturInk account, we'll connect it to ${organization_name}.
 • If you're new, we'll help you create your account and get started.
 
 ⏰ This invitation expires in ${invitation_expires}. Accept soon to join the team!
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 This invitation was sent to ${invitee_email} by ${inviter_fullName}.
 `;

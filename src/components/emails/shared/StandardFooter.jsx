@@ -21,7 +21,7 @@ export default function StandardFooter({ support_url, show_unsubscribe = false }
                 lineHeight: '1.6',
                 margin: '0 0 12px 0'
               }}>
-                <strong style={{ color: '#FF7A00' }}>RoofScribe</strong><br />
+                <strong style={{ color: '#FF7A00' }}>NurturInk</strong><br />
                 Authentic handwritten notes that build real relationships
               </p>
               <p style={{
@@ -30,14 +30,14 @@ export default function StandardFooter({ support_url, show_unsubscribe = false }
                 lineHeight: '1.6',
                 margin: '0 0 8px 0'
               }}>
-                Questions? Email us at <a href="mailto:support@roofscribe.com" style={{ color: '#FF7A00', textDecoration: 'none' }}>support@roofscribe.com</a>
+                Questions? Email us at <a href="mailto:support@nurturink.com" style={{ color: '#FF7A00', textDecoration: 'none' }}>support@nurturink.com</a>
               </p>
               <p style={{
                 color: '#9ca3af',
                 fontSize: '11px',
                 margin: '0'
               }}>
-                © 2024 RoofScribe. All rights reserved.
+                © 2024 NurturInk. All rights reserved.
               </p>
             </td>
           </tr>
@@ -49,10 +49,10 @@ export default function StandardFooter({ support_url, show_unsubscribe = false }
 
 // Plain text version
 export const standardFooterPlainText = () => `
-RoofScribe
+NurturInk
 Authentic handwritten notes that build real relationships
 
-Questions? Email us at support@roofscribe.com
+Questions? Email us at support@nurturink.com
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;

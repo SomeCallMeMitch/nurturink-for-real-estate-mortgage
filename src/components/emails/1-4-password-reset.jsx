@@ -52,7 +52,7 @@ export default function PasswordResetEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -86,7 +86,7 @@ export default function PasswordResetEmail({
                       lineHeight: '1.6',
                       margin: '0 0 32px 0'
                     }}>
-                      We received a request to reset your RoofScribe password. Click the button below to choose a new password.
+                      We received a request to reset your NurturInk password. Click the button below to choose a new password.
                     </p>
 
                     {/* Primary CTA */}
@@ -243,7 +243,7 @@ export default function PasswordResetEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -270,7 +270,7 @@ Hi ${user_firstName || 'there'},
 
 Reset Your Password
 
-We received a request to reset your RoofScribe password. Click the link below to choose a new password:
+We received a request to reset your NurturInk password. Click the link below to choose a new password:
 
 ${reset_url}
 
@@ -284,5 +284,5 @@ If you didn't request this password reset, you can safely ignore this email. You
 
 Need help? Contact our support team: ${support_url}
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;

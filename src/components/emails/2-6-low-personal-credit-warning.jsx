@@ -54,7 +54,7 @@ export default function LowPersonalCreditWarningEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -284,7 +284,7 @@ export default function LowPersonalCreditWarningEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -334,6 +334,6 @@ Purchase More Credits: ${purchase_credits_url}
 ${is_org_member ? `Contact Your Admin: ${contact_admin_url}\n` : ''}
 Last note sent: ${last_note_sent}
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;
 };

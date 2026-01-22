@@ -52,7 +52,7 @@ export default function ExpectedDeliveryEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -169,7 +169,7 @@ export default function ExpectedDeliveryEmail({
                       margin: '0'
                     }}>
                       We're grateful to be part of your relationships,<br />
-                      The RoofScribe Team
+                      The NurturInk Team
                     </p>
                   </td>
                 </tr>
@@ -187,7 +187,7 @@ export default function ExpectedDeliveryEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -225,7 +225,7 @@ Follow-Up Tips: ${follow_up_tips_url}
 View Order Details: ${order_details_url}
 
 We're grateful to be part of your relationships,
-The RoofScribe Team
+The NurturInk Team
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;

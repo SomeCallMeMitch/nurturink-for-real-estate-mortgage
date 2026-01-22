@@ -52,7 +52,7 @@ export default function InvitationAcceptedEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -245,7 +245,7 @@ export default function InvitationAcceptedEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -289,5 +289,5 @@ View Team: ${team_management_url}
 
 View ${new_member_fullName}'s profile: ${member_profile_url}
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;

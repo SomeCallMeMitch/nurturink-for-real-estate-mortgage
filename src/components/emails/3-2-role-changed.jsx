@@ -54,7 +54,7 @@ export default function RoleChangedEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -204,7 +204,7 @@ export default function RoleChangedEmail({
                       margin: '0'
                     }}>
                       Cheers,<br />
-                      The RoofScribe Team
+                      The NurturInk Team
                     </p>
                   </td>
                 </tr>
@@ -222,7 +222,7 @@ export default function RoleChangedEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -264,7 +264,7 @@ Need help understanding your role?
 Check out our Role & Permissions guide: ${help_center_url}
 
 Cheers,
-The RoofScribe Team
+The NurturInk Team
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;

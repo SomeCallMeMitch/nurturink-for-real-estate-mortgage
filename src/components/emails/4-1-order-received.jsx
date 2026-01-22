@@ -56,7 +56,7 @@ export default function OrderReceivedEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -241,8 +241,8 @@ export default function OrderReceivedEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      Thanks for choosing RoofScribe,<br />
-                      The RoofScribe Team
+                      Thanks for choosing NurturInk,<br />
+                      The NurturInk Team
                     </p>
                   </td>
                 </tr>
@@ -260,7 +260,7 @@ export default function OrderReceivedEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -305,8 +305,8 @@ Send Another Note: ${send_more_url}
 
 If you have any questions about your order, feel free to reach out to our support team.
 
-Thanks for choosing RoofScribe,
-The RoofScribe Team
+Thanks for choosing NurturInk,
+The NurturInk Team
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;

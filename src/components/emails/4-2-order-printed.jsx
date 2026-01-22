@@ -50,7 +50,7 @@ export default function OrderPrintedEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -137,7 +137,7 @@ export default function OrderPrintedEmail({
                       margin: '0'
                     }}>
                       Thank you for your patience,<br />
-                      The RoofScribe Team
+                      The NurturInk Team
                     </p>
                   </td>
                 </tr>
@@ -155,7 +155,7 @@ export default function OrderPrintedEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -188,7 +188,7 @@ Your selected shipping method is ${shipping_method}. We expect to hand your pack
 View Order Details: ${order_details_url}
 
 Thank you for your patience,
-The RoofScribe Team
+The NurturInk Team
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;

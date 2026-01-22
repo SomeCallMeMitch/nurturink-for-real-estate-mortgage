@@ -53,7 +53,7 @@ export default function CreditAllocationTeamNotificationEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -230,7 +230,7 @@ export default function CreditAllocationTeamNotificationEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -274,6 +274,6 @@ Remaining organization pool: ${remaining_org_pool} credits
 
 View Team Dashboard: ${team_management_url}
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;
 };

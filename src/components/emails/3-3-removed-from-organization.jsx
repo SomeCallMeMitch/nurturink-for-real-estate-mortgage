@@ -51,7 +51,7 @@ export default function RemovedFromOrganizationEmail({
                     textAlign: 'center'
                   }}>
                     {app_logo_url && (
-                      <img src={app_logo_url} alt="RoofScribe" style={{
+                      <img src={app_logo_url} alt="NurturInk" style={{
                         height: '40px',
                         marginBottom: '20px'
                       }} />
@@ -117,7 +117,7 @@ export default function RemovedFromOrganizationEmail({
                       lineHeight: '1.6',
                       margin: '0 0 16px 0'
                     }}>
-                      Your personal RoofScribe account remains active. You can still log in, access your own templates and credits, and continue sending handwritten notes.
+                      Your personal NurturInk account remains active. You can still log in, access your own templates and credits, and continue sending handwritten notes.
                     </p>
 
                     <p style={{
@@ -156,8 +156,8 @@ export default function RemovedFromOrganizationEmail({
                       color: '#4b5563',
                       margin: '0'
                     }}>
-                      Thank you for using RoofScribe,<br />
-                      The RoofScribe Team
+                      Thank you for using NurturInk,<br />
+                      The NurturInk Team
                     </p>
                   </td>
                 </tr>
@@ -175,7 +175,7 @@ export default function RemovedFromOrganizationEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                   </td>
                 </tr>
@@ -204,14 +204,14 @@ Removed from ${org_name}
 This message is to let you know that you have been removed from ${org_name} by ${removed_by_name} on ${removal_date}.
 
 ${reason ? `Reason provided: ${reason}\n` : ''}
-Your personal RoofScribe account remains active. You can still log in, access your own templates and credits, and continue sending handwritten notes.
+Your personal NurturInk account remains active. You can still log in, access your own templates and credits, and continue sending handwritten notes.
 
 If you believe this removal was a mistake or have questions, please reach out to ${removed_by_name} or contact our support team.
 
 Go to Your Dashboard: ${personal_dashboard_url}
 
-Thank you for using RoofScribe,
-The RoofScribe Team
+Thank you for using NurturInk,
+The NurturInk Team
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;

@@ -70,7 +70,7 @@ export default function OrganizationCreditPurchaseReceiptEmail({
                       <tr>
                         <td align="left">
                           {app_logo_url && (
-                            <img src={app_logo_url} alt="RoofScribe" style={{
+                            <img src={app_logo_url} alt="NurturInk" style={{
                               height: '40px'
                             }} />
                           )}
@@ -398,7 +398,7 @@ export default function OrganizationCreditPurchaseReceiptEmail({
                       textAlign: 'center',
                       margin: '0'
                     }}>
-                      Questions about your purchase? Contact <a href="mailto:billing@roofscribe.com" style={{ color: '#FF7A00', textDecoration: 'none' }}>billing@roofscribe.com</a>
+                      Questions about your purchase? Contact <a href="mailto:billing@nurturink.com" style={{ color: '#FF7A00', textDecoration: 'none' }}>billing@nurturink.com</a>
                     </p>
                   </td>
                 </tr>
@@ -416,7 +416,7 @@ export default function OrganizationCreditPurchaseReceiptEmail({
                       textAlign: 'center',
                       margin: '0 0 8px 0'
                     }}>
-                      © 2024 RoofScribe. All rights reserved.
+                      © 2024 NurturInk. All rights reserved.
                     </p>
                     <p style={{
                       fontSize: '12px',
@@ -485,9 +485,9 @@ Each credit includes a handwritten card, envelope, postage, and mailing.
 
 Download Receipt (PDF): ${receipt_url}
 
-Questions about your purchase? Contact billing@roofscribe.com
+Questions about your purchase? Contact billing@nurturink.com
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 This receipt was sent to ${admin_email} on behalf of ${organization_name}
 `;
 };

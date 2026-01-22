@@ -21,7 +21,7 @@ export default function BillingFooter({ support_url }) {
                 lineHeight: '1.6',
                 margin: '0 0 12px 0'
               }}>
-                <strong style={{ color: '#FF7A00' }}>RoofScribe</strong><br />
+                <strong style={{ color: '#FF7A00' }}>NurturInk</strong><br />
                 Authentic handwritten notes that build real relationships
               </p>
               <p style={{
@@ -30,7 +30,7 @@ export default function BillingFooter({ support_url }) {
                 lineHeight: '1.6',
                 margin: '0 0 8px 0'
               }}>
-                Billing questions? Contact us at <a href="mailto:billing@roofscribe.com" style={{ color: '#FF7A00', textDecoration: 'none' }}>billing@roofscribe.com</a>
+                Billing questions? Contact us at <a href="mailto:billing@nurturink.com" style={{ color: '#FF7A00', textDecoration: 'none' }}>billing@nurturink.com</a>
               </p>
               <p style={{
                 color: '#9ca3af',
@@ -45,7 +45,7 @@ export default function BillingFooter({ support_url }) {
                 fontSize: '11px',
                 margin: '0'
               }}>
-                © 2024 RoofScribe. All rights reserved.
+                © 2024 NurturInk. All rights reserved.
               </p>
             </td>
           </tr>
@@ -57,12 +57,12 @@ export default function BillingFooter({ support_url }) {
 
 // Plain text version
 export const billingFooterPlainText = () => `
-RoofScribe
+NurturInk
 Authentic handwritten notes that build real relationships
 
-Billing questions? Contact us at billing@roofscribe.com
+Billing questions? Contact us at billing@nurturink.com
 
 This is a transactional email. Credits are non-refundable once used.
 
-© 2024 RoofScribe. All rights reserved.
+© 2024 NurturInk. All rights reserved.
 `;
