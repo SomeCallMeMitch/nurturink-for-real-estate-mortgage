@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
  * Get comprehensive team data for an organization
- * Returns team members with usage stats and summary statistics
+ * Returns team members with basic information and pending invitations
  */
 Deno.serve(async (req) => {
   try {
@@ -54,73 +54,29 @@ Deno.serve(async (req) => {
       status: 'pending'
     });
     
-    // Get current month date range for stats
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
-    // Aggregate data for each member
-    const membersWithStats = await Promise.all(
-      teamMembers.map(async (member) => {
-        // Get notes sent by this member
-        const notes = await base44.asServiceRole.entities.Note.filter({
-          senderUserId: member.id
-        });
-        
-        // Get notes sent this month
-        const notesThisMonth = notes.filter(note => 
-          new Date(note.created_date) >= startOfMonth
-        );
-        
-        // Get most recent activity (latest note or transaction)
-        const recentTransactions = await base44.asServiceRole.entities.Transaction.filter({
-          userId: member.id
-        }, '-created_date', 1);
-        
-        let lastActive = member.updated_date || member.created_date;
-        
-        if (notes.length > 0) {
-          const latestNoteDate = notes[0].created_date;
-          if (new Date(latestNoteDate) > new Date(lastActive)) {
-            lastActive = latestNoteDate;
-          }
-        }
-        
-        if (recentTransactions.length > 0) {
-          const latestTransactionDate = recentTransactions[0].created_date;
-          if (new Date(latestTransactionDate) > new Date(lastActive)) {
-            lastActive = latestTransactionDate;
-          }
-        }
-        
-        // Determine status (simple heuristic for now)
-        const daysSinceActive = (now - new Date(lastActive)) / (1000 * 60 * 60 * 24);
-        let status = 'Active';
-        if (daysSinceActive > 30) {
-          status = 'Inactive';
-        }
-        
-        // Generate initials for avatar
-        const nameParts = (member.full_name || member.email).split(' ');
-        const initials = nameParts.length >= 2 
-          ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
-          : (nameParts[0][0] || 'U').toUpperCase();
-        
-        return {
-          userId: member.id,
-          name: member.full_name || member.email,
-          email: member.email,
-          initials: initials,
-          role: member.appRole || 'sales_rep',
-          isOrgOwner: member.appRole === 'organization_owner' || member.isOrgOwner === true,
-          status: status,
-          credits: member.creditBalance || 0,
-          cardsSent: notes.length,
-          cardsSentThisMonth: notesThisMonth.length,
-          lastActive: lastActive,
-          createdAt: member.created_date
-        };
-      })
-    );
+    // Map team members to response format
+    const membersWithStats = teamMembers.map((member) => {
+      // Generate initials for avatar
+      const nameParts = (member.full_name || member.email).split(' ');
+      const initials = nameParts.length >= 2 
+        ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+        : (nameParts[0][0] || 'U').toUpperCase();
+      
+      return {
+        userId: member.id,
+        name: member.full_name || member.email,
+        email: member.email,
+        initials: initials,
+        role: member.appRole || 'sales_rep',
+        isOrgOwner: member.appRole === 'organization_owner' || member.isOrgOwner === true,
+        status: 'Active',
+        credits: member.creditBalance || 0,
+        cardsSent: 0, // Stats will be added in future optimization
+        cardsSentThisMonth: 0, // Stats will be added in future optimization
+        lastActive: member.updated_date || member.created_date,
+        createdAt: member.created_date
+      };
+    });
     
     // Add pending invitations to the list
     const pendingMembers = pendingInvitations.map(invitation => ({
