@@ -32,6 +32,24 @@ Deno.serve(async (req) => {
       );
     }
     
+    // Load organization for email template (early load - needed for email sending)
+    const organizations = await base44.asServiceRole.entities.Organization.filter({
+      id: user.orgId
+    });
+    const organization = organizations.length > 0 ? organizations[0] : null;
+    
+    // Load whitelabel settings for logo (early load - needed for email sending)
+    let logoUrl = `${Deno.env.get("APP_URL")}/logo.png`;
+    try {
+      const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
+      if (whitelabelSettings.length > 0 && whitelabelSettings[0].logoUrl) {
+        logoUrl = whitelabelSettings[0].logoUrl;
+      }
+    } catch (error) {
+      console.error('Failed to load whitelabel settings for logo:', error);
+      // Continue with default logo URL
+    }
+    
     // Parse request body
     const body = await req.json();
     const { email, role } = body;
@@ -125,24 +143,6 @@ Deno.serve(async (req) => {
         { error: 'An invitation has already been sent to this email address' },
         { status: 400 }
       );
-    }
-    
-    // Load organization for email template
-    const organizations = await base44.asServiceRole.entities.Organization.filter({
-      id: user.orgId
-    });
-    const organization = organizations.length > 0 ? organizations[0] : null;
-    
-    // Load whitelabel settings for logo
-    let logoUrl = `${Deno.env.get("APP_URL")}/logo.png`;
-    try {
-      const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
-      if (whitelabelSettings.length > 0 && whitelabelSettings[0].logoUrl) {
-        logoUrl = whitelabelSettings[0].logoUrl;
-      }
-    } catch (error) {
-      console.error('Failed to load whitelabel settings for logo:', error);
-      // Continue with default logo URL
     }
     
     // Generate unique token
