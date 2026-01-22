@@ -16,12 +16,32 @@ const LPHeroSection = () => {
   };
 
   return (
-    <section className="bg-white py-16 lg:py-24">
+    <section className="bg-white py-4 lg:py-24">
       <div className="max-w-[1400px] mx-auto px-6">
-        <div className="grid lg:grid-cols-5 gap-12 items-center">
+        <div className="grid lg:grid-cols-5 gap-6 lg:gap-12 items-center">
+          {/* Mobile: Video First */}
+          <div className="lg:hidden">
+            <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-auto object-cover"
+              >
+                <source 
+                  src="https://res.cloudinary.com/dge8qy1ps/video/upload/Handwritten_Note_process_zuyc3z.mp4" 
+                  type="video/mp4" 
+                />
+                Your browser does not support the video tag.
+              </video>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
+            </div>
+          </div>
+
           {/* Left Column - Content (3/5) */}
-          <div className="lg:col-span-3 space-y-8">
-            <h1 className="text-[48px] lg:text-[48px] leading-[1.2] font-bold text-[#1a2332]">
+          <div className="lg:col-span-3 space-y-6 lg:space-y-8">
+            <h1 className="text-[28px] lg:text-[48px] leading-[1.2] font-bold text-[#1a2332]">
               The Follow-Up System Your Prospects Will Actually Remember
             </h1>
 
@@ -65,8 +85,8 @@ const LPHeroSection = () => {
             </div>
           </div>
 
-          {/* Right Column - Hero Video (2/5) */}
-          <div className="lg:col-span-2">
+          {/* Right Column - Hero Video (2/5) - Desktop Only */}
+          <div className="hidden lg:block lg:col-span-2">
             <div className="relative rounded-2xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.15)]">
               {/* Cloudinary video showing handwritten note process */}
               <video
