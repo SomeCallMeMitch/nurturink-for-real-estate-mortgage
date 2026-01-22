@@ -1,8 +1,8 @@
-
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
  * Get team member credit usage for organization admins
+ * UPDATED: Now includes company pool access status
  */
 Deno.serve(async (req) => {
   try {
@@ -37,9 +37,10 @@ Deno.serve(async (req) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     
-    // Get all team members in organization
+    // Get all team members in organization (excluding org owners)
     const teamMembers = await base44.asServiceRole.entities.User.filter({
-      orgId: user.orgId
+      orgId: user.orgId,
+      appRole: 'sales_rep' // Only include sales reps
     });
     
     // For each team member, get their usage this month
@@ -67,13 +68,24 @@ Deno.serve(async (req) => {
         lastUsed = transactions[0].created_date;
       }
       
+      // Calculate total personal balance (allocated + purchased)
+      const companyAllocated = member.companyAllocatedCredits || 0;
+      const personalPurchased = member.personalPurchasedCredits || 0;
+      const personalBalance = companyAllocated + personalPurchased;
+      
+      // Check company pool access
+      const canAccessCompanyPool = member.canAccessCompanyPool !== false; // Default to true
+      
       return {
         userId: member.id,
         name: member.full_name || member.email,
         email: member.email,
         creditsUsed: creditsUsed,
         lastUsed: lastUsed,
-        personalBalance: member.creditBalance || 0
+        personalBalance: personalBalance,
+        companyAllocatedCredits: companyAllocated,
+        personalPurchasedCredits: personalPurchased,
+        canAccessCompanyPool: canAccessCompanyPool
       };
     });
     

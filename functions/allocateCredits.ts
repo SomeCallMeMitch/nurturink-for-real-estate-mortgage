@@ -1,9 +1,9 @@
-
-import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
  * Allocate credits from organization pool to team members
  * Only organization owners can perform this action
+ * Credits are allocated to user.companyAllocatedCredits
  */
 Deno.serve(async (req) => {
   try {
@@ -119,11 +119,11 @@ Deno.serve(async (req) => {
         continue;
       }
       
-      // Update user's credit balance
-      const newUserBalance = (teamMember.creditBalance || 0) + amount;
+      // Update user's company-allocated credit balance
+      const newCompanyAllocated = (teamMember.companyAllocatedCredits || 0) + amount;
       
       await base44.asServiceRole.entities.User.update(userId, {
-        creditBalance: newUserBalance
+        companyAllocatedCredits: newCompanyAllocated
       });
       
       // Create transaction record for user (allocation in)
@@ -132,12 +132,13 @@ Deno.serve(async (req) => {
         userId: userId,
         type: 'allocation_in',
         amount: amount,
-        balanceAfter: newUserBalance,
+        balanceAfter: newCompanyAllocated,
         balanceType: 'user',
         description: `Credit allocation from organization pool by ${user.full_name}`,
         metadata: {
           allocatedBy: user.id,
-          allocatedByName: user.full_name
+          allocatedByName: user.full_name,
+          creditType: 'companyAllocatedCredits'
         }
       });
       
@@ -146,7 +147,7 @@ Deno.serve(async (req) => {
         userName: teamMember.full_name || teamMember.email,
         success: true,
         amount: amount,
-        newBalance: newUserBalance
+        newBalance: newCompanyAllocated
       });
     }
     
