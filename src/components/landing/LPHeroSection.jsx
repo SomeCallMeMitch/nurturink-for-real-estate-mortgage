@@ -16,7 +16,7 @@ const LPHeroSection = () => {
   };
 
   return (
-    <section className="bg-white py-4 lg:py-24">
+    <section className="bg-white py-2 lg:py-8">
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="grid lg:grid-cols-5 gap-6 lg:gap-12 items-center">
           {/* Mobile: Video First */}

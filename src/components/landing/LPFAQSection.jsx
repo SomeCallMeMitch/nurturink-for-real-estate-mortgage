@@ -49,7 +49,7 @@ const LPFAQSection = () => {
   };
 
   return (
-    <section id="faq" className="bg-white py-16 lg:py-24">
+    <section id="faq" className="bg-white py-8 lg:py-12">
       <div className="max-w-4xl mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">

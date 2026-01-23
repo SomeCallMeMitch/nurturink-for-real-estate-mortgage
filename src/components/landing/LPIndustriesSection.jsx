@@ -36,7 +36,7 @@ const LPIndustriesSection = () => {
   ];
 
   return (
-    <section id="industries" className="bg-gray-50 py-16">
+    <section id="industries" className="bg-gray-50 py-8">
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">

@@ -24,7 +24,7 @@ const LPStatsBanner = () => {
   ];
 
   return (
-    <section className="bg-white py-16">
+    <section className="bg-white py-8">
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-12">
