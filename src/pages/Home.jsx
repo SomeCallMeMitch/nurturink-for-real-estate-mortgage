@@ -53,6 +53,39 @@ export default function Home() {
   const [profileSeedResult, setProfileSeedResult] = useState(null);
   const [seedingPoolCredits, setSeedingPoolCredits] = useState(false);
   const [poolCreditsSeedResult, setPoolCreditsSeedResult] = useState(null);
+  
+  const [resettingCredits, setResettingCredits] = useState(false);
+  const [resetResult, setResetResult] = useState(null);
+
+  const handleResetCredits = async () => {
+    try {
+      setResettingCredits(true);
+      setResetResult(null);
+      
+      const response = await base44.functions.invoke('resetCredits');
+      
+      setResetResult({
+        success: response.data.success,
+        message: response.data.message
+      });
+      
+      toast({
+        title: 'Credits Reset Complete',
+        description: 'All credit balances have been set to zero.',
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+      
+    } catch (error) {
+      console.error('Failed to reset credits:', error);
+      toast({
+        title: 'Reset Failed',
+        description: error.response?.data?.error || 'Failed to reset credits',
+        variant: 'destructive'
+      });
+    } finally {
+      setResettingCredits(false);
+    }
+  };
 
   const handleSeedData = async () => {
     try {
@@ -246,26 +279,27 @@ export default function Home() {
       setSeedingCredits(true);
       setCreditsSeedResult(null);
       
-      const response = await base44.functions.invoke('seedUserCredits', {
-        creditAmount: 20
+      const response = await base44.functions.invoke('simulateCreditPurchase', {
+        creditAmount: 20,
+        purchaseType: 'personal'
       });
       
       setCreditsSeedResult({
         success: response.data.success,
         message: response.data.message,
-        previousBalance: response.data.previousBalance,
+        previousBalance: response.data.previousBalance, // Note: simulateCreditPurchase might not return previousBalance, check function
         newBalance: response.data.newBalance,
         creditsAdded: response.data.creditsAdded
       });
       
       toast({
-        title: 'Credits Added! ✓',
-        description: `Added ${response.data.creditsAdded} credits to your account`,
+        title: 'Personal Credits Purchased! ✓',
+        description: `Added ${response.data.creditsAdded} credits to your personal balance`,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
       
     } catch (error) {
-      console.error('Failed to seed credits:', error);
+      console.error('Failed to seed personal credits:', error);
       setCreditsSeedResult({
         success: false,
         message: error.response?.data?.error || 'Failed to seed credits'
@@ -286,8 +320,9 @@ export default function Home() {
       setSeedingPoolCredits(true);
       setPoolCreditsSeedResult(null);
       
-      const response = await base44.functions.invoke('seedCompanyPoolCredits', {
-        creditAmount: 200
+      const response = await base44.functions.invoke('simulateCreditPurchase', {
+        creditAmount: 200,
+        purchaseType: 'company'
       });
       
       setPoolCreditsSeedResult({
@@ -299,7 +334,7 @@ export default function Home() {
       });
       
       toast({
-        title: 'Pool Credits Added! ✓',
+        title: 'Company Pool Credits Purchased! ✓',
         description: `Added ${response.data.creditsAdded} credits to company pool`,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
@@ -341,6 +376,41 @@ export default function Home() {
 
         {/* Quick Actions */}
         <div className="grid gap-6 mb-8">
+
+           {/* Reset Credits */}
+           <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card className="border-l-4 border-l-red-500">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-red-100 rounded-lg">
+                      <AlertCircle className="w-6 h-6 text-red-600" />
+                    </div>
+                    <div>
+                      <CardTitle>Reset Credits (Fix State)</CardTitle>
+                      <CardDescription>
+                        Set all balances to zero to fix "stuck" credits from previous testing
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={handleResetCredits}
+                    variant="outline"
+                    disabled={resettingCredits}
+                    className="border-red-200 text-red-600 hover:bg-red-50"
+                  >
+                    {resettingCredits ? 'Resetting...' : 'Reset All Credits'}
+                  </Button>
+                </div>
+              </CardHeader>
+            </Card>
+          </motion.div>
+
           {/* Send a Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -390,9 +460,9 @@ export default function Home() {
                       <DollarSign className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <CardTitle>Test Credits</CardTitle>
+                      <CardTitle>Buy Personal Credits</CardTitle>
                       <CardDescription>
-                        Add 20 test credits to your account (Testing Feature)
+                        Simulate buying 20 personal credits (Updates Personal Balance)
                       </CardDescription>
                     </div>
                   </div>
@@ -402,7 +472,7 @@ export default function Home() {
                     disabled={seedingCredits}
                     className="border-blue-600 text-blue-600 hover:bg-blue-50"
                   >
-                    {seedingCredits ? 'Adding...' : 'Add 20 Credits'}
+                    {seedingCredits ? 'Buying...' : 'Buy 20 Personal'}
                   </Button>
                 </div>
               </CardHeader>
@@ -452,9 +522,9 @@ export default function Home() {
                       <DollarSign className="w-6 h-6 text-orange-600" />
                     </div>
                     <div>
-                      <CardTitle>Company Pool Credits</CardTitle>
+                      <CardTitle>Buy Company Credits</CardTitle>
                       <CardDescription>
-                        Add 200 test credits to the company pool (Testing Feature)
+                        Simulate buying 200 credits for the Org (Updates Org Balance)
                       </CardDescription>
                     </div>
                   </div>
@@ -464,7 +534,7 @@ export default function Home() {
                     disabled={seedingPoolCredits}
                     className="border-orange-600 text-orange-600 hover:bg-orange-50"
                   >
-                    {seedingPoolCredits ? 'Adding...' : 'Add 200 Pool Credits'}
+                    {seedingPoolCredits ? 'Buying...' : 'Buy 200 Company'}
                   </Button>
                 </div>
               </CardHeader>
