@@ -634,7 +634,7 @@ export default function Credits() {
                   {/* Transfer to Pool Button */}
                   <div className="ml-4">
                     <TransferCreditsDialog 
-                      user={user} 
+                      user={contextUser} 
                       onSuccess={async () => {
                         await refreshCredits();
                         loadData();
