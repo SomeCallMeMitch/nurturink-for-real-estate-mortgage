@@ -36,6 +36,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 // PHASE 3: Import CreditContext hook for global credit state
 import { useCredits } from '../components/context/CreditContext';
+import { TransferCreditsDialog } from '@/components/credits/TransferCreditsDialog';
 
 export default function Credits() {
   const navigate = useNavigate();
@@ -628,6 +629,17 @@ export default function Credits() {
                       <p className="text-sm text-gray-600">Your Personal Balance</p>
                     </div>
                     <p className="text-3xl font-bold text-indigo-600">{personalTotalBalance}</p>
+                  </div>
+                  
+                  {/* Transfer to Pool Button */}
+                  <div className="ml-4">
+                    <TransferCreditsDialog 
+                      user={user} 
+                      onSuccess={async () => {
+                        await refreshCredits();
+                        loadData();
+                      }}
+                    />
                   </div>
                 </div>
                 
