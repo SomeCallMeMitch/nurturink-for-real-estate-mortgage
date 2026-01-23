@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
     
     // Parse request body
     const body = await req.json();
-    const { pricingTierId, couponCode, simulateSuccess } = body;
+    const { pricingTierId, couponCode, simulateSuccess, purchaseType } = body;
     
     console.log('\n========================================');
     console.log(simulateSuccess ? '🎭 SIMULATING PURCHASE' : '💳 CREATING CHECKOUT SESSION');
@@ -27,6 +27,7 @@ Deno.serve(async (req) => {
     console.log('Pricing Tier ID:', pricingTierId);
     console.log('Coupon Code:', couponCode || 'None');
     console.log('Simulate Success:', simulateSuccess || false);
+    console.log('Purchase Type (from request):', purchaseType || 'auto');
     
     // Validate input
     if (!pricingTierId) {
@@ -279,11 +280,41 @@ Deno.serve(async (req) => {
       }
     }
     
-    // Determine who is purchasing (check both appRole and isOrgOwner flag)
+    // ==================== DETERMINE PURCHASE TYPE ====================
+    // Check user roles
     const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
-    const isOrgPurchase = isOrgOwner && organization;
+    const isOrgManager = user.appRole === 'organization_manager' || user.isOrgManager === true;
+    const canChoosePurchaseType = (isOrgOwner || isOrgManager) && organization;
     
-    console.log('Purchase Type:', isOrgPurchase ? 'Organization' : 'User');
+    // Determine final purchase type based on:
+    // 1. Explicit purchaseType parameter (if user can choose)
+    // 2. Legacy behavior (org owner = company, others = personal)
+    let finalPurchaseType;
+    
+    if (purchaseType && canChoosePurchaseType) {
+      // User explicitly chose purchase type
+      if (purchaseType === 'company' || purchaseType === 'personal') {
+        finalPurchaseType = purchaseType;
+        console.log(`📋 User selected purchase type: ${finalPurchaseType}`);
+      } else {
+        return Response.json(
+          { error: 'Invalid purchaseType. Must be "company" or "personal".' },
+          { status: 400 }
+        );
+      }
+    } else if (canChoosePurchaseType && !purchaseType) {
+      // Org owner/manager didn't specify - default to company (legacy behavior)
+      finalPurchaseType = 'company';
+      console.log('📋 No purchaseType specified, defaulting to company (org owner/manager)');
+    } else {
+      // Regular user or no org - always personal
+      finalPurchaseType = 'personal';
+      console.log('📋 User is not org owner/manager, using personal');
+    }
+    
+    const isCompanyPurchase = finalPurchaseType === 'company' && organization;
+    
+    console.log('Final Purchase Type:', isCompanyPurchase ? 'Company Pool' : 'Personal');
     
     // ==================== SIMULATE SUCCESS MODE ====================
     if (simulateSuccess) {
@@ -297,9 +328,9 @@ Deno.serve(async (req) => {
       const credits = tier.creditAmount;
       
       // Process credit addition based on purchase type
-      if (isOrgPurchase && organization) {
-        // Organization purchase - goes to organization.creditBalance
-        console.log('💼 Processing organization purchase...');
+      if (isCompanyPurchase && organization) {
+        // Company purchase - goes to organization.creditBalance
+        console.log('💼 Processing company purchase...');
         
         const currentBalance = organization.creditBalance || 0;
         const newBalance = currentBalance + credits;
@@ -314,7 +345,7 @@ Deno.serve(async (req) => {
         console.log('✅ Organization balance updated');
         
         // Build transaction description
-        let description = `Purchased ${tier.name} - ${credits} notes`;
+        let description = `Purchased ${tier.name} - ${credits} notes (Company Pool)`;
         if (validatedCoupon) {
           description += ` (${validatedCoupon.code}: -$${(discountApplied / 100).toFixed(2)})`;
         }
@@ -337,7 +368,9 @@ Deno.serve(async (req) => {
             originalPrice: tier.priceInCents,
             discountApplied: discountApplied,
             finalPrice: finalPriceInCents,
-            pricingTierName: tier.name
+            pricingTierName: tier.name,
+            purchaseType: 'company',
+            creditType: 'companyPool'
           },
           relatedPricingTierId: pricingTierId,
           stripePaymentId: `sim_pi_${Date.now()}`,
@@ -355,11 +388,11 @@ Deno.serve(async (req) => {
           console.log(`✅ Coupon ${validatedCoupon.code} usage incremented to ${newUsedCount}`);
         }
         
-        console.log(`✅ Simulated organization purchase complete: ${credits} credits added`);
+        console.log(`✅ Simulated company purchase complete: ${credits} credits added to pool`);
         
       } else {
-        // Individual user purchase - goes to user.personalPurchasedCredits
-        console.log('👤 Processing user purchase...');
+        // Personal purchase - goes to user.personalPurchasedCredits
+        console.log('👤 Processing personal purchase...');
         
         const currentPersonalPurchased = user.personalPurchasedCredits || 0;
         const newPersonalPurchased = currentPersonalPurchased + credits;
@@ -374,7 +407,7 @@ Deno.serve(async (req) => {
         console.log('✅ User personalPurchasedCredits updated');
         
         // Build transaction description
-        let description = `Purchased ${tier.name} - ${credits} notes`;
+        let description = `Purchased ${tier.name} - ${credits} notes (Personal)`;
         if (validatedCoupon) {
           description += ` (${validatedCoupon.code}: -$${(discountApplied / 100).toFixed(2)})`;
         }
@@ -398,6 +431,7 @@ Deno.serve(async (req) => {
             discountApplied: discountApplied,
             finalPrice: finalPriceInCents,
             pricingTierName: tier.name,
+            purchaseType: 'personal',
             creditType: 'personalPurchasedCredits'
           },
           relatedPricingTierId: pricingTierId,
@@ -416,7 +450,7 @@ Deno.serve(async (req) => {
           console.log(`✅ Coupon ${validatedCoupon.code} usage incremented to ${newUsedCount}`);
         }
         
-        console.log(`✅ Simulated user purchase complete: ${credits} credits added (personalPurchasedCredits)`);
+        console.log(`✅ Simulated personal purchase complete: ${credits} credits added (personalPurchasedCredits)`);
       }
       
       console.log('========================================');
@@ -433,7 +467,8 @@ Deno.serve(async (req) => {
         discountApplied: discountApplied,
         finalPrice: finalPriceInCents,
         couponApplied: validatedCoupon ? validatedCoupon.code : null,
-        creditsAdded: tier.creditAmount
+        creditsAdded: tier.creditAmount,
+        purchaseType: finalPurchaseType
       });
     } else {
     // ==================== REAL STRIPE CHECKOUT ====================
@@ -443,9 +478,9 @@ Deno.serve(async (req) => {
     // Get or create Stripe customer
     let stripeCustomerId;
     
-    if (isOrgPurchase && organization.stripeCustomerId) {
+    if (isCompanyPurchase && organization.stripeCustomerId) {
       stripeCustomerId = organization.stripeCustomerId;
-    } else if (isOrgPurchase) {
+    } else if (isCompanyPurchase) {
       const customer = await stripe.customers.create({
         email: user.email,
         name: organization.name,
@@ -481,6 +516,7 @@ Deno.serve(async (req) => {
     if (validatedCoupon) {
       productDescription += ` (Coupon: ${validatedCoupon.code})`;
     }
+    productDescription += ` - ${finalPurchaseType === 'company' ? 'Company Pool' : 'Personal'}`;
     
     // Create Stripe checkout session with (potentially discounted) price
     const session = await stripe.checkout.sessions.create({
@@ -514,7 +550,7 @@ Deno.serve(async (req) => {
         orgId: user.orgId || '',
         pricingTierId: tier.id,
         creditAmount: tier.creditAmount.toString(),
-        purchaseType: isOrgPurchase ? 'organization' : 'user',
+        purchaseType: finalPurchaseType,
         couponCode: validatedCoupon ? validatedCoupon.code : '',
         originalPrice: tier.priceInCents.toString(),
         discountApplied: validatedCoupon ? discountApplied.toString() : '0',
@@ -524,6 +560,7 @@ Deno.serve(async (req) => {
     
     console.log('✅ Stripe checkout session created:', session.id);
     console.log('💳 Final amount:', `$${(finalPriceInCents / 100).toFixed(2)}`);
+    console.log('📋 Purchase type in metadata:', finalPurchaseType);
     console.log('========================================\n');
     
     return Response.json({
@@ -533,7 +570,8 @@ Deno.serve(async (req) => {
       originalPrice: tier.priceInCents,
       discountApplied: validatedCoupon ? discountApplied : 0,
       finalPrice: finalPriceInCents,
-      couponApplied: validatedCoupon ? validatedCoupon.code : null
+      couponApplied: validatedCoupon ? validatedCoupon.code : null,
+      purchaseType: finalPurchaseType
     });
   }
     

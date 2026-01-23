@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -16,7 +17,9 @@ import {
   Package,
   AlertCircle,
   Users,
-  Zap
+  Zap,
+  Building2,
+  User as UserIcon
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
@@ -34,6 +37,9 @@ export default function OrderPage() {
   const [error, setError] = useState(null);
   const [allocateNow, setAllocateNow] = useState(false);
   const [isSimulating, setIsSimulating] = useState(false);
+  
+  // NEW: Purchase type selection for org owners/managers
+  const [purchaseType, setPurchaseType] = useState('company');
 
   // Load user, organization, and package data
   useEffect(() => {
@@ -87,11 +93,23 @@ export default function OrderPage() {
     }
   };
 
-  // Determine if this is a company purchase (check both appRole and isOrgOwner flag)
+  // Determine if user can choose purchase type (org owner or manager)
+  const canChoosePurchaseType = useMemo(() => {
+    const isOrgOwner = user?.appRole === 'organization_owner' || user?.isOrgOwner === true;
+    const isOrgManager = user?.appRole === 'organization_manager' || user?.isOrgManager === true;
+    return (isOrgOwner || isOrgManager) && organization;
+  }, [user, organization]);
+
+  // Legacy: Determine if this is a company purchase (for allocation option display)
   const isCompanyPurchase = useMemo(() => {
+    // If user can choose, use their selection
+    if (canChoosePurchaseType) {
+      return purchaseType === 'company';
+    }
+    // Legacy behavior: org owners always buy for company
     const isOrgOwner = user?.appRole === 'organization_owner' || user?.isOrgOwner === true;
     return isOrgOwner && organization;
-  }, [user, organization]);
+  }, [user, organization, canChoosePurchaseType, purchaseType]);
 
   // Format price helper
   const formatPrice = (priceInCents) => {
@@ -127,12 +145,17 @@ export default function OrderPage() {
     }
     
     try {
-      // CRITICAL FIX: Pass app_origin to backend
+      // Determine the purchase type to send
+      const finalPurchaseType = canChoosePurchaseType ? purchaseType : undefined;
+      
+      console.log('📋 Creating checkout with purchaseType:', finalPurchaseType);
+      
       const response = await base44.functions.invoke('createCheckoutSession', {
         pricingTierId: pkg.pricingTierId,
         couponCode: pkg.couponCode || undefined,
         simulateSuccess: false,
-        app_origin: window.location.origin  // ← KEY FIX
+        purchaseType: finalPurchaseType,
+        app_origin: window.location.origin
       });
 
       const url = response?.data?.checkoutUrl;
@@ -154,7 +177,7 @@ export default function OrderPage() {
     }
   };
 
-  // NEW: Handle simulated purchase (for testing)
+  // Handle simulated purchase (for testing)
   const handleSimulatePurchase = async () => {
     if (!pkg || !user) {
       setError("Missing order details or user information.");
@@ -177,23 +200,27 @@ export default function OrderPage() {
     }
     
     try {
-      console.log('🎭 Simulating purchase for testing...');
+      // Determine the purchase type to send
+      const finalPurchaseType = canChoosePurchaseType ? purchaseType : undefined;
       
-      // CRITICAL FIX: Pass app_origin to backend
+      console.log('🎭 Simulating purchase with purchaseType:', finalPurchaseType);
+      
       const response = await base44.functions.invoke('createCheckoutSession', {
         pricingTierId: pkg.pricingTierId,
         couponCode: pkg.couponCode || undefined,
         simulateSuccess: true,
-        app_origin: window.location.origin  // ← KEY FIX
+        purchaseType: finalPurchaseType,
+        app_origin: window.location.origin
       });
 
       console.log('✅ Simulation response:', response.data);
       
       if (response.data.success && response.data.redirectToSuccess) {
-        // Show success toast
+        // Show success toast with purchase type info
+        const typeLabel = response.data.purchaseType === 'company' ? 'company pool' : 'personal balance';
         toast({
           title: 'Purchase Simulated! 🎉',
-          description: `Successfully added ${response.data.creditsAdded} credits`,
+          description: `Successfully added ${response.data.creditsAdded} credits to your ${typeLabel}`,
           className: 'bg-green-50 border-green-200 text-green-900'
         });
         
@@ -382,7 +409,73 @@ export default function OrderPage() {
               </div>
             )}
 
-            {/* Allocation Option (Company Owners Only) */}
+            {/* NEW: Purchase Type Selection (Org Owners/Managers Only) */}
+            {canChoosePurchaseType && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Building2 className="w-5 h-5 text-purple-600" />
+                  <h3 className="font-semibold text-lg text-gray-900">Where should these credits go?</h3>
+                </div>
+                
+                <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-6">
+                  <RadioGroup 
+                    value={purchaseType} 
+                    onValueChange={setPurchaseType}
+                    className="grid gap-4"
+                  >
+                    {/* Company Pool Option */}
+                    <div className="relative">
+                      <RadioGroupItem 
+                        value="company" 
+                        id="purchase-company" 
+                        className="peer sr-only" 
+                      />
+                      <Label
+                        htmlFor="purchase-company"
+                        className="flex items-start gap-4 rounded-lg border-2 border-purple-200 bg-white p-4 hover:bg-purple-50 peer-data-[state=checked]:border-purple-500 peer-data-[state=checked]:bg-purple-50 [&:has([data-state=checked])]:border-purple-500 cursor-pointer transition-all"
+                      >
+                        <Building2 className="h-6 w-6 text-purple-600 mt-0.5 flex-shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold leading-none text-purple-900">
+                            Company Pool
+                          </p>
+                          <p className="text-sm text-purple-700">
+                            Credits will be added to your organization's shared pool. 
+                            All team members with pool access can use these credits.
+                          </p>
+                        </div>
+                      </Label>
+                    </div>
+
+                    {/* Personal Balance Option */}
+                    <div className="relative">
+                      <RadioGroupItem 
+                        value="personal" 
+                        id="purchase-personal" 
+                        className="peer sr-only" 
+                      />
+                      <Label
+                        htmlFor="purchase-personal"
+                        className="flex items-start gap-4 rounded-lg border-2 border-purple-200 bg-white p-4 hover:bg-purple-50 peer-data-[state=checked]:border-purple-500 peer-data-[state=checked]:bg-purple-50 [&:has([data-state=checked])]:border-purple-500 cursor-pointer transition-all"
+                      >
+                        <UserIcon className="h-6 w-6 text-blue-500 mt-0.5 flex-shrink-0" />
+                        <div className="space-y-1">
+                          <p className="text-sm font-semibold leading-none text-purple-900">
+                            Personal Balance
+                          </p>
+                          <p className="text-sm text-purple-700">
+                            Credits will be added to your personal balance. 
+                            Only you can use these credits, separate from company business.
+                          </p>
+                        </div>
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+            )}
+
+            {/* Allocation Option (Company Purchases Only) */}
             {isCompanyPurchase && (
               <div>
                 <div className="flex items-center gap-2 mb-4">
@@ -425,6 +518,11 @@ export default function OrderPage() {
               <p className="text-sm text-gray-600 mt-2">
                 You will be redirected to Stripe's secure checkout to complete your payment
               </p>
+              {canChoosePurchaseType && (
+                <p className="text-sm text-purple-600 mt-1 font-medium">
+                  Credits will go to: {purchaseType === 'company' ? 'Company Pool' : 'Personal Balance'}
+                </p>
+              )}
             </div>
 
             {/* Error Message */}
@@ -475,7 +573,7 @@ export default function OrderPage() {
                 )}
               </Button>
 
-              {/* NEW: Simulate Purchase Button (Testing Only) */}
+              {/* Simulate Purchase Button (Testing Only) */}
               <Button
                 onClick={handleSimulatePurchase}
                 disabled={isProcessing || isSimulating}

@@ -121,11 +121,18 @@ Deno.serve(async (req) => {
       }
       
       const credits = parseInt(creditAmount);
-      const isOrgPurchase = purchaseType === 'organization';
+      
+      // ==================== NEW PURCHASE TYPE LOGIC ====================
+      // purchaseType can be: 'company', 'personal', or 'organization' (legacy)
+      // - 'company' = credits go to Organization.creditBalance
+      // - 'personal' = credits go to User.personalPurchasedCredits
+      // - 'organization' = legacy value, treat as 'company'
+      const isCompanyPurchase = purchaseType === 'company' || purchaseType === 'organization';
       
       console.log('📊 Purchase details:');
       console.log('  - Credits:', credits);
-      console.log('  - Is Org Purchase:', isOrgPurchase);
+      console.log('  - Purchase Type:', purchaseType);
+      console.log('  - Is Company Purchase:', isCompanyPurchase);
       
       // Load user using service role
       console.log('👤 Loading user:', userId);
@@ -137,9 +144,9 @@ Deno.serve(async (req) => {
       const user = users[0];
       console.log('✅ User loaded:', user.email);
       
-      // Load organization if org purchase
+      // Load organization if company purchase
       let organization = null;
-      if (isOrgPurchase && orgId) {
+      if (isCompanyPurchase && orgId) {
         console.log('🏢 Loading organization:', orgId);
         const orgs = await base44.entities.Organization.filter({ id: orgId });
         if (orgs && orgs.length > 0) {
@@ -147,6 +154,8 @@ Deno.serve(async (req) => {
           console.log('✅ Organization loaded:', organization.name);
         } else {
           console.warn('⚠️ Organization not found:', orgId);
+          // Fall back to personal purchase if org not found
+          console.warn('⚠️ Falling back to personal purchase');
         }
       }
       
@@ -193,11 +202,11 @@ Deno.serve(async (req) => {
         }
       }
       
-      // ==================== CREDIT BALANCE UPDATE (UPDATED FOR NEW SYSTEM) ====================
+      // ==================== CREDIT BALANCE UPDATE ====================
       
-      if (isOrgPurchase && organization) {
-        // Organization purchase - goes to organization.creditBalance
-        console.log('🏢 Processing organization purchase...');
+      if (isCompanyPurchase && organization) {
+        // Company purchase - goes to organization.creditBalance
+        console.log('🏢 Processing company purchase...');
         
         const currentBalance = organization.creditBalance || 0;
         const newBalance = currentBalance + credits;
@@ -212,7 +221,7 @@ Deno.serve(async (req) => {
         console.log('✅ Organization balance updated');
         
         // Build transaction description
-        let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes`;
+        let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes (Company Pool)`;
         if (couponUsed) {
           const discountAmount = discountApplied ? parseInt(discountApplied) : 0;
           description += ` (${couponUsed.code}: -$${(discountAmount / 100).toFixed(2)})`;
@@ -235,7 +244,9 @@ Deno.serve(async (req) => {
             originalPrice: originalPrice ? parseInt(originalPrice) : null,
             discountApplied: discountApplied ? parseInt(discountApplied) : 0,
             finalPrice: finalPrice ? parseInt(finalPrice) : session.amount_total,
-            pricingTierName: tier?.name || null
+            pricingTierName: tier?.name || null,
+            purchaseType: 'company',
+            creditType: 'companyPool'
           },
           relatedPricingTierId: pricingTierId,
           stripePaymentId: session.payment_intent,
@@ -243,15 +254,15 @@ Deno.serve(async (req) => {
         });
         
         console.log('✅ Transaction record created:', transaction.id);
-        console.log(`✅ Organization purchase complete: ${credits} credits added to ${organization.name}`);
+        console.log(`✅ Company purchase complete: ${credits} credits added to ${organization.name} pool`);
         
         if (couponUsed) {
           console.log(`🎉 Coupon ${couponUsed.code} applied successfully`);
         }
         
       } else {
-        // Individual user purchase - goes to user.personalPurchasedCredits
-        console.log('👤 Processing individual user purchase...');
+        // Personal purchase - goes to user.personalPurchasedCredits
+        console.log('👤 Processing personal purchase...');
         
         const currentPersonalPurchased = user.personalPurchasedCredits || 0;
         const newPersonalPurchased = currentPersonalPurchased + credits;
@@ -266,7 +277,7 @@ Deno.serve(async (req) => {
         console.log('✅ User personalPurchasedCredits updated');
         
         // Build transaction description
-        let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes`;
+        let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes (Personal)`;
         if (couponUsed) {
           const discountAmount = discountApplied ? parseInt(discountApplied) : 0;
           description += ` (${couponUsed.code}: -$${(discountAmount / 100).toFixed(2)})`;
@@ -290,6 +301,7 @@ Deno.serve(async (req) => {
             discountApplied: discountApplied ? parseInt(discountApplied) : 0,
             finalPrice: finalPrice ? parseInt(finalPrice) : session.amount_total,
             pricingTierName: tier?.name || null,
+            purchaseType: 'personal',
             creditType: 'personalPurchasedCredits'
           },
           relatedPricingTierId: pricingTierId,
@@ -298,7 +310,7 @@ Deno.serve(async (req) => {
         });
         
         console.log('✅ Transaction record created:', transaction.id);
-        console.log(`✅ User purchase complete: ${credits} credits added to ${user.email} (personalPurchasedCredits)`);
+        console.log(`✅ Personal purchase complete: ${credits} credits added to ${user.email} (personalPurchasedCredits)`);
         
         if (couponUsed) {
           console.log(`🎉 Coupon ${couponUsed.code} applied successfully`);
@@ -313,6 +325,7 @@ Deno.serve(async (req) => {
         success: true,
         message: 'Payment processed successfully',
         creditsAdded: credits,
+        purchaseType: isCompanyPurchase ? 'company' : 'personal',
         couponApplied: couponUsed ? couponUsed.code : null
       });
     }

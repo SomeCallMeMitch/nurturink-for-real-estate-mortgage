@@ -1,0 +1,216 @@
+================================================================================
+FUNCTION: transferCreditsToPool.ts
+================================================================================
+
+PURPOSE:
+--------
+This function allows an organization owner to transfer credits from their 
+personal balance (User.personalPurchasedCredits) to the organization's shared 
+pool (Organization.creditBalance).
+
+This addresses a gap in the current system where an owner who purchases credits 
+as an individual has no way to share those credits with their team.
+
+WHAT IT DOES:
+-------------
+1. Verifies the user is authenticated
+2. Verifies the user is an organization owner (checks both appRole and isOrgOwner)
+3. Verifies the user belongs to an organization
+4. Validates the transfer amount is a positive number
+5. Checks that the user has enough personal credits to transfer
+6. Debits the user's personalPurchasedCredits
+7. Credits the Organization.creditBalance
+8. Creates two Transaction records for audit trail:
+   - One for the user (transfer_out)
+   - One for the organization (transfer_in)
+9. Returns success with the new balances
+
+ENTITIES AFFECTED:
+------------------
+- User (update: personalPurchasedCredits)
+- Organization (update: creditBalance)
+- Transaction (create: 2 new records)
+
+API ENDPOINT:
+-------------
+POST /functions/transferCreditsToPool
+Body: { "amount": <number> }
+
+================================================================================
+COMPLETE CODE - READY TO PASTE INTO BASE44
+================================================================================
+
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+
+/**
+ * Transfer credits from owner's personal balance to organization pool
+ * 
+ * Allows organization owners to move their personally purchased credits
+ * (User.personalPurchasedCredits) into the shared organization pool
+ * (Organization.creditBalance) for team use.
+ */
+Deno.serve(async (req) => {
+  try {
+    const base44 = createClientFromRequest(req);
+    
+    // Verify user is authenticated
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Verify user is organization owner (check both appRole and isOrgOwner flag)
+    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    
+    if (!isOrgOwner) {
+      return Response.json(
+        { error: 'Only organization owners can transfer credits to the pool' },
+        { status: 403 }
+      );
+    }
+    
+    // Verify user has organization
+    if (!user.orgId) {
+      return Response.json(
+        { error: 'User does not belong to an organization' },
+        { status: 400 }
+      );
+    }
+    
+    // Parse request body
+    const body = await req.json();
+    const { amount } = body;
+    
+    // Validate amount
+    if (!amount || typeof amount !== 'number' || amount <= 0) {
+      return Response.json(
+        { error: 'amount must be a positive number' },
+        { status: 400 }
+      );
+    }
+    
+    // Check if amount is a whole number
+    if (!Number.isInteger(amount)) {
+      return Response.json(
+        { error: 'amount must be a whole number' },
+        { status: 400 }
+      );
+    }
+    
+    // Get user's current personal credit balance
+    const currentPersonalCredits = user.personalPurchasedCredits || 0;
+    
+    // Verify user has enough personal credits
+    if (currentPersonalCredits < amount) {
+      return Response.json(
+        { 
+          error: 'Insufficient personal credits',
+          available: currentPersonalCredits,
+          requested: amount,
+          deficit: amount - currentPersonalCredits
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Load organization
+    const orgs = await base44.asServiceRole.entities.Organization.filter({ 
+      id: user.orgId 
+    });
+    
+    if (!orgs || orgs.length === 0) {
+      return Response.json(
+        { error: 'Organization not found' },
+        { status: 404 }
+      );
+    }
+    
+    const organization = orgs[0];
+    const currentOrgBalance = organization.creditBalance || 0;
+    
+    // Calculate new balances
+    const newPersonalCredits = currentPersonalCredits - amount;
+    const newOrgBalance = currentOrgBalance + amount;
+    
+    // Update user's personal credit balance
+    await base44.asServiceRole.entities.User.update(user.id, {
+      personalPurchasedCredits: newPersonalCredits
+    });
+    
+    // Update organization's credit balance
+    await base44.asServiceRole.entities.Organization.update(organization.id, {
+      creditBalance: newOrgBalance
+    });
+    
+    // Create transaction record for user (transfer out)
+    await base44.asServiceRole.entities.Transaction.create({
+      orgId: user.orgId,
+      userId: user.id,
+      type: 'transfer_out',
+      amount: -amount,
+      balanceAfter: newPersonalCredits,
+      balanceType: 'user',
+      description: `Transferred ${amount} credits from personal balance to organization pool`,
+      metadata: {
+        transferType: 'personal_to_pool',
+        previousPersonalBalance: currentPersonalCredits,
+        previousOrgBalance: currentOrgBalance,
+        creditType: 'personalPurchasedCredits'
+      }
+    });
+    
+    // Create transaction record for organization (transfer in)
+    await base44.asServiceRole.entities.Transaction.create({
+      orgId: user.orgId,
+      userId: user.id,
+      type: 'transfer_in',
+      amount: amount,
+      balanceAfter: newOrgBalance,
+      balanceType: 'organization',
+      description: `Received ${amount} credits from ${user.full_name}'s personal balance`,
+      metadata: {
+        transferType: 'personal_to_pool',
+        transferredBy: user.id,
+        transferredByName: user.full_name,
+        previousOrgBalance: currentOrgBalance,
+        creditType: 'companyPool'
+      }
+    });
+    
+    return Response.json({
+      success: true,
+      message: `Successfully transferred ${amount} credits to organization pool`,
+      transferred: amount,
+      personalCreditsAfter: newPersonalCredits,
+      organizationPoolAfter: newOrgBalance
+    });
+    
+  } catch (error) {
+    console.error('Error in transferCreditsToPool:', error);
+    return Response.json(
+      { 
+        error: error.message || 'Failed to transfer credits to pool',
+        details: error.stack
+      },
+      { status: 500 }
+    );
+  }
+});
+
+================================================================================
+QUESTIONS FOR BASE44 REVIEW:
+================================================================================
+
+1. Is the use of `base44.asServiceRole.entities` correct for updating User and 
+   Organization records in this context?
+
+2. Are the transaction types 'transfer_out' and 'transfer_in' appropriate, or 
+   should we use existing types from the Transaction entity schema?
+
+3. Is there any built-in mechanism in Base44 for atomic transactions that we 
+   should use to prevent race conditions (e.g., two simultaneous transfers)?
+
+4. Are there any restrictions on the Transaction entity fields that we should 
+   be aware of?
+
+================================================================================
