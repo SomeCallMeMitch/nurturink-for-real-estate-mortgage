@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -25,11 +25,43 @@ export function TransferCreditsDialog({
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
+  // ========== DIAGNOSTIC LOGGING ==========
+  // Log the user object whenever it changes
+  useEffect(() => {
+    console.log('=== TransferCreditsDialog DEBUG ===');
+    console.log('User prop received:', user);
+    console.log('User ID:', user?.id);
+    console.log('User email:', user?.email);
+    console.log('personalPurchasedCredits:', user?.personalPurchasedCredits);
+    console.log('companyAllocatedCredits:', user?.companyAllocatedCredits);
+    console.log('creditBalance (legacy):', user?.creditBalance);
+    console.log('All user keys:', user ? Object.keys(user) : 'user is null/undefined');
+    console.log('=== END DEBUG ===');
+  }, [user]);
+
+  // Log when dialog opens
+  useEffect(() => {
+    if (open) {
+      console.log('=== Dialog OPENED ===');
+      console.log('Current user state:', user);
+      console.log('maxCredits will be:', user?.personalPurchasedCredits || 0);
+    }
+  }, [open, user]);
+  // ========== END DIAGNOSTIC LOGGING ==========
+
   const maxCredits = user?.personalPurchasedCredits || 0;
 
   const handleTransfer = async (e) => {
     e.preventDefault();
     const transferAmount = parseInt(amount, 10);
+
+    // ========== DIAGNOSTIC LOGGING ==========
+    console.log('=== Transfer SUBMITTED ===');
+    console.log('Transfer amount entered:', amount);
+    console.log('Parsed transfer amount:', transferAmount);
+    console.log('maxCredits at submit time:', maxCredits);
+    console.log('User object at submit time:', user);
+    // ========== END DIAGNOSTIC LOGGING ==========
 
     if (isNaN(transferAmount) || transferAmount <= 0) {
       toast({
@@ -51,9 +83,21 @@ export function TransferCreditsDialog({
 
     try {
       setLoading(true);
+      
+      // ========== DIAGNOSTIC LOGGING ==========
+      console.log('=== Calling transferCreditsToPool function ===');
+      console.log('Payload:', { amount: transferAmount });
+      // ========== END DIAGNOSTIC LOGGING ==========
+
       const response = await base44.functions.invoke("transferCreditsToPool", {
         amount: transferAmount,
       });
+
+      // ========== DIAGNOSTIC LOGGING ==========
+      console.log('=== Function Response ===');
+      console.log('Full response:', response);
+      console.log('Response data:', response.data);
+      // ========== END DIAGNOSTIC LOGGING ==========
 
       if (response.data.success) {
         toast({
@@ -69,6 +113,7 @@ export function TransferCreditsDialog({
       }
     } catch (error) {
       console.error("Transfer error:", error);
+      console.error("Error response:", error.response);
       toast({
         title: "Transfer Failed",
         description: error.response?.data?.error || error.message || "Could not transfer credits.",
@@ -114,7 +159,7 @@ export function TransferCreditsDialog({
                 className="col-span-3"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Available: {maxCredits} credits
+                Available: {maxCredits} credits (personalPurchasedCredits)
               </p>
             </div>
           </div>
