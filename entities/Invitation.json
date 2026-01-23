@@ -23,7 +23,17 @@
     },
     "role": {
       "type": "string",
-      "description": "Role to assign when invitation is accepted (e.g., 'sales_rep', 'organization_owner')"
+      "description": "Legacy role field for backward compatibility"
+    },
+    "orgRole": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "manager",
+        "member"
+      ],
+      "default": "member",
+      "description": "Organization role to assign when invitation is accepted"
     },
     "token": {
       "type": "string",

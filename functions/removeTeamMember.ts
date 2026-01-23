@@ -1,8 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { 
+  isOrgAdmin, 
+  isOrgOwner, 
+  isOrgManager,
+  isSuperAdmin,
+  canManageUser 
+} from './utils/roleHelpers.ts';
 
 /**
  * Remove a team member from the organization
  * Note: This doesn't delete the user account, just removes them from the org
+ * 
+ * Permission rules:
+ * - Super admins can remove anyone
+ * - Org owners can remove managers and members
+ * - Org managers can only remove members (not other managers or owner)
  */
 Deno.serve(async (req) => {
   try {
@@ -14,13 +26,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Verify user is organization owner or super admin
-    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
-    const isSuperAdmin = user.appRole === 'super_admin';
-    
-    if (!isOrgOwner && !isSuperAdmin) {
+    // Verify user can manage team (org owner, org manager, or super admin)
+    if (!isOrgAdmin(user) && !isSuperAdmin(user)) {
       return Response.json(
-        { error: 'Access denied. Only organization owners can remove team members.' },
+        { error: 'Access denied. Only organization owners and managers can remove team members.' },
         { status: 403 }
       );
     }
@@ -67,17 +76,40 @@ Deno.serve(async (req) => {
       );
     }
     
+    // Check if current user can manage the target user
+    if (!canManageUser(user, targetUser)) {
+      // Provide specific error message based on roles
+      if (isOrgManager(user) && (isOrgOwner(targetUser) || isOrgManager(targetUser))) {
+        return Response.json(
+          { error: 'Managers cannot remove other managers or the organization owner' },
+          { status: 403 }
+        );
+      }
+      return Response.json(
+        { error: 'You do not have permission to remove this user' },
+        { status: 403 }
+      );
+    }
+    
     // Remove user from organization (set orgId to null, reset role)
     await base44.asServiceRole.entities.User.update(userId, {
       orgId: null,
       appRole: 'user',
+      orgRole: null,
       isOrgOwner: false
     });
     
-    // TODO: Send notification email to the removed user
-    console.log(`📧 [SIMULATED EMAIL] To: ${targetUser.email}`);
-    console.log(`Subject: You have been removed from the organization`);
-    console.log(`Body: You have been removed from the organization by ${user.full_name || user.email}.`);
+    // Send notification email to the removed user
+    try {
+      await base44.functions.invoke('sendRemovedFromOrgEmail', {
+        user_email: targetUser.email,
+        user_name: targetUser.full_name || targetUser.email,
+        removed_by_name: user.full_name || user.email
+      });
+    } catch (emailError) {
+      console.error('Failed to send removal notification email:', emailError);
+      // Continue anyway - user was removed successfully
+    }
     
     return Response.json({
       success: true,

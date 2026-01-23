@@ -1,8 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { 
+  isOrgAdmin, 
+  isOrgOwner, 
+  isSuperAdmin, 
+  canPromoteToManager,
+  ORG_ROLES,
+  mapOrgRoleToLegacyAppRole 
+} from './utils/roleHelpers.ts';
 
 /**
  * Invite a new team member to the organization
  * Handles both new users and existing users
+ * 
+ * Organization owners can invite: owner, manager, member
+ * Organization managers can invite: member only
  */
 Deno.serve(async (req) => {
   try {
@@ -14,13 +25,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Verify user is organization owner or super admin
-    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
-    const isSuperAdmin = user.appRole === 'super_admin';
-    
-    if (!isOrgOwner && !isSuperAdmin) {
+    // Verify user can manage team (org owner, org manager, or super admin)
+    if (!isOrgAdmin(user) && !isSuperAdmin(user)) {
       return Response.json(
-        { error: 'Access denied. Only organization owners can invite team members.' },
+        { error: 'Access denied. Only organization owners and managers can invite team members.' },
         { status: 403 }
       );
     }
@@ -52,7 +60,7 @@ Deno.serve(async (req) => {
     
     // Parse request body
     const body = await req.json();
-    const { email, role } = body;
+    const { email, role, orgRole } = body;
     
     // Validate inputs
     if (!email || !email.trim()) {
@@ -62,10 +70,50 @@ Deno.serve(async (req) => {
       );
     }
     
-    if (!role || !['sales_rep', 'organization_owner'].includes(role)) {
+    // Determine the role to use (prefer new orgRole, fall back to legacy role)
+    let finalOrgRole = orgRole;
+    let finalLegacyRole = role;
+    
+    // Handle new orgRole field
+    if (orgRole) {
+      if (![ORG_ROLES.OWNER, ORG_ROLES.MANAGER, ORG_ROLES.MEMBER].includes(orgRole)) {
+        return Response.json(
+          { error: 'Invalid orgRole. Must be "owner", "manager", or "member"' },
+          { status: 400 }
+        );
+      }
+      // Map to legacy role for backward compatibility
+      finalLegacyRole = mapOrgRoleToLegacyAppRole(orgRole);
+    } 
+    // Handle legacy role field
+    else if (role) {
+      if (!['sales_rep', 'organization_owner', 'organization_manager'].includes(role)) {
+        return Response.json(
+          { error: 'Invalid role. Must be "sales_rep", "organization_manager", or "organization_owner"' },
+          { status: 400 }
+        );
+      }
+      // Map legacy role to new orgRole
+      if (role === 'organization_owner') {
+        finalOrgRole = ORG_ROLES.OWNER;
+      } else if (role === 'organization_manager') {
+        finalOrgRole = ORG_ROLES.MANAGER;
+      } else {
+        finalOrgRole = ORG_ROLES.MEMBER;
+      }
+      finalLegacyRole = role === 'organization_manager' ? 'sales_rep' : role;
+    } else {
+      // Default to member
+      finalOrgRole = ORG_ROLES.MEMBER;
+      finalLegacyRole = 'sales_rep';
+    }
+    
+    // Check if user can assign this role
+    // Only owners and super admins can promote to manager or owner
+    if ((finalOrgRole === ORG_ROLES.MANAGER || finalOrgRole === ORG_ROLES.OWNER) && !canPromoteToManager(user)) {
       return Response.json(
-        { error: 'Invalid role. Must be "sales_rep" or "organization_owner"' },
-        { status: 400 }
+        { error: 'Only organization owners can invite managers or owners' },
+        { status: 403 }
       );
     }
     
@@ -98,21 +146,22 @@ Deno.serve(async (req) => {
       // User exists but has no org - directly assign them
       await base44.asServiceRole.entities.User.update(existingUser.id, {
         orgId: user.orgId,
-        appRole: role,
-        isOrgOwner: role === 'organization_owner'
+        appRole: finalLegacyRole,
+        orgRole: finalOrgRole,
+        isOrgOwner: finalOrgRole === ORG_ROLES.OWNER
       });
       
       // Send notification email to existing user
       try {
         const inviterFirstName = user.full_name?.split(' ')[0] || user.email;
-        const roleDisplay = role === 'organization_owner' ? 'Organization Owner' : 'Sales Representative';
+        const roleDisplay = getRoleDisplayName(finalOrgRole);
         
         await base44.functions.invoke('sendTeamInvitationEmail', {
           inviter_firstName: inviterFirstName,
           inviter_fullName: user.full_name || user.email,
           invitee_email: normalizedEmail,
           organization_name: organization?.name || 'your organization',
-          role: role,
+          role: finalLegacyRole,
           role_display: roleDisplay,
           invitation_token: '', // Not applicable for existing users
           invitation_expires: 'N/A', // Not applicable
@@ -152,13 +201,14 @@ Deno.serve(async (req) => {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
     
-    // Create invitation
+    // Create invitation with both legacy role and new orgRole
     const invitation = await base44.asServiceRole.entities.Invitation.create({
       orgId: user.orgId,
       invitedByUserId: user.id,
       invitedByName: user.full_name || user.email,
       email: normalizedEmail,
-      role: role,
+      role: finalLegacyRole,
+      orgRole: finalOrgRole,
       token: token,
       status: 'pending',
       expiresAt: expiresAt.toISOString()
@@ -167,15 +217,15 @@ Deno.serve(async (req) => {
     // Send invitation email
     try {
       const inviterFirstName = user.full_name?.split(' ')[0] || user.email;
-      const roleDisplay = role === 'organization_owner' ? 'Organization Owner' : 'Sales Representative';
-      const daysUntilExpiry = Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24));
+      const roleDisplay = getRoleDisplayName(finalOrgRole);
+      const daysUntilExpiry = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       
       await base44.functions.invoke('sendTeamInvitationEmail', {
         inviter_firstName: inviterFirstName,
         inviter_fullName: user.full_name || user.email,
         invitee_email: normalizedEmail,
         organization_name: organization?.name || 'your organization',
-        role: role,
+        role: finalLegacyRole,
         role_display: roleDisplay,
         invitation_token: token,
         invitation_expires: `${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}`,
@@ -203,3 +253,15 @@ Deno.serve(async (req) => {
     );
   }
 });
+
+/**
+ * Get display name for an orgRole
+ */
+function getRoleDisplayName(orgRole: string): string {
+  const displayNames: Record<string, string> = {
+    'owner': 'Organization Owner',
+    'manager': 'Organization Manager',
+    'member': 'Team Member',
+  };
+  return displayNames[orgRole] || 'Team Member';
+}

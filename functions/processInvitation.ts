@@ -3,6 +3,7 @@
 // No authentication required (new users won't be logged in)
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { getOrgRoleDisplayName, ORG_ROLES } from './utils/roleHelpers.ts';
 
 Deno.serve(async (req) => {
   const base44 = createClientFromRequest(req);
@@ -67,11 +68,11 @@ Deno.serve(async (req) => {
       // Continue with default name
     }
     
-    // 7. Map role to display name
-    const roleNames = {
-      sales_rep: 'Sales Rep',
-      organization_owner: 'Organization Admin'
-    };
+    // 7. Determine role display name
+    // Prefer new orgRole field, fall back to legacy role
+    let roleName = 'Team Member';
+    const orgRole = invitation.orgRole || mapLegacyRoleToOrgRole(invitation.role);
+    roleName = getOrgRoleDisplayName(orgRole);
     
     // 8. Return success response
     return Response.json({
@@ -79,8 +80,9 @@ Deno.serve(async (req) => {
       invitation: {
         id: invitation.id,
         email: invitation.email,
-        role: invitation.role,
-        roleName: roleNames[invitation.role] || invitation.role,
+        role: invitation.role, // Legacy field for backward compatibility
+        orgRole: orgRole, // New field
+        roleName: roleName,
         organizationId: invitation.orgId,
         organizationName: organizationName,
         invitedByName: invitation.invitedByName || 'Your team admin'
@@ -96,3 +98,16 @@ Deno.serve(async (req) => {
     }, { status: 500 });
   }
 });
+
+/**
+ * Map legacy role to new orgRole
+ */
+function mapLegacyRoleToOrgRole(legacyRole: string): string {
+  if (legacyRole === 'organization_owner') {
+    return ORG_ROLES.OWNER;
+  }
+  if (legacyRole === 'organization_manager') {
+    return ORG_ROLES.MANAGER;
+  }
+  return ORG_ROLES.MEMBER;
+}

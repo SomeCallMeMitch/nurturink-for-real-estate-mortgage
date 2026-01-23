@@ -11,6 +11,7 @@ import {
   Users,
   UserCheck,
   Shield,
+  ShieldCheck,
   Send,
   Search,
   Filter,
@@ -50,6 +51,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  isOrgAdmin,
+  isOrgOwner,
+  isOrgManager,
+  isSuperAdmin,
+  canPromoteToManager,
+  getInvitableRoles,
+  getAssignableRoles,
+  getUserRoleDisplayName,
+  getRoleBadgeVariant,
+  ORG_ROLES
+} from '@/utils/roleHelpers';
 
 export default function TeamManagement() {
   const navigate = useNavigate();
@@ -64,12 +77,12 @@ export default function TeamManagement() {
   
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('sales_rep');
+  const [inviteOrgRole, setInviteOrgRole] = useState(ORG_ROLES.MEMBER);
   const [inviting, setInviting] = useState(false);
   
   const [roleChangeDialogOpen, setRoleChangeDialogOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
-  const [newRole, setNewRole] = useState('');
+  const [newOrgRole, setNewOrgRole] = useState('');
   const [changingRole, setChangingRole] = useState(false);
   
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
@@ -79,6 +92,10 @@ export default function TeamManagement() {
   // Team member details modal state
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedMemberForDetails, setSelectedMemberForDetails] = useState(null);
+
+  // Get available roles for the current user
+  const invitableRoles = useMemo(() => getInvitableRoles(user), [user]);
+  const canInviteManager = useMemo(() => canPromoteToManager(user), [user]);
 
   const handleModalUpdate = async (updatedUser) => {
     if (updatedUser) {
@@ -116,11 +133,9 @@ export default function TeamManagement() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
-      const isSuperAdmin = currentUser.appRole === 'super_admin';
-      
-      if (!isOrgOwner && !isSuperAdmin) {
-        setError('Access denied. Only organization owners can manage team members.');
+      // Check if user can manage team (owner, manager, or super admin)
+      if (!isOrgAdmin(currentUser) && !isSuperAdmin(currentUser)) {
+        setError('Access denied. Only organization owners and managers can manage team members.');
         setLoading(false);
         return;
       }
@@ -187,8 +202,14 @@ export default function TeamManagement() {
   };
 
   const getRoleBadge = (member) => {
-    if (member.isOrgOwner) {
-      return <Badge className="bg-purple-100 text-purple-800"><Shield className="w-3 h-3 mr-1" />Admin</Badge>;
+    // Check new orgRole first, then fall back to legacy checks
+    const orgRole = member.orgRole || (member.isOrgOwner ? ORG_ROLES.OWNER : ORG_ROLES.MEMBER);
+    
+    if (orgRole === ORG_ROLES.OWNER || member.isOrgOwner) {
+      return <Badge className="bg-purple-100 text-purple-800"><Shield className="w-3 h-3 mr-1" />Owner</Badge>;
+    }
+    if (orgRole === ORG_ROLES.MANAGER) {
+      return <Badge className="bg-blue-100 text-blue-800"><ShieldCheck className="w-3 h-3 mr-1" />Manager</Badge>;
     }
     return <Badge className="bg-amber-100 text-amber-800"><Users className="w-3 h-3 mr-1" />Member</Badge>;
   };
@@ -229,7 +250,7 @@ export default function TeamManagement() {
       
       const response = await base44.functions.invoke('inviteTeamMember', {
         email: inviteEmail.trim(),
-        role: inviteRole
+        orgRole: inviteOrgRole
       });
 
       toast({
@@ -244,7 +265,7 @@ export default function TeamManagement() {
 
       setInviteModalOpen(false);
       setInviteEmail('');
-      setInviteRole('sales_rep');
+      setInviteOrgRole(ORG_ROLES.MEMBER);
       await loadData();
       
     } catch (error) {
@@ -261,7 +282,9 @@ export default function TeamManagement() {
 
   const handleOpenRoleChange = (member) => {
     setSelectedMember(member);
-    setNewRole(member.isOrgOwner ? 'organization_owner' : 'sales_rep');
+    // Determine current role
+    const currentOrgRole = member.orgRole || (member.isOrgOwner ? ORG_ROLES.OWNER : ORG_ROLES.MEMBER);
+    setNewOrgRole(currentOrgRole);
     setRoleChangeDialogOpen(true);
   };
 
@@ -273,12 +296,18 @@ export default function TeamManagement() {
       
       await base44.functions.invoke('updateTeamMemberRole', {
         userId: selectedMember.userId,
-        newRole: newRole
+        newOrgRole: newOrgRole
       });
+
+      const roleDisplayNames = {
+        [ORG_ROLES.OWNER]: 'Owner',
+        [ORG_ROLES.MANAGER]: 'Manager',
+        [ORG_ROLES.MEMBER]: 'Member'
+      };
 
       toast({
         title: 'Role Updated! ✓',
-        description: `${selectedMember.name}'s role has been changed to ${newRole === 'organization_owner' ? 'Admin' : 'Member'}`,
+        description: `${selectedMember.name}'s role has been changed to ${roleDisplayNames[newOrgRole] || newOrgRole}`,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
 
@@ -326,7 +355,7 @@ export default function TeamManagement() {
         
         toast({
           title: 'Member Removed',
-          description: `${memberToRemove.name} has been removed from your organization`,
+          description: `${memberToRemove.name} has been removed from the organization`,
           className: 'bg-green-50 border-green-200 text-green-900'
         });
       }
@@ -338,7 +367,7 @@ export default function TeamManagement() {
     } catch (error) {
       console.error('Failed to remove member:', error);
       toast({
-        title: 'Removal Failed',
+        title: memberToRemove.status === 'Pending' ? 'Failed to Cancel' : 'Removal Failed',
         description: error.response?.data?.error || 'Failed to remove member',
         variant: 'destructive'
       });
@@ -352,30 +381,40 @@ export default function TeamManagement() {
     setDetailsModalOpen(true);
   };
 
+  // Check if current user can manage a specific member
+  const canManageMember = (member) => {
+    if (!user) return false;
+    if (isSuperAdmin(user)) return true;
+    if (member.userId === user.id) return false;
+    
+    // Owners can manage anyone
+    if (isOrgOwner(user)) return true;
+    
+    // Managers can only manage regular members
+    if (isOrgManager(user)) {
+      const memberOrgRole = member.orgRole || (member.isOrgOwner ? ORG_ROLES.OWNER : ORG_ROLES.MEMBER);
+      return memberOrgRole === ORG_ROLES.MEMBER;
+    }
+    
+    return false;
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-orange-600 mx-auto mb-4 animate-spin" />
-          <p className="text-gray-600">Loading team data...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-600" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-        <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-red-600 mb-2">Access Denied</h2>
-              <p className="text-gray-600 mb-4">{error}</p>
-              <Button onClick={() => navigate(createPageUrl('Home'))}>
-                Go to Dashboard
-              </Button>
-            </div>
+      <div className="p-6">
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Access Error</h2>
+            <p className="text-red-600">{error}</p>
           </CardContent>
         </Card>
       </div>
@@ -383,120 +422,111 @@ export default function TeamManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Team Management</h1>
-          <p className="text-lg text-gray-600">Manage your organization's team members and roles</p>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Team Management</h1>
+            <p className="text-gray-600">Manage your organization's team members</p>
+          </div>
+          <Button 
+            onClick={() => setInviteModalOpen(true)}
+            className="bg-orange-600 hover:bg-orange-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Invite Member
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Total Members</p>
-                  <p className="text-3xl font-bold text-gray-900">{summaryStats?.totalMembers || 0}</p>
+        {/* Stats Cards */}
+        {summaryStats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Users className="w-5 h-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{summaryStats.totalMembers}</p>
+                    <p className="text-sm text-gray-500">Total Members</p>
+                  </div>
                 </div>
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <Users className="w-8 h-8 text-orange-600" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <UserCheck className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{summaryStats.activeMembers}</p>
+                    <p className="text-sm text-gray-500">Active</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-purple-100 rounded-lg">
+                    <Shield className="w-5 h-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{summaryStats.admins}</p>
+                    <p className="text-sm text-gray-500">Admins</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <Send className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{summaryStats.cardsSent}</p>
+                    <p className="text-sm text-gray-500">Cards Sent</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Active</p>
-                  <p className="text-3xl font-bold text-green-600">{summaryStats?.activeMembers || 0}</p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <UserCheck className="w-8 h-8 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Admins</p>
-                  <p className="text-3xl font-bold text-purple-600">{summaryStats?.admins || 0}</p>
-                </div>
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Shield className="w-8 h-8 text-purple-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Cards Sent</p>
-                  <p className="text-3xl font-bold text-orange-600">{summaryStats?.cardsSent || 0}</p>
-                </div>
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <Send className="w-8 h-8 text-orange-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  placeholder="Search by name or email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Button variant="outline" className="gap-2">
-                <Filter className="w-4 h-4" />
-                Filters
-              </Button>
-              <Button 
-                onClick={() => setInviteModalOpen(true)}
-                className="bg-orange-600 hover:bg-orange-700 gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Invite Member
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={loadData}
-                disabled={loading}
-              >
-                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
+        {/* Team Members Table */}
         <Card>
-          <CardHeader>
-            <CardTitle>Team Members</CardTitle>
+          <CardHeader className="border-b">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <CardTitle>Team Members</CardTitle>
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Search members..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9 w-64"
+                  />
+                </div>
+                <Button variant="outline" size="icon" onClick={loadData}>
+                  <RefreshCw className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {filteredMembers.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="p-12 text-center">
                 {searchQuery ? (
                   <>
                     <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">No members match your search</p>
+                    <p className="text-gray-500">No members found matching "{searchQuery}"</p>
                     <Button 
                       variant="outline" 
-                      size="sm"
                       onClick={() => setSearchQuery('')}
                       className="mt-3"
                     >
@@ -572,28 +602,32 @@ export default function TeamManagement() {
                                 >
                                   <Eye className="w-4 h-4" />
                                 </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8 text-gray-600 hover:text-purple-600"
-                                  onClick={() => handleOpenRoleChange(member)}
-                                  disabled={member.userId === user?.id}
-                                  title="Change Role"
-                                >
-                                  <UserCog className="w-4 h-4" />
-                                </Button>
+                                {canPromoteToManager(user) && (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-gray-600 hover:text-purple-600"
+                                    onClick={() => handleOpenRoleChange(member)}
+                                    disabled={member.userId === user?.id}
+                                    title="Change Role"
+                                  >
+                                    <UserCog className="w-4 h-4" />
+                                  </Button>
+                                )}
                               </>
                             )}
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-gray-600 hover:text-red-600"
-                              onClick={() => handleOpenRemove(member)}
-                              disabled={member.userId === user?.id}
-                              title={member.status === 'Pending' ? 'Cancel Invitation' : 'Remove Member'}
-                            >
-                              <UserX className="w-4 h-4" />
-                            </Button>
+                            {canManageMember(member) && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-gray-600 hover:text-red-600"
+                                onClick={() => handleOpenRemove(member)}
+                                disabled={member.userId === user?.id}
+                                title={member.status === 'Pending' ? 'Cancel Invitation' : 'Remove Member'}
+                              >
+                                <UserX className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -611,6 +645,7 @@ export default function TeamManagement() {
           </CardContent>
         </Card>
 
+        {/* Invite Modal */}
         <Dialog open={inviteModalOpen} onOpenChange={setInviteModalOpen}>
           <DialogContent>
             <DialogHeader>
@@ -635,27 +670,39 @@ export default function TeamManagement() {
 
               <div>
                 <Label htmlFor="invite-role">Role</Label>
-                <Select value={inviteRole} onValueChange={setInviteRole}>
+                <Select value={inviteOrgRole} onValueChange={setInviteOrgRole}>
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sales_rep">
+                    <SelectItem value={ORG_ROLES.MEMBER}>
                       <div className="flex items-center gap-2">
                         <Users className="w-4 h-4" />
-                        <span>Member (Sales Representative)</span>
+                        <span>Member</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="organization_owner">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
-                        <span>Admin (Organization Owner)</span>
-                      </div>
-                    </SelectItem>
+                    {canInviteManager && (
+                      <>
+                        <SelectItem value={ORG_ROLES.MANAGER}>
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4" />
+                            <span>Manager</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value={ORG_ROLES.OWNER}>
+                          <div className="flex items-center gap-2">
+                            <Shield className="w-4 h-4" />
+                            <span>Owner</span>
+                          </div>
+                        </SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Admins can manage team members and organization settings
+                  {inviteOrgRole === ORG_ROLES.OWNER && 'Owners have full control over the organization'}
+                  {inviteOrgRole === ORG_ROLES.MANAGER && 'Managers can allocate credits and manage team members'}
+                  {inviteOrgRole === ORG_ROLES.MEMBER && 'Members can send cards using allocated credits'}
                 </p>
               </div>
             </div>
@@ -685,6 +732,7 @@ export default function TeamManagement() {
           </DialogContent>
         </Dialog>
 
+        {/* Role Change Dialog */}
         <Dialog open={roleChangeDialogOpen} onOpenChange={setRoleChangeDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -696,25 +744,38 @@ export default function TeamManagement() {
 
             <div className="py-4">
               <Label htmlFor="new-role">New Role</Label>
-              <Select value={newRole} onValueChange={setNewRole}>
+              <Select value={newOrgRole} onValueChange={setNewOrgRole}>
                 <SelectTrigger className="mt-1">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sales_rep">
+                  <SelectItem value={ORG_ROLES.MEMBER}>
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      <span>Member (Sales Representative)</span>
+                      <span>Member</span>
                     </div>
                   </SelectItem>
-                  <SelectItem value="organization_owner">
+                  <SelectItem value={ORG_ROLES.MANAGER}>
                     <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4" />
-                      <span>Admin (Organization Owner)</span>
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Manager</span>
                     </div>
                   </SelectItem>
+                  {isOrgOwner(user) && (
+                    <SelectItem value={ORG_ROLES.OWNER}>
+                      <div className="flex items-center gap-2">
+                        <Shield className="w-4 h-4" />
+                        <span>Owner</span>
+                      </div>
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-gray-500 mt-2">
+                {newOrgRole === ORG_ROLES.OWNER && 'Owners have full control over the organization'}
+                {newOrgRole === ORG_ROLES.MANAGER && 'Managers can allocate credits and manage team members'}
+                {newOrgRole === ORG_ROLES.MEMBER && 'Members can send cards using allocated credits'}
+              </p>
             </div>
 
             <DialogFooter>
@@ -739,6 +800,7 @@ export default function TeamManagement() {
           </DialogContent>
         </Dialog>
 
+        {/* Remove Member Dialog */}
         <AlertDialog open={removeDialogOpen} onOpenChange={setRemoveDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>

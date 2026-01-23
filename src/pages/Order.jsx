@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
+import { isOrgAdmin, isOrgOwner } from '@/utils/roleHelpers';
 
 export default function OrderPage() {
   const navigate = useNavigate();
@@ -95,9 +96,7 @@ export default function OrderPage() {
 
   // Determine if user can choose purchase type (org owner or manager)
   const canChoosePurchaseType = useMemo(() => {
-    const isOrgOwner = user?.appRole === 'organization_owner' || user?.isOrgOwner === true;
-    const isOrgManager = user?.appRole === 'organization_manager' || user?.isOrgManager === true;
-    return (isOrgOwner || isOrgManager) && organization;
+    return isOrgAdmin(user) && organization;
   }, [user, organization]);
 
   // Legacy: Determine if this is a company purchase (for allocation option display)
@@ -106,9 +105,8 @@ export default function OrderPage() {
     if (canChoosePurchaseType) {
       return purchaseType === 'company';
     }
-    // Legacy behavior: org owners always buy for company
-    const isOrgOwner = user?.appRole === 'organization_owner' || user?.isOrgOwner === true;
-    return isOrgOwner && organization;
+    // Legacy behavior: org admins always buy for company
+    return isOrgAdmin(user) && organization;
   }, [user, organization, canChoosePurchaseType, purchaseType]);
 
   // Format price helper

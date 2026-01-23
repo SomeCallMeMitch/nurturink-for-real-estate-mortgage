@@ -1,9 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { isOrgAdmin } from './utils/roleHelpers.ts';
 
 /**
  * Toggle company pool access for a team member
  * 
- * Organization owners can enable/disable whether a team member
+ * Organization owners AND managers can enable/disable whether a team member
  * can draw from the organization's credit pool when their
  * allocated and personal credits are exhausted.
  */
@@ -17,11 +18,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Verify user is organization owner
-    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
-    if (!isOrgOwner) {
+    // Verify user is organization admin (owner or manager)
+    if (!isOrgAdmin(user)) {
       return Response.json(
-        { error: 'Only organization owners can manage company pool access' },
+        { error: 'Only organization owners and managers can manage company pool access' },
         { status: 403 }
       );
     }
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Prevent org owner from modifying their own access
+    // Prevent modifying your own access
     if (targetUser.id === user.id) {
       return Response.json(
         { error: 'Cannot modify your own company pool access' },
