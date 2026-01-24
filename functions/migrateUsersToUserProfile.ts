@@ -1,133 +1,116 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { ORG_ROLES } from './utils/roleHelpers.ts';
+import { ORG_ROLES, mapLegacyRoleToOrgRole, upsertUserProfile } from './utils/roleHelpers.ts';
 
 /**
- * Migration function to create UserProfile records for existing users
+ * Migration function to populate UserProfile entity from existing User records
  * 
- * This function:
- * 1. Finds all users with an orgId but no UserProfile
- * 2. Creates a UserProfile record based on their legacy role fields
+ * Creates a UserProfile for every user that belongs to an organization.
+ * The orgRole is determined from the legacy appRole and isOrgOwner fields.
  * 
- * This is a one-time migration that should be run after deploying the UserProfile entity.
- * It's safe to run multiple times (idempotent).
- * 
- * Only super admins can run this migration.
+ * Usage:
+ * await base44.functions.invoke('migrateUsersToUserProfile', { dryRun: true });
  */
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verify user is authenticated
+    // Verify authentication
     const user = await base44.auth.me();
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Only super admins can run migrations
+    // Only super admins can run this migration
     if (user.appRole !== 'super_admin') {
-      return Response.json(
-        { error: 'Access denied. Only super admins can run migrations.' },
-        { status: 403 }
-      );
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
     
-    // Parse optional parameters
     const body = await req.json().catch(() => ({}));
-    const dryRun = body.dryRun === true;
-    const targetOrgId = body.orgId || null; // Optional: migrate only specific org
+    const dryRun = body.dryRun !== false; // Default to true for safety
     
-    console.log(`Starting UserProfile migration (dryRun: ${dryRun}, targetOrgId: ${targetOrgId || 'all'})`);
-    
-    // Fetch all users with an orgId
-    let usersQuery: Record<string, any> = {};
-    if (targetOrgId) {
-      usersQuery.orgId = targetOrgId;
-    }
-    
-    const allUsers = await base44.asServiceRole.entities.User.filter(usersQuery);
+    // 1. Fetch all users with an orgId
+    // Note: We might need pagination if there are many users, but for now fetch all
+    const allUsers = await base44.asServiceRole.entities.User.filter({});
     const usersWithOrg = allUsers.filter(u => u.orgId);
     
-    console.log(`Found ${usersWithOrg.length} users with orgId`);
+    console.log(`Found ${usersWithOrg.length} users belonging to organizations.`);
     
-    // Fetch all existing UserProfiles
-    const existingProfiles = await base44.asServiceRole.entities.UserProfile.list();
-    
-    // Create a set of existing userId+orgId combinations for quick lookup
-    const existingProfileKeys = new Set(
-      existingProfiles.map(p => `${p.userId}:${p.orgId}`)
-    );
-    
-    console.log(`Found ${existingProfiles.length} existing UserProfiles`);
-    
-    // Find users that need UserProfile records
-    const usersNeedingProfile = usersWithOrg.filter(u => 
-      !existingProfileKeys.has(`${u.id}:${u.orgId}`)
-    );
-    
-    console.log(`Found ${usersNeedingProfile.length} users needing UserProfile records`);
-    
-    // Track results
     const results = {
-      totalUsers: usersWithOrg.length,
-      existingProfiles: existingProfiles.length,
-      usersNeedingProfile: usersNeedingProfile.length,
+      total: usersWithOrg.length,
       created: 0,
-      errors: [] as string[],
-      dryRun: dryRun
+      updated: 0,
+      skipped: 0,
+      errors: [],
+      details: []
     };
     
-    // Create UserProfile records
-    for (const targetUser of usersNeedingProfile) {
+    // 2. Process each user
+    for (const user of usersWithOrg) {
       try {
-        // Determine orgRole from legacy fields
+        // Determine correct orgRole
         let orgRole = ORG_ROLES.MEMBER;
         
-        if (targetUser.isOrgOwner === true || targetUser.appRole === 'organization_owner') {
+        if (user.isOrgOwner || user.appRole === 'organization_owner') {
           orgRole = ORG_ROLES.OWNER;
-        } else if (targetUser.appRole === 'organization_manager') {
+        } else if (user.appRole === 'organization_manager') {
           orgRole = ORG_ROLES.MANAGER;
         }
         
-        const profileData = {
-          userId: targetUser.id,
-          orgId: targetUser.orgId,
-          orgRole: orgRole
-        };
+        // Check if profile already exists
+        const profiles = await base44.asServiceRole.entities.UserProfile.filter({
+          userId: user.id,
+          orgId: user.orgId
+        });
+        
+        const existingProfile = profiles.length > 0 ? profiles[0] : null;
         
         if (dryRun) {
-          console.log(`[DRY RUN] Would create UserProfile:`, profileData);
+          results.details.push({
+            userId: user.id,
+            email: user.email,
+            orgId: user.orgId,
+            inferredRole: orgRole,
+            action: existingProfile ? 'update' : 'create'
+          });
+          if (existingProfile) results.updated++;
+          else results.created++;
         } else {
-          await base44.asServiceRole.entities.UserProfile.create(profileData);
-          console.log(`Created UserProfile for user ${targetUser.id} (${targetUser.email}) with role ${orgRole}`);
+          // Perform the migration
+          if (existingProfile) {
+            // Update if role is different
+            if (existingProfile.orgRole !== orgRole) {
+              await base44.asServiceRole.entities.UserProfile.update(existingProfile.id, {
+                orgRole: orgRole
+              });
+              results.updated++;
+            } else {
+              results.skipped++;
+            }
+          } else {
+            // Create new profile
+            await base44.asServiceRole.entities.UserProfile.create({
+              userId: user.id,
+              orgId: user.orgId,
+              orgRole: orgRole
+            });
+            results.created++;
+          }
         }
         
-        results.created++;
-        
       } catch (err) {
-        const errorMsg = `Failed to create UserProfile for user ${targetUser.id}: ${err.message}`;
-        console.error(errorMsg);
-        results.errors.push(errorMsg);
+        console.error(`Error processing user ${user.id}:`, err);
+        results.errors.push({ userId: user.id, error: err.message });
       }
     }
     
-    console.log(`Migration complete. Created ${results.created} UserProfiles (dryRun: ${dryRun})`);
-    
     return Response.json({
       success: true,
-      message: dryRun 
-        ? `Dry run complete. Would create ${results.created} UserProfile records.`
-        : `Migration complete. Created ${results.created} UserProfile records.`,
+      dryRun: dryRun,
       results: results
     });
     
   } catch (error) {
-    console.error('Error in migrateUsersToUserProfile:', error);
-    return Response.json(
-      { 
-        error: error.message || 'Migration failed',
-        details: error.stack
-      },
-      { status: 500 }
-    );
+    console.error('Migration error:', error);
+    return Response.json({ error: error.message }, { status: 500 });
   }
 });
