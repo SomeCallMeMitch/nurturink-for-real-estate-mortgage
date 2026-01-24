@@ -1,5 +1,6 @@
 /**
  * Role hierarchy and permission helpers for NurturInk
+ * @updated 2026-01-23
  * 
  * This module provides centralized role checking functions to ensure
  * consistent permission enforcement across the application.

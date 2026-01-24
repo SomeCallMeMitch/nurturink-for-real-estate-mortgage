@@ -22,5 +22,6 @@
     }
   },
   "required": ["userId", "orgId", "orgRole"],
-  "name": "UserProfile"
+  "name": "UserProfile",
+  "description": "Stores organization-specific role information for users. Created to extend the built-in User entity."
 }
