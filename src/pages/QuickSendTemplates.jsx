@@ -23,7 +23,7 @@ import {
 // Import modular components
 import QuickSendFilterControls from '@/components/quicksend/QuickSendFilterControls';
 import QuickSendTemplateCard from '@/components/quicksend/QuickSendTemplateCard';
-import { isOrgAdmin, isSuperAdmin } from '@/utils/roleHelpers';
+import { isOrgAdmin, isSuperAdmin } from '@/components/utils/roleHelpers';
 
 export default function QuickSendTemplates() {
   const navigate = useNavigate();

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Save, AlertCircle, Building2 } from "lucide-react";
-import { isOrgAdmin } from '@/utils/roleHelpers';
+import { isOrgAdmin } from '@/components/utils/roleHelpers';
 
 export default function SettingsOrganization() {
   const [user, setUser] = useState(null);

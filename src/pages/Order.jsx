@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -23,7 +22,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
-import { isOrgAdmin, isOrgOwner } from '@/utils/roleHelpers';
+import { isOrgAdmin, isOrgOwner } from '@/components/utils/roleHelpers';
 
 export default function OrderPage() {
   const navigate = useNavigate();
