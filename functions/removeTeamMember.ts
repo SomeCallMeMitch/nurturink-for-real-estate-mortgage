@@ -5,17 +5,17 @@ import {
   isOrgManager,
   isSuperAdmin,
   canManageUser,
-  deleteUserProfile,
-  getUserProfileForOrg
+  deleteUserProfile
 } from './utils/roleHelpers.ts';
 
 /**
  * Remove a team member from the organization
+ * Note: This doesn't delete the user account, just removes them from the org
  * 
  * Permission rules:
  * - Super admins can remove anyone
  * - Org owners can remove managers and members
- * - Org managers can only remove members
+ * - Org managers can only remove members (not other managers or owner)
  */
 Deno.serve(async (req) => {
   try {
@@ -27,11 +27,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Get currentUser's profile
-    const currentUserProfile = user.orgId ? await getUserProfileForOrg(base44, user.id, user.orgId) : null;
-    
-    // Verify user can manage team
-    if (!isOrgAdmin(user, currentUserProfile) && !isSuperAdmin(user)) {
+    // Verify user can manage team (org owner, org manager, or super admin)
+    if (!isOrgAdmin(user) && !isSuperAdmin(user)) {
       return Response.json(
         { error: 'Access denied. Only organization owners and managers can remove team members.' },
         { status: 403 }
@@ -80,12 +77,9 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Get target user's profile
-    const targetUserProfile = await getUserProfileForOrg(base44, targetUser.id, targetUser.orgId);
-    
     // Check if current user can manage the target user
-    if (!canManageUser(user, targetUser, currentUserProfile, targetUserProfile)) {
-      if (isOrgManager(user, currentUserProfile) && (isOrgOwner(targetUser, targetUserProfile) || isOrgManager(targetUser, targetUserProfile))) {
+    if (!canManageUser(user, targetUser)) {
+      if (isOrgManager(user) && (isOrgOwner(targetUser) || isOrgManager(targetUser))) {
         return Response.json(
           { error: 'Managers cannot remove other managers or the organization owner' },
           { status: 403 }
@@ -97,17 +91,17 @@ Deno.serve(async (req) => {
       );
     }
     
-    // 1. Remove user from organization (legacy fields)
+    // Delete the UserProfile record
+    await deleteUserProfile(userId, targetUser.orgId);
+    
+    // Remove user from organization (set orgId to null, reset role)
     await base44.asServiceRole.entities.User.update(userId, {
       orgId: null,
       appRole: 'user',
       isOrgOwner: false
     });
     
-    // 2. Delete UserProfile
-    await deleteUserProfile(base44, userId, user.orgId);
-    
-    // Send notification email
+    // Send notification email to the removed user
     try {
       await base44.functions.invoke('sendRemovedFromOrgEmail', {
         user_email: targetUser.email,

@@ -1,32 +1,27 @@
 /**
- * Role hierarchy and permission helpers for NurturInk (Backend)
+ * Role Helper Utilities for Backend Functions
  * 
- * This module provides centralized role checking functions to ensure
- * consistent permission enforcement across backend functions.
+ * These utilities provide consistent role checking across all backend functions.
+ * Roles are stored in the UserProfile entity (1:1 with User).
  * 
- * Role Structure:
- * - UserProfile.orgRole: The source of truth for organization-specific roles
- * - orgRole: Custom field for organization-specific roles ('owner', 'manager', 'member')
- * - appRole: Platform-managed field (kept for backward compatibility)
- * - isOrgOwner: Boolean flag (kept for backward compatibility)
+ * Role Hierarchy:
+ * - owner: Full control of organization (only one per org)
+ * - manager: Admin capabilities without ownership
+ * - member: Regular team member (sales rep)
  */
 
+import { base44 } from '../base44.config';
+
 // =============================================================================
-// ROLE CONSTANTS
+// CONSTANTS
 // =============================================================================
 
-/**
- * Organization role values (custom orgRole field)
- */
 export const ORG_ROLES = {
   OWNER: 'owner',
   MANAGER: 'manager',
   MEMBER: 'member',
 } as const;
 
-/**
- * Legacy appRole values (platform-managed, kept for backward compatibility)
- */
 export const APP_ROLES = {
   SUPER_ADMIN: 'super_admin',
   WHITELABEL_PARTNER: 'whitelabel_partner',
@@ -34,114 +29,187 @@ export const APP_ROLES = {
   SALES_REP: 'sales_rep',
 } as const;
 
-// Type definitions
-type OrgRole = typeof ORG_ROLES[keyof typeof ORG_ROLES];
+// =============================================================================
+// TYPES
+// =============================================================================
+
+export type OrgRole = typeof ORG_ROLES[keyof typeof ORG_ROLES];
 type AppRole = typeof APP_ROLES[keyof typeof APP_ROLES];
 
-interface User {
+export interface UserProfile {
   id: string;
-  orgId?: string;
-  orgRole?: OrgRole;
-  appRole?: AppRole | string;
-  isOrgOwner?: boolean;
-  [key: string]: any;
-}
-
-interface UserProfile {
-  id?: string;
   userId: string;
   orgId: string;
   orgRole: OrgRole;
+  isOrgOwner?: boolean;
+}
+
+export interface User {
+  id: string;
+  email?: string;
+  full_name?: string;
+  orgId?: string;
+  appRole?: AppRole | string;
+  isOrgOwner?: boolean;
+  // Legacy fields
+  orgRole?: OrgRole;
+  [key: string]: any;
+}
+
+export interface RoleCheckResult {
+  isOwner: boolean;
+  isManager: boolean;
+  isMember: boolean;
+  isAdmin: boolean;
+  isSuperAdmin: boolean;
+  orgRole: OrgRole | null;
+  userProfile: UserProfile | null;
 }
 
 // =============================================================================
-// DATABASE INTERACTION HELPERS
+// USERPROFILE CRUD FUNCTIONS
 // =============================================================================
 
 /**
- * Create or update a UserProfile record
- * Ensures 1:1 relationship between User and UserProfile for an org
+ * Fetches the UserProfile for a given user ID
  */
-export async function upsertUserProfile(base44: any, userId: string, orgId: string, role: OrgRole): Promise<UserProfile> {
-  // Check if profile exists
-  const profiles = await base44.asServiceRole.entities.UserProfile.filter({
-    userId: userId,
-    orgId: orgId
-  });
-  
-  if (profiles.length > 0) {
-    // Update existing
-    const profile = profiles[0];
-    if (profile.orgRole !== role) {
-      const updated = await base44.asServiceRole.entities.UserProfile.update(profile.id, {
-        orgRole: role
-      });
-      return updated;
+export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+  try {
+    const profiles = await base44.entities.UserProfile.filter({ userId });
+    if (profiles && profiles.length > 0) {
+      return profiles[0] as UserProfile;
     }
-    return profile;
+    return null;
+  } catch (error) {
+    console.error('Error fetching UserProfile:', error);
+    return null;
+  }
+}
+
+/**
+ * Fetches the UserProfile for a given user ID and org ID
+ */
+export async function getUserProfileForOrg(userId: string, orgId: string): Promise<UserProfile | null> {
+  try {
+    const profiles = await base44.entities.UserProfile.filter({ userId, orgId });
+    if (profiles && profiles.length > 0) {
+      return profiles[0] as UserProfile;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching UserProfile for org:', error);
+    return null;
+  }
+}
+
+/**
+ * Creates or updates a UserProfile record
+ */
+export async function upsertUserProfile(
+  userId: string, 
+  orgId: string, 
+  orgRole: OrgRole
+): Promise<UserProfile | null> {
+  try {
+    const existingProfile = await getUserProfileForOrg(userId, orgId);
+    
+    if (existingProfile) {
+      const updated = await base44.asServiceRole.entities.UserProfile.update(
+        existingProfile.id,
+        { orgRole, isOrgOwner: orgRole === 'owner' }
+      );
+      return updated as UserProfile;
+    } else {
+      const created = await base44.asServiceRole.entities.UserProfile.create({
+        userId,
+        orgId,
+        orgRole,
+        isOrgOwner: orgRole === 'owner'
+      });
+      return created as UserProfile;
+    }
+  } catch (error) {
+    console.error('Error upserting UserProfile:', error);
+    return null;
+  }
+}
+
+/**
+ * Deletes a UserProfile record
+ */
+export async function deleteUserProfile(userId: string, orgId: string): Promise<boolean> {
+  try {
+    const profile = await getUserProfileForOrg(userId, orgId);
+    if (profile) {
+      await base44.asServiceRole.entities.UserProfile.delete(profile.id);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error deleting UserProfile:', error);
+    return false;
+  }
+}
+
+// =============================================================================
+// ROLE CHECK FUNCTIONS (Async - use UserProfile)
+// =============================================================================
+
+/**
+ * Comprehensive role check for a user (async - fetches from UserProfile)
+ */
+export async function checkUserRoleAsync(userId: string, orgId?: string): Promise<RoleCheckResult> {
+  let userProfile: UserProfile | null = null;
+  
+  if (orgId) {
+    userProfile = await getUserProfileForOrg(userId, orgId);
   } else {
-    // Create new
-    const created = await base44.asServiceRole.entities.UserProfile.create({
-      userId: userId,
-      orgId: orgId,
-      orgRole: role
-    });
-    return created;
+    userProfile = await getUserProfile(userId);
   }
+  
+  const orgRole = userProfile?.orgRole || null;
+  
+  return {
+    isOwner: orgRole === 'owner',
+    isManager: orgRole === 'manager',
+    isMember: orgRole === 'member' || orgRole === null,
+    isAdmin: orgRole === 'owner' || orgRole === 'manager',
+    isSuperAdmin: false, // Would need to check User.appRole separately
+    orgRole,
+    userProfile
+  };
 }
 
 /**
- * Get UserProfile for a user in a specific organization
+ * Check if user is an organization owner (async)
  */
-export async function getUserProfileForOrg(base44: any, userId: string, orgId: string): Promise<UserProfile | null> {
-  const profiles = await base44.asServiceRole.entities.UserProfile.filter({
-    userId: userId,
-    orgId: orgId
-  });
-  return profiles.length > 0 ? profiles[0] : null;
+export async function isOrgOwnerAsync(userId: string, orgId?: string): Promise<boolean> {
+  const result = await checkUserRoleAsync(userId, orgId);
+  return result.isOwner;
 }
 
 /**
- * Delete UserProfile for a user (e.g. when removing from org)
+ * Check if user is an organization manager (async)
  */
-export async function deleteUserProfile(base44: any, userId: string, orgId: string): Promise<boolean> {
-  const profiles = await base44.asServiceRole.entities.UserProfile.filter({
-    userId: userId,
-    orgId: orgId
-  });
-  
-  if (profiles.length > 0) {
-    await base44.asServiceRole.entities.UserProfile.delete(profiles[0].id);
-    return true;
-  }
-  return false;
+export async function isOrgManagerAsync(userId: string, orgId?: string): Promise<boolean> {
+  const result = await checkUserRoleAsync(userId, orgId);
+  return result.isManager;
 }
 
 /**
- * Async helper to get effective role including DB lookup
- * Returns the OrgRole
+ * Check if user is an organization admin (owner OR manager) (async)
  */
-export async function getEffectiveOrgRole(base44: any, user: User): Promise<OrgRole> {
-  if (!user.orgId) return ORG_ROLES.MEMBER;
-  
-  // Try to fetch profile
-  const profile = await getUserProfileForOrg(base44, user.id, user.orgId);
-  if (profile) return profile.orgRole;
-  
-  // Fallback to legacy fields
-  if (user.isOrgOwner || user.appRole === APP_ROLES.ORGANIZATION_OWNER) return ORG_ROLES.OWNER;
-  if (user.appRole === 'organization_manager') return ORG_ROLES.MANAGER;
-  
-  return ORG_ROLES.MEMBER;
+export async function isOrgAdminAsync(userId: string, orgId?: string): Promise<boolean> {
+  const result = await checkUserRoleAsync(userId, orgId);
+  return result.isAdmin;
 }
 
 // =============================================================================
-// ROLE CHECK FUNCTIONS (SYNC - Operate on User object mostly)
-// Note: These now accept an optional 'profile' object if available
+// ROLE CHECK FUNCTIONS (Sync - use User object with legacy fields)
 // =============================================================================
 
 /**
- * Check if user is a super admin
+ * Check if user is a super admin (sync - uses User object)
  */
 export function isSuperAdmin(user: User | null | undefined): boolean {
   if (!user) return false;
@@ -149,150 +217,163 @@ export function isSuperAdmin(user: User | null | undefined): boolean {
 }
 
 /**
- * Check if user is the actual organization owner
+ * Check if user is org owner (sync - uses User object with legacy fields)
+ * For new code, prefer isOrgOwnerAsync
  */
-export function isOrgOwner(user: User | null | undefined, profile?: UserProfile | null): boolean {
+export function isOrgOwner(user: User | null | undefined): boolean {
   if (!user) return false;
-  
-  // Check profile first
-  if (profile && profile.orgRole === ORG_ROLES.OWNER) return true;
-  
-  // Legacy compatibility
+  if (user.orgRole === ORG_ROLES.OWNER) return true;
   return user.isOrgOwner === true || user.appRole === APP_ROLES.ORGANIZATION_OWNER;
 }
 
 /**
- * Check if user is an organization manager
+ * Check if user is org manager (sync - uses User object)
  */
-export function isOrgManager(user: User | null | undefined, profile?: UserProfile | null): boolean {
+export function isOrgManager(user: User | null | undefined): boolean {
   if (!user) return false;
-  
-  // Check profile first
-  if (profile && profile.orgRole === ORG_ROLES.MANAGER) return true;
-  
-  return false; // Legacy managers handled via appRole usually, but strictly speaking only via profile now or specific appRole
+  return user.orgRole === ORG_ROLES.MANAGER;
 }
 
 /**
- * Check if user has organization admin privileges (Owner OR Manager)
+ * Check if user is org admin (sync - uses User object)
  */
-export function isOrgAdmin(user: User | null | undefined, profile?: UserProfile | null): boolean {
+export function isOrgAdmin(user: User | null | undefined): boolean {
   if (!user) return false;
-  return isOrgOwner(user, profile) || isOrgManager(user, profile);
+  return isOrgOwner(user) || isOrgManager(user);
 }
 
 /**
- * Check if user has any elevated privileges (super admin or org admin)
+ * Check if user has any admin privileges
  */
-export function hasAdminPrivileges(user: User | null | undefined, profile?: UserProfile | null): boolean {
+export function hasAdminPrivileges(user: User | null | undefined): boolean {
   if (!user) return false;
-  return isSuperAdmin(user) || isOrgAdmin(user, profile);
+  return isSuperAdmin(user) || isOrgAdmin(user);
 }
 
 /**
  * Check if user is a regular team member
  */
-export function isTeamMember(user: User | null | undefined, profile?: UserProfile | null): boolean {
+export function isTeamMember(user: User | null | undefined): boolean {
   if (!user) return false;
-  
-  if (profile && profile.orgRole === ORG_ROLES.MEMBER) return true;
-  
-  // Legacy compatibility
+  if (user.orgRole === ORG_ROLES.MEMBER) return true;
   return user.appRole === APP_ROLES.SALES_REP && !user.isOrgOwner;
 }
 
 // =============================================================================
-// PERMISSION CHECK FUNCTIONS
+// PERMISSION CHECK FUNCTIONS (Async)
 // =============================================================================
 
-export function canAllocateCredits(user: User | null | undefined, profile?: UserProfile | null): boolean {
-  if (!user) return false;
-  return isSuperAdmin(user) || isOrgAdmin(user, profile);
-}
-
-export function canPurchaseCompanyCredits(user: User | null | undefined, profile?: UserProfile | null): boolean {
-  if (!user) return false;
-  return isSuperAdmin(user) || isOrgAdmin(user, profile);
-}
-
-export function canManageTeam(user: User | null | undefined, profile?: UserProfile | null): boolean {
-  if (!user) return false;
-  return isSuperAdmin(user) || isOrgAdmin(user, profile);
-}
-
-export function canPromoteToManager(user: User | null | undefined, profile?: UserProfile | null): boolean {
-  if (!user) return false;
-  return isSuperAdmin(user) || isOrgOwner(user, profile);
-}
-
-export function canDeleteOrganization(user: User | null | undefined, profile?: UserProfile | null): boolean {
-  if (!user) return false;
-  return isSuperAdmin(user) || isOrgOwner(user, profile);
+/**
+ * Check if user can allocate credits (async)
+ */
+export async function canAllocateCreditsAsync(userId: string, orgId?: string): Promise<boolean> {
+  return await isOrgAdminAsync(userId, orgId);
 }
 
 /**
- * Check if currentUser can manage targetUser
+ * Check if user can manage team (async)
  */
-export function canManageUser(
-  currentUser: User | null | undefined, 
-  targetUser: User | null | undefined,
-  currentUserProfile?: UserProfile | null,
-  targetUserProfile?: UserProfile | null
-): boolean {
-  if (!currentUser || !targetUser) return false;
+export async function canManageTeamAsync(userId: string, orgId?: string): Promise<boolean> {
+  return await isOrgAdminAsync(userId, orgId);
+}
+
+/**
+ * Check if user can invite a specific role (async)
+ */
+export async function canInviteRoleAsync(
+  inviterUserId: string, 
+  targetRole: OrgRole, 
+  orgId?: string
+): Promise<boolean> {
+  const inviterRole = await checkUserRoleAsync(inviterUserId, orgId);
   
-  // Super admins can manage anyone
-  if (isSuperAdmin(currentUser)) return true;
-  
-  // Can't manage yourself
-  if (currentUser.id === targetUser.id) return false;
-  
-  // Must be in the same organization
-  if (currentUser.orgId !== targetUser.orgId) return false;
-  
-  // Org owners can manage anyone in their org
-  if (isOrgOwner(currentUser, currentUserProfile)) return true;
-  
-  // Org managers can only manage regular members
-  if (isOrgManager(currentUser, currentUserProfile)) {
-    return isTeamMember(targetUser, targetUserProfile);
-  }
+  if (inviterRole.isOwner) return true;
+  if (inviterRole.isManager && targetRole === 'member') return true;
   
   return false;
 }
 
 /**
- * Check if currentUser can change targetUser's role to newRole
+ * Check if user can remove a team member (async)
  */
+export async function canRemoveTeamMemberAsync(
+  removerUserId: string,
+  targetUserId: string,
+  orgId?: string
+): Promise<boolean> {
+  if (removerUserId === targetUserId) return false;
+  
+  const removerRole = await checkUserRoleAsync(removerUserId, orgId);
+  const targetRole = await checkUserRoleAsync(targetUserId, orgId);
+  
+  if (removerRole.isOwner) return true;
+  if (removerRole.isManager && targetRole.isMember) return true;
+  
+  return false;
+}
+
+/**
+ * Check if user can change roles (async)
+ */
+export async function canChangeRoleAsync(userId: string, orgId?: string): Promise<boolean> {
+  return await isOrgOwnerAsync(userId, orgId);
+}
+
+// =============================================================================
+// PERMISSION CHECK FUNCTIONS (Sync - for backward compatibility)
+// =============================================================================
+
+export function canAllocateCredits(user: User | null | undefined): boolean {
+  if (!user) return false;
+  return isSuperAdmin(user) || isOrgAdmin(user);
+}
+
+export function canPurchaseCompanyCredits(user: User | null | undefined): boolean {
+  if (!user) return false;
+  return isSuperAdmin(user) || isOrgAdmin(user);
+}
+
+export function canManageTeam(user: User | null | undefined): boolean {
+  if (!user) return false;
+  return isSuperAdmin(user) || isOrgAdmin(user);
+}
+
+export function canPromoteToManager(user: User | null | undefined): boolean {
+  if (!user) return false;
+  return isSuperAdmin(user) || isOrgOwner(user);
+}
+
+export function canDeleteOrganization(user: User | null | undefined): boolean {
+  if (!user) return false;
+  return isSuperAdmin(user) || isOrgOwner(user);
+}
+
+export function canManageUser(currentUser: User | null | undefined, targetUser: User | null | undefined): boolean {
+  if (!currentUser || !targetUser) return false;
+  if (isSuperAdmin(currentUser)) return true;
+  if (currentUser.id === targetUser.id) return false;
+  if (currentUser.orgId !== targetUser.orgId) return false;
+  if (isOrgOwner(currentUser)) return true;
+  if (isOrgManager(currentUser)) return isTeamMember(targetUser);
+  return false;
+}
+
 export function canChangeUserRole(
   currentUser: User | null | undefined, 
   targetUser: User | null | undefined, 
-  newRole: string,
-  currentUserProfile?: UserProfile | null
+  newRole: string
 ): boolean {
   if (!currentUser || !targetUser || !newRole) return false;
-  
-  // Super admins can change any role
   if (isSuperAdmin(currentUser)) return true;
-  
-  // Can't change your own role
   if (currentUser.id === targetUser.id) return false;
-  
-  // Must be in the same organization
   if (currentUser.orgId !== targetUser.orgId) return false;
-  
-  // Org owners can promote to manager or demote to member
-  if (isOrgOwner(currentUser, currentUserProfile)) {
+  if (isOrgOwner(currentUser)) {
     return [ORG_ROLES.MANAGER, ORG_ROLES.MEMBER].includes(newRole as OrgRole);
   }
-  
-  // Org managers can only change between member roles (not promote to manager)
-  // Actually managers typically can't change roles at all in this system, only invite
-  // But if they could, they definitely can't promote to manager/owner
-  if (isOrgManager(currentUser, currentUserProfile)) {
-    return false; // Managers cannot change roles of existing users in this design
+  if (isOrgManager(currentUser)) {
+    if (newRole === ORG_ROLES.MANAGER || newRole === ORG_ROLES.OWNER) return false;
+    return isTeamMember(targetUser);
   }
-  
   return false;
 }
 
@@ -309,19 +390,26 @@ export function getOrgRoleDisplayName(orgRole: string | undefined): string {
   return displayNames[orgRole || ''] || orgRole || 'Member';
 }
 
+export function getUserRoleDisplayName(user: User | null | undefined): string {
+  if (!user) return 'Unknown';
+  if (isSuperAdmin(user)) return 'Super Admin';
+  if (user.orgRole) return getOrgRoleDisplayName(user.orgRole);
+  if (user.isOrgOwner || user.appRole === APP_ROLES.ORGANIZATION_OWNER) return 'Owner';
+  if (user.appRole === APP_ROLES.SALES_REP) return 'Member';
+  return 'Member';
+}
+
 export function mapLegacyRoleToOrgRole(legacyRole: string): OrgRole {
-  if (legacyRole === 'organization_owner' || legacyRole === 'admin') {
-    return ORG_ROLES.OWNER;
-  }
-  if (legacyRole === 'organization_manager' || legacyRole === 'manager') {
-    return ORG_ROLES.MANAGER;
-  }
+  if (legacyRole === 'organization_owner' || legacyRole === 'admin') return ORG_ROLES.OWNER;
+  if (legacyRole === 'organization_manager' || legacyRole === 'manager') return ORG_ROLES.MANAGER;
   return ORG_ROLES.MEMBER;
 }
 
 export function mapOrgRoleToLegacyAppRole(orgRole: OrgRole): string {
-  if (orgRole === ORG_ROLES.OWNER) {
-    return APP_ROLES.ORGANIZATION_OWNER;
-  }
+  if (orgRole === ORG_ROLES.OWNER) return APP_ROLES.ORGANIZATION_OWNER;
   return APP_ROLES.SALES_REP;
+}
+
+export function isValidRole(role: string): role is OrgRole {
+  return ['owner', 'manager', 'member'].includes(role);
 }

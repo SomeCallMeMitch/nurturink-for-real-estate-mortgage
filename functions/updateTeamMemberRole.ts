@@ -3,12 +3,12 @@ import {
   isOrgOwner,
   isSuperAdmin,
   canChangeUserRole,
-  canPromoteToManager,
   ORG_ROLES,
   mapOrgRoleToLegacyAppRole,
   getOrgRoleDisplayName,
   upsertUserProfile,
-  getUserProfileForOrg
+  getUserProfileForOrg,
+  checkUserRoleAsync
 } from './utils/roleHelpers.ts';
 
 /**
@@ -17,7 +17,7 @@ import {
  * Permission rules:
  * - Super admins can change any role
  * - Org owners can promote to manager or demote to member
- * - Org managers cannot change roles
+ * - Org managers cannot change roles (they can only invite members)
  */
 Deno.serve(async (req) => {
   try {
@@ -29,9 +29,6 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Get currentUser's profile
-    const currentUserProfile = user.orgId ? await getUserProfileForOrg(base44, user.id, user.orgId) : null;
-
     // Parse request body
     const body = await req.json();
     const { userId, newRole, newOrgRole } = body;
@@ -44,7 +41,7 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Determine the role to use
+    // Determine the role to use (prefer new orgRole, fall back to legacy role)
     let finalOrgRole = newOrgRole;
     
     // Handle new orgRole field
@@ -64,7 +61,6 @@ Deno.serve(async (req) => {
           { status: 400 }
         );
       }
-      // Map legacy role to new orgRole
       if (newRole === 'organization_owner') {
         finalOrgRole = ORG_ROLES.OWNER;
       } else if (newRole === 'organization_manager') {
@@ -102,9 +98,8 @@ Deno.serve(async (req) => {
     }
     
     // Check if current user can change the target user's role
-    if (!canChangeUserRole(user, targetUser, finalOrgRole, currentUserProfile)) {
-      // Provide specific error messages
-      if (!isOrgOwner(user, currentUserProfile) && !isSuperAdmin(user)) {
+    if (!canChangeUserRole(user, targetUser, finalOrgRole)) {
+      if (!isOrgOwner(user) && !isSuperAdmin(user)) {
         return Response.json(
           { error: 'Only organization owners can change team member roles' },
           { status: 403 }
@@ -122,21 +117,18 @@ Deno.serve(async (req) => {
       );
     }
     
+    // Check target user's current role from UserProfile
+    const targetRoleInfo = await checkUserRoleAsync(userId, targetUser.orgId);
+    
     // Prevent demoting the only owner
-    // For this check, we need to count owners in UserProfile
-    if (isOrgOwner(targetUser, null) && finalOrgRole !== ORG_ROLES.OWNER) {
-      // Fetch all profiles for this org with owner role
-      const ownerProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+    if (targetRoleInfo.isOwner && finalOrgRole !== ORG_ROLES.OWNER) {
+      // Check if there are other org owners via UserProfile
+      const orgProfiles = await base44.entities.UserProfile.filter({
         orgId: targetUser.orgId,
-        orgRole: ORG_ROLES.OWNER
+        orgRole: 'owner'
       });
       
-      const ownerCount = ownerProfiles.length;
-      
-      // Fallback to legacy count if profiles not fully migrated? 
-      // Safe to assume for safety we should check User entities too if ownerCount is 0 (which shouldn't happen if they are owner)
-      
-      if (ownerCount <= 1) {
+      if (orgProfiles.length <= 1) {
         return Response.json(
           { error: 'Cannot demote the only organization owner. Promote another member to owner first.' },
           { status: 400 }
@@ -147,14 +139,14 @@ Deno.serve(async (req) => {
     // Map to legacy appRole for backward compatibility
     const finalLegacyRole = mapOrgRoleToLegacyAppRole(finalOrgRole);
     
-    // 1. Update the user's legacy fields
+    // Update the user's legacy fields on User entity
     await base44.asServiceRole.entities.User.update(userId, {
       appRole: finalLegacyRole,
       isOrgOwner: finalOrgRole === ORG_ROLES.OWNER
     });
     
-    // 2. Update the UserProfile
-    await upsertUserProfile(base44, userId, targetUser.orgId, finalOrgRole);
+    // Update or create UserProfile with new role
+    await upsertUserProfile(userId, targetUser.orgId, finalOrgRole);
     
     // Send notification email to the user about role change
     try {
