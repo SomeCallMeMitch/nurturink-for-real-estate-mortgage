@@ -255,6 +255,7 @@ export function getInvitableRoles(inviter, profile = null) {
     return [
       { value: ORG_ROLES.MEMBER, label: 'Member' },
       { value: ORG_ROLES.MANAGER, label: 'Manager' },
+      // Note: Only super admins can invite additional owners
     ];
   }
   
