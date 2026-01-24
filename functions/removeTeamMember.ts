@@ -4,8 +4,7 @@ import {
   isOrgOwner, 
   isOrgManager,
   isSuperAdmin,
-  canManageUser,
-  deleteUserProfile
+  canManageUser 
 } from './utils/roleHelpers.ts';
 
 /**
@@ -79,6 +78,7 @@ Deno.serve(async (req) => {
     
     // Check if current user can manage the target user
     if (!canManageUser(user, targetUser)) {
+      // Provide specific error message based on roles
       if (isOrgManager(user) && (isOrgOwner(targetUser) || isOrgManager(targetUser))) {
         return Response.json(
           { error: 'Managers cannot remove other managers or the organization owner' },
@@ -91,13 +91,11 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Delete the UserProfile record
-    await deleteUserProfile(userId, targetUser.orgId);
-    
     // Remove user from organization (set orgId to null, reset role)
     await base44.asServiceRole.entities.User.update(userId, {
       orgId: null,
       appRole: 'user',
+      orgRole: null,
       isOrgOwner: false
     });
     
@@ -110,6 +108,7 @@ Deno.serve(async (req) => {
       });
     } catch (emailError) {
       console.error('Failed to send removal notification email:', emailError);
+      // Continue anyway - user was removed successfully
     }
     
     return Response.json({

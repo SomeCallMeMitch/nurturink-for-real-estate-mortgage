@@ -5,8 +5,7 @@ import {
   isSuperAdmin, 
   canPromoteToManager,
   ORG_ROLES,
-  mapOrgRoleToLegacyAppRole,
-  upsertUserProfile
+  mapOrgRoleToLegacyAppRole 
 } from './utils/roleHelpers.ts';
 
 /**
@@ -56,6 +55,7 @@ Deno.serve(async (req) => {
       }
     } catch (error) {
       console.error('Failed to load whitelabel settings for logo:', error);
+      // Continue with default logo URL
     }
     
     // Parse request body
@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
           { status: 400 }
         );
       }
+      // Map to legacy role for backward compatibility
       finalLegacyRole = mapOrgRoleToLegacyAppRole(orgRole);
     } 
     // Handle legacy role field
@@ -92,6 +93,7 @@ Deno.serve(async (req) => {
           { status: 400 }
         );
       }
+      // Map legacy role to new orgRole
       if (role === 'organization_owner') {
         finalOrgRole = ORG_ROLES.OWNER;
       } else if (role === 'organization_manager') {
@@ -101,11 +103,13 @@ Deno.serve(async (req) => {
       }
       finalLegacyRole = role === 'organization_manager' ? 'sales_rep' : role;
     } else {
+      // Default to member
       finalOrgRole = ORG_ROLES.MEMBER;
       finalLegacyRole = 'sales_rep';
     }
     
     // Check if user can assign this role
+    // Only owners and super admins can promote to manager or owner
     if ((finalOrgRole === ORG_ROLES.MANAGER || finalOrgRole === ORG_ROLES.OWNER) && !canPromoteToManager(user)) {
       return Response.json(
         { error: 'Only organization owners can invite managers or owners' },
@@ -143,11 +147,9 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.User.update(existingUser.id, {
         orgId: user.orgId,
         appRole: finalLegacyRole,
+        orgRole: finalOrgRole,
         isOrgOwner: finalOrgRole === ORG_ROLES.OWNER
       });
-      
-      // Create UserProfile for the existing user
-      await upsertUserProfile(existingUser.id, user.orgId, finalOrgRole);
       
       // Send notification email to existing user
       try {
@@ -161,12 +163,13 @@ Deno.serve(async (req) => {
           organization_name: organization?.name || 'your organization',
           role: finalLegacyRole,
           role_display: roleDisplay,
-          invitation_token: '',
-          invitation_expires: 'N/A',
-          app_logo_url: logoUrl
+          invitation_token: '', // Not applicable for existing users
+          invitation_expires: 'N/A', // Not applicable
+          app_logo_url: logoUrl // Pass the whitelabel logo
         });
       } catch (emailError) {
         console.error('Failed to send notification email:', emailError);
+        // Continue anyway - user was added successfully
       }
       
       return Response.json({
@@ -226,10 +229,11 @@ Deno.serve(async (req) => {
         role_display: roleDisplay,
         invitation_token: token,
         invitation_expires: `${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}`,
-        app_logo_url: logoUrl
+        app_logo_url: logoUrl // Pass the whitelabel logo
       });
     } catch (emailError) {
       console.error('Failed to send invitation email:', emailError);
+      // Continue anyway - invitation was created successfully
     }
     
     return Response.json({

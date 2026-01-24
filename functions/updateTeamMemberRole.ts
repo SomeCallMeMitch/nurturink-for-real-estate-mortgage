@@ -3,12 +3,10 @@ import {
   isOrgOwner,
   isSuperAdmin,
   canChangeUserRole,
+  canPromoteToManager,
   ORG_ROLES,
   mapOrgRoleToLegacyAppRole,
-  getOrgRoleDisplayName,
-  upsertUserProfile,
-  getUserProfileForOrg,
-  checkUserRoleAsync
+  getOrgRoleDisplayName
 } from './utils/roleHelpers.ts';
 
 /**
@@ -61,6 +59,7 @@ Deno.serve(async (req) => {
           { status: 400 }
         );
       }
+      // Map legacy role to new orgRole
       if (newRole === 'organization_owner') {
         finalOrgRole = ORG_ROLES.OWNER;
       } else if (newRole === 'organization_manager') {
@@ -99,6 +98,7 @@ Deno.serve(async (req) => {
     
     // Check if current user can change the target user's role
     if (!canChangeUserRole(user, targetUser, finalOrgRole)) {
+      // Provide specific error messages
       if (!isOrgOwner(user) && !isSuperAdmin(user)) {
         return Response.json(
           { error: 'Only organization owners can change team member roles' },
@@ -117,18 +117,20 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Check target user's current role from UserProfile
-    const targetRoleInfo = await checkUserRoleAsync(userId, targetUser.orgId);
-    
     // Prevent demoting the only owner
-    if (targetRoleInfo.isOwner && finalOrgRole !== ORG_ROLES.OWNER) {
-      // Check if there are other org owners via UserProfile
-      const orgProfiles = await base44.entities.UserProfile.filter({
-        orgId: targetUser.orgId,
-        orgRole: 'owner'
+    if (isOrgOwner(targetUser) && finalOrgRole !== ORG_ROLES.OWNER) {
+      // Check if there are other org owners
+      const orgUsers = await base44.asServiceRole.entities.User.filter({
+        orgId: targetUser.orgId
       });
       
-      if (orgProfiles.length <= 1) {
+      const ownerCount = orgUsers.filter(u => 
+        u.orgRole === ORG_ROLES.OWNER || 
+        u.appRole === 'organization_owner' || 
+        u.isOrgOwner === true
+      ).length;
+      
+      if (ownerCount <= 1) {
         return Response.json(
           { error: 'Cannot demote the only organization owner. Promote another member to owner first.' },
           { status: 400 }
@@ -139,14 +141,12 @@ Deno.serve(async (req) => {
     // Map to legacy appRole for backward compatibility
     const finalLegacyRole = mapOrgRoleToLegacyAppRole(finalOrgRole);
     
-    // Update the user's legacy fields on User entity
+    // Update the user's role
     await base44.asServiceRole.entities.User.update(userId, {
       appRole: finalLegacyRole,
+      orgRole: finalOrgRole,
       isOrgOwner: finalOrgRole === ORG_ROLES.OWNER
     });
-    
-    // Update or create UserProfile with new role
-    await upsertUserProfile(userId, targetUser.orgId, finalOrgRole);
     
     // Send notification email to the user about role change
     try {
@@ -158,6 +158,7 @@ Deno.serve(async (req) => {
       });
     } catch (emailError) {
       console.error('Failed to send role change notification email:', emailError);
+      // Continue anyway - role was updated successfully
     }
     
     return Response.json({
