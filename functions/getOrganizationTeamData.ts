@@ -15,28 +15,28 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Verify user can access team data (owner, manager, or super admin)
-    if (!isOrgAdmin(user) && !isSuperAdmin(user)) {
-      return Response.json(
-        { error: 'Access denied. Only organization owners, managers, and super admins can view team data.' },
-        { status: 403 }
-      );
+    // Note: We're doing a basic role check here based on the User object first
+    // Detailed profile check happens after determining the orgId
+    if (!user.orgId && !isSuperAdmin(user)) {
+       return Response.json({ error: 'No organization found' }, { status: 400 });
     }
     
-    // Determine which organization to query
     const targetOrgId = user.orgId;
     
-    if (!targetOrgId) {
-      if (isSuperAdmin(user)) {
-        return Response.json(
-          { error: 'You need to be assigned to an organization to view team data.' },
-          { status: 400 }
-        );
-      }
-      return Response.json(
-        { error: 'No organization found' },
-        { status: 400 }
-      );
+    // Fetch profiles to confirm admin status if not super admin
+    if (!isSuperAdmin(user) && targetOrgId) {
+       const profiles = await base44.asServiceRole.entities.UserProfile.filter({
+         userId: user.id,
+         orgId: targetOrgId
+       });
+       const profile = profiles[0] || null;
+       
+       if (!isOrgAdmin(user, profile)) {
+          return Response.json(
+            { error: 'Access denied. Only organization owners and managers can view team data.' },
+            { status: 403 }
+          );
+       }
     }
     
     // Fetch all users in the organization

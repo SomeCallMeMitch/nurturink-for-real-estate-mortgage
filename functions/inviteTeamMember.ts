@@ -26,8 +26,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    // Get inviter's profile for role checking
+    const inviterProfiles = user.orgId ? await base44.asServiceRole.entities.UserProfile.filter({
+      userId: user.id,
+      orgId: user.orgId
+    }) : [];
+    const inviterProfile = inviterProfiles[0] || null;
+    
     // Verify user can manage team (org owner, org manager, or super admin)
-    if (!isOrgAdmin(user) && !isSuperAdmin(user)) {
+    if (!isOrgAdmin(user, inviterProfile) && !isSuperAdmin(user)) {
       return Response.json(
         { error: 'Access denied. Only organization owners and managers can invite team members.' },
         { status: 403 }
@@ -41,13 +48,13 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Load organization for email template (early load - needed for email sending)
+    // Load organization for email template
     const organizations = await base44.asServiceRole.entities.Organization.filter({
       id: user.orgId
     });
     const organization = organizations.length > 0 ? organizations[0] : null;
     
-    // Load whitelabel settings for logo (early load - needed for email sending)
+    // Load whitelabel settings for logo
     let logoUrl = `${Deno.env.get("APP_URL")}/logo.png`;
     try {
       const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
@@ -70,7 +77,7 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Determine the role to use (prefer new orgRole, fall back to legacy role)
+    // Determine the role to use
     let finalOrgRole = orgRole;
     let finalLegacyRole = role;
     
@@ -82,6 +89,7 @@ Deno.serve(async (req) => {
           { status: 400 }
         );
       }
+      // Map to legacy role for backward compatibility
       finalLegacyRole = mapOrgRoleToLegacyAppRole(orgRole);
     } 
     // Handle legacy role field
@@ -92,6 +100,7 @@ Deno.serve(async (req) => {
           { status: 400 }
         );
       }
+      // Map legacy role to new orgRole
       if (role === 'organization_owner') {
         finalOrgRole = ORG_ROLES.OWNER;
       } else if (role === 'organization_manager') {
@@ -101,12 +110,14 @@ Deno.serve(async (req) => {
       }
       finalLegacyRole = role === 'organization_manager' ? 'sales_rep' : role;
     } else {
+      // Default to member
       finalOrgRole = ORG_ROLES.MEMBER;
       finalLegacyRole = 'sales_rep';
     }
     
     // Check if user can assign this role
-    if ((finalOrgRole === ORG_ROLES.MANAGER || finalOrgRole === ORG_ROLES.OWNER) && !canPromoteToManager(user)) {
+    // Only owners and super admins can promote to manager or owner
+    if ((finalOrgRole === ORG_ROLES.MANAGER || finalOrgRole === ORG_ROLES.OWNER) && !canPromoteToManager(user, inviterProfile)) {
       return Response.json(
         { error: 'Only organization owners can invite managers or owners' },
         { status: 403 }
@@ -140,14 +151,16 @@ Deno.serve(async (req) => {
       }
       
       // User exists but has no org - directly assign them
+      
+      // 1. Update legacy fields on User
       await base44.asServiceRole.entities.User.update(existingUser.id, {
         orgId: user.orgId,
         appRole: finalLegacyRole,
         isOrgOwner: finalOrgRole === ORG_ROLES.OWNER
       });
       
-      // Create UserProfile for the existing user
-      await upsertUserProfile(existingUser.id, user.orgId, finalOrgRole);
+      // 2. Create/Update UserProfile with new role
+      await upsertUserProfile(base44, existingUser.id, user.orgId, finalOrgRole);
       
       // Send notification email to existing user
       try {
@@ -161,8 +174,8 @@ Deno.serve(async (req) => {
           organization_name: organization?.name || 'your organization',
           role: finalLegacyRole,
           role_display: roleDisplay,
-          invitation_token: '',
-          invitation_expires: 'N/A',
+          invitation_token: '', // Not applicable for existing users
+          invitation_expires: 'N/A', // Not applicable
           app_logo_url: logoUrl
         });
       } catch (emailError) {
@@ -250,9 +263,6 @@ Deno.serve(async (req) => {
   }
 });
 
-/**
- * Get display name for an orgRole
- */
 function getRoleDisplayName(orgRole: string): string {
   const displayNames: Record<string, string> = {
     'owner': 'Organization Owner',
