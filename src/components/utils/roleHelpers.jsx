@@ -235,3 +235,47 @@ export function mapOrgRoleToLegacyAppRole(orgRole) {
 export function isValidRole(role) {
   return ['owner', 'manager', 'member'].includes(role);
 }
+
+/**
+ * Get roles that the current user can invite
+ * @param {Object} user 
+ * @returns {Array}
+ */
+export function getInvitableRoles(user) {
+  if (!user) return [];
+  if (isSuperAdmin(user)) return [ORG_ROLES.OWNER, ORG_ROLES.MANAGER, ORG_ROLES.MEMBER];
+  
+  if (isOrgOwner(user)) {
+    return [ORG_ROLES.OWNER, ORG_ROLES.MANAGER, ORG_ROLES.MEMBER];
+  }
+  
+  if (isOrgManager(user)) {
+    return [ORG_ROLES.MEMBER];
+  }
+  
+  return [];
+}
+
+/**
+ * Get roles that the current user can assign to others
+ * @param {Object} user 
+ * @returns {Array}
+ */
+export function getAssignableRoles(user) {
+  // Logic is typically the same as invitable roles
+  return getInvitableRoles(user);
+}
+
+/**
+ * Get badge variant for a role (placeholder if unused)
+ * @param {string} role 
+ * @returns {string}
+ */
+export function getRoleBadgeVariant(role) {
+  switch (role) {
+    case ORG_ROLES.OWNER: return 'purple';
+    case ORG_ROLES.MANAGER: return 'blue';
+    case ORG_ROLES.MEMBER: return 'amber';
+    default: return 'gray';
+  }
+}

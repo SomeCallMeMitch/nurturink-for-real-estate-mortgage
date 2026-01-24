@@ -37,7 +37,7 @@ import { useToast } from '@/components/ui/use-toast';
 // PHASE 3: Import CreditContext hook for global credit state
 import { useCredits } from '../components/context/CreditContext';
 import { TransferCreditsDialog } from '@/components/credits/TransferCreditsDialog';
-import { isOrgAdmin, isOrgOwner, isOrgManager, ORG_ROLES } from '@/utils/roleHelpers';
+import { isOrgAdmin, isOrgOwner, isOrgManager, ORG_ROLES } from '@/components/utils/roleHelpers';
 
 export default function Credits() {
   const navigate = useNavigate();

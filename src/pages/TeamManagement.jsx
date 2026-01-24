@@ -62,7 +62,7 @@ import {
   getUserRoleDisplayName,
   getRoleBadgeVariant,
   ORG_ROLES
-} from '@/utils/roleHelpers';
+} from '@/components/utils/roleHelpers';
 
 export default function TeamManagement() {
   const navigate = useNavigate();
