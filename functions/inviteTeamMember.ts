@@ -6,7 +6,8 @@ import {
   canPromoteToManager,
   ORG_ROLES,
   mapOrgRoleToLegacyAppRole,
-  upsertUserProfile
+  upsertUserProfile,
+  getOrgRoleDisplayName
 } from './utils/roleHelpers.ts';
 
 /**
@@ -17,9 +18,7 @@ import {
  * Organization managers can invite: member only
  */
 Deno.serve(async (req) => {
-  // Add detailed logging for debugging
   console.log('=== inviteTeamMember START ===');
-  console.log('ORG_ROLES imported:', JSON.stringify(ORG_ROLES));
   
   try {
     const base44 = createClientFromRequest(req);
@@ -50,13 +49,13 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Load organization for email template (early load - needed for email sending)
+    // Load organization for email template
     const organizations = await base44.asServiceRole.entities.Organization.filter({
       id: user.orgId
     });
     const organization = organizations.length > 0 ? organizations[0] : null;
     
-    // Load whitelabel settings for logo (early load - needed for email sending)
+    // Load whitelabel settings for logo
     let logoUrl = `${Deno.env.get("APP_URL")}/logo.png`;
     try {
       const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
@@ -72,9 +71,7 @@ Deno.serve(async (req) => {
     const { email, role, orgRole } = body;
     
     console.log('Request body:', JSON.stringify({ email, role, orgRole }));
-    console.log('ORG_ROLES.OWNER:', ORG_ROLES?.OWNER);
-    console.log('ORG_ROLES.MANAGER:', ORG_ROLES?.MANAGER);
-    console.log('ORG_ROLES.MEMBER:', ORG_ROLES?.MEMBER);
+    console.log('ORG_ROLES:', JSON.stringify(ORG_ROLES));
     
     // Validate inputs
     if (!email || !email.trim()) {
@@ -91,14 +88,10 @@ Deno.serve(async (req) => {
     // Handle new orgRole field
     if (orgRole) {
       console.log('Processing orgRole:', orgRole);
-      const validOrgRoles = [ORG_ROLES?.OWNER, ORG_ROLES?.MANAGER, ORG_ROLES?.MEMBER];
-      console.log('Valid orgRoles:', JSON.stringify(validOrgRoles));
-      console.log('orgRole included?', validOrgRoles.includes(orgRole));
-      
-      if (!validOrgRoles.includes(orgRole)) {
-        console.log('VALIDATION FAILED: orgRole not in valid list');
+      if (![ORG_ROLES.OWNER, ORG_ROLES.MANAGER, ORG_ROLES.MEMBER].includes(orgRole)) {
+        console.log('VALIDATION FAILED: Invalid orgRole');
         return Response.json(
-          { error: `Invalid orgRole "${orgRole}". Must be "owner", "manager", or "member". Valid values: ${JSON.stringify(validOrgRoles)}` },
+          { error: `Invalid orgRole "${orgRole}". Must be "owner", "manager", or "member"` },
           { status: 400 }
         );
       }
@@ -109,7 +102,7 @@ Deno.serve(async (req) => {
     else if (role) {
       console.log('Processing legacy role:', role);
       if (!['sales_rep', 'organization_owner', 'organization_manager'].includes(role)) {
-        console.log('VALIDATION FAILED: legacy role not in valid list');
+        console.log('VALIDATION FAILED: Invalid legacy role');
         return Response.json(
           { error: 'Invalid role. Must be "sales_rep", "organization_manager", or "organization_owner"' },
           { status: 400 }
@@ -180,14 +173,14 @@ Deno.serve(async (req) => {
         isOrgOwner: finalOrgRole === ORG_ROLES.OWNER
       });
       
-      // Create UserProfile for the existing user
+      // Create UserProfile for the existing user - pass base44 client
       console.log('Creating UserProfile for existing user');
-      await upsertUserProfile(existingUser.id, user.orgId, finalOrgRole);
+      await upsertUserProfile(base44, existingUser.id, user.orgId, finalOrgRole);
       
       // Send notification email to existing user
       try {
         const inviterFirstName = user.full_name?.split(' ')[0] || user.email;
-        const roleDisplay = getRoleDisplayName(finalOrgRole);
+        const roleDisplay = getOrgRoleDisplayName(finalOrgRole);
         
         await base44.functions.invoke('sendTeamInvitationEmail', {
           inviter_firstName: inviterFirstName,
@@ -256,7 +249,7 @@ Deno.serve(async (req) => {
     // Send invitation email
     try {
       const inviterFirstName = user.full_name?.split(' ')[0] || user.email;
-      const roleDisplay = getRoleDisplayName(finalOrgRole);
+      const roleDisplay = getOrgRoleDisplayName(finalOrgRole);
       const daysUntilExpiry = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       
       await base44.functions.invoke('sendTeamInvitationEmail', {
@@ -294,15 +287,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
-/**
- * Get display name for an orgRole
- */
-function getRoleDisplayName(orgRole: string): string {
-  const displayNames: Record<string, string> = {
-    'owner': 'Organization Owner',
-    'manager': 'Organization Manager',
-    'member': 'Team Member',
-  };
-  return displayNames[orgRole] || 'Team Member';
-}

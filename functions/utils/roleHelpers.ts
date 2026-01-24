@@ -8,9 +8,10 @@
  * - owner: Full control of organization (only one per org)
  * - manager: Admin capabilities without ownership
  * - member: Regular team member (sales rep)
+ * 
+ * IMPORTANT: Async functions require the base44 client to be passed as parameter.
+ * The client must be created per-request using createClientFromRequest(req).
  */
-
-import { base44 } from '../base44.config';
 
 // =============================================================================
 // CONSTANTS
@@ -51,7 +52,6 @@ export interface User {
   orgId?: string;
   appRole?: AppRole | string;
   isOrgOwner?: boolean;
-  // Legacy fields
   orgRole?: OrgRole;
   [key: string]: any;
 }
@@ -66,16 +66,19 @@ export interface RoleCheckResult {
   userProfile: UserProfile | null;
 }
 
+// Base44 client type (any for flexibility)
+type Base44Client = any;
+
 // =============================================================================
-// USERPROFILE CRUD FUNCTIONS
+// USERPROFILE CRUD FUNCTIONS (Require base44 client)
 // =============================================================================
 
 /**
  * Fetches the UserProfile for a given user ID
  */
-export async function getUserProfile(userId: string): Promise<UserProfile | null> {
+export async function getUserProfile(base44: Base44Client, userId: string): Promise<UserProfile | null> {
   try {
-    const profiles = await base44.entities.UserProfile.filter({ userId });
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ userId });
     if (profiles && profiles.length > 0) {
       return profiles[0] as UserProfile;
     }
@@ -89,9 +92,9 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 /**
  * Fetches the UserProfile for a given user ID and org ID
  */
-export async function getUserProfileForOrg(userId: string, orgId: string): Promise<UserProfile | null> {
+export async function getUserProfileForOrg(base44: Base44Client, userId: string, orgId: string): Promise<UserProfile | null> {
   try {
-    const profiles = await base44.entities.UserProfile.filter({ userId, orgId });
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ userId, orgId });
     if (profiles && profiles.length > 0) {
       return profiles[0] as UserProfile;
     }
@@ -106,12 +109,13 @@ export async function getUserProfileForOrg(userId: string, orgId: string): Promi
  * Creates or updates a UserProfile record
  */
 export async function upsertUserProfile(
+  base44: Base44Client,
   userId: string, 
   orgId: string, 
   orgRole: OrgRole
 ): Promise<UserProfile | null> {
   try {
-    const existingProfile = await getUserProfileForOrg(userId, orgId);
+    const existingProfile = await getUserProfileForOrg(base44, userId, orgId);
     
     if (existingProfile) {
       const updated = await base44.asServiceRole.entities.UserProfile.update(
@@ -137,9 +141,9 @@ export async function upsertUserProfile(
 /**
  * Deletes a UserProfile record
  */
-export async function deleteUserProfile(userId: string, orgId: string): Promise<boolean> {
+export async function deleteUserProfile(base44: Base44Client, userId: string, orgId: string): Promise<boolean> {
   try {
-    const profile = await getUserProfileForOrg(userId, orgId);
+    const profile = await getUserProfileForOrg(base44, userId, orgId);
     if (profile) {
       await base44.asServiceRole.entities.UserProfile.delete(profile.id);
       return true;
@@ -152,19 +156,19 @@ export async function deleteUserProfile(userId: string, orgId: string): Promise<
 }
 
 // =============================================================================
-// ROLE CHECK FUNCTIONS (Async - use UserProfile)
+// ROLE CHECK FUNCTIONS (Async - require base44 client)
 // =============================================================================
 
 /**
  * Comprehensive role check for a user (async - fetches from UserProfile)
  */
-export async function checkUserRoleAsync(userId: string, orgId?: string): Promise<RoleCheckResult> {
+export async function checkUserRoleAsync(base44: Base44Client, userId: string, orgId?: string): Promise<RoleCheckResult> {
   let userProfile: UserProfile | null = null;
   
   if (orgId) {
-    userProfile = await getUserProfileForOrg(userId, orgId);
+    userProfile = await getUserProfileForOrg(base44, userId, orgId);
   } else {
-    userProfile = await getUserProfile(userId);
+    userProfile = await getUserProfile(base44, userId);
   }
   
   const orgRole = userProfile?.orgRole || null;
@@ -174,7 +178,7 @@ export async function checkUserRoleAsync(userId: string, orgId?: string): Promis
     isManager: orgRole === 'manager',
     isMember: orgRole === 'member' || orgRole === null,
     isAdmin: orgRole === 'owner' || orgRole === 'manager',
-    isSuperAdmin: false, // Would need to check User.appRole separately
+    isSuperAdmin: false,
     orgRole,
     userProfile
   };
@@ -183,29 +187,29 @@ export async function checkUserRoleAsync(userId: string, orgId?: string): Promis
 /**
  * Check if user is an organization owner (async)
  */
-export async function isOrgOwnerAsync(userId: string, orgId?: string): Promise<boolean> {
-  const result = await checkUserRoleAsync(userId, orgId);
+export async function isOrgOwnerAsync(base44: Base44Client, userId: string, orgId?: string): Promise<boolean> {
+  const result = await checkUserRoleAsync(base44, userId, orgId);
   return result.isOwner;
 }
 
 /**
  * Check if user is an organization manager (async)
  */
-export async function isOrgManagerAsync(userId: string, orgId?: string): Promise<boolean> {
-  const result = await checkUserRoleAsync(userId, orgId);
+export async function isOrgManagerAsync(base44: Base44Client, userId: string, orgId?: string): Promise<boolean> {
+  const result = await checkUserRoleAsync(base44, userId, orgId);
   return result.isManager;
 }
 
 /**
  * Check if user is an organization admin (owner OR manager) (async)
  */
-export async function isOrgAdminAsync(userId: string, orgId?: string): Promise<boolean> {
-  const result = await checkUserRoleAsync(userId, orgId);
+export async function isOrgAdminAsync(base44: Base44Client, userId: string, orgId?: string): Promise<boolean> {
+  const result = await checkUserRoleAsync(base44, userId, orgId);
   return result.isAdmin;
 }
 
 // =============================================================================
-// ROLE CHECK FUNCTIONS (Sync - use User object with legacy fields)
+// ROLE CHECK FUNCTIONS (Sync - use User object, no base44 client needed)
 // =============================================================================
 
 /**
@@ -218,7 +222,6 @@ export function isSuperAdmin(user: User | null | undefined): boolean {
 
 /**
  * Check if user is org owner (sync - uses User object with legacy fields)
- * For new code, prefer isOrgOwnerAsync
  */
 export function isOrgOwner(user: User | null | undefined): boolean {
   if (!user) return false;
@@ -260,32 +263,33 @@ export function isTeamMember(user: User | null | undefined): boolean {
 }
 
 // =============================================================================
-// PERMISSION CHECK FUNCTIONS (Async)
+// PERMISSION CHECK FUNCTIONS (Async - require base44 client)
 // =============================================================================
 
 /**
  * Check if user can allocate credits (async)
  */
-export async function canAllocateCreditsAsync(userId: string, orgId?: string): Promise<boolean> {
-  return await isOrgAdminAsync(userId, orgId);
+export async function canAllocateCreditsAsync(base44: Base44Client, userId: string, orgId?: string): Promise<boolean> {
+  return await isOrgAdminAsync(base44, userId, orgId);
 }
 
 /**
  * Check if user can manage team (async)
  */
-export async function canManageTeamAsync(userId: string, orgId?: string): Promise<boolean> {
-  return await isOrgAdminAsync(userId, orgId);
+export async function canManageTeamAsync(base44: Base44Client, userId: string, orgId?: string): Promise<boolean> {
+  return await isOrgAdminAsync(base44, userId, orgId);
 }
 
 /**
  * Check if user can invite a specific role (async)
  */
 export async function canInviteRoleAsync(
+  base44: Base44Client,
   inviterUserId: string, 
   targetRole: OrgRole, 
   orgId?: string
 ): Promise<boolean> {
-  const inviterRole = await checkUserRoleAsync(inviterUserId, orgId);
+  const inviterRole = await checkUserRoleAsync(base44, inviterUserId, orgId);
   
   if (inviterRole.isOwner) return true;
   if (inviterRole.isManager && targetRole === 'member') return true;
@@ -297,14 +301,15 @@ export async function canInviteRoleAsync(
  * Check if user can remove a team member (async)
  */
 export async function canRemoveTeamMemberAsync(
+  base44: Base44Client,
   removerUserId: string,
   targetUserId: string,
   orgId?: string
 ): Promise<boolean> {
   if (removerUserId === targetUserId) return false;
   
-  const removerRole = await checkUserRoleAsync(removerUserId, orgId);
-  const targetRole = await checkUserRoleAsync(targetUserId, orgId);
+  const removerRole = await checkUserRoleAsync(base44, removerUserId, orgId);
+  const targetRole = await checkUserRoleAsync(base44, targetUserId, orgId);
   
   if (removerRole.isOwner) return true;
   if (removerRole.isManager && targetRole.isMember) return true;
@@ -315,12 +320,12 @@ export async function canRemoveTeamMemberAsync(
 /**
  * Check if user can change roles (async)
  */
-export async function canChangeRoleAsync(userId: string, orgId?: string): Promise<boolean> {
-  return await isOrgOwnerAsync(userId, orgId);
+export async function canChangeRoleAsync(base44: Base44Client, userId: string, orgId?: string): Promise<boolean> {
+  return await isOrgOwnerAsync(base44, userId, orgId);
 }
 
 // =============================================================================
-// PERMISSION CHECK FUNCTIONS (Sync - for backward compatibility)
+// PERMISSION CHECK FUNCTIONS (Sync - no base44 client needed)
 // =============================================================================
 
 export function canAllocateCredits(user: User | null | undefined): boolean {
@@ -383,20 +388,20 @@ export function canChangeUserRole(
 
 export function getOrgRoleDisplayName(orgRole: string | undefined): string {
   const displayNames: Record<string, string> = {
-    [ORG_ROLES.OWNER]: 'Owner',
-    [ORG_ROLES.MANAGER]: 'Manager',
-    [ORG_ROLES.MEMBER]: 'Member',
+    [ORG_ROLES.OWNER]: 'Organization Owner',
+    [ORG_ROLES.MANAGER]: 'Organization Manager',
+    [ORG_ROLES.MEMBER]: 'Team Member',
   };
-  return displayNames[orgRole || ''] || orgRole || 'Member';
+  return displayNames[orgRole || ''] || orgRole || 'Team Member';
 }
 
 export function getUserRoleDisplayName(user: User | null | undefined): string {
   if (!user) return 'Unknown';
   if (isSuperAdmin(user)) return 'Super Admin';
   if (user.orgRole) return getOrgRoleDisplayName(user.orgRole);
-  if (user.isOrgOwner || user.appRole === APP_ROLES.ORGANIZATION_OWNER) return 'Owner';
-  if (user.appRole === APP_ROLES.SALES_REP) return 'Member';
-  return 'Member';
+  if (user.isOrgOwner || user.appRole === APP_ROLES.ORGANIZATION_OWNER) return 'Organization Owner';
+  if (user.appRole === APP_ROLES.SALES_REP) return 'Team Member';
+  return 'Team Member';
 }
 
 export function mapLegacyRoleToOrgRole(legacyRole: string): OrgRole {
