@@ -50,6 +50,7 @@ import SidebarDemo from './pages/SidebarDemo';
 import SuperAdminCardManagement from './pages/SuperAdminCardManagement';
 import SuperAdminDashboard from './pages/SuperAdminDashboard';
 import SuperAdminWhitelabel from './pages/SuperAdminWhitelabel';
+import TeamManagement from './pages/TeamManagement';
 import TemplatePreview from './pages/TemplatePreview';
 import Templates from './pages/Templates';
 import TestEmail from './pages/TestEmail';
@@ -59,7 +60,6 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import TeamManagement from './pages/TeamManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -116,6 +116,7 @@ export const PAGES = {
     "SuperAdminCardManagement": SuperAdminCardManagement,
     "SuperAdminDashboard": SuperAdminDashboard,
     "SuperAdminWhitelabel": SuperAdminWhitelabel,
+    "TeamManagement": TeamManagement,
     "TemplatePreview": TemplatePreview,
     "Templates": Templates,
     "TestEmail": TestEmail,
@@ -125,7 +126,6 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
-    "TeamManagement": TeamManagement,
 }
 
 export const pagesConfig = {
