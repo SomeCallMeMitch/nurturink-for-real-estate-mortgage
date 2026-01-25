@@ -127,6 +127,7 @@ Deno.serve(async (req) => {
       });
       
       // Create transaction record for user (allocation in)
+      // Credits flow FROM organization pool TO user
       await base44.asServiceRole.entities.Transaction.create({
         orgId: user.orgId,
         userId: userId,
@@ -135,6 +136,11 @@ Deno.serve(async (req) => {
         balanceAfter: newCompanyAllocated,
         balanceType: 'user',
         description: `Credit allocation from organization pool by ${user.full_name}`,
+        // Required fields for transaction tracking
+        fromAccountId: organization.id,
+        fromAccountType: 'company',
+        toAccountId: userId,
+        toAccountType: 'user',
         metadata: {
           allocatedBy: user.id,
           allocatedByName: user.full_name,
@@ -147,7 +153,11 @@ Deno.serve(async (req) => {
         userName: teamMember.full_name || teamMember.email,
         success: true,
         amount: amount,
-        newBalance: newCompanyAllocated
+        newBalance: newCompanyAllocated,
+        updatedUser: {
+          id: userId,
+          companyAllocatedCredits: newCompanyAllocated
+        }
       });
     }
     
@@ -159,6 +169,7 @@ Deno.serve(async (req) => {
     });
     
     // Create transaction record for organization (allocation out)
+    // Credits flow FROM organization pool TO team members (represented by allocating user as counterparty)
     await base44.asServiceRole.entities.Transaction.create({
       orgId: user.orgId,
       userId: user.id,
@@ -167,6 +178,11 @@ Deno.serve(async (req) => {
       balanceAfter: newOrgBalance,
       balanceType: 'organization',
       description: `Allocated ${totalToAllocate} credits to team members`,
+      // Required fields for transaction tracking
+      fromAccountId: organization.id,
+      fromAccountType: 'company',
+      toAccountId: user.id,
+      toAccountType: 'user',
       metadata: {
         allocationCount: allocationResults.filter(r => r.success).length,
         allocations: allocations
