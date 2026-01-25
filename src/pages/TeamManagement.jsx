@@ -265,15 +265,8 @@ export default function TeamManagement() {
     try {
       setInviting(true);
       
-      // DEBUG: Log exactly what we're sending to the backend
-      console.log('=== INVITE DEBUG START ===');
-      console.log('inviteEmail:', inviteEmail.trim());
-      console.log('inviteRole (orgRole):', inviteRole);
-      console.log('ORG_ROLES constant:', ORG_ROLES);
-      console.log('Payload being sent:', JSON.stringify({ email: inviteEmail.trim(), orgRole: inviteRole }));
-      console.log('=== INVITE DEBUG END ===');
-      
-      const response = await base44.functions.invoke('inviteTeamMember', {
+      // Use inviteTeamMemberV2 (standalone version with inlined helpers)
+      const response = await base44.functions.invoke('inviteTeamMemberV2', {
         email: inviteEmail.trim(),
         orgRole: inviteRole
       });
