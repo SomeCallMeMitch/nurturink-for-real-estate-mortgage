@@ -1,9 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { isOrgAdmin, canAllocateCredits } from './utils/roleHelpers.ts';
 
 /**
  * Allocate credits from organization pool to team members
- * Organization owners AND managers can perform this action
+ * Only organization owners can perform this action
  * Credits are allocated to user.companyAllocatedCredits
  */
 Deno.serve(async (req) => {
@@ -16,10 +15,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Verify user can allocate credits (org owner, org manager, or super admin)
-    if (!canAllocateCredits(user)) {
+    // Verify user is organization owner (check both appRole and isOrgOwner flag)
+    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    
+    if (!isOrgOwner) {
       return Response.json(
-        { error: 'Only organization owners and managers can allocate credits' },
+        { error: 'Only organization owners can allocate credits' },
         { status: 403 }
       );
     }

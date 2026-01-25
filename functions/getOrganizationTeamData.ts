@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { isOrgAdmin, isSuperAdmin, ORG_ROLES } from './utils/roleHelpers.ts';
 
 /**
  * Get comprehensive team data for an organization
@@ -15,10 +14,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Verify user can access team data (owner, manager, or super admin)
-    if (!isOrgAdmin(user) && !isSuperAdmin(user)) {
+    // Verify user is organization owner or super admin
+    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    const isSuperAdmin = user.appRole === 'super_admin';
+    
+    // Super admins with isOrgOwner flag OR organization owners can access
+    if (!isOrgOwner && !isSuperAdmin) {
       return Response.json(
-        { error: 'Access denied. Only organization owners, managers, and super admins can view team data.' },
+        { error: 'Access denied. Only organization owners and super admins can view team data.' },
         { status: 403 }
       );
     }
@@ -27,9 +30,10 @@ Deno.serve(async (req) => {
     const targetOrgId = user.orgId;
     
     if (!targetOrgId) {
-      if (isSuperAdmin(user)) {
+      // For super_admin without orgId, provide helpful error
+      if (isSuperAdmin) {
         return Response.json(
-          { error: 'You need to be assigned to an organization to view team data.' },
+          { error: 'You need to be assigned to an organization to view team data. Please set your orgId in your user profile or use the admin dashboard to select an organization.' },
           { status: 400 }
         );
       }
@@ -44,17 +48,6 @@ Deno.serve(async (req) => {
       orgId: targetOrgId
     });
     
-    // Fetch all UserProfiles for this organization
-    const userProfiles = await base44.asServiceRole.entities.UserProfile.filter({
-      orgId: targetOrgId
-    });
-    
-    // Create a map of userId -> UserProfile for quick lookup
-    const profileMap = new Map();
-    for (const profile of userProfiles) {
-      profileMap.set(profile.userId, profile);
-    }
-    
     // Fetch pending invitations
     const pendingInvitations = await base44.asServiceRole.entities.Invitation.filter({
       orgId: targetOrgId,
@@ -63,20 +56,6 @@ Deno.serve(async (req) => {
     
     // Map team members to response format
     const membersWithStats = teamMembers.map((member) => {
-      // Get UserProfile for this member
-      const profile = profileMap.get(member.id);
-      
-      // Determine orgRole from UserProfile or fall back to legacy
-      let orgRole = profile?.orgRole || null;
-      if (!orgRole) {
-        // Legacy fallback
-        if (member.isOrgOwner || member.appRole === 'organization_owner') {
-          orgRole = ORG_ROLES.OWNER;
-        } else {
-          orgRole = ORG_ROLES.MEMBER;
-        }
-      }
-      
       // Generate initials for avatar
       const nameParts = (member.full_name || member.email).split(' ');
       const initials = nameParts.length >= 2 
@@ -88,17 +67,12 @@ Deno.serve(async (req) => {
         name: member.full_name || member.email,
         email: member.email,
         initials: initials,
-        role: member.appRole || 'sales_rep', // Legacy field
-        orgRole: orgRole, // New field from UserProfile
-        isOrgOwner: orgRole === ORG_ROLES.OWNER,
-        isOrgManager: orgRole === ORG_ROLES.MANAGER,
+        role: member.appRole || 'sales_rep',
+        isOrgOwner: member.appRole === 'organization_owner' || member.isOrgOwner === true,
         status: 'Active',
-        credits: (member.companyAllocatedCredits || 0) + (member.personalPurchasedCredits || 0),
-        companyAllocatedCredits: member.companyAllocatedCredits || 0,
-        personalPurchasedCredits: member.personalPurchasedCredits || 0,
-        canAccessCompanyPool: member.canAccessCompanyPool || false,
-        cardsSent: 0,
-        cardsSentThisMonth: 0,
+        credits: member.creditBalance || 0,
+        cardsSent: 0, // Stats will be added in future optimization
+        cardsSentThisMonth: 0, // Stats will be added in future optimization
         lastActive: member.updated_date || member.created_date,
         createdAt: member.created_date
       };
@@ -111,15 +85,10 @@ Deno.serve(async (req) => {
       name: invitation.email,
       email: invitation.email,
       initials: invitation.email[0].toUpperCase(),
-      role: invitation.role, // Legacy field
-      orgRole: invitation.orgRole || ORG_ROLES.MEMBER, // New field
-      isOrgOwner: invitation.orgRole === ORG_ROLES.OWNER || invitation.role === 'organization_owner',
-      isOrgManager: invitation.orgRole === ORG_ROLES.MANAGER,
+      role: invitation.role,
+      isOrgOwner: invitation.role === 'organization_owner',
       status: 'Pending',
       credits: 0,
-      companyAllocatedCredits: 0,
-      personalPurchasedCredits: 0,
-      canAccessCompanyPool: false,
       cardsSent: 0,
       cardsSentThisMonth: 0,
       lastActive: invitation.createdAt,
@@ -135,7 +104,7 @@ Deno.serve(async (req) => {
     
     // Calculate summary statistics
     const activeMembers = membersWithStats.filter(m => m.status === 'Active').length;
-    const adminCount = membersWithStats.filter(m => m.isOrgOwner || m.isOrgManager).length;
+    const adminCount = membersWithStats.filter(m => m.isOrgOwner).length;
     const totalCardsSent = membersWithStats.reduce((sum, m) => sum + m.cardsSent, 0);
     
     const summaryStats = {

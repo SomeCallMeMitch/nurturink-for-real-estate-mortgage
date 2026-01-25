@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Save, AlertCircle, Building2 } from "lucide-react";
-import { isOrgAdmin } from '@/components/utils/roleHelpers';
 
 export default function SettingsOrganization() {
   const [user, setUser] = useState(null);
@@ -40,14 +39,14 @@ export default function SettingsOrganization() {
       
       setUser(currentUser);
       
-      // Check if user is organization admin (owner or manager)
-      const userIsOrgAdmin = isOrgAdmin(currentUser);
+      // Check if user is organization owner (check both appRole and isOrgOwner flag)
+      const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
       
-      console.log('🔍 SettingsOrganization - isOrgAdmin check result:', userIsOrgAdmin);
+      console.log('🔍 SettingsOrganization - isOrgOwner check result:', isOrgOwner);
       
-      if (!userIsOrgAdmin) {
-        console.error('❌ SettingsOrganization - Access denied: User is not an organization admin');
-        setError('Only organization owners and managers can manage organization settings.');
+      if (!isOrgOwner) {
+        console.error('❌ SettingsOrganization - Access denied: User is not an organization owner');
+        setError('Only organization owners can manage organization settings.');
         setLoading(false);
         return;
       }

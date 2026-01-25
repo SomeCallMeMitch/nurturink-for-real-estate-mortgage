@@ -23,7 +23,6 @@ import {
 // Import modular components
 import QuickSendFilterControls from '@/components/quicksend/QuickSendFilterControls';
 import QuickSendTemplateCard from '@/components/quicksend/QuickSendTemplateCard';
-import { isOrgAdmin, isSuperAdmin } from '@/components/utils/roleHelpers';
 
 export default function QuickSendTemplates() {
   const navigate = useNavigate();
@@ -156,9 +155,9 @@ export default function QuickSendTemplates() {
   // Permission helper
   const canEditTemplate = (template) => {
     if (!user) return false;
-    if (template.type === 'platform') return isSuperAdmin(user);
+    if (template.type === 'platform') return user.appRole === 'super_admin';
     if (template.type === 'organization') {
-      return isOrgAdmin(user) || isSuperAdmin(user);
+      return user.appRole === 'organization_owner' || user.appRole === 'super_admin';
     }
     return template.createdByUserId === user.id;
   };

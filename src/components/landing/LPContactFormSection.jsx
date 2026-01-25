@@ -39,7 +39,7 @@ const LPContactFormSection = () => {
   };
 
   return (
-    <section id="contact" className="bg-gray-50 py-8 lg:py-12">
+    <section id="contact" className="bg-gray-50 py-16 lg:py-24">
       <div className="max-w-6xl mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Left Column - Contact Info */}

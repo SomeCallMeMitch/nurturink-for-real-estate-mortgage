@@ -56,7 +56,7 @@ const LPPricingSection = () => {
   };
 
   return (
-    <section id="pricing" className="bg-gray-50 py-8 lg:py-12">
+    <section id="pricing" className="bg-gray-50 py-16 lg:py-24">
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">

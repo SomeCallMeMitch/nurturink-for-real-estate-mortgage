@@ -9,7 +9,7 @@ const LPSocialProofLogos = () => {
   ];
 
   return (
-    <section style={{ backgroundColor: '#1a2332' }} className="py-3">
+    <section style={{ backgroundColor: '#1a2332' }} className="py-6">
       <div className="max-w-[1400px] mx-auto px-6">
         <div className="flex justify-center items-center gap-8 lg:gap-16 flex-wrap">
           {stats.map((stat, index) => {

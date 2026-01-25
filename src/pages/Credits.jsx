@@ -37,7 +37,6 @@ import { useToast } from '@/components/ui/use-toast';
 // PHASE 3: Import CreditContext hook for global credit state
 import { useCredits } from '../components/context/CreditContext';
 import { TransferCreditsDialog } from '@/components/credits/TransferCreditsDialog';
-import { isOrgAdmin, isOrgOwner, isOrgManager, ORG_ROLES } from '@/components/utils/roleHelpers';
 
 export default function Credits() {
   const navigate = useNavigate();
@@ -125,10 +124,10 @@ export default function Credits() {
         }
       }
       
-      // Load company pool stats if user is org admin (owner or manager)
-      const userIsOrgAdmin = isOrgAdmin(currentUser);
+      // Load company pool stats if user is org owner (check both appRole and isOrgOwner flag)
+      const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
       
-      if (userIsOrgAdmin && currentUser.orgId) {
+      if (isOrgOwner && currentUser.orgId) {
         try {
           const statsResponse = await base44.functions.invoke('getCompanyPoolStats');
           setCompanyPoolStats(statsResponse.data);
@@ -195,8 +194,8 @@ export default function Credits() {
     }
   };
 
-  // Determine if this is individual or company view (org admins see company view)
-  const isCompanyView = isOrgAdmin(user) && organization;
+  // Determine if this is individual or company view (check both appRole and isOrgOwner flag)
+  const isCompanyView = (user?.appRole === 'organization_owner' || user?.isOrgOwner === true) && organization;
 
   // Get current balance for display - UPDATED FOR NEW SYSTEM
   const companyAllocatedBalance = user?.companyAllocatedCredits || 0;

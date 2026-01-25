@@ -2,7 +2,7 @@
 ## Master Prompt Template for LLM Generation
 
 **Version:** 1.0  
-**Purpose:** Generate niche-specific card designs, messages,  automations for NurturInk  
+**Purpose:** Generate niche-specific card designs, messages, and automations for NurturInk  
 **Format:** Multi-phase YAML-based prompt  
 **Target Niches:** 11 industries with customizable phases
 

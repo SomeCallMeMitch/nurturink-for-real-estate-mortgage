@@ -1,23 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { 
-  isOrgOwner,
-  isSuperAdmin,
-  canChangeUserRole,
-  ORG_ROLES,
-  mapOrgRoleToLegacyAppRole,
-  getOrgRoleDisplayName,
-  upsertUserProfile,
-  getUserProfileForOrg,
-  checkUserRoleAsync
-} from './utils/roleHelpers.ts';
 
 /**
  * Update a team member's role within the organization
- * 
- * Permission rules:
- * - Super admins can change any role
- * - Org owners can promote to manager or demote to member
- * - Org managers cannot change roles (they can only invite members)
  */
 Deno.serve(async (req) => {
   try {
@@ -29,9 +13,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    // Verify user is organization owner or super admin
+    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    const isSuperAdmin = user.appRole === 'super_admin';
+    
+    if (!isOrgOwner && !isSuperAdmin) {
+      return Response.json(
+        { error: 'Access denied. Only organization owners can change team member roles.' },
+        { status: 403 }
+      );
+    }
+    
     // Parse request body
     const body = await req.json();
-    const { userId, newRole, newOrgRole } = body;
+    const { userId, newRole } = body;
     
     // Validate inputs
     if (!userId) {
@@ -41,36 +36,9 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Determine the role to use (prefer new orgRole, fall back to legacy role)
-    let finalOrgRole = newOrgRole;
-    
-    // Handle new orgRole field
-    if (newOrgRole) {
-      if (![ORG_ROLES.OWNER, ORG_ROLES.MANAGER, ORG_ROLES.MEMBER].includes(newOrgRole)) {
-        return Response.json(
-          { error: 'Invalid orgRole. Must be "owner", "manager", or "member"' },
-          { status: 400 }
-        );
-      }
-    } 
-    // Handle legacy role field
-    else if (newRole) {
-      if (!['sales_rep', 'organization_owner', 'organization_manager'].includes(newRole)) {
-        return Response.json(
-          { error: 'Invalid role. Must be "sales_rep", "organization_manager", or "organization_owner"' },
-          { status: 400 }
-        );
-      }
-      if (newRole === 'organization_owner') {
-        finalOrgRole = ORG_ROLES.OWNER;
-      } else if (newRole === 'organization_manager') {
-        finalOrgRole = ORG_ROLES.MANAGER;
-      } else {
-        finalOrgRole = ORG_ROLES.MEMBER;
-      }
-    } else {
+    if (!newRole || !['sales_rep', 'organization_owner'].includes(newRole)) {
       return Response.json(
-        { error: 'newRole or newOrgRole is required' },
+        { error: 'Invalid role. Must be "sales_rep" or "organization_owner"' },
         { status: 400 }
       );
     }
@@ -89,83 +57,49 @@ Deno.serve(async (req) => {
     
     const targetUser = targetUsers[0];
     
-    // Verify user belongs to the same organization (unless super admin)
-    if (!isSuperAdmin(user) && targetUser.orgId !== user.orgId) {
+    // Verify user belongs to the same organization
+    if (targetUser.orgId !== user.orgId) {
       return Response.json(
         { error: 'This user does not belong to your organization' },
         { status: 403 }
       );
     }
     
-    // Check if current user can change the target user's role
-    if (!canChangeUserRole(user, targetUser, finalOrgRole)) {
-      if (!isOrgOwner(user) && !isSuperAdmin(user)) {
-        return Response.json(
-          { error: 'Only organization owners can change team member roles' },
-          { status: 403 }
-        );
-      }
-      if (userId === user.id) {
-        return Response.json(
-          { error: 'You cannot change your own role' },
-          { status: 400 }
-        );
-      }
-      return Response.json(
-        { error: 'You do not have permission to assign this role' },
-        { status: 403 }
-      );
-    }
-    
-    // Check target user's current role from UserProfile
-    const targetRoleInfo = await checkUserRoleAsync(userId, targetUser.orgId);
-    
-    // Prevent demoting the only owner
-    if (targetRoleInfo.isOwner && finalOrgRole !== ORG_ROLES.OWNER) {
-      // Check if there are other org owners via UserProfile
-      const orgProfiles = await base44.entities.UserProfile.filter({
-        orgId: targetUser.orgId,
-        orgRole: 'owner'
+    // Prevent user from demoting themselves if they're the only admin
+    if (userId === user.id && newRole !== 'organization_owner') {
+      // Check if there are other org owners
+      const orgOwners = await base44.asServiceRole.entities.User.filter({
+        orgId: user.orgId
       });
       
-      if (orgProfiles.length <= 1) {
+      const ownerCount = orgOwners.filter(u => 
+        u.appRole === 'organization_owner' || u.isOrgOwner === true
+      ).length;
+      
+      if (ownerCount <= 1) {
         return Response.json(
-          { error: 'Cannot demote the only organization owner. Promote another member to owner first.' },
+          { error: 'Cannot demote yourself. You are the only organization owner. Promote another member first.' },
           { status: 400 }
         );
       }
     }
     
-    // Map to legacy appRole for backward compatibility
-    const finalLegacyRole = mapOrgRoleToLegacyAppRole(finalOrgRole);
-    
-    // Update the user's legacy fields on User entity
+    // Update the user's role
     await base44.asServiceRole.entities.User.update(userId, {
-      appRole: finalLegacyRole,
-      isOrgOwner: finalOrgRole === ORG_ROLES.OWNER
+      appRole: newRole,
+      isOrgOwner: newRole === 'organization_owner'
     });
     
-    // Update or create UserProfile with new role
-    await upsertUserProfile(userId, targetUser.orgId, finalOrgRole);
-    
-    // Send notification email to the user about role change
-    try {
-      await base44.functions.invoke('sendRoleChangedEmail', {
-        user_email: targetUser.email,
-        user_name: targetUser.full_name || targetUser.email,
-        new_role: getOrgRoleDisplayName(finalOrgRole),
-        changed_by_name: user.full_name || user.email
-      });
-    } catch (emailError) {
-      console.error('Failed to send role change notification email:', emailError);
-    }
+    // TODO: Send notification email to the user about role change
+    console.log(`📧 [SIMULATED EMAIL] To: ${targetUser.email}`);
+    console.log(`Subject: Your role has been updated`);
+    console.log(`Body: Your role has been changed to ${newRole === 'organization_owner' ? 'Organization Owner' : 'Sales Representative'}.`);
     
     return Response.json({
       success: true,
       message: 'Team member role updated successfully',
       userId: userId,
-      newRole: finalLegacyRole,
-      newOrgRole: finalOrgRole
+      newRole: newRole
     });
     
   } catch (error) {
