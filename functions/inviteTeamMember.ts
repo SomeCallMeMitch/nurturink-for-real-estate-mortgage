@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-// FORCE REDEPLOY: 2026-01-25-v3
+// BUILD: 2026-01-25-v5-fresh
 import { 
   ORG_ROLES,
   isSuperAdmin,
@@ -18,10 +18,11 @@ import {
  * Organization managers can invite: member only
  * Super admins can invite: owner, manager, member
  * 
- * @version 2026-01-25-v2 - Added debug logging for role validation
+ * @version 2026-01-25-v5-fresh - Complete rewrite to force fresh deployment
  */
 Deno.serve(async (req) => {
-  console.log('=== inviteTeamMember START v2026-01-25-v2 ===');
+  console.log('=== inviteTeamMember v5-fresh START ===');
+  console.log('BUILD_ID: 2026-01-25-v5-fresh');
   
   try {
     const base44 = createClientFromRequest(req);
@@ -79,15 +80,12 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { email, role, orgRole } = body;
     
-    console.log('=== REQUEST BODY DEBUG ===');
+    console.log('=== REQUEST BODY DEBUG v5-fresh ===');
     console.log('Raw body:', JSON.stringify(body));
     console.log('email:', email);
     console.log('role (legacy):', role);
     console.log('orgRole (new):', orgRole);
     console.log('ORG_ROLES constant:', JSON.stringify(ORG_ROLES));
-    console.log('ORG_ROLES.OWNER:', ORG_ROLES.OWNER);
-    console.log('ORG_ROLES.MANAGER:', ORG_ROLES.MANAGER);
-    console.log('ORG_ROLES.MEMBER:', ORG_ROLES.MEMBER);
     console.log('=== END REQUEST BODY DEBUG ===');
     
     // Validate inputs
@@ -105,10 +103,13 @@ Deno.serve(async (req) => {
     if (orgRole) {
       console.log('Processing orgRole:', orgRole);
       const validOrgRoles = [ORG_ROLES.OWNER, ORG_ROLES.MANAGER, ORG_ROLES.MEMBER];
+      console.log('Valid orgRoles:', validOrgRoles);
+      console.log('orgRole included?:', validOrgRoles.includes(orgRole));
+      
       if (!validOrgRoles.includes(orgRole)) {
-        console.log('VALIDATION FAILED: Invalid orgRole. Valid roles:', validOrgRoles);
+        console.log('VALIDATION FAILED v5: Invalid orgRole. Valid roles:', validOrgRoles, 'Received:', orgRole);
         return Response.json(
-          { error: `Invalid orgRole "${orgRole}". Must be "owner", "manager", or "member"` },
+          { error: `Invalid orgRole "${orgRole}". Must be "owner", "manager", or "member" (v5-fresh)` },
           { status: 400 }
         );
       }
@@ -117,9 +118,9 @@ Deno.serve(async (req) => {
     else if (role) {
       console.log('Processing legacy role:', role);
       if (!['sales_rep', 'organization_owner', 'organization_manager'].includes(role)) {
-        console.log('VALIDATION FAILED: Invalid legacy role');
+        console.log('VALIDATION FAILED v5: Invalid legacy role');
         return Response.json(
-          { error: 'Invalid role. Must be "sales_rep", "organization_manager", or "organization_owner"' },
+          { error: 'Invalid role. Must be "sales_rep", "organization_manager", or "organization_owner" (v5-fresh)' },
           { status: 400 }
         );
       }
@@ -296,7 +297,7 @@ Deno.serve(async (req) => {
     });
     
   } catch (error) {
-    console.error('=== inviteTeamMember ERROR ===');
+    console.error('=== inviteTeamMember ERROR v5-fresh ===');
     console.error('Error in inviteTeamMember:', error);
     console.error('Error stack:', error.stack);
     return Response.json(
