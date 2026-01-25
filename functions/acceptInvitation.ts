@@ -1,5 +1,5 @@
 // functions/acceptInvitation.js
-// Auth-required endpoint - completes invitation acceptance
+// Auth-required endpoint - completes invitation acceptancey
 // Links the authenticated user to the organization
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
