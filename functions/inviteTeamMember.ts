@@ -78,8 +78,16 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { email, role, orgRole } = body;
     
-    console.log('Request body:', JSON.stringify({ email, role, orgRole }));
-    console.log('ORG_ROLES:', JSON.stringify(ORG_ROLES));
+    console.log('=== REQUEST BODY DEBUG ===');
+    console.log('Raw body:', JSON.stringify(body));
+    console.log('email:', email);
+    console.log('role (legacy):', role);
+    console.log('orgRole (new):', orgRole);
+    console.log('ORG_ROLES constant:', JSON.stringify(ORG_ROLES));
+    console.log('ORG_ROLES.OWNER:', ORG_ROLES.OWNER);
+    console.log('ORG_ROLES.MANAGER:', ORG_ROLES.MANAGER);
+    console.log('ORG_ROLES.MEMBER:', ORG_ROLES.MEMBER);
+    console.log('=== END REQUEST BODY DEBUG ===');
     
     // Validate inputs
     if (!email || !email.trim()) {
