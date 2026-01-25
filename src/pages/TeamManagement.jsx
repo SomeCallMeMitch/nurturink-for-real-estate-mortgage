@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { getInvitableRoles, ORG_ROLES, getUserRoleDisplayName } from '@/components/utils/roleHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,7 @@ export default function TeamManagement() {
   const { toast } = useToast();
   
   const [user, setUser] = useState(null);
+  const [currentUserOrgProfile, setCurrentUserOrgProfile] = useState(null);
   const [members, setMembers] = useState([]);
   const [summaryStats, setSummaryStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ export default function TeamManagement() {
   
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('sales_rep');
+  const [inviteRole, setInviteRole] = useState(ORG_ROLES.MEMBER);
   const [inviting, setInviting] = useState(false);
   
   const [roleChangeDialogOpen, setRoleChangeDialogOpen] = useState(false);
@@ -116,11 +118,26 @@ export default function TeamManagement() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
+      console.log('TeamManagement: Invoking getOrganizationTeamData...');
+      const response = await base44.functions.invoke('getOrganizationTeamData');
+      console.log('TeamManagement: Response received:', response);
+      
+      if (!response.data) {
+        throw new Error('Invalid response from getOrganizationTeamData - no data property');
+      }
+      
+      // Get current user's orgProfile from response
+      const currentUserData = response.data.currentUser;
+      setCurrentUserOrgProfile(currentUserData?.orgProfile || null);
+      
+      // Check permissions using orgRole from response
+      const userOrgRole = currentUserData?.orgProfile?.orgRole;
+      const isOrgOwner = userOrgRole === ORG_ROLES.OWNER || currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
+      const isOrgManager = userOrgRole === ORG_ROLES.MANAGER || currentUser.appRole === 'organization_manager';
       const isSuperAdmin = currentUser.appRole === 'super_admin';
       
-      if (!isOrgOwner && !isSuperAdmin) {
-        setError('Access denied. Only organization owners can manage team members.');
+      if (!isOrgOwner && !isOrgManager && !isSuperAdmin) {
+        setError('Access denied. Only organization owners and managers can manage team members.');
         setLoading(false);
         return;
       }
@@ -129,14 +146,6 @@ export default function TeamManagement() {
         setError('You must belong to an organization to manage team members.');
         setLoading(false);
         return;
-      }
-      
-      console.log('TeamManagement: Invoking getOrganizationTeamData...');
-      const response = await base44.functions.invoke('getOrganizationTeamData');
-      console.log('TeamManagement: Response received:', response);
-      
-      if (!response.data) {
-        throw new Error('Invalid response from getOrganizationTeamData - no data property');
       }
       
       setMembers(response.data.members || []);
@@ -187,8 +196,14 @@ export default function TeamManagement() {
   };
 
   const getRoleBadge = (member) => {
-    if (member.isOrgOwner) {
-      return <Badge className="bg-purple-100 text-purple-800"><Shield className="w-3 h-3 mr-1" />Admin</Badge>;
+    // Use orgProfile.orgRole if available, fall back to legacy isOrgOwner
+    const orgRole = member.orgProfile?.orgRole;
+    
+    if (orgRole === ORG_ROLES.OWNER || member.isOrgOwner) {
+      return <Badge className="bg-purple-100 text-purple-800"><Shield className="w-3 h-3 mr-1" />Owner</Badge>;
+    }
+    if (orgRole === ORG_ROLES.MANAGER) {
+      return <Badge className="bg-blue-100 text-blue-800"><UserCog className="w-3 h-3 mr-1" />Manager</Badge>;
     }
     return <Badge className="bg-amber-100 text-amber-800"><Users className="w-3 h-3 mr-1" />Member</Badge>;
   };
@@ -214,6 +229,16 @@ export default function TeamManagement() {
     );
   };
 
+  // Get invitable roles based on current user's permissions
+  const invitableRoles = useMemo(() => {
+    // Create a user object with orgProfile for permission check
+    const userWithProfile = {
+      ...user,
+      orgProfile: currentUserOrgProfile
+    };
+    return getInvitableRoles(userWithProfile, currentUserOrgProfile);
+  }, [user, currentUserOrgProfile]);
+
   const handleInvite = async () => {
     if (!inviteEmail.trim()) {
       toast({
@@ -229,7 +254,7 @@ export default function TeamManagement() {
       
       const response = await base44.functions.invoke('inviteTeamMember', {
         email: inviteEmail.trim(),
-        role: inviteRole
+        orgRole: inviteRole
       });
 
       toast({
@@ -244,7 +269,7 @@ export default function TeamManagement() {
 
       setInviteModalOpen(false);
       setInviteEmail('');
-      setInviteRole('sales_rep');
+      setInviteRole(ORG_ROLES.MEMBER);
       await loadData();
       
     } catch (error) {
@@ -261,7 +286,10 @@ export default function TeamManagement() {
 
   const handleOpenRoleChange = (member) => {
     setSelectedMember(member);
-    setNewRole(member.isOrgOwner ? 'organization_owner' : 'sales_rep');
+    // Use orgRole from orgProfile, fall back to legacy mapping
+    const currentOrgRole = member.orgProfile?.orgRole || 
+      (member.isOrgOwner ? ORG_ROLES.OWNER : ORG_ROLES.MEMBER);
+    setNewRole(currentOrgRole);
     setRoleChangeDialogOpen(true);
   };
 
@@ -273,12 +301,15 @@ export default function TeamManagement() {
       
       await base44.functions.invoke('updateTeamMemberRole', {
         userId: selectedMember.userId,
-        newRole: newRole
+        orgRole: newRole
       });
+
+      const roleLabel = newRole === ORG_ROLES.OWNER ? 'Owner' : 
+                       newRole === ORG_ROLES.MANAGER ? 'Manager' : 'Member';
 
       toast({
         title: 'Role Updated! ✓',
-        description: `${selectedMember.name}'s role has been changed to ${newRole === 'organization_owner' ? 'Admin' : 'Member'}`,
+        description: `${selectedMember.name}'s role has been changed to ${roleLabel}`,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
 
@@ -640,22 +671,22 @@ export default function TeamManagement() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sales_rep">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span>Member (Sales Representative)</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="organization_owner">
-                      <div className="flex items-center gap-2">
-                        <Shield className="w-4 h-4" />
-                        <span>Admin (Organization Owner)</span>
-                      </div>
-                    </SelectItem>
+                    {invitableRoles.map(roleOption => (
+                      <SelectItem key={roleOption.value} value={roleOption.value}>
+                        <div className="flex items-center gap-2">
+                          {roleOption.value === ORG_ROLES.OWNER && <Shield className="w-4 h-4" />}
+                          {roleOption.value === ORG_ROLES.MANAGER && <UserCog className="w-4 h-4" />}
+                          {roleOption.value === ORG_ROLES.MEMBER && <Users className="w-4 h-4" />}
+                          <span>{roleOption.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Admins can manage team members and organization settings
+                  {inviteRole === ORG_ROLES.OWNER && 'Owners have full control over the organization'}
+                  {inviteRole === ORG_ROLES.MANAGER && 'Managers can allocate credits and manage team members'}
+                  {inviteRole === ORG_ROLES.MEMBER && 'Members can send cards using allocated credits'}
                 </p>
               </div>
             </div>
@@ -701,18 +732,16 @@ export default function TeamManagement() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sales_rep">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      <span>Member (Sales Representative)</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="organization_owner">
-                    <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4" />
-                      <span>Admin (Organization Owner)</span>
-                    </div>
-                  </SelectItem>
+                  {invitableRoles.map(roleOption => (
+                    <SelectItem key={roleOption.value} value={roleOption.value}>
+                      <div className="flex items-center gap-2">
+                        {roleOption.value === ORG_ROLES.OWNER && <Shield className="w-4 h-4" />}
+                        {roleOption.value === ORG_ROLES.MANAGER && <UserCog className="w-4 h-4" />}
+                        {roleOption.value === ORG_ROLES.MEMBER && <Users className="w-4 h-4" />}
+                        <span>{roleOption.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

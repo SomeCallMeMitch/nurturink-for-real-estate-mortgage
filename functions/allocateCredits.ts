@@ -1,8 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { isOrgAdmin, getUserProfile, mapLegacyAppRoleToOrgRole, ORG_ROLES } from './utils/roleHelpers.ts';
 
 /**
  * Allocate credits from organization pool to team members
- * Only organization owners can perform this action
+ * Organization owners AND managers can perform this action
  * Credits are allocated to user.companyAllocatedCredits
  */
 Deno.serve(async (req) => {
@@ -15,12 +16,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Verify user is organization owner (check both appRole and isOrgOwner flag)
-    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    // Get user's org profile to check permissions
+    let userOrgRole = null;
+    if (user.orgId) {
+      const userProfile = await getUserProfile(base44, user.id, user.orgId);
+      userOrgRole = userProfile?.orgRole || mapLegacyAppRoleToOrgRole(user.appRole, user.isOrgOwner);
+    }
     
-    if (!isOrgOwner) {
+    // Verify user is organization owner OR manager (check both new orgRole and legacy appRole)
+    const canAllocate = isOrgAdmin({ ...user, orgProfile: { orgRole: userOrgRole } });
+    
+    if (!canAllocate) {
       return Response.json(
-        { error: 'Only organization owners can allocate credits' },
+        { error: 'Only organization owners and managers can allocate credits' },
         { status: 403 }
       );
     }
