@@ -134,3 +134,16 @@ export function getDefaultInviteRole(user) {
   // Return the first available role (most restricted option)
   return invitableRoles.length > 0 ? invitableRoles[0].value : ORG_ROLES.MEMBER;
 }
+
+// Export all functions as a named export object for compatibility
+export default {
+  ORG_ROLES,
+  isSuperAdmin,
+  isOrgOwner,
+  isOrgManager,
+  isOrgAdmin,
+  getUserOrgRole,
+  getOrgRoleDisplayName,
+  getInvitableRoles,
+  getDefaultInviteRole
+};
