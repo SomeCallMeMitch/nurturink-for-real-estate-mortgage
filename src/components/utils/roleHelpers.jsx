@@ -131,8 +131,8 @@ export function getInvitableRoles(user) {
  */
 export function getDefaultInviteRole(user) {
   const invitableRoles = getInvitableRoles(user);
-  // Return the first available role (most restricted option)
-  return invitableRoles.length > 0 ? invitableRoles[0].value : ORG_ROLES.MEMBER;
+  // Return the last available role (most restricted option - Member if available)
+  return invitableRoles.length > 0 ? invitableRoles[invitableRoles.length - 1].value : ORG_ROLES.MEMBER;
 }
 
 // Export all functions as a named export object for compatibility
