@@ -16,9 +16,11 @@ import {
  * Organization owners can invite: manager, member
  * Organization managers can invite: member only
  * Super admins can invite: owner, manager, member
+ * 
+ * @version 2026-01-25-v2 - Added debug logging for role validation
  */
 Deno.serve(async (req) => {
-  console.log('=== inviteTeamMember START ===');
+  console.log('=== inviteTeamMember START v2026-01-25-v2 ===');
   
   try {
     const base44 = createClientFromRequest(req);
