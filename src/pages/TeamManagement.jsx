@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { getInvitableRoles, ORG_ROLES, getUserRoleDisplayName } from '@/components/utils/roleHelpers';
+import { getInvitableRoles, getDefaultInviteRole, getOrgRoleDisplayName, ORG_ROLES } from '@/components/utils/roleHelpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,7 +66,7 @@ export default function TeamManagement() {
   
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState(ORG_ROLES.MEMBER);
+  const [inviteRole, setInviteRole] = useState(''); // Will be set dynamically when modal opens
   const [inviting, setInviting] = useState(false);
   
   const [roleChangeDialogOpen, setRoleChangeDialogOpen] = useState(false);
@@ -231,13 +231,26 @@ export default function TeamManagement() {
 
   // Get invitable roles based on current user's permissions
   const invitableRoles = useMemo(() => {
+    if (!user) return [];
+    
     // Create a user object with orgProfile for permission check
     const userWithProfile = {
       ...user,
-      orgProfile: currentUserOrgProfile
+      userProfile: currentUserOrgProfile // Note: property name is 'userProfile' not 'orgProfile'
     };
-    return getInvitableRoles(userWithProfile, currentUserOrgProfile);
+    return getInvitableRoles(userWithProfile);
   }, [user, currentUserOrgProfile]);
+  
+  // Set default invite role when modal opens
+  useEffect(() => {
+    if (inviteModalOpen && user && invitableRoles.length > 0) {
+      const userWithProfile = {
+        ...user,
+        userProfile: currentUserOrgProfile
+      };
+      setInviteRole(getDefaultInviteRole(userWithProfile));
+    }
+  }, [inviteModalOpen, user, currentUserOrgProfile, invitableRoles]);
 
   const handleInvite = async () => {
     if (!inviteEmail.trim()) {
@@ -269,7 +282,7 @@ export default function TeamManagement() {
 
       setInviteModalOpen(false);
       setInviteEmail('');
-      setInviteRole(ORG_ROLES.MEMBER);
+      setInviteRole(''); // Reset to empty - will be set dynamically on next open
       await loadData();
       
     } catch (error) {
