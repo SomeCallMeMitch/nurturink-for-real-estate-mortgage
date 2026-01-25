@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "Reference to the User entity"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Reference to the Organization entity"
+    },
+    "orgRole": {
+      "type": "string",
+      "enum": ["owner", "manager", "member"],
+      "description": "The user's role within the organization"
+    }
+  },
+  "required": ["userId", "orgId", "orgRole"],
+  "name": "UserProfile",
+  "description": "Stores user's organizational role and profile settings. This is the source of truth for org-level permissions."
+}
