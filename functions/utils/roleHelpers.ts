@@ -1,61 +1,70 @@
 /**
  * Role helpers for NurturInk backend functions
+ * @updated 2026-01-24
  * 
- * IMPORTANT: This file must NOT import base44 globally.
- * All async functions that need database access must receive the base44 client as a parameter.
- * This is required for Deno compatibility in Base44 backend functions.
+ * IMPORTANT: This file is for Deno backend functions.
+ * It must NOT import base44 globally - async functions receive base44 as parameter.
  */
 
-// Organization role constants (new system using UserProfile entity)
+// =============================================================================
+// ROLE CONSTANTS
+// =============================================================================
+
 export const ORG_ROLES = {
   OWNER: 'owner',
   MANAGER: 'manager',
-  MEMBER: 'member'
-} as const;
+  MEMBER: 'member',
+};
 
-// Legacy app role constants (for backward compatibility)
 export const APP_ROLES = {
   SUPER_ADMIN: 'super_admin',
   WHITELABEL_PARTNER: 'whitelabel_partner',
   ORGANIZATION_OWNER: 'organization_owner',
   ORGANIZATION_MANAGER: 'organization_manager',
-  SALES_REP: 'sales_rep'
-} as const;
-
-// Role display names
-export const ROLE_LABELS: Record<string, string> = {
-  [ORG_ROLES.OWNER]: 'Owner',
-  [ORG_ROLES.MANAGER]: 'Manager',
-  [ORG_ROLES.MEMBER]: 'Member'
+  SALES_REP: 'sales_rep',
 };
 
+// =============================================================================
+// ROLE CHECK FUNCTIONS (Sync - no base44 needed)
+// =============================================================================
+
 /**
- * Get display name for an org role
+ * Check if user is a super admin
  */
-export function getOrgRoleDisplayName(orgRole: string): string {
-  return ROLE_LABELS[orgRole] || orgRole;
+export function isSuperAdmin(user: any): boolean {
+  if (!user) return false;
+  return user.appRole === APP_ROLES.SUPER_ADMIN || user.role === 'admin';
 }
 
 /**
- * Map new orgRole to legacy appRole for backward compatibility
+ * Check if user is an organization owner
  */
-export function mapOrgRoleToLegacyAppRole(orgRole: string): string {
-  switch (orgRole) {
-    case ORG_ROLES.OWNER:
-      return APP_ROLES.ORGANIZATION_OWNER;
-    case ORG_ROLES.MANAGER:
-      return APP_ROLES.ORGANIZATION_MANAGER;
-    case ORG_ROLES.MEMBER:
-    default:
-      return APP_ROLES.SALES_REP;
-  }
+export function isOrgOwner(user: any): boolean {
+  if (!user) return false;
+  return user.isOrgOwner === true || user.appRole === APP_ROLES.ORGANIZATION_OWNER;
+}
+
+/**
+ * Check if user is an organization manager
+ */
+export function isOrgManager(user: any): boolean {
+  if (!user) return false;
+  return user.appRole === APP_ROLES.ORGANIZATION_MANAGER;
+}
+
+/**
+ * Check if user has organization admin privileges (owner OR manager)
+ */
+export function isOrgAdmin(user: any): boolean {
+  if (!user) return false;
+  return isOrgOwner(user) || isOrgManager(user);
 }
 
 /**
  * Map legacy appRole to new orgRole
  */
-export function mapLegacyAppRoleToOrgRole(appRole: string, isOrgOwner?: boolean): string {
-  if (isOrgOwner === true || appRole === APP_ROLES.ORGANIZATION_OWNER) {
+export function mapLegacyAppRoleToOrgRole(appRole: string, isOrgOwnerFlag?: boolean): string {
+  if (isOrgOwnerFlag || appRole === APP_ROLES.ORGANIZATION_OWNER) {
     return ORG_ROLES.OWNER;
   }
   if (appRole === APP_ROLES.ORGANIZATION_MANAGER) {
@@ -65,148 +74,64 @@ export function mapLegacyAppRoleToOrgRole(appRole: string, isOrgOwner?: boolean)
 }
 
 /**
- * Check if user is a super admin (platform level)
- * This is a sync function - no database access needed
+ * Get display name for orgRole
  */
-export function isSuperAdmin(user: any): boolean {
-  if (!user) return false;
-  return user.appRole === APP_ROLES.SUPER_ADMIN || user.role === 'admin';
-}
-
-/**
- * Check if user is the organization owner
- * Uses both legacy fields and new UserProfile if available
- */
-export function isOrgOwner(user: any): boolean {
-  if (!user) return false;
-  // Check new orgRole first (from UserProfile)
-  if (user.orgRole === ORG_ROLES.OWNER) return true;
-  // Fall back to legacy fields
-  return user.isOrgOwner === true || user.appRole === APP_ROLES.ORGANIZATION_OWNER;
-}
-
-/**
- * Check if user is an organization manager
- */
-export function isOrgManager(user: any): boolean {
-  if (!user) return false;
-  // Check new orgRole first
-  if (user.orgRole === ORG_ROLES.MANAGER) return true;
-  // Fall back to legacy field
-  return user.appRole === APP_ROLES.ORGANIZATION_MANAGER;
-}
-
-/**
- * Check if user has org admin privileges (owner OR manager)
- * Can allocate credits, manage templates, edit org settings
- */
-export function isOrgAdmin(user: any): boolean {
-  if (!user) return false;
-  return isOrgOwner(user) || isOrgManager(user);
-}
-
-/**
- * Check if user can manage team members
- * Super admins, owners, and managers can manage team
- */
-export function canManageTeam(user: any): boolean {
-  if (!user) return false;
-  return isSuperAdmin(user) || isOrgAdmin(user);
-}
-
-/**
- * Check if user can promote others to manager role
- * Only owners and super admins can do this
- */
-export function canPromoteToManager(user: any): boolean {
-  if (!user) return false;
-  return isSuperAdmin(user) || isOrgOwner(user);
-}
-
-/**
- * Check if user can promote others to owner role
- * Only super admins can do this
- */
-export function canPromoteToOwner(user: any): boolean {
-  if (!user) return false;
-  return isSuperAdmin(user);
-}
-
-/**
- * Get the list of roles that a user can invite/assign
- */
-export function getInvitableRoles(user: any): string[] {
-  if (!user) return [];
-  
-  if (isSuperAdmin(user)) {
-    // Super admins can invite all roles
-    return [ORG_ROLES.OWNER, ORG_ROLES.MANAGER, ORG_ROLES.MEMBER];
+export function getOrgRoleDisplayName(orgRole: string): string {
+  switch (orgRole) {
+    case ORG_ROLES.OWNER: return 'Owner';
+    case ORG_ROLES.MANAGER: return 'Manager';
+    case ORG_ROLES.MEMBER: return 'Member';
+    default: return orgRole || 'Member';
   }
-  
-  if (isOrgOwner(user)) {
-    // Owners can invite managers and members (not other owners)
-    return [ORG_ROLES.MANAGER, ORG_ROLES.MEMBER];
-  }
-  
-  if (isOrgManager(user)) {
-    // Managers can only invite members
-    return [ORG_ROLES.MEMBER];
-  }
-  
-  return [];
 }
 
-/**
- * Check if a user can assign a specific role
- */
-export function canAssignRole(currentUser: any, targetRole: string): boolean {
-  const invitableRoles = getInvitableRoles(currentUser);
-  return invitableRoles.includes(targetRole);
-}
+// =============================================================================
+// ASYNC FUNCTIONS (require base44 client as parameter)
+// =============================================================================
 
 /**
- * Get or create UserProfile for a user (async - requires base44 client)
- * @param base44 - The base44 client from createClientFromRequest
+ * Get or create UserProfile for a user
+ * @param base44 - The base44 client instance
  * @param userId - The user's ID
  * @param orgId - The organization ID
- * @param orgRole - The role to assign (defaults to 'member')
+ * @param orgRole - Optional role to set if creating new profile
  */
 export async function upsertUserProfile(
   base44: any,
   userId: string,
   orgId: string,
-  orgRole: string = ORG_ROLES.MEMBER
+  orgRole?: string
 ): Promise<any> {
-  // Check if profile already exists
+  // Try to find existing profile
   const existingProfiles = await base44.asServiceRole.entities.UserProfile.filter({
     userId: userId,
     orgId: orgId
   });
   
-  if (existingProfiles && existingProfiles.length > 0) {
-    // Update existing profile
+  if (existingProfiles.length > 0) {
     const profile = existingProfiles[0];
-    if (profile.orgRole !== orgRole) {
-      await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+    // Update role if provided and different
+    if (orgRole && profile.orgRole !== orgRole) {
+      return await base44.asServiceRole.entities.UserProfile.update(profile.id, {
         orgRole: orgRole
       });
-      return { ...profile, orgRole };
     }
     return profile;
   }
   
   // Create new profile
-  const newProfile = await base44.asServiceRole.entities.UserProfile.create({
+  return await base44.asServiceRole.entities.UserProfile.create({
     userId: userId,
     orgId: orgId,
-    orgRole: orgRole
+    orgRole: orgRole || ORG_ROLES.MEMBER
   });
-  
-  return newProfile;
 }
 
 /**
- * Get a user's UserProfile for an organization (async - requires base44 client)
+ * Get UserProfile for a user
+ * @param base44 - The base44 client instance
+ * @param userId - The user's ID
+ * @param orgId - The organization ID
  */
 export async function getUserProfile(
   base44: any,
@@ -217,27 +142,28 @@ export async function getUserProfile(
     userId: userId,
     orgId: orgId
   });
-  
-  return profiles && profiles.length > 0 ? profiles[0] : null;
+  return profiles.length > 0 ? profiles[0] : null;
 }
 
 /**
- * Get a user's orgRole, checking UserProfile first then falling back to legacy fields
+ * Check if user can perform an action based on UserProfile
+ * @param base44 - The base44 client instance
+ * @param user - The user object
+ * @param requiredRoles - Array of roles that can perform the action
  */
-export async function getUserOrgRole(
+export async function checkUserPermission(
   base44: any,
-  user: any
-): Promise<string> {
-  if (!user || !user.orgId) {
-    return ORG_ROLES.MEMBER;
-  }
+  user: any,
+  requiredRoles: string[]
+): Promise<boolean> {
+  if (!user || !user.orgId) return false;
   
-  // Try to get from UserProfile first
+  // Super admins can do everything
+  if (isSuperAdmin(user)) return true;
+  
+  // Get user's profile
   const profile = await getUserProfile(base44, user.id, user.orgId);
-  if (profile) {
-    return profile.orgRole;
-  }
+  const orgRole = profile?.orgRole || mapLegacyAppRoleToOrgRole(user.appRole, user.isOrgOwner);
   
-  // Fall back to legacy fields
-  return mapLegacyAppRoleToOrgRole(user.appRole, user.isOrgOwner);
+  return requiredRoles.includes(orgRole);
 }
