@@ -89,7 +89,6 @@ Deno.serve(async (req) => {
     
     // Determine the role to use (prefer new orgRole, fall back to legacy role)
     let finalOrgRole = orgRole;
-    let finalLegacyRole = role;
     
     // Handle new orgRole field
     if (orgRole) {
@@ -102,10 +101,8 @@ Deno.serve(async (req) => {
           { status: 400 }
         );
       }
-      finalLegacyRole = mapOrgRoleToLegacyAppRole(orgRole);
-      console.log('Mapped to legacy role:', finalLegacyRole);
     } 
-    // Handle legacy role field
+    // Handle legacy role field (backwards compatibility)
     else if (role) {
       console.log('Processing legacy role:', role);
       if (!['sales_rep', 'organization_owner', 'organization_manager'].includes(role)) {
@@ -123,14 +120,12 @@ Deno.serve(async (req) => {
       } else {
         finalOrgRole = ORG_ROLES.MEMBER;
       }
-      finalLegacyRole = role === 'organization_manager' ? 'sales_rep' : role;
     } else {
       console.log('No role provided, defaulting to MEMBER');
       finalOrgRole = ORG_ROLES.MEMBER;
-      finalLegacyRole = 'sales_rep';
     }
     
-    console.log('Final roles - orgRole:', finalOrgRole, 'legacyRole:', finalLegacyRole);
+    console.log('Final orgRole:', finalOrgRole);
     
     // Check if user can assign this role
     if (!canAssignRole(user, finalOrgRole)) {
@@ -182,12 +177,10 @@ Deno.serve(async (req) => {
       // User exists but has no org - directly assign them
       console.log('Updating existing user with org assignment');
       await base44.asServiceRole.entities.User.update(existingUser.id, {
-        orgId: user.orgId,
-        appRole: finalLegacyRole,
-        isOrgOwner: finalOrgRole === ORG_ROLES.OWNER
+        orgId: user.orgId
       });
       
-      // Create UserProfile for the existing user
+      // Create UserProfile for the existing user (source of truth for role)
       console.log('Creating UserProfile for existing user');
       await upsertUserProfile(base44, existingUser.id, user.orgId, finalOrgRole);
       
@@ -201,7 +194,7 @@ Deno.serve(async (req) => {
           inviter_fullName: user.full_name || user.email,
           invitee_email: normalizedEmail,
           organization_name: organization?.name || 'your organization',
-          role: finalLegacyRole,
+          role: 'member', // Not used in email template, kept for compatibility
           role_display: roleDisplay,
           invitation_token: '',
           invitation_expires: 'N/A',
@@ -243,11 +236,10 @@ Deno.serve(async (req) => {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
     
-    // Create invitation with both legacy role and new orgRole
+    // Create invitation with orgRole (role field deprecated)
     console.log('Creating invitation with:', JSON.stringify({ 
       orgId: user.orgId, 
       email: normalizedEmail, 
-      role: finalLegacyRole, 
       orgRole: finalOrgRole 
     }));
     
@@ -256,7 +248,6 @@ Deno.serve(async (req) => {
       invitedByUserId: user.id,
       invitedByName: user.full_name || user.email,
       email: normalizedEmail,
-      role: finalLegacyRole,
       orgRole: finalOrgRole,
       token: token,
       status: 'pending',
@@ -276,7 +267,7 @@ Deno.serve(async (req) => {
         inviter_fullName: user.full_name || user.email,
         invitee_email: normalizedEmail,
         organization_name: organization?.name || 'your organization',
-        role: finalLegacyRole,
+        role: 'member', // Not used in email template, kept for compatibility
         role_display: roleDisplay,
         invitation_token: token,
         invitation_expires: `${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}`,

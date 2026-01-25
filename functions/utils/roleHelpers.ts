@@ -85,6 +85,50 @@ export function getOrgRoleDisplayName(orgRole: string): string {
   }
 }
 
+/**
+ * Map orgRole back to legacy appRole (for backwards compatibility)
+ * This is ONLY for legacy systems that still read appRole
+ */
+export function mapOrgRoleToLegacyAppRole(orgRole: string): string {
+  switch (orgRole) {
+    case ORG_ROLES.OWNER: return APP_ROLES.ORGANIZATION_OWNER;
+    case ORG_ROLES.MANAGER: return APP_ROLES.ORGANIZATION_MANAGER;
+    case ORG_ROLES.MEMBER: return APP_ROLES.SALES_REP;
+    default: return APP_ROLES.SALES_REP;
+  }
+}
+
+/**
+ * Check if a user can assign a specific role to others
+ * @param user - The user attempting to assign the role (with potential orgProfile)
+ * @param targetRole - The role they want to assign
+ */
+export function canAssignRole(user: any, targetRole: string): boolean {
+  if (!user) return false;
+  
+  // Super admins can assign any role
+  if (isSuperAdmin(user)) return true;
+  
+  // Determine the user's orgRole
+  let userOrgRole = user.orgProfile?.orgRole;
+  if (!userOrgRole) {
+    userOrgRole = mapLegacyAppRoleToOrgRole(user.appRole, user.isOrgOwner);
+  }
+  
+  // Owners can assign manager and member
+  if (userOrgRole === ORG_ROLES.OWNER) {
+    return targetRole === ORG_ROLES.MANAGER || targetRole === ORG_ROLES.MEMBER;
+  }
+  
+  // Managers can only assign member
+  if (userOrgRole === ORG_ROLES.MANAGER) {
+    return targetRole === ORG_ROLES.MEMBER;
+  }
+  
+  // Members cannot assign any role
+  return false;
+}
+
 // =============================================================================
 // ASYNC FUNCTIONS (require base44 client as parameter)
 // =============================================================================
