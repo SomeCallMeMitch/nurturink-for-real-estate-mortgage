@@ -250,13 +250,9 @@ export default function TeamManagement() {
   // Set default invite role when modal opens
   useEffect(() => {
     if (inviteModalOpen && user && invitableRoles.length > 0) {
-      const userWithProfile = {
-        ...user,
-        userProfile: currentUserOrgProfile
-      };
-      setInviteRole(getDefaultInviteRole(userWithProfile));
+      setInviteRole(getDefaultInviteRole(user, invitableRoles));
     }
-  }, [inviteModalOpen, user, currentUserOrgProfile, invitableRoles]);
+  }, [inviteModalOpen, user, invitableRoles]);
 
   const handleInvite = async () => {
     if (!inviteEmail.trim()) {
