@@ -1,7 +1,7 @@
 /**
  * Frontend role helpers for NurturInk
  * Provides utilities for role-based UI rendering and permissions
- * @updated 2026-01-25
+ * @updated 2026-01-25 - v2
  */
 
 // =============================================================================
