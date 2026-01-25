@@ -2,7 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { getInvitableRoles, getDefaultInviteRole, getOrgRoleDisplayName, ORG_ROLES } from '@/components/utils/roleHelpers';
+import { getInvitableRoles, getOrgRoleDisplayName, ORG_ROLES } from '@/components/utils/roleHelpers';
+
+// Inlined to avoid build cache issues
+function getDefaultInviteRole(user, invitableRoles) {
+  // Return the last available role (most restricted option - Member if available)
+  return invitableRoles.length > 0 ? invitableRoles[invitableRoles.length - 1].value : ORG_ROLES.MEMBER;
+}
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
