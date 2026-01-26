@@ -1,10 +1,13 @@
 // functions/acceptInvitation.js
-// Auth-required endpoint - completes invitation acceptancey
+// Auth-required endpoint - completes invitation acceptance
 // Links the authenticated user to the organization
+// @version 2026-01-26-manual-deploy
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
+  console.log('=== acceptInvitation START (2026-01-26-manual) ===');
+  
   const base44 = createClientFromRequest(req);
   
   try {
@@ -20,6 +23,8 @@ Deno.serve(async (req) => {
         message: 'Please log in to accept this invitation.' 
       }, { status: 401 });
     }
+    
+    console.log('Current user:', JSON.stringify({ id: user.id, email: user.email }));
     
     // 2. Validate token input
     if (!token) {
@@ -45,6 +50,13 @@ Deno.serve(async (req) => {
         message: 'Invalid invitation.' 
       }, { status: 404 });
     }
+    
+    console.log('Found invitation:', JSON.stringify({ 
+      id: invitation.id, 
+      orgRole: invitation.orgRole, 
+      role: invitation.role,
+      email: invitation.email 
+    }));
     
     // 5. Check if already accepted
     if (invitation.status === 'accepted') {
@@ -83,11 +95,14 @@ Deno.serve(async (req) => {
     
     // Use orgRole (new system) or fall back to role (legacy)
     const orgRole = invitation.orgRole || invitation.role || 'member';
-    const appRole = orgRoleToAppRole[orgRole] || orgRole;
+    const appRole = orgRoleToAppRole[orgRole] || 'sales_rep';
+    
+    console.log('Assigning role - orgRole:', orgRole, 'appRole:', appRole);
     
     await base44.auth.updateMe({
       orgId: invitation.orgId,
-      appRole: appRole
+      appRole: appRole,
+      isOrgOwner: orgRole === 'owner'
     });
     
     // 8b. Create/update UserProfile for the new role system
@@ -98,11 +113,13 @@ Deno.serve(async (req) => {
       });
       
       if (existingProfiles.length > 0) {
+        console.log('Updating existing UserProfile:', existingProfiles[0].id);
         await base44.asServiceRole.entities.UserProfile.update(existingProfiles[0].id, {
           orgRole: orgRole,
           updatedAt: new Date().toISOString()
         });
       } else {
+        console.log('Creating new UserProfile for user:', user.id);
         await base44.asServiceRole.entities.UserProfile.create({
           userId: user.id,
           orgId: invitation.orgId,
@@ -137,9 +154,13 @@ Deno.serve(async (req) => {
       // Continue with default name
     }
     
+    console.log('=== acceptInvitation SUCCESS ===');
+    console.log(`User ${user.email} joined ${organizationName} as ${orgRole}`);
+    
     return Response.json({
       success: true,
-      organizationName: organizationName
+      organizationName: organizationName,
+      assignedRole: orgRole
     });
     
   } catch (error) {
