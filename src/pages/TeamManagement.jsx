@@ -267,8 +267,8 @@ export default function TeamManagement() {
     try {
       setInviting(true);
       
-      // Use inviteTeamMemberV2 (standalone version with inlined helpers)
-      const response = await base44.functions.invoke('inviteTeamMemberV2', {
+      // Use inviteTeamMember (standalone version with inlined helpers)
+      const response = await base44.functions.invoke('inviteTeamMember', {
         email: inviteEmail.trim(),
         orgRole: inviteRole
       });
