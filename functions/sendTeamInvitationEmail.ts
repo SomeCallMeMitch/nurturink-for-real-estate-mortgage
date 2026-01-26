@@ -1,4 +1,5 @@
 import { Resend } from 'npm:resend@2.0.0';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6'; // Added this import
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -10,7 +11,8 @@ const createInvitationEmailHTML = ({
   is_admin,
   accept_url,
   invitation_expires,
-  app_logo_url
+  app_logo_url,
+  brand_name // Added brand_name parameter
 }) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -29,13 +31,13 @@ const createInvitationEmailHTML = ({
           ${app_logo_url ? `
           <tr>
             <td style="background-color: #ffffff; padding: 40px; text-align: center;">
-              <img src="${app_logo_url}" alt="NurturInk" style="height: 40px; max-width: 200px;" />
+              <img src="${app_logo_url}" alt="${brand_name}" style="height: 40px; max-width: 200px;" />
             </td>
           </tr>
           ` : `
           <tr>
             <td style="background-color: #ffffff; padding: 40px; text-align: center;">
-              <h1 style="margin: 0; font-size: 28px; font-weight: bold; color: #FF7A00;">NurturInk</h1>
+              <h1 style="margin: 0; font-size: 28px; font-weight: bold; color: #FF7A00;">${brand_name}</h1>
             </td>
           </tr>
           `}
@@ -44,15 +46,15 @@ const createInvitationEmailHTML = ({
           <tr>
             <td style="padding: 0 40px 30px;">
               <h1 style="margin: 0 0 15px; font-size: 24px; font-weight: bold; color: #111827;">${inviter_firstName} invited you to join ${organization_name}</h1>
-              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">${inviter_fullName} wants you to join their team on NurturInk.</p>
+              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">${inviter_fullName} wants you to join their team on ${brand_name}.</p>
             </td>
           </tr>
           
           <!-- What is NurturInk -->
           <tr>
             <td style="padding: 0 40px 30px;">
-              <h2 style="margin: 0 0 15px; font-size: 20px; font-weight: bold; color: #1f2937;">What is NurturInk?</h2>
-              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">NurturInk makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.</p>
+              <h2 style="margin: 0 0 15px; font-size: 20px; font-weight: bold; color: #1f2937;">What is ${brand_name}?</h2>
+              <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">${brand_name} makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.</p>
             </td>
           </tr>
           
@@ -79,7 +81,7 @@ const createInvitationEmailHTML = ({
           ${accept_url ? `
           <tr>
             <td style="padding: 0 40px 30px; text-align: center;">
-              <a href="${accept_url}" style="display: inline-block; background-color: #FF7A00; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: bold;">Accept Invitation</a>
+              <a href__="${accept_url}" style="display: inline-block; background-color: #FF7A00; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: bold;">Accept Invitation</a>
             </td>
           </tr>
           ` : ''}
@@ -90,8 +92,8 @@ const createInvitationEmailHTML = ({
               <h2 style="margin: 0 0 15px; font-size: 20px; font-weight: bold; color: #1f2937;">What happens next?</h2>
               <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #374151;">
                 ${accept_url 
-                  ? `If you already have a NurturInk account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
-                  : `You've been added to ${organization_name}. Log in to your NurturInk account to access your organization's features.`
+                  ? `If you already have a ${brand_name} account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
+                  : `You've been added to ${organization_name}. Log in to your ${brand_name} account to access your organization's features.`
                 }
               </p>
             </td>
@@ -115,10 +117,10 @@ const createInvitationEmailHTML = ({
           <!-- Footer -->
           <tr>
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
-              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">NurturInk</p>
+              <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">${brand_name}</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
-              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@nurturink.com" style="color: #FF7A00; text-decoration: none;">support@nurturink.com</a></p>
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 NurturInk. All rights reserved.</p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href__="mailto:support@${brand_name.toLowerCase().replace(/\s/g, '')}.com" style="color: #FF7A00; text-decoration: none;">support@${brand_name.toLowerCase().replace(/\s/g, '')}.com</a></p>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 ${brand_name}. All rights reserved.</p>
             </td>
           </tr>
           
@@ -137,14 +139,15 @@ const createInvitationEmailText = ({
   role_display,
   is_admin,
   accept_url,
-  invitation_expires
+  invitation_expires,
+  brand_name // Added brand_name parameter
 }) => `
 ${inviter_firstName} invited you to join ${organization_name}
 
-${inviter_fullName} wants you to join their team on NurturInk.
+${inviter_fullName} wants you to join their team on ${brand_name}.
 
-WHAT IS ROOFSCRIBE?
-NurturInk makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.
+WHAT IS ${brand_name.toUpperCase()}?
+${brand_name} makes it easy to send authentic handwritten notes at scale. It's perfect for sales teams, customer success, and anyone who wants to build real relationships through thoughtful, personal outreach.
 
 YOUR ROLE: ${role_display}
 ${is_admin 
@@ -156,15 +159,15 @@ ${accept_url ? `Accept Invitation: ${accept_url}` : ''}
 
 WHAT HAPPENS NEXT?
 ${accept_url 
-  ? `If you already have a NurturInk account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
-  : `You've been added to ${organization_name}. Log in to your NurturInk account to access your organization's features.`
+  ? `If you already have a ${brand_name} account, we'll connect it to ${organization_name}. If you're new, we'll help you create your account and get started.`
+  : `You've been added to ${organization_name}. Log in to your ${brand_name} account to access your organization's features.`
 }
 
 ${accept_url && invitation_expires !== 'N/A' ? `⏰ This invitation expires in ${invitation_expires}. Accept soon to join the team!` : ''}
 
-Questions? Contact us at support@nurturink.com
+Questions? Contact us at support@${brand_name.toLowerCase().replace(/\s/g, '')}.com
 
-© 2024 NurturInk. All rights reserved.
+© 2024 ${brand_name}. All rights reserved.
 `;
 
 Deno.serve(async (req) => {
@@ -187,12 +190,29 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
+    const base44 = createClientFromRequest(req);
+    let brand_name = "NurturInk"; // Default brand name
+    
+    // Attempt to load WhitelabelSettings for brand name
+    try {
+      const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
+      if (whitelabelSettings.length > 0 && whitelabelSettings[0].brandName) {
+        brand_name = whitelabelSettings[0].brandName;
+      }
+    } catch (error) {
+      console.error('Failed to load whitelabel settings for brand name:', error);
+    }
+
+
     const is_admin = role === 'organization_owner' || role === 'admin';
     
     // Build accept URL - handle both new invitations and existing user additions
     let accept_url = '';
     if (invitation_token) {
-      const baseUrl = Deno.env.get("APP_URL") || "https://app.base44.com";
+      let baseUrl = Deno.env.get("APP_URL") || "https://app.base44.com";
+      // Ensure baseUrl starts with https:// and remove any duplicate http/https prefixes
+      baseUrl = baseUrl.replace(/^(http|https):\/\//, '').replace(/^\/\//, '');
+      baseUrl = `https://${baseUrl}`;
       // For Base44 apps, use ?page= query parameter format
       accept_url = `${baseUrl}?page=AcceptInvitation&token=${invitation_token}`;
     }
@@ -205,13 +225,14 @@ Deno.serve(async (req) => {
       is_admin,
       accept_url,
       invitation_expires: invitation_expires || '7 days',
-      app_logo_url: app_logo_url || null // Only use logo if explicitly provided
+      app_logo_url: app_logo_url || null, // Only use logo if explicitly provided
+      brand_name // Pass brand_name to the email template
     };
 
     const result = await resend.emails.send({
-      from: 'NurturInk <hello@nurturink.com>',
+      from: `${brand_name} <hello@${brand_name.toLowerCase().replace(/\s/g, '')}.com>`,
       to: invitee_email,
-      subject: `${inviter_fullName} invited you to join ${organization_name} on NurturInk`,
+      subject: `${inviter_fullName} invited you to join ${organization_name} on ${brand_name}`,
       html: createInvitationEmailHTML(emailData),
       text: createInvitationEmailText(emailData)
     });
