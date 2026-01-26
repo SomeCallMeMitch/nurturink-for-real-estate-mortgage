@@ -81,7 +81,7 @@ const createInvitationEmailHTML = ({
           ${accept_url ? `
           <tr>
             <td style="padding: 0 40px 30px; text-align: center;">
-              <a href__="${accept_url}" style="display: inline-block; background-color: #FF7A00; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: bold;">Accept Invitation</a>
+              <a href="${accept_url}" style="display: inline-block; background-color: #FF7A00; color: #ffffff; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-size: 16px; font-weight: bold;">Accept Invitation</a>
             </td>
           </tr>
           ` : ''}
@@ -119,7 +119,7 @@ const createInvitationEmailHTML = ({
             <td style="padding: 40px 20px 20px; border-top: 1px solid #e5e7eb; text-align: center;">
               <p style="margin: 0 0 10px; font-size: 16px; font-weight: bold; color: #FF7A00;">${brand_name}</p>
               <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Authentic handwritten notes that build real relationships</p>
-              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href__="mailto:support@${brand_name.toLowerCase().replace(/\s/g, '')}.com" style="color: #FF7A00; text-decoration: none;">support@${brand_name.toLowerCase().replace(/\s/g, '')}.com</a></p>
+              <p style="margin: 0 0 15px; font-size: 14px; color: #6b7280;">Questions? Contact us at <a href="mailto:support@${brand_name.toLowerCase().replace(/\s/g, '')}.com" style="color: #FF7A00; text-decoration: none;">support@${brand_name.toLowerCase().replace(/\s/g, '')}.com</a></p>
               <p style="margin: 0; font-size: 12px; color: #9ca3af;">© 2024 ${brand_name}. All rights reserved.</p>
             </td>
           </tr>
