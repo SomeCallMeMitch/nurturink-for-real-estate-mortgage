@@ -1,28 +1,142 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-// BUILD: 2026-01-25-v5-fresh
-import { 
-  ORG_ROLES,
-  isSuperAdmin,
-  isOrgAdmin,
-  canAssignRole,
-  mapOrgRoleToLegacyAppRole,
-  upsertUserProfile,
-  getOrgRoleDisplayName
-} from './roleHelpers.ts';
 
 /**
- * Invite a new team member to the organization
- * Handles both new users and existing users
+ * Invite a new team member to the organization - INLINED VERSION (JavaScript)
+ * All role helpers are inlined to avoid import sync issues
  * 
- * Organization owners can invite: manager, member
- * Organization managers can invite: member only
- * Super admins can invite: owner, manager, member
- * 
- * @version 2026-01-25-v5-fresh - Complete rewrite to force fresh deployment
+ * @version 2026-01-26-inlined-js
  */
+
+// =============================================================================
+// INLINED ROLE CONSTANTS
+// =============================================================================
+
+const ORG_ROLES = {
+  OWNER: 'owner',
+  MANAGER: 'manager',
+  MEMBER: 'member',
+};
+
+const APP_ROLES = {
+  SUPER_ADMIN: 'super_admin',
+  ORGANIZATION_OWNER: 'organization_owner',
+  ORGANIZATION_MANAGER: 'organization_manager',
+  SALES_REP: 'sales_rep',
+};
+
+// =============================================================================
+// INLINED ROLE FUNCTIONS
+// =============================================================================
+
+function isSuperAdmin(user) {
+  if (!user) return false;
+  return user.appRole === APP_ROLES.SUPER_ADMIN || user.role === 'admin';
+}
+
+function isOrgOwner(user) {
+  if (!user) return false;
+  return user.isOrgOwner === true || user.appRole === APP_ROLES.ORGANIZATION_OWNER;
+}
+
+function isOrgManager(user) {
+  if (!user) return false;
+  return user.appRole === APP_ROLES.ORGANIZATION_MANAGER;
+}
+
+function isOrgAdmin(user) {
+  if (!user) return false;
+  return isOrgOwner(user) || isOrgManager(user);
+}
+
+function mapLegacyAppRoleToOrgRole(appRole, isOrgOwnerFlag) {
+  if (isOrgOwnerFlag || appRole === APP_ROLES.ORGANIZATION_OWNER) {
+    return ORG_ROLES.OWNER;
+  }
+  if (appRole === APP_ROLES.ORGANIZATION_MANAGER) {
+    return ORG_ROLES.MANAGER;
+  }
+  return ORG_ROLES.MEMBER;
+}
+
+function mapOrgRoleToLegacyAppRole(orgRole) {
+  switch (orgRole) {
+    case ORG_ROLES.OWNER:
+      return APP_ROLES.ORGANIZATION_OWNER;
+    case ORG_ROLES.MANAGER:
+      return APP_ROLES.ORGANIZATION_MANAGER;
+    case ORG_ROLES.MEMBER:
+    default:
+      return APP_ROLES.SALES_REP;
+  }
+}
+
+function getOrgRoleDisplayName(orgRole) {
+  switch (orgRole) {
+    case ORG_ROLES.OWNER: return 'Owner';
+    case ORG_ROLES.MANAGER: return 'Manager';
+    case ORG_ROLES.MEMBER: return 'Member';
+    default: return orgRole || 'Member';
+  }
+}
+
+function canAssignRole(user, targetRole) {
+  if (!user) return false;
+  
+  // Super admins can assign any role
+  if (isSuperAdmin(user)) return true;
+  
+  // Determine the user's orgRole
+  let userOrgRole = user.orgProfile?.orgRole;
+  if (!userOrgRole) {
+    userOrgRole = mapLegacyAppRoleToOrgRole(user.appRole, user.isOrgOwner);
+  }
+  
+  // Owners can assign manager and member
+  if (userOrgRole === ORG_ROLES.OWNER) {
+    return targetRole === ORG_ROLES.MANAGER || targetRole === ORG_ROLES.MEMBER;
+  }
+  
+  // Managers can only assign member
+  if (userOrgRole === ORG_ROLES.MANAGER) {
+    return targetRole === ORG_ROLES.MEMBER;
+  }
+  
+  // Members cannot assign any role
+  return false;
+}
+
+async function upsertUserProfile(base44, userId, orgId, orgRole) {
+  // Try to find existing profile
+  const existingProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+    userId: userId,
+    orgId: orgId
+  });
+  
+  if (existingProfiles.length > 0) {
+    const profile = existingProfiles[0];
+    // Update role if provided and different
+    if (orgRole && profile.orgRole !== orgRole) {
+      return await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+        orgRole: orgRole
+      });
+    }
+    return profile;
+  }
+  
+  // Create new profile
+  return await base44.asServiceRole.entities.UserProfile.create({
+    userId: userId,
+    orgId: orgId,
+    orgRole: orgRole || ORG_ROLES.MEMBER
+  });
+}
+
+// =============================================================================
+// MAIN FUNCTION
+// =============================================================================
+
 Deno.serve(async (req) => {
-  console.log('=== inviteTeamMember v5-fresh START ===');
-  console.log('BUILD_ID: 2026-01-25-v5-fresh');
+  console.log('=== inviteTeamMember START (2026-01-26-inlined-js) ===');
   
   try {
     const base44 = createClientFromRequest(req);
@@ -65,28 +179,11 @@ Deno.serve(async (req) => {
     });
     const organization = organizations.length > 0 ? organizations[0] : null;
     
-    // Load whitelabel settings for logo
-    let logoUrl = `${Deno.env.get("APP_URL")}/logo.png`;
-    try {
-      const whitelabelSettings = await base44.asServiceRole.entities.WhitelabelSettings.filter({}, '', 1);
-      if (whitelabelSettings.length > 0 && whitelabelSettings[0].logoUrl) {
-        logoUrl = whitelabelSettings[0].logoUrl;
-      }
-    } catch (error) {
-      console.error('Failed to load whitelabel settings for logo:', error);
-    }
-    
     // Parse request body
     const body = await req.json();
     const { email, role, orgRole } = body;
     
-    console.log('=== REQUEST BODY DEBUG v5-fresh ===');
-    console.log('Raw body:', JSON.stringify(body));
-    console.log('email:', email);
-    console.log('role (legacy):', role);
-    console.log('orgRole (new):', orgRole);
-    console.log('ORG_ROLES constant:', JSON.stringify(ORG_ROLES));
-    console.log('=== END REQUEST BODY DEBUG ===');
+    console.log('Request body:', JSON.stringify({ email, role, orgRole }));
     
     // Validate inputs
     if (!email || !email.trim()) {
@@ -103,13 +200,11 @@ Deno.serve(async (req) => {
     if (orgRole) {
       console.log('Processing orgRole:', orgRole);
       const validOrgRoles = [ORG_ROLES.OWNER, ORG_ROLES.MANAGER, ORG_ROLES.MEMBER];
-      console.log('Valid orgRoles:', validOrgRoles);
-      console.log('orgRole included?:', validOrgRoles.includes(orgRole));
       
       if (!validOrgRoles.includes(orgRole)) {
-        console.log('VALIDATION FAILED v5: Invalid orgRole. Valid roles:', validOrgRoles, 'Received:', orgRole);
+        console.log('VALIDATION FAILED: Invalid orgRole');
         return Response.json(
-          { error: `Invalid orgRole "${orgRole}". Must be "owner", "manager", or "member" (v5-fresh)` },
+          { error: `Invalid orgRole "${orgRole}". Must be "owner", "manager", or "member"` },
           { status: 400 }
         );
       }
@@ -118,9 +213,8 @@ Deno.serve(async (req) => {
     else if (role) {
       console.log('Processing legacy role:', role);
       if (!['sales_rep', 'organization_owner', 'organization_manager'].includes(role)) {
-        console.log('VALIDATION FAILED v5: Invalid legacy role');
         return Response.json(
-          { error: 'Invalid role. Must be "sales_rep", "organization_manager", or "organization_owner" (v5-fresh)' },
+          { error: 'Invalid role. Must be "sales_rep", "organization_manager", or "organization_owner"' },
           { status: 400 }
         );
       }
@@ -168,7 +262,6 @@ Deno.serve(async (req) => {
     
     if (existingUsers.length > 0) {
       const existingUser = existingUsers[0];
-      console.log('Existing user:', JSON.stringify({ id: existingUser.id, orgId: existingUser.orgId }));
       
       // Check if user is already in this organization
       if (existingUser.orgId === user.orgId) {
@@ -185,54 +278,14 @@ Deno.serve(async (req) => {
           { status: 400 }
         );
       }
-      
-      // User exists but has no org - directly assign them
-      console.log('Updating existing user with org assignment');
-      await base44.asServiceRole.entities.User.update(existingUser.id, {
-        orgId: user.orgId
-      });
-      
-      // Create UserProfile for the existing user (source of truth for role)
-      console.log('Creating UserProfile for existing user');
-      await upsertUserProfile(base44, existingUser.id, user.orgId, finalOrgRole);
-      
-      // Send notification email to existing user
-      try {
-        const inviterFirstName = user.full_name?.split(' ')[0] || user.email;
-        const roleDisplay = getOrgRoleDisplayName(finalOrgRole);
-        
-        await base44.functions.invoke('sendTeamInvitationEmail', {
-          inviter_firstName: inviterFirstName,
-          inviter_fullName: user.full_name || user.email,
-          invitee_email: normalizedEmail,
-          organization_name: organization?.name || 'your organization',
-          role: 'member', // Not used in email template, kept for compatibility
-          role_display: roleDisplay,
-          invitation_token: '',
-          invitation_expires: 'N/A',
-          app_logo_url: logoUrl
-        });
-      } catch (emailError) {
-        console.error('Failed to send notification email:', emailError);
-      }
-      
-      console.log('=== inviteTeamMember SUCCESS (existing user) ===');
-      return Response.json({
-        success: true,
-        message: 'Existing user added to organization',
-        userAdded: true,
-        userId: existingUser.id
-      });
     }
     
-    // Check if invitation already exists for this email
+    // Check for existing pending invitation
     const existingInvitations = await base44.asServiceRole.entities.Invitation.filter({
       email: normalizedEmail,
       orgId: user.orgId,
       status: 'pending'
     });
-    
-    console.log('Existing invitations found:', existingInvitations.length);
     
     if (existingInvitations.length > 0) {
       return Response.json(
@@ -241,29 +294,17 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Generate unique token
-    const token = crypto.randomUUID();
+    // Map orgRole to legacy appRole for backward compatibility
+    const legacyAppRole = mapOrgRoleToLegacyAppRole(finalOrgRole);
     
-    // Set expiration (7 days from now)
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-    
-    // Create invitation with orgRole (role field deprecated)
-    console.log('Creating invitation with:', JSON.stringify({ 
-      orgId: user.orgId, 
-      email: normalizedEmail, 
-      orgRole: finalOrgRole 
-    }));
-    
+    // Create invitation - only set orgRole, not the legacy role field
     const invitation = await base44.asServiceRole.entities.Invitation.create({
-      orgId: user.orgId,
-      invitedByUserId: user.id,
-      invitedByName: user.full_name || user.email,
       email: normalizedEmail,
+      orgId: user.orgId,
       orgRole: finalOrgRole,
-      token: token,
+      invitedBy: user.id,
       status: 'pending',
-      expiresAt: expiresAt.toISOString()
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
     });
     
     console.log('Invitation created:', invitation.id);
@@ -272,40 +313,43 @@ Deno.serve(async (req) => {
     try {
       const inviterFirstName = user.full_name?.split(' ')[0] || user.email;
       const roleDisplay = getOrgRoleDisplayName(finalOrgRole);
-      const daysUntilExpiry = Math.ceil((expiresAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       
       await base44.functions.invoke('sendTeamInvitationEmail', {
         inviter_firstName: inviterFirstName,
         inviter_fullName: user.full_name || user.email,
         invitee_email: normalizedEmail,
         organization_name: organization?.name || 'your organization',
-        role: 'member', // Not used in email template, kept for compatibility
+        role: legacyAppRole,
         role_display: roleDisplay,
-        invitation_token: token,
-        invitation_expires: `${daysUntilExpiry} day${daysUntilExpiry !== 1 ? 's' : ''}`,
-        app_logo_url: logoUrl
+        invitation_token: invitation.id,
+        invitation_expires: invitation.expiresAt
       });
+      
+      console.log('Invitation email sent');
     } catch (emailError) {
       console.error('Failed to send invitation email:', emailError);
+      // Don't fail the invitation if email fails
     }
     
-    console.log('=== inviteTeamMember SUCCESS (new invitation) ===');
+    console.log('=== inviteTeamMember SUCCESS ===');
+    
     return Response.json({
       success: true,
-      message: 'Invitation sent successfully',
-      invitationId: invitation.id
+      invitation: {
+        id: invitation.id,
+        email: invitation.email,
+        orgRole: invitation.orgRole,
+        status: invitation.status,
+        expiresAt: invitation.expiresAt
+      }
     });
     
   } catch (error) {
-    console.error('=== inviteTeamMember ERROR v5-fresh ===');
-    console.error('Error in inviteTeamMember:', error);
-    console.error('Error stack:', error.stack);
-    return Response.json(
-      { 
-        error: error.message || 'Failed to invite team member',
-        details: error.stack
-      },
-      { status: 500 }
-    );
+    console.error('inviteTeamMember error:', error);
+    return Response.json({
+      success: false,
+      error: 'error',
+      message: error.message || 'Failed to invite team member'
+    }, { status: 500 });
   }
 });
