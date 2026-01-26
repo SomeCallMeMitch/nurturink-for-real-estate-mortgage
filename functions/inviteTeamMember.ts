@@ -297,12 +297,18 @@ Deno.serve(async (req) => {
     // Map orgRole to legacy appRole for backward compatibility
     const legacyAppRole = mapOrgRoleToLegacyAppRole(finalOrgRole);
     
-    // Create invitation - only set orgRole, not the legacy role field
+    // Generate a unique token for the invitation
+    const token = crypto.randomUUID();
+    
+    // Create invitation with all required fields
     const invitation = await base44.asServiceRole.entities.Invitation.create({
       email: normalizedEmail,
       orgId: user.orgId,
       orgRole: finalOrgRole,
       invitedBy: user.id,
+      invitedByUserId: user.id,
+      invitedByName: user.full_name || user.email,
+      token: token,
       status: 'pending',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
     });
@@ -321,7 +327,7 @@ Deno.serve(async (req) => {
         organization_name: organization?.name || 'your organization',
         role: legacyAppRole,
         role_display: roleDisplay,
-        invitation_token: invitation.id,
+        invitation_token: token,
         invitation_expires: invitation.expiresAt
       });
       
