@@ -315,7 +315,7 @@ export default function TeamManagement() {
     try {
       setChangingRole(true);
       
-      await base44.functions.invoke('updateTeamMemberRole', {
+      await base44.functions.invoke('changeTeamMemberRole', {
         userId: selectedMember.userId,
         orgRole: newRole
       });
