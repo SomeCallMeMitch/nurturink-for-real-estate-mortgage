@@ -1,132 +1,252 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
- * Update a team member's role within the organization
- * Supports both new orgRole system (owner/manager/member) and legacy appRole system
- * @version 2026-01-26-manual-deploy
+ * Update a team member's role - INLINED VERSION (JavaScript)
+ * All role helpers are inlined to avoid import sync issues
+ * 
+ * @version 2026-01-26-inlined-js
  */
 
-// Role constants
+// =============================================================================
+// INLINED ROLE CONSTANTS
+// =============================================================================
+
 const ORG_ROLES = {
   OWNER: 'owner',
   MANAGER: 'manager',
-  MEMBER: 'member'
+  MEMBER: 'member',
 };
 
-// Map orgRole to legacy appRole
-const orgRoleToAppRole = {
-  'owner': 'organization_owner',
-  'manager': 'organization_manager',
-  'member': 'sales_rep'
+const APP_ROLES = {
+  SUPER_ADMIN: 'super_admin',
+  ORGANIZATION_OWNER: 'organization_owner',
+  ORGANIZATION_MANAGER: 'organization_manager',
+  SALES_REP: 'sales_rep',
 };
 
-// Map legacy appRole to orgRole
-const appRoleToOrgRole = {
-  'organization_owner': 'owner',
-  'organization_manager': 'manager',
-  'sales_rep': 'member'
-};
+// =============================================================================
+// INLINED ROLE FUNCTIONS
+// =============================================================================
 
-// Valid orgRoles
-const VALID_ORG_ROLES = ['owner', 'manager', 'member'];
+function isSuperAdmin(user) {
+  if (!user) return false;
+  return user.appRole === APP_ROLES.SUPER_ADMIN || user.role === 'admin';
+}
+
+function isOrgOwner(user) {
+  if (!user) return false;
+  return user.isOrgOwner === true || user.appRole === APP_ROLES.ORGANIZATION_OWNER;
+}
+
+function isOrgManager(user) {
+  if (!user) return false;
+  return user.appRole === APP_ROLES.ORGANIZATION_MANAGER;
+}
+
+function isOrgAdmin(user) {
+  if (!user) return false;
+  return isOrgOwner(user) || isOrgManager(user);
+}
+
+function mapLegacyAppRoleToOrgRole(appRole, isOrgOwnerFlag) {
+  if (isOrgOwnerFlag || appRole === APP_ROLES.ORGANIZATION_OWNER) {
+    return ORG_ROLES.OWNER;
+  }
+  if (appRole === APP_ROLES.ORGANIZATION_MANAGER) {
+    return ORG_ROLES.MANAGER;
+  }
+  return ORG_ROLES.MEMBER;
+}
+
+function mapOrgRoleToLegacyAppRole(orgRole) {
+  switch (orgRole) {
+    case ORG_ROLES.OWNER:
+      return APP_ROLES.ORGANIZATION_OWNER;
+    case ORG_ROLES.MANAGER:
+      return APP_ROLES.ORGANIZATION_MANAGER;
+    case ORG_ROLES.MEMBER:
+    default:
+      return APP_ROLES.SALES_REP;
+  }
+}
+
+function getOrgRoleDisplayName(orgRole) {
+  switch (orgRole) {
+    case ORG_ROLES.OWNER: return 'Owner';
+    case ORG_ROLES.MANAGER: return 'Manager';
+    case ORG_ROLES.MEMBER: return 'Member';
+    default: return orgRole || 'Member';
+  }
+}
+
+function canAssignRole(user, targetRole) {
+  if (!user) return false;
+  
+  // Super admins can assign any role
+  if (isSuperAdmin(user)) return true;
+  
+  // Determine the user's orgRole
+  let userOrgRole = user.orgProfile?.orgRole;
+  if (!userOrgRole) {
+    userOrgRole = mapLegacyAppRoleToOrgRole(user.appRole, user.isOrgOwner);
+  }
+  
+  // Owners can assign manager and member
+  if (userOrgRole === ORG_ROLES.OWNER) {
+    return targetRole === ORG_ROLES.MANAGER || targetRole === ORG_ROLES.MEMBER;
+  }
+  
+  // Managers can only assign member
+  if (userOrgRole === ORG_ROLES.MANAGER) {
+    return targetRole === ORG_ROLES.MEMBER;
+  }
+  
+  // Members cannot assign any role
+  return false;
+}
+
+async function upsertUserProfile(base44, userId, orgId, orgRole) {
+  // Try to find existing profile
+  const existingProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+    userId: userId,
+    orgId: orgId
+  });
+  
+  if (existingProfiles.length > 0) {
+    const profile = existingProfiles[0];
+    // Update role if provided and different
+    if (orgRole && profile.orgRole !== orgRole) {
+      return await base44.asServiceRole.entities.UserProfile.update(profile.id, {
+        orgRole: orgRole
+      });
+    }
+    return profile;
+  }
+  
+  // Create new profile
+  return await base44.asServiceRole.entities.UserProfile.create({
+    userId: userId,
+    orgId: orgId,
+    orgRole: orgRole || ORG_ROLES.MEMBER
+  });
+}
+
+// =============================================================================
+// MAIN FUNCTION
+// =============================================================================
 
 Deno.serve(async (req) => {
-  console.log('=== updateTeamMemberRole START (2026-01-26-manual) ===');
+  console.log('=== updateTeamMemberRole START (2026-01-26-inlined-js) ===');
   
   try {
     const base44 = createClientFromRequest(req);
     
     // Verify user is authenticated
     const user = await base44.auth.me();
+    console.log('Current user:', JSON.stringify({ 
+      id: user?.id, 
+      email: user?.email, 
+      appRole: user?.appRole, 
+      orgId: user?.orgId, 
+      isOrgOwner: user?.isOrgOwner 
+    }));
+    
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    console.log('Current user:', JSON.stringify({ 
-      id: user.id, 
-      email: user.email, 
-      appRole: user.appRole, 
-      orgId: user.orgId 
-    }));
+    // Verify user can manage team (org owner, org manager, or super admin)
+    const canManage = isOrgAdmin(user) || isSuperAdmin(user);
+    console.log('Permission check - isOrgAdmin:', isOrgAdmin(user), 'isSuperAdmin:', isSuperAdmin(user), 'canManage:', canManage);
     
-    // Get user's UserProfile to check orgRole
-    let userOrgRole = null;
-    try {
-      const userProfiles = await base44.asServiceRole.entities.UserProfile.filter({
-        userId: user.id,
-        orgId: user.orgId
-      });
-      if (userProfiles.length > 0) {
-        userOrgRole = userProfiles[0].orgRole;
-      }
-    } catch (e) {
-      console.error('Failed to fetch user profile:', e);
+    if (!canManage) {
+      return Response.json(
+        { error: 'Access denied. Only organization owners and managers can update team member roles.' },
+        { status: 403 }
+      );
     }
     
-    console.log('User orgRole from profile:', userOrgRole);
-    
-    // Check permissions - owner, manager, or super admin can change roles
-    const isOrgOwner = userOrgRole === ORG_ROLES.OWNER || user.appRole === 'organization_owner' || user.isOrgOwner === true;
-    const isOrgManager = userOrgRole === ORG_ROLES.MANAGER || user.appRole === 'organization_manager';
-    const isSuperAdmin = user.appRole === 'super_admin' || user.role === 'admin';
-    
-    console.log('Permission check:', { isOrgOwner, isOrgManager, isSuperAdmin });
-    
-    if (!isOrgOwner && !isOrgManager && !isSuperAdmin) {
+    if (!user.orgId) {
       return Response.json(
-        { error: 'Access denied. Only organization owners and managers can change team member roles.' },
-        { status: 403 }
+        { error: 'You must belong to an organization to manage team members' },
+        { status: 400 }
       );
     }
     
     // Parse request body
     const body = await req.json();
-    const { userId, newRole, orgRole } = body;
+    const { userId, role, orgRole } = body;
     
-    console.log('Request body:', JSON.stringify(body));
+    console.log('Request body:', JSON.stringify({ userId, role, orgRole }));
     
     // Validate inputs
     if (!userId) {
       return Response.json(
-        { error: 'userId is required' },
+        { error: 'User ID is required' },
         { status: 400 }
       );
     }
     
-    // Support both orgRole (new) and newRole (legacy) parameters
-    let finalOrgRole = orgRole || appRoleToOrgRole[newRole] || newRole;
+    // Determine the role to use (prefer new orgRole, fall back to legacy role)
+    let finalOrgRole = orgRole;
     
-    console.log('Computed finalOrgRole:', finalOrgRole, 'from orgRole:', orgRole, 'newRole:', newRole);
-    console.log('VALID_ORG_ROLES:', VALID_ORG_ROLES);
-    console.log('Is valid?:', VALID_ORG_ROLES.includes(finalOrgRole));
-    
-    if (!finalOrgRole || !VALID_ORG_ROLES.includes(finalOrgRole)) {
-      return Response.json(
-        { error: `Invalid role "${finalOrgRole}". Must be "owner", "manager", or "member" (v2026-01-26)` },
-        { status: 400 }
-      );
-    }
-    
-    // Permission checks for role assignment
-    // Managers can only assign 'member' role
-    if (isOrgManager && !isOrgOwner && !isSuperAdmin) {
-      if (finalOrgRole !== ORG_ROLES.MEMBER) {
+    // Handle new orgRole field
+    if (orgRole) {
+      console.log('Processing orgRole:', orgRole);
+      const validOrgRoles = [ORG_ROLES.OWNER, ORG_ROLES.MANAGER, ORG_ROLES.MEMBER];
+      
+      if (!validOrgRoles.includes(orgRole)) {
+        console.log('VALIDATION FAILED: Invalid orgRole');
         return Response.json(
-          { error: 'Managers can only assign member role' },
-          { status: 403 }
+          { error: `Invalid orgRole "${orgRole}". Must be "owner", "manager", or "member"` },
+          { status: 400 }
         );
       }
+    } 
+    // Handle legacy role field (backwards compatibility)
+    else if (role) {
+      console.log('Processing legacy role:', role);
+      if (!['sales_rep', 'organization_owner', 'organization_manager'].includes(role)) {
+        return Response.json(
+          { error: 'Invalid role. Must be "sales_rep", "organization_manager", or "organization_owner"' },
+          { status: 400 }
+        );
+      }
+      // Map legacy role to new orgRole
+      if (role === 'organization_owner') {
+        finalOrgRole = ORG_ROLES.OWNER;
+      } else if (role === 'organization_manager') {
+        finalOrgRole = ORG_ROLES.MANAGER;
+      } else {
+        finalOrgRole = ORG_ROLES.MEMBER;
+      }
+    } else {
+      return Response.json(
+        { error: 'Role is required (orgRole or role)' },
+        { status: 400 }
+      );
     }
     
-    // Only owners and super admins can assign owner role
-    if (finalOrgRole === ORG_ROLES.OWNER && !isOrgOwner && !isSuperAdmin) {
+    console.log('Final orgRole:', finalOrgRole);
+    
+    // Check if user can assign this role
+    if (!canAssignRole(user, finalOrgRole)) {
+      console.log('PERMISSION DENIED: User cannot assign role:', finalOrgRole);
+      
+      let errorMessage = 'You do not have permission to assign this role.';
+      if (finalOrgRole === ORG_ROLES.OWNER) {
+        errorMessage = 'Only super admins can assign the owner role.';
+      } else if (finalOrgRole === ORG_ROLES.MANAGER) {
+        errorMessage = 'Only organization owners can assign the manager role.';
+      }
+      
       return Response.json(
-        { error: 'Only organization owners can assign owner role' },
+        { error: errorMessage },
         { status: 403 }
       );
     }
     
-    // Load the target user
+    // Get the target user
     const targetUsers = await base44.asServiceRole.entities.User.filter({
       id: userId
     });
@@ -139,75 +259,40 @@ Deno.serve(async (req) => {
     }
     
     const targetUser = targetUsers[0];
+    console.log('Target user:', JSON.stringify({ id: targetUser.id, email: targetUser.email, orgId: targetUser.orgId }));
     
-    // Verify user belongs to the same organization (super admins can bypass)
-    if (!isSuperAdmin && targetUser.orgId !== user.orgId) {
+    // Verify target user is in the same organization
+    if (targetUser.orgId !== user.orgId) {
       return Response.json(
-        { error: 'This user does not belong to your organization' },
+        { error: 'You can only update roles for members of your organization' },
         { status: 403 }
       );
     }
     
-    // Prevent user from demoting themselves if they're the only owner
-    if (userId === user.id && finalOrgRole !== ORG_ROLES.OWNER) {
-      // Check if there are other org owners via UserProfile
-      const orgProfiles = await base44.asServiceRole.entities.UserProfile.filter({
-        orgId: user.orgId,
-        orgRole: ORG_ROLES.OWNER
-      });
-      
-      // Also check legacy way
-      const orgUsers = await base44.asServiceRole.entities.User.filter({
-        orgId: user.orgId
-      });
-      const legacyOwnerCount = orgUsers.filter(u => 
-        u.appRole === 'organization_owner' || u.isOrgOwner === true
-      ).length;
-      
-      const totalOwners = Math.max(orgProfiles.length, legacyOwnerCount);
-      
-      if (totalOwners <= 1) {
-        return Response.json(
-          { error: 'Cannot demote yourself. You are the only organization owner. Promote another member first.' },
-          { status: 400 }
-        );
-      }
+    // Prevent users from changing their own role (except super admins)
+    if (targetUser.id === user.id && !isSuperAdmin(user)) {
+      return Response.json(
+        { error: 'You cannot change your own role' },
+        { status: 403 }
+      );
     }
     
-    // Map orgRole to appRole for legacy compatibility
-    const appRole = orgRoleToAppRole[finalOrgRole] || finalOrgRole;
+    // Map orgRole to legacy appRole for backward compatibility
+    const legacyAppRole = mapOrgRoleToLegacyAppRole(finalOrgRole);
+    const isOwner = finalOrgRole === ORG_ROLES.OWNER;
     
-    console.log('Updating user with appRole:', appRole, 'isOrgOwner:', finalOrgRole === ORG_ROLES.OWNER);
-    
-    // Update the user's legacy role fields
+    // Update the user's legacy fields for backward compatibility
     await base44.asServiceRole.entities.User.update(userId, {
-      appRole: appRole,
-      isOrgOwner: finalOrgRole === ORG_ROLES.OWNER
+      appRole: legacyAppRole,
+      isOrgOwner: isOwner
     });
     
-    // Update or create UserProfile with new orgRole
+    console.log('Updated User entity with appRole:', legacyAppRole, 'isOrgOwner:', isOwner);
+    
+    // Update or create UserProfile (source of truth for role)
     try {
-      const existingProfiles = await base44.asServiceRole.entities.UserProfile.filter({
-        userId: userId,
-        orgId: targetUser.orgId
-      });
-      
-      if (existingProfiles.length > 0) {
-        console.log('Updating existing UserProfile:', existingProfiles[0].id);
-        await base44.asServiceRole.entities.UserProfile.update(existingProfiles[0].id, {
-          orgRole: finalOrgRole,
-          updatedAt: new Date().toISOString()
-        });
-      } else {
-        console.log('Creating new UserProfile for user:', userId);
-        await base44.asServiceRole.entities.UserProfile.create({
-          userId: userId,
-          orgId: targetUser.orgId,
-          orgRole: finalOrgRole,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      }
+      await upsertUserProfile(base44, userId, targetUser.orgId, finalOrgRole);
+      console.log('UserProfile updated/created with orgRole:', finalOrgRole);
     } catch (profileError) {
       console.error('Failed to update UserProfile:', profileError);
       // Continue - the legacy role is still updated
@@ -228,17 +313,15 @@ Deno.serve(async (req) => {
       message: 'Team member role updated successfully',
       userId: userId,
       orgRole: finalOrgRole,
-      newRole: appRole // Legacy field for backwards compatibility
+      newRole: legacyAppRole // Legacy field for backward compatibility
     });
     
   } catch (error) {
     console.error('Error in updateTeamMemberRole:', error);
-    return Response.json(
-      { 
-        error: error.message || 'Failed to update team member role',
-        details: error.stack
-      },
-      { status: 500 }
-    );
+    return Response.json({
+      success: false,
+      error: 'error',
+      message: error.message || 'Failed to update team member role'
+    }, { status: 500 });
   }
 });
