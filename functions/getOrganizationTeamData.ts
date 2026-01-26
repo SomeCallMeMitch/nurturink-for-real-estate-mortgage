@@ -1,11 +1,63 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { ORG_ROLES, mapLegacyAppRoleToOrgRole, getUserProfile } from './roleHelpers.ts';
 
 /**
- * Get comprehensive team data for an organization
- * Returns team members with basic information, org roles, and pending invitations
+ * Get comprehensive team data for an organization - INLINED VERSION (JavaScript)
+ * All role helpers are inlined to avoid import sync issues
+ * 
+ * @version 2026-01-26-inlined-js
  */
+
+// =============================================================================
+// INLINED ROLE CONSTANTS
+// =============================================================================
+
+const ORG_ROLES = {
+  OWNER: 'owner',
+  MANAGER: 'manager',
+  MEMBER: 'member',
+};
+
+const APP_ROLES = {
+  SUPER_ADMIN: 'super_admin',
+  ORGANIZATION_OWNER: 'organization_owner',
+  ORGANIZATION_MANAGER: 'organization_manager',
+  SALES_REP: 'sales_rep',
+};
+
+// =============================================================================
+// INLINED ROLE FUNCTIONS
+// =============================================================================
+
+function mapLegacyAppRoleToOrgRole(appRole, isOrgOwnerFlag) {
+  if (isOrgOwnerFlag || appRole === APP_ROLES.ORGANIZATION_OWNER) {
+    return ORG_ROLES.OWNER;
+  }
+  if (appRole === APP_ROLES.ORGANIZATION_MANAGER) {
+    return ORG_ROLES.MANAGER;
+  }
+  return ORG_ROLES.MEMBER;
+}
+
+async function getUserProfile(base44, userId, orgId) {
+  try {
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({
+      userId: userId,
+      orgId: orgId
+    });
+    return profiles.length > 0 ? profiles[0] : null;
+  } catch (error) {
+    console.error('Error fetching UserProfile:', error);
+    return null;
+  }
+}
+
+// =============================================================================
+// MAIN FUNCTION
+// =============================================================================
+
 Deno.serve(async (req) => {
+  console.log('=== getOrganizationTeamData START (2026-01-26-inlined-js) ===');
+  
   try {
     const base44 = createClientFromRequest(req);
     
@@ -15,17 +67,32 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    console.log('Current user:', JSON.stringify({ 
+      id: user?.id, 
+      email: user?.email, 
+      appRole: user?.appRole, 
+      orgId: user?.orgId 
+    }));
+    
     // Get current user's UserProfile to check permissions
     let currentUserOrgRole = null;
+    let currentUserProfileId = null;
     if (user.orgId) {
       const currentUserProfile = await getUserProfile(base44, user.id, user.orgId);
       currentUserOrgRole = currentUserProfile?.orgRole || mapLegacyAppRoleToOrgRole(user.appRole, user.isOrgOwner);
+      currentUserProfileId = currentUserProfile?.id || null;
+      console.log('Current user profile:', JSON.stringify({ 
+        orgRole: currentUserOrgRole, 
+        profileId: currentUserProfileId 
+      }));
     }
     
     // Verify user is organization owner, manager, or super admin
     const isOrgOwner = currentUserOrgRole === ORG_ROLES.OWNER || user.appRole === 'organization_owner' || user.isOrgOwner === true;
     const isOrgManager = currentUserOrgRole === ORG_ROLES.MANAGER || user.appRole === 'organization_manager';
     const isSuperAdmin = user.appRole === 'super_admin';
+    
+    console.log('Permission check:', JSON.stringify({ isOrgOwner, isOrgManager, isSuperAdmin }));
     
     // Super admins, org owners, and managers can access team data
     if (!isOrgOwner && !isOrgManager && !isSuperAdmin) {
@@ -57,10 +124,19 @@ Deno.serve(async (req) => {
       orgId: targetOrgId
     });
     
+    console.log('Team members found:', teamMembers.length);
+    
     // Fetch all UserProfiles for this organization
-    const userProfiles = await base44.asServiceRole.entities.UserProfile.filter({
-      orgId: targetOrgId
-    });
+    let userProfiles = [];
+    try {
+      userProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+        orgId: targetOrgId
+      });
+      console.log('UserProfiles found:', userProfiles.length);
+    } catch (profileError) {
+      console.error('Error fetching UserProfiles:', profileError);
+      // Continue without profiles - will use legacy mapping
+    }
     
     // Create a map for quick lookup
     const profileMap = new Map();
@@ -74,6 +150,8 @@ Deno.serve(async (req) => {
       status: 'pending'
     });
     
+    console.log('Pending invitations found:', pendingInvitations.length);
+    
     // Map team members to response format with orgRole from UserProfile
     const membersWithStats = teamMembers.map((member) => {
       // Generate initials for avatar
@@ -85,6 +163,8 @@ Deno.serve(async (req) => {
       // Get orgRole from UserProfile, fall back to legacy mapping
       const userProfile = profileMap.get(member.id);
       const orgRole = userProfile?.orgRole || mapLegacyAppRoleToOrgRole(member.appRole, member.isOrgOwner);
+      
+      console.log(`Member ${member.email}: profile=${userProfile?.id || 'none'}, orgRole=${orgRole}, appRole=${member.appRole}, isOrgOwner=${member.isOrgOwner}`);
       
       return {
         userId: member.id,
@@ -164,9 +244,12 @@ Deno.serve(async (req) => {
       appRole: user.appRole,
       orgProfile: {
         orgRole: currentUserOrgRole,
-        profileId: null // Will be set if profile exists
+        profileId: currentUserProfileId
       }
     };
+    
+    console.log('=== getOrganizationTeamData SUCCESS ===');
+    console.log('Summary:', JSON.stringify(summaryStats));
     
     return Response.json({
       members: allMembers,
