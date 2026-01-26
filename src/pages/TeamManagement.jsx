@@ -186,6 +186,61 @@ export default function TeamManagement() {
     );
   }, [members, searchQuery]);
 
+  // Helper function to determine if current user can delete a specific member
+  const canDeleteMember = (member) => {
+    // Can't delete yourself
+    if (member.userId === user?.id) return false;
+    
+    // Pending invitations can be cancelled by anyone who can view the page
+    if (member.status === 'Pending') return true;
+    
+    // Get current user's role
+    const currentUserOrgRole = currentUserOrgProfile?.orgRole || 'member';
+    const memberOrgRole = member.orgProfile?.orgRole || 'member';
+    
+    // Super admins can delete anyone
+    if (user?.appRole === 'super_admin') return true;
+    
+    // Owners can delete managers and members, but not other owners
+    if (currentUserOrgRole === 'owner') {
+      return memberOrgRole !== 'owner';
+    }
+    
+    // Managers can only delete members
+    if (currentUserOrgRole === 'manager') {
+      return memberOrgRole === 'member';
+    }
+    
+    // Members can't delete anyone
+    return false;
+  };
+
+  // Helper function to determine if current user can change a member's role
+  const canChangeRole = (member) => {
+    // Can't change your own role
+    if (member.userId === user?.id) return false;
+    
+    // Get current user's role
+    const currentUserOrgRole = currentUserOrgProfile?.orgRole || 'member';
+    const memberOrgRole = member.orgProfile?.orgRole || 'member';
+    
+    // Super admins can change anyone's role
+    if (user?.appRole === 'super_admin') return true;
+    
+    // Owners can change managers and members roles, but not other owners
+    if (currentUserOrgRole === 'owner') {
+      return memberOrgRole !== 'owner';
+    }
+    
+    // Managers can only change member roles (not other managers or owners)
+    if (currentUserOrgRole === 'manager') {
+      return memberOrgRole === 'member';
+    }
+    
+    // Members can't change anyone's role
+    return false;
+  };
+
   const formatRelativeTime = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -624,7 +679,7 @@ export default function TeamManagement() {
                                   size="icon"
                                   className="h-8 w-8 text-gray-600 hover:text-purple-600"
                                   onClick={() => handleOpenRoleChange(member)}
-                                  disabled={member.userId === user?.id}
+                                  disabled={!canChangeRole(member)}
                                   title="Change Role"
                                 >
                                   <UserCog className="w-4 h-4" />
@@ -636,7 +691,7 @@ export default function TeamManagement() {
                               size="icon"
                               className="h-8 w-8 text-gray-600 hover:text-red-600"
                               onClick={() => handleOpenRemove(member)}
-                              disabled={member.userId === user?.id}
+                              disabled={!canDeleteMember(member)}
                               title={member.status === 'Pending' ? 'Cancel Invitation' : 'Remove Member'}
                             >
                               <UserX className="w-4 h-4" />

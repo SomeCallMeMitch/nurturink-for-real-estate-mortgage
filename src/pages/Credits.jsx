@@ -61,11 +61,13 @@ export default function Credits() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Transaction filters
+  // Transaction filters and pagination
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date-desc');
   const [exporting, setExporting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
 
   // Coupon state
   const [couponCode, setCouponCode] = useState('');
@@ -124,10 +126,12 @@ export default function Credits() {
         }
       }
       
-      // Load company pool stats if user is org owner (check both appRole and isOrgOwner flag)
+      // Load company pool stats if user is org owner or manager
       const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
+      const isOrgManager = currentUser.appRole === 'organization_manager';
+      const canManageCredits = isOrgOwner || isOrgManager;
       
-      if (isOrgOwner && currentUser.orgId) {
+      if (canManageCredits && currentUser.orgId) {
         try {
           const statsResponse = await base44.functions.invoke('getCompanyPoolStats');
           setCompanyPoolStats(statsResponse.data);
@@ -194,8 +198,13 @@ export default function Credits() {
     }
   };
 
-  // Determine if this is individual or company view (check both appRole and isOrgOwner flag)
-  const isCompanyView = (user?.appRole === 'organization_owner' || user?.isOrgOwner === true) && organization;
+  // Determine if this is individual or company view
+  // Owners AND Managers can view/manage company credits
+  const isCompanyView = (
+    user?.appRole === 'organization_owner' || 
+    user?.appRole === 'organization_manager' ||
+    user?.isOrgOwner === true
+  ) && organization;
 
   // Get current balance for display - UPDATED FOR NEW SYSTEM
   const companyAllocatedBalance = user?.companyAllocatedCredits || 0;
@@ -256,6 +265,19 @@ export default function Credits() {
     
     return filtered;
   }, [transactions, searchQuery, typeFilter, sortBy]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, typeFilter, sortBy]);
+
+  // Paginated transactions
+  const paginatedTransactions = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredTransactions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredTransactions, currentPage]);
+
+  const totalPages = Math.ceil(filteredTransactions.length / ITEMS_PER_PAGE);
 
   const transactionTypes = useMemo(() => {
     const types = new Set(transactions.map(t => t.type));
@@ -1242,7 +1264,7 @@ export default function Credits() {
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredTransactions.map((transaction) => (
+                {paginatedTransactions.map((transaction) => (
                   <div 
                     key={transaction.id}
                     className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
@@ -1286,6 +1308,36 @@ export default function Credits() {
                     </div>
                   </div>
                 ))}
+
+                {/* Pagination Controls */}
+                {filteredTransactions.length > ITEMS_PER_PAGE && (
+                  <div className="flex justify-between items-center mt-6 pt-4 border-t">
+                    <span className="text-sm text-gray-500">
+                      Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredTransactions.length)} of {filteredTransactions.length} transactions
+                    </span>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        disabled={currentPage === 1}
+                        onClick={() => setCurrentPage(p => p - 1)}
+                      >
+                        Previous
+                      </Button>
+                      <span className="flex items-center px-3 text-sm text-gray-600">
+                        Page {currentPage} of {totalPages}
+                      </span>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        disabled={currentPage === totalPages}
+                        onClick={() => setCurrentPage(p => p + 1)}
+                      >
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
