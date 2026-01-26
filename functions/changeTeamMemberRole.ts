@@ -4,7 +4,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
  * Update a team member's role within the organization
  * NEW endpoint to replace updateTeamMemberRole
  * Supports new orgRole system (owner/manager/member)
- * @version 2026-01-26
+ * @version 2026-01-26-v2
  */
 
 // Role constants
