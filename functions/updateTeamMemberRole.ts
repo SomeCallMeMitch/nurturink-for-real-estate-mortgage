@@ -3,6 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 /**
  * Update a team member's role within the organization
  * Supports both new orgRole system (owner/manager/member) and legacy appRole system
+ * @version 2026-01-26
  */
 
 // Role constants
