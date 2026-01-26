@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 /**
  * Update a team member's role within the organization
  * Supports both new orgRole system (owner/manager/member) and legacy appRole system
- * @version 2026-01-26
+ * @version 2026-01-26-v2
  */
 
 // Role constants
@@ -70,6 +70,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { userId, newRole, orgRole } = body;
     
+    console.log('updateTeamMemberRole called with:', { userId, newRole, orgRole });
+    
     // Validate inputs
     if (!userId) {
       return Response.json(
@@ -81,9 +83,11 @@ Deno.serve(async (req) => {
     // Support both orgRole (new) and newRole (legacy) parameters
     let finalOrgRole = orgRole || appRoleToOrgRole[newRole] || newRole;
     
+    console.log('Resolved finalOrgRole:', finalOrgRole, 'from orgRole:', orgRole, 'newRole:', newRole);
+    
     if (!finalOrgRole || !VALID_ORG_ROLES.includes(finalOrgRole)) {
       return Response.json(
-        { error: 'Invalid role. Must be "owner", "manager", or "member"' },
+        { error: `Invalid role "${finalOrgRole}". Must be "owner", "manager", or "member"` },
         { status: 400 }
       );
     }
@@ -121,8 +125,8 @@ Deno.serve(async (req) => {
     
     const targetUser = targetUsers[0];
     
-    // Verify user belongs to the same organization
-    if (targetUser.orgId !== user.orgId) {
+    // Verify user belongs to the same organization (skip for super admin)
+    if (!isSuperAdmin && targetUser.orgId !== user.orgId) {
       return Response.json(
         { error: 'This user does not belong to your organization' },
         { status: 403 }
