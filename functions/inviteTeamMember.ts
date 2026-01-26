@@ -8,7 +8,7 @@ import {
   mapOrgRoleToLegacyAppRole,
   upsertUserProfile,
   getOrgRoleDisplayName
-} from './utils/roleHelpers.ts';
+} from './roleHelpers.ts';
 
 /**
  * Invite a new team member to the organization

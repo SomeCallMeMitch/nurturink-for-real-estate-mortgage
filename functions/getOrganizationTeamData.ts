@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { ORG_ROLES, mapLegacyAppRoleToOrgRole, getUserProfile } from './utils/roleHelpers.ts';
+import { ORG_ROLES, mapLegacyAppRoleToOrgRole, getUserProfile } from './roleHelpers.ts';
 
 /**
  * Get comprehensive team data for an organization

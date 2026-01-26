@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
-import { isOrgAdmin, getUserProfile, mapLegacyAppRoleToOrgRole, ORG_ROLES } from './utils/roleHelpers.ts';
+import { isOrgAdmin, getUserProfile, mapLegacyAppRoleToOrgRole, ORG_ROLES } from './roleHelpers.ts';
 
 /**
  * Allocate credits from organization pool to team members
