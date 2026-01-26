@@ -131,7 +131,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       label: "Team",
       icon: UsersRound,
       path: "TeamManagement",
-      roles: ["organization_owner", "whitelabel_partner", "super_admin"],
+      roles: ["organization_owner", "organization_manager", "whitelabel_partner", "super_admin"],
     },
     {
       id: "analytics",

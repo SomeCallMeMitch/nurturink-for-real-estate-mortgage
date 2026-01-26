@@ -74,11 +74,47 @@ Deno.serve(async (req) => {
     }
     
     // 8. Update user with organization membership
-    // Using appRole as per Base44's standard User entity schema
+    // Map orgRole to appRole for backwards compatibility
+    const orgRoleToAppRole = {
+      'owner': 'organization_owner',
+      'manager': 'organization_manager',
+      'member': 'sales_rep'
+    };
+    
+    // Use orgRole (new system) or fall back to role (legacy)
+    const orgRole = invitation.orgRole || invitation.role || 'member';
+    const appRole = orgRoleToAppRole[orgRole] || orgRole;
+    
     await base44.auth.updateMe({
       orgId: invitation.orgId,
-      appRole: invitation.role
+      appRole: appRole
     });
+    
+    // 8b. Create/update UserProfile for the new role system
+    try {
+      const existingProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+        userId: user.id,
+        orgId: invitation.orgId
+      });
+      
+      if (existingProfiles.length > 0) {
+        await base44.asServiceRole.entities.UserProfile.update(existingProfiles[0].id, {
+          orgRole: orgRole,
+          updatedAt: new Date().toISOString()
+        });
+      } else {
+        await base44.asServiceRole.entities.UserProfile.create({
+          userId: user.id,
+          orgId: invitation.orgId,
+          orgRole: orgRole,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
+    } catch (profileError) {
+      console.error('Failed to create/update UserProfile:', profileError);
+      // Continue - the user is still added to the org
+    }
     
     // 9. Mark invitation as accepted
     await base44.asServiceRole.entities.Invitation.update(invitation.id, {
