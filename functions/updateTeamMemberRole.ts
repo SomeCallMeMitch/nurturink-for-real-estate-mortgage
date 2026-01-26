@@ -3,6 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 /**
  * Update a team member's role within the organization
  * Supports both new orgRole system (owner/manager/member) and legacy appRole system
+ * @version 2026-01-26-manual-deploy
  */
 
 // Role constants
@@ -30,6 +31,8 @@ const appRoleToOrgRole = {
 const VALID_ORG_ROLES = ['owner', 'manager', 'member'];
 
 Deno.serve(async (req) => {
+  console.log('=== updateTeamMemberRole START (2026-01-26-manual) ===');
+  
   try {
     const base44 = createClientFromRequest(req);
     
@@ -38,6 +41,13 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    console.log('Current user:', JSON.stringify({ 
+      id: user.id, 
+      email: user.email, 
+      appRole: user.appRole, 
+      orgId: user.orgId 
+    }));
     
     // Get user's UserProfile to check orgRole
     let userOrgRole = null;
@@ -53,10 +63,14 @@ Deno.serve(async (req) => {
       console.error('Failed to fetch user profile:', e);
     }
     
+    console.log('User orgRole from profile:', userOrgRole);
+    
     // Check permissions - owner, manager, or super admin can change roles
     const isOrgOwner = userOrgRole === ORG_ROLES.OWNER || user.appRole === 'organization_owner' || user.isOrgOwner === true;
     const isOrgManager = userOrgRole === ORG_ROLES.MANAGER || user.appRole === 'organization_manager';
-    const isSuperAdmin = user.appRole === 'super_admin';
+    const isSuperAdmin = user.appRole === 'super_admin' || user.role === 'admin';
+    
+    console.log('Permission check:', { isOrgOwner, isOrgManager, isSuperAdmin });
     
     if (!isOrgOwner && !isOrgManager && !isSuperAdmin) {
       return Response.json(
@@ -69,6 +83,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { userId, newRole, orgRole } = body;
     
+    console.log('Request body:', JSON.stringify(body));
+    
     // Validate inputs
     if (!userId) {
       return Response.json(
@@ -80,9 +96,13 @@ Deno.serve(async (req) => {
     // Support both orgRole (new) and newRole (legacy) parameters
     let finalOrgRole = orgRole || appRoleToOrgRole[newRole] || newRole;
     
+    console.log('Computed finalOrgRole:', finalOrgRole, 'from orgRole:', orgRole, 'newRole:', newRole);
+    console.log('VALID_ORG_ROLES:', VALID_ORG_ROLES);
+    console.log('Is valid?:', VALID_ORG_ROLES.includes(finalOrgRole));
+    
     if (!finalOrgRole || !VALID_ORG_ROLES.includes(finalOrgRole)) {
       return Response.json(
-        { error: 'Invalid role. Must be "owner", "manager", or "member"' },
+        { error: `Invalid role "${finalOrgRole}". Must be "owner", "manager", or "member" (v2026-01-26)` },
         { status: 400 }
       );
     }
@@ -120,8 +140,8 @@ Deno.serve(async (req) => {
     
     const targetUser = targetUsers[0];
     
-    // Verify user belongs to the same organization
-    if (targetUser.orgId !== user.orgId) {
+    // Verify user belongs to the same organization (super admins can bypass)
+    if (!isSuperAdmin && targetUser.orgId !== user.orgId) {
       return Response.json(
         { error: 'This user does not belong to your organization' },
         { status: 403 }
@@ -157,6 +177,8 @@ Deno.serve(async (req) => {
     // Map orgRole to appRole for legacy compatibility
     const appRole = orgRoleToAppRole[finalOrgRole] || finalOrgRole;
     
+    console.log('Updating user with appRole:', appRole, 'isOrgOwner:', finalOrgRole === ORG_ROLES.OWNER);
+    
     // Update the user's legacy role fields
     await base44.asServiceRole.entities.User.update(userId, {
       appRole: appRole,
@@ -171,11 +193,13 @@ Deno.serve(async (req) => {
       });
       
       if (existingProfiles.length > 0) {
+        console.log('Updating existing UserProfile:', existingProfiles[0].id);
         await base44.asServiceRole.entities.UserProfile.update(existingProfiles[0].id, {
           orgRole: finalOrgRole,
           updatedAt: new Date().toISOString()
         });
       } else {
+        console.log('Creating new UserProfile for user:', userId);
         await base44.asServiceRole.entities.UserProfile.create({
           userId: userId,
           orgId: targetUser.orgId,
@@ -196,9 +220,8 @@ Deno.serve(async (req) => {
       'member': 'Member'
     };
     
-    console.log(`📧 [SIMULATED EMAIL] To: ${targetUser.email}`);
-    console.log(`Subject: Your role has been updated`);
-    console.log(`Body: Your role has been changed to ${roleDisplayNames[finalOrgRole] || finalOrgRole}.`);
+    console.log('=== updateTeamMemberRole SUCCESS ===');
+    console.log(`Updated ${targetUser.email} to role: ${finalOrgRole}`);
     
     return Response.json({
       success: true,
