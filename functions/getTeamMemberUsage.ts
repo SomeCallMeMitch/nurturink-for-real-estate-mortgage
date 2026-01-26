@@ -22,12 +22,13 @@ Deno.serve(async (req) => {
       );
     }
     
-    // Verify user is organization owner (check both appRole and isOrgOwner flag)
+    // Verify user is organization owner OR manager (check both appRole and isOrgOwner flag)
     const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    const isOrgManager = user.appRole === 'organization_manager';
     
-    if (!isOrgOwner) {
+    if (!isOrgOwner && !isOrgManager) {
       return Response.json(
-        { error: 'Only organization owners can view team member usage' },
+        { error: 'Only organization owners and managers can view team member usage' },
         { status: 403 }
       );
     }
@@ -37,10 +38,19 @@ Deno.serve(async (req) => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
     
-    // Get all team members in organization (excluding org owners)
-    const teamMembers = await base44.asServiceRole.entities.User.filter({
-      orgId: user.orgId,
-      appRole: 'sales_rep' // Only include sales reps
+    // Get all team members in organization (sales_reps and managers, excluding current user)
+    const allOrgUsers = await base44.asServiceRole.entities.User.filter({
+      orgId: user.orgId
+    });
+    
+    // Filter to only include sales_reps and managers, and exclude the current user
+    const teamMembers = allOrgUsers.filter(member => {
+      // Exclude current user (can't allocate to yourself)
+      if (member.id === user.id) return false;
+      
+      // Include sales_reps and managers
+      const includedRoles = ['sales_rep', 'organization_manager'];
+      return includedRoles.includes(member.appRole);
     });
     
     // For each team member, get their usage this month
