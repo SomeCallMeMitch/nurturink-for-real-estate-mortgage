@@ -52,12 +52,6 @@ export default function Dashboard() {
         return;
       }
 
-      // Redirect super_admin to their dashboard
-      if (currentUser.appRole === 'super_admin') {
-        navigate(createPageUrl('SuperAdminDashboard'), { replace: true });
-        return;
-      }
-
       setUser(currentUser);
 
       // Load organization if user has orgId
