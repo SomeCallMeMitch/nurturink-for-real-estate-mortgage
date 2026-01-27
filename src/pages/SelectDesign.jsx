@@ -13,6 +13,7 @@ import { debounce } from "lodash";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import EditModeSelector from "@/components/mailing/EditModeSelector";
 import CardPreview from "@/components/preview/CardPreview";
+import CardDetailsModal from "@/components/card/CardDetailsModal";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 
 // PHASE 2: Import CreditContext hook for global credit state
@@ -49,6 +50,10 @@ export default function SelectDesign() {
   const [favoriteIds, setFavoriteIds] = useState([]);
   const [saving, setSaving] = useState(false);
   const [hoveredDesignId, setHoveredDesignId] = useState(null);
+  
+  // Modal state
+  const [isCardDetailsModalOpen, setIsCardDetailsModalOpen] = useState(false);
+  const [selectedCardDesignForDetails, setSelectedCardDesignForDetails] = useState(null);
   
   // Local state for design selection
   const [localSelectedDesignId, setLocalSelectedDesignId] = useState(null);
@@ -350,6 +355,13 @@ export default function SelectDesign() {
     [clients]
   );
 
+  // Handle opening details modal
+  const handleOpenCardDetails = (e, design) => {
+    e.stopPropagation(); // Prevent selection when clicking "See Inside"
+    setSelectedCardDesignForDetails(design);
+    setIsCardDetailsModalOpen(true);
+  };
+
   // Handle back navigation
   const handleBack = () => {
     navigate(createPageUrl(`CreateContent?mailingBatchId=${mailingBatchId}`));
@@ -573,7 +585,6 @@ export default function SelectDesign() {
                         const isSelected = design.id === getCurrentDesignId();
                         const isFavorite = favoriteIds.includes(design.id);
                         const isHovered = hoveredDesignId === design.id;
-                        const displayImageUrl = isHovered ? design.insideImageUrl : design.outsideImageUrl;
                         
                         return (
                           <div
@@ -581,7 +592,7 @@ export default function SelectDesign() {
                             onClick={() => handleDesignSelect(design.id)}
                             onMouseEnter={() => setHoveredDesignId(design.id)}
                             onMouseLeave={() => setHoveredDesignId(null)}
-                            className={`relative cursor-pointer rounded-lg border-2 transition-all hover:shadow-lg ${
+                            className={`relative cursor-pointer rounded-lg border-2 transition-all hover:shadow-lg group ${
                               isSelected 
                                 ? 'border-primary shadow-lg' 
                                 : 'border-border hover:border-muted-foreground'
@@ -608,17 +619,26 @@ export default function SelectDesign() {
                               />
                             </button>
                             
-                            {/* Single Design Image with Hover Effect */}
+                            {/* Single Design Image with "See Inside" Button */}
                             <div className="relative rounded-t-lg overflow-hidden bg-muted" style={{ aspectRatio: '412/600' }}>
                               <img
-                                src={displayImageUrl || design.imageUrl}
+                                src={design.outsideImageUrl || design.imageUrl}
                                 alt={design.name}
-                                className="w-full h-full object-cover transition-opacity duration-300"
+                                className="w-full h-full object-cover"
                               />
                               
-                              {/* Inside/Outside Label */}
-                              <div className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded font-medium">
-                                {isHovered ? 'Inside' : 'Outside'}
+                              {/* "See Inside" Overlay */}
+                              <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-200 ${
+                                isHovered ? 'opacity-100' : 'opacity-0'
+                              }`}>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={(e) => handleOpenCardDetails(e, design)}
+                                  className="shadow-md"
+                                >
+                                  See Inside
+                                </Button>
                               </div>
                             </div>
                             
@@ -677,6 +697,21 @@ export default function SelectDesign() {
           </div>
         </div>
       </div>
+
+      {/* Card Details Modal */}
+      <CardDetailsModal
+        open={isCardDetailsModalOpen}
+        onOpenChange={setIsCardDetailsModalOpen}
+        cardDesign={selectedCardDesignForDetails}
+        message={getCurrentMessage}
+        client={getCurrentClient}
+        user={user}
+        organization={organization}
+        noteStyleProfile={noteStyleProfile}
+        previewSettings={instanceSettings?.cardPreviewSettings}
+        includeGreeting={mailingBatch?.includeGreeting}
+        includeSignature={mailingBatch?.includeSignature}
+      />
 
       {/* Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg z-50">
