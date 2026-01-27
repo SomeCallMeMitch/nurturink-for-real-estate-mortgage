@@ -417,11 +417,11 @@ export default function MailingConfirmation() {
                         <td className="py-3 px-4">
                           {design ? (
                             <div className="flex items-center gap-2">
-                              <div className="w-12 h-12 rounded border border-border overflow-hidden flex-shrink-0">
+                              <div className="w-16 h-auto rounded border border-border overflow-hidden flex-shrink-0">
                                 <img
-                                  src={design.insideImageUrl || design.imageUrl}
+                                  src={design.frontImageUrl || design.outsideImageUrl || design.imageUrl}
                                   alt={design.name}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-auto object-contain"
                                 />
                               </div>
                               <span className="text-sm text-foreground">{design.name}</span>

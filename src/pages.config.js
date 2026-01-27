@@ -60,6 +60,7 @@ import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
 import SeedClone from './pages/SeedClone';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -126,6 +127,7 @@ export const PAGES = {
     "landing1": landing1,
     "lp": lp,
     "SeedClone": SeedClone,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {

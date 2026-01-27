@@ -25,7 +25,8 @@ import {
   Link as LinkIcon,
   Building,
   Zap,
-  Send
+  Send,
+  Home
 } from "lucide-react";
 
 import {
@@ -139,6 +140,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
   };
 
   const navItems = [
+    { title: "Dashboard", url: "Dashboard", icon: Home },
     { title: "Clients", url: "AdminClients", icon: Users },
     { title: "Send a Card", url: "FindClients", icon: Mail },
     { title: "Templates", url: "Templates", icon: FileText },

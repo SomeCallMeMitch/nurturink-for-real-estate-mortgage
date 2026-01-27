@@ -27,6 +27,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Database,
+  Home,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
@@ -83,6 +84,13 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
   const logoUrl = whitelabelSettings?.logoUrl;
 
   const mainMenuItems = [
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: Home,
+      path: "Dashboard",
+      roles: ["sales_rep", "organization_owner", "whitelabel_partner", "super_admin", "user"],
+    },
     {
       id: "send-card",
       label: "Send a Card",
