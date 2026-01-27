@@ -629,16 +629,14 @@ export default function SelectDesign() {
                               
                               {/* "See Inside" Overlay */}
                               <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-200 ${
-                                isHovered ? 'opacity-100' : 'opacity-0'
+                              isHovered ? 'opacity-100' : 'opacity-0'
                               }`}>
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  onClick={(e) => handleOpenCardDetails(e, design)}
-                                  className="shadow-md"
-                                >
-                                  See Inside
-                                </Button>
+                              <Button
+                                onClick={(e) => handleOpenCardDetails(e, design)}
+                                className="shadow-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg px-8 py-6 h-auto"
+                              >
+                                See Inside
+                              </Button>
                               </div>
                             </div>
                             

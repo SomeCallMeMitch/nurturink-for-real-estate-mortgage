@@ -29,55 +29,59 @@ export default function CardDetailsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-7xl max-h-[95vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-2xl font-bold">{cardDesign.name}</DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="flex-1 px-6">
           <div className="space-y-8 pb-8">
-            {/* Section 1: Outside Design (Cover) */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold border-b pb-2">Outside Design</h3>
-              <div className="flex justify-center bg-muted/30 p-6 rounded-lg">
-                <img
-                  src={cardDesign.outsideImageUrl || cardDesign.imageUrl}
-                  alt="Card Cover"
-                  className="max-h-[500px] w-auto shadow-md rounded-sm object-contain"
-                />
-              </div>
-            </div>
-
-            {/* Section 2: Physical Card Preview (Front & Back) */}
-            {(cardDesign.frontImageUrl || cardDesign.backImageUrl) && (
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold border-b pb-2">Physical Card View</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-muted/30 p-6 rounded-lg">
-                  {cardDesign.frontImageUrl && (
-                    <div className="space-y-2 text-center">
-                      <span className="text-sm font-medium text-muted-foreground">Front</span>
-                      <img
-                        src={cardDesign.frontImageUrl}
-                        alt="Physical Card Front"
-                        className="w-full h-auto shadow-md rounded-sm"
-                      />
-                    </div>
-                  )}
-                  {cardDesign.backImageUrl && (
-                    <div className="space-y-2 text-center">
-                      <span className="text-sm font-medium text-muted-foreground">Back</span>
-                      <img
-                        src={cardDesign.backImageUrl}
-                        alt="Physical Card Back"
-                        className="w-full h-auto shadow-md rounded-sm"
-                      />
-                    </div>
-                  )}
+            {/* Top Row: Outside Design + Physical Views Side-by-Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
+              {/* Left Column: Outside Design (Cover) */}
+              <div className="space-y-3 h-full flex flex-col">
+                <h3 className="text-lg font-semibold border-b pb-2">Outside Design</h3>
+                <div className="flex-1 flex justify-center items-center bg-muted/30 p-6 rounded-lg">
+                  <img
+                    src={cardDesign.outsideImageUrl || cardDesign.imageUrl}
+                    alt="Card Cover"
+                    className="max-h-[600px] w-auto shadow-lg rounded-sm object-contain"
+                  />
                 </div>
               </div>
-            )}
 
-            {/* Section 3: Inside Preview with Message */}
+              {/* Right Column: Physical Card View (Front & Back) */}
+              {(cardDesign.frontImageUrl || cardDesign.backImageUrl) && (
+                <div className="space-y-3 h-full flex flex-col">
+                  <h3 className="text-lg font-semibold border-b pb-2">Physical Card View</h3>
+                  <div className="flex-1 grid grid-cols-2 gap-6 bg-muted/30 p-6 rounded-lg items-center">
+                    {cardDesign.frontImageUrl && (
+                      <div className="space-y-2 text-center">
+                        <span className="text-sm font-medium text-muted-foreground">Front</span>
+                        <img
+                          src={cardDesign.frontImageUrl}
+                          alt="Physical Card Front"
+                          className="w-full h-auto shadow-lg rounded-sm"
+                        />
+                      </div>
+                    )}
+                    {cardDesign.backImageUrl && (
+                      <div className="space-y-2 text-center">
+                        <span className="text-sm font-medium text-muted-foreground">Back</span>
+                        <img
+                          src={cardDesign.backImageUrl}
+                          alt="Physical Card Back"
+                          className="w-full h-auto shadow-lg rounded-sm"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom Row: Inside Preview with Message */}
             <div className="space-y-3">
               <h3 className="text-lg font-semibold border-b pb-2">Inside Preview with Message</h3>
               <p className="text-sm text-muted-foreground">
