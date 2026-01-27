@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { createPageUrl } from "@/utils";
 import {
-  Home,
   Mail,
   Settings,
   LogOut,
@@ -11,7 +10,6 @@ import {
   Shield,
   Users,
   DollarSign,
-  BarChart3,
   UsersRound,
   Palette,
   ChevronRight,
@@ -28,6 +26,7 @@ import {
   Send,
   ChevronsLeft,
   ChevronsRight,
+  Database,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
@@ -85,13 +84,6 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
 
   const mainMenuItems = [
     {
-      id: "home",
-      label: "Home",
-      icon: Home,
-      path: "Home",
-      roles: ["sales_rep", "organization_owner", "whitelabel_partner", "super_admin", "user"],
-    },
-    {
       id: "send-card",
       label: "Send a Card",
       icon: Mail,
@@ -127,18 +119,11 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       roles: ["sales_rep", "organization_owner", "whitelabel_partner", "super_admin", "user"],
     },
     {
-  id: "team",
-  label: "Team",
-  icon: UsersRound,
-  path: "TeamManagement",
-  roles: ["organization_owner", "organization_manager", "whitelabel_partner", "super_admin"],
-},
-    {
-      id: "analytics",
-      label: "Analytics",
-      icon: BarChart3,
-      path: "Analytics",
-      roles: ["sales_rep", "organization_owner", "whitelabel_partner", "super_admin", "user"],
+      id: "team",
+      label: "Team",
+      icon: UsersRound,
+      path: "TeamManagement",
+      roles: ["organization_owner", "organization_manager", "whitelabel_partner", "super_admin"],
     },
   ];
 
@@ -245,6 +230,13 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       label: "Whitelabel Settings",
       icon: Shield,
       path: "SuperAdminWhitelabel",
+      roles: ["super_admin"],
+    },
+    {
+      id: "seed-clone",
+      label: "Seed Clone",
+      icon: Database,
+      path: "SeedClone",
       roles: ["super_admin"],
     },
   ];

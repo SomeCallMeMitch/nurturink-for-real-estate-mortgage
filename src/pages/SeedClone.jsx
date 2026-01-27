@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Mail, Database, ArrowRight, CheckCircle2, AlertCircle, DollarSign } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-export default function Home() {
+export default function SeedClone() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -24,8 +24,14 @@ export default function Home() {
         }
         
         const user = await base44.auth.me();
-        console.log('Home.js: Authenticated user appRole:', user?.appRole);
-        console.log('Home.js: Full user object:', user);
+        console.log('SeedClone.js: Authenticated user appRole:', user?.appRole);
+        console.log('SeedClone.js: Full user object:', user);
+        
+        // Only super_admin should access this page
+        if (user?.appRole !== 'super_admin') {
+          navigate(createPageUrl('SuperAdminDashboard'));
+          return;
+        }
         
         if (!user.onboardingComplete) {
           navigate(createPageUrl('Onboarding'));
@@ -101,7 +107,7 @@ export default function Home() {
       });
       
       toast({
-        title: 'Test Data Created! ✓',
+        title: 'Test Data Created!',
         description: response.data.message,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
@@ -137,7 +143,7 @@ export default function Home() {
       });
       
       toast({
-        title: 'Categories Created! ✓',
+        title: 'Categories Created!',
         description: response.data.message,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
@@ -178,7 +184,7 @@ export default function Home() {
       });
       
       toast({
-        title: 'Templates Created! ✓',
+        title: 'Templates Created!',
         description: `${profileResult.data.message} ${templateResult.data.message}`,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
@@ -215,7 +221,7 @@ export default function Home() {
       });
       
       toast({
-        title: 'Pricing Tiers Created! ✓',
+        title: 'Pricing Tiers Created!',
         description: response.data.message,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
@@ -252,7 +258,7 @@ export default function Home() {
       });
       
       toast({
-        title: response.data.action === 'created' ? 'Profiles Created! ✓' : 'Profiles Already Exist',
+        title: response.data.action === 'created' ? 'Profiles Created!' : 'Profiles Already Exist',
         description: response.data.message,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
@@ -287,13 +293,13 @@ export default function Home() {
       setCreditsSeedResult({
         success: response.data.success,
         message: response.data.message,
-        previousBalance: response.data.previousBalance, // Note: simulateCreditPurchase might not return previousBalance, check function
+        previousBalance: response.data.previousBalance,
         newBalance: response.data.newBalance,
         creditsAdded: response.data.creditsAdded
       });
       
       toast({
-        title: 'Personal Credits Purchased! ✓',
+        title: 'Personal Credits Purchased!',
         description: `Added ${response.data.creditsAdded} credits to your personal balance`,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
@@ -334,7 +340,7 @@ export default function Home() {
       });
       
       toast({
-        title: 'Company Pool Credits Purchased! ✓',
+        title: 'Company Pool Credits Purchased!',
         description: `Added ${response.data.creditsAdded} credits to company pool`,
         className: 'bg-green-50 border-green-200 text-green-900'
       });
@@ -367,10 +373,10 @@ export default function Home() {
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Welcome to <span className="brand-text-primary">RoofScribe</span>
+            Seed Clone
           </h1>
           <p className="text-xl text-gray-600">
-            Send personalized handwritten notecards to your clients
+            Admin utility for seeding test data and configurations
           </p>
         </motion.div>
 

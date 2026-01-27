@@ -9,7 +9,6 @@ import {
   FileText,
   DollarSign,
   UsersRound,
-  BarChart3,
   Settings,
   LogOut,
   ChevronUp,
@@ -25,7 +24,6 @@ import {
   Phone,
   Link as LinkIcon,
   Building,
-  Home,
   Zap,
   Send
 } from "lucide-react";
@@ -141,14 +139,12 @@ export function AppSidebar({ whitelabelSettings, user }) {
   };
 
   const navItems = [
-    { title: "Dashboard", url: "Home", icon: Home },
     { title: "Clients", url: "AdminClients", icon: Users },
     { title: "Send a Card", url: "FindClients", icon: Mail },
     { title: "Templates", url: "Templates", icon: FileText },
     { title: "QuickSends", url: "QuickSendTemplates", icon: Zap },
     { title: "Credits", url: "Credits", icon: DollarSign },
     { title: "Team", url: "TeamManagement", icon: UsersRound },
-    { title: "Analytics", url: "Analytics", icon: BarChart3 },
   ];
 
   const settingsItems = [
@@ -174,6 +170,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
 
   const whitelabelItems = [
     { title: "Whitelabel Settings", url: "SuperAdminWhitelabel", icon: Palette },
+    { title: "Seed Clone", url: "SeedClone", icon: LayoutDashboard },
   ];
 
   return (
