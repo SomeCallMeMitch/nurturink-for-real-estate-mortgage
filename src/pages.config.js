@@ -128,6 +128,7 @@ export const PAGES = {
     "lp": lp,
     "SeedClone": SeedClone,
     "Dashboard": Dashboard,
+    "Home": Dashboard,
 }
 
 export const pagesConfig = {
