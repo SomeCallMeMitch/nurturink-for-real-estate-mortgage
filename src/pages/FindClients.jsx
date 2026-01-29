@@ -853,34 +853,40 @@ export default function FindClients() {
                         </TableCell>
 
                         <TableCell>
-                          <div className="flex items-center gap-1 flex-wrap">
-                            {isImported && (
-                              <Pill variant="color1" size="sm">
-                                imported
-                              </Pill>
-                            )}
-                            {clientTags.length > 0 ? (
-                              <>
-                                {clientTags.slice(0, 2).map(tag => (
-                                  <Pill 
-                                    key={tag} 
-                                    variant="tag"
-                                    size="sm"
-                                  >
-                                    {tag}
-                                  </Pill>
-                                ))}
-                                {clientTags.length > 2 && (
-                                  <Pill variant="muted" size="sm">
-                                    +{clientTags.length - 2}
-                                  </Pill>
-                                )}
-                              </>
-                            ) : (
-                              !isImported && <span className="text-muted-foreground/50">—</span>
-                            )}
-                          </div>
-                        </TableCell>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              {isImported && (
+                                <Pill variant="color1" size="sm">
+                                  imported
+                                </Pill>
+                              )}
+                              {clientTags.length > 0 ? (
+                                <>
+                                  {clientTags.slice(0, 2).map((tag, index) => {
+                                    // Cycle through color variants based on tag name hash
+                                    const colorVariants = ['tag', 'color1', 'color2', 'color3', 'success', 'warning'];
+                                    const hash = tag.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                                    const variant = colorVariants[hash % colorVariants.length];
+                                    return (
+                                      <Pill 
+                                        key={tag} 
+                                        variant={variant}
+                                        size="sm"
+                                      >
+                                        {tag}
+                                      </Pill>
+                                    );
+                                  })}
+                                  {clientTags.length > 2 && (
+                                    <Pill variant="muted" size="sm">
+                                      +{clientTags.length - 2}
+                                    </Pill>
+                                  )}
+                                </>
+                              ) : (
+                                !isImported && <span className="text-muted-foreground/50">—</span>
+                              )}
+                            </div>
+                          </TableCell>
 
                         <TableCell>
                           <Button

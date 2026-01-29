@@ -1,3 +1,52 @@
+/**
+ * pages.config.js - Page routing configuration
+ * 
+ * This file is AUTO-GENERATED. Do not add imports or modify PAGES manually.
+ * Pages are auto-registered when you create files in the ./pages/ folder.
+ * 
+ * THE ONLY EDITABLE VALUE: mainPage
+ * This controls which page is the landing page (shown when users visit the app).
+ * 
+ * Example file structure:
+ * 
+ *   import HomePage from './pages/HomePage';
+ *   import Dashboard from './pages/Dashboard';
+ *   import Settings from './pages/Settings';
+ *   
+ *   export const PAGES = {
+ *       "HomePage": HomePage,
+ *       "Dashboard": Dashboard,
+ *       "Settings": Settings,
+ *   }
+ *   
+ *   export const pagesConfig = {
+ *       mainPage: "HomePage",
+ *       Pages: PAGES,
+ *   };
+ * 
+ * Example with Layout (wraps all pages):
+ *
+ *   import Home from './pages/Home';
+ *   import Settings from './pages/Settings';
+ *   import __Layout from './Layout.jsx';
+ *
+ *   export const PAGES = {
+ *       "Home": Home,
+ *       "Settings": Settings,
+ *   }
+ *
+ *   export const pagesConfig = {
+ *       mainPage: "Home",
+ *       Pages: PAGES,
+ *       Layout: __Layout,
+ *   };
+ *
+ * To change the main page from HomePage to Dashboard, use find_replace:
+ *   Old: mainPage: "HomePage",
+ *   New: mainPage: "Dashboard",
+ *
+ * The mainPage value must match a key in the PAGES object exactly.
+ */
 import AcceptInvitation from './pages/AcceptInvitation';
 import AdminCardDetails from './pages/AdminCardDetails';
 import AdminCardLayout from './pages/AdminCardLayout';
@@ -16,6 +65,7 @@ import AdminUploadWhiteImage from './pages/AdminUploadWhiteImage';
 import CreateContent from './pages/CreateContent';
 import CreateContent2 from './pages/CreateContent2';
 import Credits from './pages/Credits';
+import Dashboard from './pages/Dashboard';
 import EditQuickSendTemplate from './pages/EditQuickSendTemplate';
 import EditTemplate from './pages/EditTemplate';
 import FindClients from './pages/FindClients';
@@ -38,6 +88,7 @@ import PillDemo from './pages/PillDemo';
 import QuickSendTemplates from './pages/QuickSendTemplates';
 import ReviewAndSend from './pages/ReviewAndSend';
 import ScribeTest from './pages/ScribeTest';
+import SeedClone from './pages/SeedClone';
 import SelectDesign from './pages/SelectDesign';
 import SettingsAddresses from './pages/SettingsAddresses';
 import SettingsOrganization from './pages/SettingsOrganization';
@@ -59,8 +110,6 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import SeedClone from './pages/SeedClone';
-import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -83,6 +132,7 @@ export const PAGES = {
     "CreateContent": CreateContent,
     "CreateContent2": CreateContent2,
     "Credits": Credits,
+    "Dashboard": Dashboard,
     "EditQuickSendTemplate": EditQuickSendTemplate,
     "EditTemplate": EditTemplate,
     "FindClients": FindClients,
@@ -105,6 +155,7 @@ export const PAGES = {
     "QuickSendTemplates": QuickSendTemplates,
     "ReviewAndSend": ReviewAndSend,
     "ScribeTest": ScribeTest,
+    "SeedClone": SeedClone,
     "SelectDesign": SelectDesign,
     "SettingsAddresses": SettingsAddresses,
     "SettingsOrganization": SettingsOrganization,
@@ -126,9 +177,6 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
-    "SeedClone": SeedClone,
-    "Dashboard": Dashboard,
-    "Home": Dashboard,
 }
 
 export const pagesConfig = {
