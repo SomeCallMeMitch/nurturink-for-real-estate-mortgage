@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, type, enrollmentMode, requiresApproval, description, steps } = await req.json();
+    const { name, type, enrollmentMode, requiresApproval, description, steps, status } = await req.json();
 
     // Validate required fields
     if (!name || !type || !enrollmentMode) {
@@ -66,13 +66,17 @@ Deno.serve(async (req) => {
     };
     const triggerField = triggerFieldMap[type];
 
+    // Validate status if provided
+    const validStatuses = ['draft', 'active', 'paused'];
+    const campaignStatus = status && validStatuses.includes(status) ? status : 'draft';
+
     // Create Campaign record
     const campaignData = {
       orgId,
       createdBy: user.id,
       name,
       type,
-      status: 'draft',
+      status: campaignStatus,
       enrollmentMode,
       triggerField,
       requiresApproval: requiresApproval || false,
@@ -114,9 +118,43 @@ Deno.serve(async (req) => {
       await base44.entities.CampaignStep.bulkCreate(stepRecords);
     }
 
+    // Auto-enroll eligible clients if opt_out mode AND status is active
+    let enrolledCount = 0;
+    if (enrollmentMode === 'opt_out' && campaignStatus === 'active') {
+      try {
+        // Fetch all clients for this organization
+        const allClients = await base44.entities.Client.filter({ orgId });
+
+        // Filter eligible clients (have trigger field value and automation enabled)
+        const eligibleClients = allClients.filter(client => {
+          const hasFieldValue = client[triggerField] && client[triggerField] !== '';
+          const automationEnabled = client.automationEnabled !== false;
+          return hasFieldValue && automationEnabled;
+        });
+
+        // Create enrollment records for each eligible client
+        if (eligibleClients.length > 0) {
+          const enrollmentRecords = eligibleClients.map(client => ({
+            campaignId: campaign.id,
+            clientId: client.id,
+            status: 'enrolled',
+            enrolledAt: new Date().toISOString()
+          }));
+
+          await base44.entities.CampaignEnrollment.bulkCreate(enrollmentRecords);
+          enrolledCount = eligibleClients.length;
+        }
+      } catch (enrollmentError) {
+        console.error('Error during auto-enrollment:', enrollmentError);
+        // Don't fail the campaign creation if enrollment fails
+      }
+    }
+
     return Response.json({ 
       success: true, 
       campaignId: campaign.id,
+      stepsCreated: steps?.length || 0,
+      enrolledCount,
       message: 'Campaign created successfully'
     });
 
