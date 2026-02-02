@@ -28,7 +28,7 @@ import {
   ChevronsRight,
   Database,
   Home,
-  CalendarClock,
+  Megaphone,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
