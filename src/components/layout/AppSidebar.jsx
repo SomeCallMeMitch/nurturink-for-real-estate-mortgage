@@ -26,7 +26,8 @@ import {
   Building,
   Zap,
   Send,
-  Home
+  Home,
+  Megaphone // Added for Campaigns menu item
 } from "lucide-react";
 
 import {
@@ -147,6 +148,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
     { title: "QuickSends", url: "QuickSendTemplates", icon: Zap },
     { title: "Credits", url: "Credits", icon: DollarSign },
     { title: "Team", url: "TeamManagement", icon: UsersRound },
+    { title: "Campaigns", url: "Campaigns", icon: Megaphone }, // Added Campaigns menu item
   ];
 
   const settingsItems = [
