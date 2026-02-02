@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import PlaceholderSelector from '@/components/mailing/PlaceholderSelector';
 
 /**
  * CardStepConfigurator Component
@@ -74,6 +75,11 @@ export default function CardStepConfigurator({
     } else {
       onUpdate({ templateId: null });
     }
+  };
+
+  // Handle inserting placeholder into custom message
+  const handleInsertPlaceholder = (placeholder) => {
+    onUpdate({ messageText: (step.messageText || '') + ' ' + placeholder });
   };
 
   return (
@@ -213,6 +219,9 @@ export default function CardStepConfigurator({
         {/* Custom Message Textarea */}
         {messageMode === 'custom' && (
           <div className="mt-3 space-y-2">
+            <div className="flex justify-end mb-2">
+              <PlaceholderSelector onPlaceholderSelect={handleInsertPlaceholder} />
+            </div>
             <Textarea
               placeholder="Write your personalized message here..."
               value={step.messageText || ''}

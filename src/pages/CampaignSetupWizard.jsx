@@ -35,15 +35,34 @@ const WIZARD_STEPS = [
 
 // Default step configuration based on campaign type
 const getDefaultSteps = (type) => {
-  if (type === 'birthday' || type === 'renewal') {
+  if (type === 'birthday') {
     return [{
       stepOrder: 1,
       cardDesignId: null,
       templateId: null,
       messageText: '',
-      timingDays: -7, // 7 days before
+      timingDays: -10, // 10 days before
       timingReference: 'trigger_date'
     }];
+  } else if (type === 'renewal') {
+    return [
+      {
+        stepOrder: 1,
+        cardDesignId: null,
+        templateId: null,
+        messageText: '',
+        timingDays: -60, // 60 days before
+        timingReference: 'trigger_date'
+      },
+      {
+        stepOrder: 2,
+        cardDesignId: null,
+        templateId: null,
+        messageText: '',
+        timingDays: -30, // 30 days before (implied second card)
+        timingReference: 'trigger_date'
+      }
+    ];
   } else if (type === 'welcome') {
     return [{
       stepOrder: 1,
