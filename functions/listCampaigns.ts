@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's organization ID from UserProfile
+    // Get user's organization ID fromm UserProfile
     const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
     if (!userProfiles || userProfiles.length === 0) {
       return Response.json({ success: false, error: 'User profile not found' }, { status: 404 });
