@@ -1,14 +1,14 @@
 import React from 'react';
-import { Cake, Gift, RefreshCw, Users, UserPlus, ShieldCheck, ShieldOff, Clock, AlertTriangle } from 'lucide-react';
+import { Cake, Gift, RefreshCw, Users, UserPlus, ShieldCheck, ShieldOff, Clock, AlertTriangle, Building2, User, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 /**
  * CampaignReviewSummary Component
- * Step 4 of Campaign Setup Wizard - Review and finalize
+ * Step 5 of Campaign Setup Wizard - Review and finalize
  * 
- * @param {Object} campaignData - Campaign configuration: { type, enrollmentMode, requiresApproval, steps }
+ * @param {Object} campaignData - Campaign configuration: { type, enrollmentMode, requiresApproval, returnAddressMode, steps }
  * @param {string} campaignName - Current campaign name
  * @param {Function} onNameChange - Callback when name changes: (name: string) => void
  * @param {number} eligibleClientCount - Number of eligible clients
@@ -23,6 +23,12 @@ const CAMPAIGN_TYPE_CONFIG = {
   renewal: { label: 'Renewal', icon: RefreshCw, color: 'bg-green-100 text-green-700' }
 };
 
+const RETURN_ADDRESS_CONFIG = {
+  company: { label: 'Company', icon: Building2, color: 'bg-blue-100 text-blue-700' },
+  rep: { label: 'Sales Rep', icon: User, color: 'bg-purple-100 text-purple-700' },
+  none: { label: 'None', icon: X, color: 'bg-gray-100 text-gray-700' }
+};
+
 export default function CampaignReviewSummary({
   campaignData,
   campaignName,
@@ -34,6 +40,9 @@ export default function CampaignReviewSummary({
 }) {
   const typeConfig = CAMPAIGN_TYPE_CONFIG[campaignData.type] || CAMPAIGN_TYPE_CONFIG.birthday;
   const TypeIcon = typeConfig.icon;
+
+  const returnConfig = RETURN_ADDRESS_CONFIG[campaignData.returnAddressMode] || RETURN_ADDRESS_CONFIG.company;
+  const ReturnIcon = returnConfig.icon;
 
   // Get design by ID
   const getDesign = (designId) => designs.find(d => d.id === designId);
@@ -98,15 +107,15 @@ export default function CampaignReviewSummary({
         </p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Summary Cards - now 4 columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Campaign Type */}
         <div className="bg-muted/50 rounded-xl p-4 border border-border">
           <div className="flex items-center gap-3 mb-2">
             <div className={`p-2 rounded-lg ${typeConfig.color}`}>
               <TypeIcon className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium text-muted-foreground">Campaign Type</span>
+            <span className="text-sm font-medium text-muted-foreground">Type</span>
           </div>
           <p className="text-lg font-semibold text-foreground">{typeConfig.label}</p>
         </div>
@@ -130,7 +139,7 @@ export default function CampaignReviewSummary({
           <p className="text-lg font-semibold text-foreground">
             {campaignData.enrollmentMode === 'opt_out' 
               ? `${eligibleClientCount} clients`
-              : 'Manual enrollment'
+              : 'Manual'
             }
           </p>
         </div>
@@ -154,6 +163,17 @@ export default function CampaignReviewSummary({
           <p className="text-lg font-semibold text-foreground">
             {campaignData.requiresApproval ? 'Required' : 'Not required'}
           </p>
+        </div>
+
+        {/* Return Address - NEW */}
+        <div className="bg-muted/50 rounded-xl p-4 border border-border">
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`p-2 rounded-lg ${returnConfig.color}`}>
+              <ReturnIcon className="w-5 h-5" />
+            </div>
+            <span className="text-sm font-medium text-muted-foreground">Return Addr</span>
+          </div>
+          <p className="text-lg font-semibold text-foreground">{returnConfig.label}</p>
         </div>
       </div>
 
