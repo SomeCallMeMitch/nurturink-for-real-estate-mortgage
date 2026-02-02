@@ -111,7 +111,15 @@ export default function CampaignSetupWizard() {
   });
 
   const userProfile = userProfiles[0];
-  const orgId = userProfile?.orgId;
+  // Check user object directly first, then fall back to UserProfile
+  const orgId = user?.orgId || userProfile?.orgId;
+
+  // === DIAGNOSTIC LOGGING - Return Address Issue ===
+  console.log('[CampaignSetupWizard] user object:', user);
+  console.log('[CampaignSetupWizard] user.orgId:', user?.orgId);
+  console.log('[CampaignSetupWizard] userProfile:', userProfile);
+  console.log('[CampaignSetupWizard] Final orgId:', orgId);
+  // === END DIAGNOSTIC LOGGING ===
 
   // Fetch organization for company address
   const { data: organizations = [] } = useQuery({
@@ -123,9 +131,19 @@ export default function CampaignSetupWizard() {
   const organization = organizations[0];
   const companyAddress = organization?.companyReturnAddress;
 
+  // === DIAGNOSTIC LOGGING - Company Address ===
+  console.log('[CampaignSetupWizard] organization:', organization);
+  console.log('[CampaignSetupWizard] companyAddress:', companyAddress);
+  // === END DIAGNOSTIC LOGGING ===
+
   // Rep address would come from the user's profile or a related entity
-  // For now, we'll show null if not available
-  const repAddress = user?.returnAddress || null;
+  const repAddress = userProfile?.returnAddress || user?.returnAddress || null;
+  
+  // === DIAGNOSTIC LOGGING - Rep Address ===
+  console.log('[CampaignSetupWizard] userProfile.returnAddress:', userProfile?.returnAddress);
+  console.log('[CampaignSetupWizard] user.returnAddress:', user?.returnAddress);
+  console.log('[CampaignSetupWizard] Final repAddress:', repAddress);
+  // === END DIAGNOSTIC LOGGING ===
 
   // Fetch eligible client count when type changes
   useEffect(() => {
