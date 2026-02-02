@@ -44,24 +44,47 @@ Deno.serve(async (req) => {
       : 'company';
 
     // Get user's orgId from UserProfile
+    // For super_admin without a profile, we need to handle this gracefully
+    let orgId = null;
+    let userProfile = null;
+    
     const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
-    if (!userProfiles || userProfiles.length === 0) {
-      return Response.json({ 
-        success: false, 
-        error: 'User profile not found. Please complete onboarding.' 
-      }, { status: 400 });
+    
+    if (userProfiles && userProfiles.length > 0) {
+      userProfile = userProfiles[0];
+      orgId = userProfile.orgId;
+    } else {
+      // Check if user is super_admin - they might not have a UserProfile
+      // In this case, we need them to select an organization or create one
+      if (user.role === 'admin') {
+        // Super admin case: try to get the first organization for testing
+        // In production, this should be handled via org selection UI
+        const allOrgs = await base44.asServiceRole.entities.Organization.list();
+        if (allOrgs && allOrgs.length > 0) {
+          orgId = allOrgs[0].id;
+        } else {
+          return Response.json({ 
+            success: false, 
+            error: 'No organization found. Please create an organization first.' 
+          }, { status: 400 });
+        }
+      } else {
+        return Response.json({ 
+          success: false, 
+          error: 'User profile not found. Please complete onboarding.' 
+        }, { status: 400 });
+      }
     }
 
-    const userProfile = userProfiles[0];
-    const orgId = userProfile.orgId;
-
-    // Validate user has permission (owner or manager)
-    const allowedRoles = ['owner', 'manager'];
-    if (!allowedRoles.includes(userProfile.orgRole)) {
-      return Response.json({ 
-        success: false, 
-        error: 'Permission denied. Only organization owners and managers can create campaigns.' 
-      }, { status: 403 });
+    // Validate user has permission (owner or manager) - skip for super_admin
+    if (userProfile && user.role !== 'admin') {
+      const allowedRoles = ['owner', 'manager'];
+      if (!allowedRoles.includes(userProfile.orgRole)) {
+        return Response.json({ 
+          success: false, 
+          error: 'Permission denied. Only organization owners and managers can create campaigns.' 
+        }, { status: 403 });
+      }
     }
 
     // Determine triggerField based on type

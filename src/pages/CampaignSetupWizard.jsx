@@ -103,6 +103,30 @@ export default function CampaignSetupWizard() {
     queryFn: () => base44.auth.me()
   });
 
+  // Fetch user profile to get orgId
+  const { data: userProfiles = [] } = useQuery({
+    queryKey: ['userProfile', user?.id],
+    queryFn: () => base44.entities.UserProfile.filter({ userId: user.id }),
+    enabled: !!user?.id
+  });
+
+  const userProfile = userProfiles[0];
+  const orgId = userProfile?.orgId;
+
+  // Fetch organization for company address
+  const { data: organizations = [] } = useQuery({
+    queryKey: ['organization', orgId],
+    queryFn: () => base44.entities.Organization.filter({ id: orgId }),
+    enabled: !!orgId
+  });
+
+  const organization = organizations[0];
+  const companyAddress = organization?.companyReturnAddress;
+
+  // Rep address would come from the user's profile or a related entity
+  // For now, we'll show null if not available
+  const repAddress = user?.returnAddress || null;
+
   // Fetch eligible client count when type changes
   useEffect(() => {
     const fetchEligibleCount = async () => {
@@ -400,6 +424,8 @@ export default function CampaignSetupWizard() {
           <CampaignReturnAddressSelector
             returnAddressMode={campaignData.returnAddressMode}
             onChange={handleReturnAddressChange}
+            companyAddress={companyAddress}
+            repAddress={repAddress}
           />
         )}
 
