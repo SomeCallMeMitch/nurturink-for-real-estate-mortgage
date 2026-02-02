@@ -39,9 +39,56 @@ const capitalizeName = (name) => {
     .join(' ');
 };
 
+// Validate and normalize date format (YYYY-MM-DD)
+const normalizeDate = (dateStr) => {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  
+  const trimmed = dateStr.trim();
+  if (!trimmed) return null;
+  
+  // Try parsing as YYYY-MM-DD first
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const date = new Date(trimmed);
+    if (!isNaN(date.getTime())) return trimmed;
+  }
+  
+  // Try parsing as MM/DD/YYYY
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmed)) {
+    const parts = trimmed.split('/');
+    const month = parts[0].padStart(2, '0');
+    const day = parts[1].padStart(2, '0');
+    const year = parts[2];
+    const normalized = `${year}-${month}-${day}`;
+    const date = new Date(normalized);
+    if (!isNaN(date.getTime())) return normalized;
+  }
+  
+  // Try parsing as M-D-YYYY or MM-DD-YYYY
+  if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(trimmed)) {
+    const parts = trimmed.split('-');
+    const month = parts[0].padStart(2, '0');
+    const day = parts[1].padStart(2, '0');
+    const year = parts[2];
+    const normalized = `${year}-${month}-${day}`;
+    const date = new Date(normalized);
+    if (!isNaN(date.getTime())) return normalized;
+  }
+  
+  // Try generic Date parsing as fallback
+  const date = new Date(trimmed);
+  if (!isNaN(date.getTime())) {
+    return date.toISOString().split('T')[0];
+  }
+  
+  return null;
+};
+
 // Map raw data row to client fields using field mapping
 const mapRowToClient = (rawRow, fieldMapping, options) => {
   const mapped = {};
+  
+  // Date fields that need special handling
+  const dateFields = ['birthday', 'policy_start_date', 'renewal_date'];
   
   for (const [columnName, fieldName] of Object.entries(fieldMapping)) {
     if (fieldName && fieldName !== 'skip' && rawRow[columnName] !== undefined) {
@@ -61,6 +108,13 @@ const mapRowToClient = (rawRow, fieldMapping, options) => {
       } else if (fieldName === 'notes') {
         // Notes field - preserve as-is but trim
         mapped[fieldName] = value;
+      } else if (dateFields.includes(fieldName)) {
+        // Date fields - validate and normalize to YYYY-MM-DD
+        const normalizedDate = normalizeDate(value);
+        if (normalizedDate) {
+          mapped[fieldName] = normalizedDate;
+        }
+        // If date is invalid, skip it (don't add to mapped)
       } else {
         mapped[fieldName] = value;
       }
