@@ -137,7 +137,15 @@ export default function CampaignSetupWizard() {
   // === END DIAGNOSTIC LOGGING ===
 
   // Rep address would come from the user's profile or a related entity
-  const repAddress = userProfile?.returnAddress || user?.returnAddress || null;
+  // Check for nested returnAddress object OR flat fields on user (how SettingsAddresses saves it)
+  const repAddress = userProfile?.returnAddress || user?.returnAddress || (user?.street ? {
+    name: user.returnAddressName || user.full_name || user.fullName,
+    street: user.street,
+    address2: user.address2,
+    city: user.city,
+    state: user.state,
+    zip: user.zipCode || user.zip
+  } : null);
   
   // === DIAGNOSTIC LOGGING - Rep Address ===
   console.log('[CampaignSetupWizard] userProfile.returnAddress:', userProfile?.returnAddress);
