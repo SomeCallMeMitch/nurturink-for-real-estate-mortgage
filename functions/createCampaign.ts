@@ -56,33 +56,46 @@ Deno.serve(async (req) => {
     let orgId = null;
     let userProfile = null;
     
+    console.log('[createCampaign] Fetching UserProfile for userId:', user.id);
     const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
+    console.log('[createCampaign] UserProfiles found:', userProfiles?.length || 0);
+    console.log('[createCampaign] UserProfiles data:', JSON.stringify(userProfiles, null, 2));
     
     if (userProfiles && userProfiles.length > 0) {
       userProfile = userProfiles[0];
       orgId = userProfile.orgId;
+      console.log('[createCampaign] Using orgId from UserProfile:', orgId);
+      console.log('[createCampaign] UserProfile orgRole:', userProfile.orgRole);
     } else {
+      console.log('[createCampaign] No UserProfile found, checking if super_admin...');
       // Check if user is super_admin - they might not have a UserProfile
       // In this case, we need them to select an organization or create one
       if (user.role === 'admin') {
+        console.log('[createCampaign] User is admin, attempting to fetch first organization...');
         // Super admin case: try to get the first organization for testing
         // In production, this should be handled via org selection UI
         const allOrgs = await base44.asServiceRole.entities.Organization.list();
+        console.log('[createCampaign] Organizations found:', allOrgs?.length || 0);
         if (allOrgs && allOrgs.length > 0) {
           orgId = allOrgs[0].id;
+          console.log('[createCampaign] Using first org as fallback, orgId:', orgId);
         } else {
+          console.log('[createCampaign] ERROR: No organizations found in system');
           return Response.json({ 
             success: false, 
             error: 'No organization found. Please create an organization first.' 
           }, { status: 400 });
         }
       } else {
+        console.log('[createCampaign] ERROR: Non-admin user without UserProfile');
         return Response.json({ 
           success: false, 
           error: 'User profile not found. Please complete onboarding.' 
         }, { status: 400 });
       }
     }
+    
+    console.log('[createCampaign] Final orgId to be used:', orgId);
 
     // Validate user has permission (owner or manager) - skip for super_admin
     if (userProfile && user.role !== 'admin') {
