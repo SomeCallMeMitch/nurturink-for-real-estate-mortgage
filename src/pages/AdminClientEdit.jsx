@@ -11,6 +11,9 @@ import { ArrowLeft, Save, Loader2, Star, X, Tag, Upload, Calendar, FileSpreadshe
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 
+// Campaign enrollment component
+import ClientCampaignsList from "@/components/campaigns/ClientCampaignsList";
+
 export default function AdminClientEdit() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -518,6 +521,16 @@ export default function AdminClientEdit() {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Campaign Enrollments Card (only for existing clients) */}
+            {!isNew && clientId && (
+              <ClientCampaignsList
+                clientId={clientId}
+                clientBirthday={formData.birthday}
+                clientPolicyStartDate={formData.policy_start_date}
+                clientRenewalDate={formData.renewal_date}
+              />
             )}
 
             {/* Tags Card */}
