@@ -1,5 +1,5 @@
 // functions/acceptInvitation.js
-// Auth-required endpoint - completes invitation acceptance 1
+// Auth-required endpoint - completes invitation acceptance
 // Links the authenticated user to the organization
 // @version 2026-01-26-manual-deploy
 

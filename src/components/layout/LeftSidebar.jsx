@@ -28,7 +28,6 @@ import {
   ChevronsRight,
   Database,
   Home,
-  Target,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
@@ -119,13 +118,6 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       icon: Zap,
       path: "QuickSendTemplates",
       roles: ["sales_rep", "organization_owner", "whitelabel_partner", "super_admin", "user"],
-    },
-    {
-      id: "campaigns",
-      label: "Campaigns",
-      icon: Target,
-      path: "Campaigns",
-      roles: ["owner", "manager", "organization_owner", "organization_manager", "whitelabel_partner", "super_admin"],
     },
     {
       id: "credits",
