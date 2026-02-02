@@ -157,6 +157,17 @@ export default function CampaignSetupWizard() {
   // Create Campaign Mutation
   const createCampaignMutation = useMutation({
     mutationFn: async ({ status }) => {
+      // === DIAGNOSTIC LOGGING START ===
+      console.log('[CampaignSetupWizard] Submitting campaign with data:');
+      console.log('[CampaignSetupWizard] name:', campaignData.name);
+      console.log('[CampaignSetupWizard] type:', campaignData.type);
+      console.log('[CampaignSetupWizard] enrollmentMode:', campaignData.enrollmentMode);
+      console.log('[CampaignSetupWizard] requiresApproval:', campaignData.requiresApproval);
+      console.log('[CampaignSetupWizard] returnAddressMode:', campaignData.returnAddressMode);
+      console.log('[CampaignSetupWizard] status:', status);
+      console.log('[CampaignSetupWizard] steps:', JSON.stringify(campaignData.steps, null, 2));
+      // === DIAGNOSTIC LOGGING END ===
+
       const response = await base44.functions.invoke('createCampaign', {
         name: campaignData.name,
         type: campaignData.type,
@@ -166,6 +177,9 @@ export default function CampaignSetupWizard() {
         status,
         steps: campaignData.steps
       });
+      
+      console.log('[CampaignSetupWizard] Response:', response.data);
+      
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to create campaign');
       }
