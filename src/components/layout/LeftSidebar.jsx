@@ -123,7 +123,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
     {
       id: "campaigns",
       label: "Campaigns",
-      icon: CalendarClock,
+      icon: Megaphone,
       path: "Campaigns",
       roles: ["sales_rep", "organization_owner", "whitelabel_partner", "super_admin", "user"],
     },
