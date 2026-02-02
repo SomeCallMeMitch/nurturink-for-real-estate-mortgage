@@ -5,6 +5,14 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
+    // === DIAGNOSTIC LOGGING START ===
+    console.log('[createCampaign] === DIAGNOSTIC INFO ===');
+    console.log('[createCampaign] user.id:', user?.id);
+    console.log('[createCampaign] user.email:', user?.email);
+    console.log('[createCampaign] user.role:', user?.role);
+    console.log('[createCampaign] user object:', JSON.stringify(user, null, 2));
+    // === DIAGNOSTIC LOGGING END ===
+
     if (!user) {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
