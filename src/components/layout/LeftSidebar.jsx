@@ -125,7 +125,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       label: "Campaigns",
       icon: Megaphone,
       path: "Campaigns",
-      roles: ["sales_rep", "organization_owner", "whitelabel_partner", "super_admin", "user"],
+      roles: ["organization_owner", "organization_manager", "whitelabel_partner", "super_admin"],
     },
     {
       id: "credits",
