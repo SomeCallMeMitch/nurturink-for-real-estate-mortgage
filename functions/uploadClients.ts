@@ -39,6 +39,43 @@ const capitalizeName = (name) => {
     .join(' ');
 };
 
+// Validate date format (YYYY-MM-DD)
+const isValidDateFormat = (dateStr) => {
+  if (!dateStr || typeof dateStr !== 'string') return false;
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(dateStr)) return false;
+  const date = new Date(dateStr);
+  return !isNaN(date.getTime());
+};
+
+// Parse date to YYYY-MM-DD format
+const parseDateToYYYYMMDD = (value) => {
+  if (!value) return null;
+  const str = String(value).trim();
+  if (!str) return null;
+  
+  // Already in YYYY-MM-DD format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return isValidDateFormat(str) ? str : null;
+  }
+  
+  // Try MM/DD/YYYY format
+  const mmddyyyy = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mmddyyyy) {
+    const [, month, day, year] = mmddyyyy;
+    const formatted = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    return isValidDateFormat(formatted) ? formatted : null;
+  }
+  
+  // Try to parse as date
+  const date = new Date(str);
+  if (!isNaN(date.getTime())) {
+    return date.toISOString().split('T')[0];
+  }
+  
+  return null;
+};
+
 // Map raw data row to client fields using field mapping
 const mapRowToClient = (rawRow, fieldMapping, options) => {
   const mapped = {};
@@ -61,6 +98,12 @@ const mapRowToClient = (rawRow, fieldMapping, options) => {
       } else if (fieldName === 'notes') {
         // Notes field - preserve as-is but trim
         mapped[fieldName] = value;
+      } else if (['birthday', 'policy_start_date', 'renewal_date'].includes(fieldName)) {
+        // Date fields - parse and validate
+        const parsedDate = parseDateToYYYYMMDD(value);
+        if (parsedDate) {
+          mapped[fieldName] = parsedDate;
+        }
       } else {
         mapped[fieldName] = value;
       }

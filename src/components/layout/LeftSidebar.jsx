@@ -28,6 +28,7 @@ import {
   ChevronsRight,
   Database,
   Home,
+  CalendarClock,
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
@@ -117,6 +118,13 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
       label: "QuickSends",
       icon: Zap,
       path: "QuickSendTemplates",
+      roles: ["sales_rep", "organization_owner", "whitelabel_partner", "super_admin", "user"],
+    },
+    {
+      id: "campaigns",
+      label: "Campaigns",
+      icon: CalendarClock,
+      path: "Campaigns",
       roles: ["sales_rep", "organization_owner", "whitelabel_partner", "super_admin", "user"],
     },
     {

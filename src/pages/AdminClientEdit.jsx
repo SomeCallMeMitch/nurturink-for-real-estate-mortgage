@@ -44,7 +44,10 @@ export default function AdminClientEdit() {
     address2: '',
     city: '',
     state: '',
-    zipCode: ''
+    zipCode: '',
+    birthday: '',
+    policy_start_date: '',
+    renewal_date: ''
   });
   
   // Import metadata (read-only display for imported clients)
@@ -94,7 +97,10 @@ export default function AdminClientEdit() {
           address2: client.address2 || '',
           city: client.city || '',
           state: client.state || '',
-          zipCode: client.zipCode || ''
+          zipCode: client.zipCode || '',
+          birthday: client.birthday || '',
+          policy_start_date: client.policy_start_date || '',
+          renewal_date: client.renewal_date || ''
         });
         
         // Set selected tags from client
@@ -214,7 +220,11 @@ export default function AdminClientEdit() {
         fullName: `${formData.firstName} ${formData.lastName}`.trim(),
         orgId: user.orgId,
         ownerId: user.id,
-        tags: selectedTags
+        tags: selectedTags,
+        // Convert empty strings to null for date fields
+        birthday: formData.birthday || null,
+        policy_start_date: formData.policy_start_date || null,
+        renewal_date: formData.renewal_date || null
       };
       
       if (isNew) {
@@ -358,6 +368,44 @@ export default function AdminClientEdit() {
                       onChange={(e) => handleChange('phone', e.target.value)}
                       placeholder="(555) 123-4567"
                     />
+                  </div>
+                </div>
+
+                {/* Automation Dates */}
+                <div className="pt-4 border-t">
+                  <h3 className="font-semibold text-gray-900 mb-4">Automation Dates</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    These dates are used for automated card campaigns (birthday wishes, welcome cards, renewal reminders).
+                  </p>
+                  
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="birthday">Birthday</Label>
+                      <Input
+                        id="birthday"
+                        type="date"
+                        value={formData.birthday}
+                        onChange={(e) => handleChange('birthday', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="policy_start_date">Policy Start Date</Label>
+                      <Input
+                        id="policy_start_date"
+                        type="date"
+                        value={formData.policy_start_date}
+                        onChange={(e) => handleChange('policy_start_date', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="renewal_date">Renewal Date</Label>
+                      <Input
+                        id="renewal_date"
+                        type="date"
+                        value={formData.renewal_date}
+                        onChange={(e) => handleChange('renewal_date', e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
 
