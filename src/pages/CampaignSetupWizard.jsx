@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { createPageUrl } from '@/utils';
@@ -16,12 +16,22 @@ import { ArrowLeft, ArrowRight, Save, Rocket, Loader2, Plus } from 'lucide-react
 import CampaignTypeSelector from '@/components/campaigns/CampaignTypeSelector';
 import EnrollmentModeSelector from '@/components/campaigns/EnrollmentModeSelector';
 import CardStepConfigurator from '@/components/campaigns/CardStepConfigurator';
+import CampaignReturnAddressSelector from '@/components/campaigns/CampaignReturnAddressSelector';
 import CampaignReviewSummary from '@/components/campaigns/CampaignReviewSummary';
 import WizardProgressIndicator from '@/components/campaigns/WizardProgressIndicator';
 
 // Existing Picker Modals
 import CardDesignPickerModal from '@/components/quicksend/CardDesignPickerModal';
 import TemplatePickerModal from '@/components/quicksend/TemplatePickerModal';
+
+// Wizard steps configuration (now 5 steps)
+const WIZARD_STEPS = [
+  { number: 1, title: 'Campaign Type' },
+  { number: 2, title: 'Enrollment' },
+  { number: 3, title: 'Cards' },
+  { number: 4, title: 'Return Address' },
+  { number: 5, title: 'Review' }
+];
 
 // Default step configuration based on campaign type
 const getDefaultSteps = (type) => {
@@ -57,6 +67,7 @@ export default function CampaignSetupWizard() {
     type: null,
     enrollmentMode: 'opt_out',
     requiresApproval: false,
+    returnAddressMode: 'company',
     name: '',
     steps: []
   });
@@ -110,6 +121,7 @@ export default function CampaignSetupWizard() {
         }
       } catch (error) {
         console.error('Error fetching eligible count:', error);
+        setEligibleClientCount(0);
       } finally {
         setIsLoadingCount(false);
       }
@@ -126,6 +138,7 @@ export default function CampaignSetupWizard() {
         type: campaignData.type,
         enrollmentMode: campaignData.enrollmentMode,
         requiresApproval: campaignData.requiresApproval,
+        returnAddressMode: campaignData.returnAddressMode,
         status,
         steps: campaignData.steps
       });
@@ -170,6 +183,11 @@ export default function CampaignSetupWizard() {
   // Handle approval setting change
   const handleApprovalChange = (requires) => {
     setCampaignData(prev => ({ ...prev, requiresApproval: requires }));
+  };
+
+  // Handle return address mode change
+  const handleReturnAddressChange = (mode) => {
+    setCampaignData(prev => ({ ...prev, returnAddressMode: mode }));
   };
 
   // Handle campaign name change
@@ -241,7 +259,7 @@ export default function CampaignSetupWizard() {
     setTemplatePickerOpen(true);
   };
 
-  // Validation for each step
+  // Validation for each step (now 5 steps)
   const isStepValid = (step) => {
     switch (step) {
       case 1:
@@ -254,6 +272,8 @@ export default function CampaignSetupWizard() {
           s.cardDesignId && (s.templateId || s.messageText?.trim())
         );
       case 4:
+        return true; // Return address mode is pre-selected
+      case 5:
         return campaignData.name?.trim().length > 0;
       default:
         return false;
@@ -264,9 +284,9 @@ export default function CampaignSetupWizard() {
   const getDesignById = (id) => designs.find(d => d.id === id);
   const getTemplateById = (id) => templates.find(t => t.id === id);
 
-  // Navigation
+  // Navigation (now 5 steps)
   const handleNext = () => {
-    if (currentStep < 4 && isStepValid(currentStep)) {
+    if (currentStep < 5 && isStepValid(currentStep)) {
       setCurrentStep(prev => prev + 1);
     }
   };
@@ -301,9 +321,9 @@ export default function CampaignSetupWizard() {
         <h1 className="text-2xl font-bold text-foreground">Create New Campaign</h1>
       </div>
 
-      {/* Progress Indicator */}
+      {/* Progress Indicator (now with 5 steps) */}
       <div className="mb-10">
-        <WizardProgressIndicator currentStep={currentStep} />
+        <WizardProgressIndicator currentStep={currentStep} steps={WIZARD_STEPS} />
       </div>
 
       {/* Step Content */}
@@ -375,8 +395,16 @@ export default function CampaignSetupWizard() {
           </div>
         )}
 
-        {/* Step 4: Review */}
+        {/* Step 4: Return Address */}
         {currentStep === 4 && (
+          <CampaignReturnAddressSelector
+            returnAddressMode={campaignData.returnAddressMode}
+            onChange={handleReturnAddressChange}
+          />
+        )}
+
+        {/* Step 5: Review */}
+        {currentStep === 5 && (
           <CampaignReviewSummary
             campaignData={campaignData}
             campaignName={campaignData.name}
@@ -400,7 +428,7 @@ export default function CampaignSetupWizard() {
         </Button>
 
         <div className="flex items-center gap-3">
-          {/* Save as Draft (steps 2-4) */}
+          {/* Save as Draft (steps 2-5) */}
           {currentStep >= 2 && (
             <Button
               variant="outline"
@@ -416,8 +444,8 @@ export default function CampaignSetupWizard() {
             </Button>
           )}
 
-          {/* Next Button (steps 1-3) */}
-          {currentStep < 4 && (
+          {/* Next Button (steps 1-4) */}
+          {currentStep < 5 && (
             <Button
               onClick={handleNext}
               disabled={!isStepValid(currentStep) || isSubmitting}
@@ -427,11 +455,11 @@ export default function CampaignSetupWizard() {
             </Button>
           )}
 
-          {/* Activate Button (step 4 only) */}
-          {currentStep === 4 && (
+          {/* Activate Button (step 5 only) */}
+          {currentStep === 5 && (
             <Button
               onClick={handleActivate}
-              disabled={!isStepValid(4) || isSubmitting}
+              disabled={!isStepValid(5) || isSubmitting}
             >
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

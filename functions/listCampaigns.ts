@@ -10,15 +10,17 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's organization ID fromm UserProfile
+    // Get user's organization ID from UserProfile
     const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
     if (!userProfiles || userProfiles.length === 0) {
-      return Response.json({ success: false, error: 'User profile not found' }, { status: 404 });
+      // If no user profile, return empty campaigns (not an error)
+      return Response.json({ success: true, campaigns: [] });
     }
     const orgId = userProfiles[0].orgId;
 
     if (!orgId) {
-      return Response.json({ success: false, error: 'Organization not found for user' }, { status: 404 });
+      // If no orgId found, return empty campaigns (not an error)
+      return Response.json({ success: true, campaigns: [] });
     }
 
     // Get all campaigns for this organization
@@ -67,6 +69,7 @@ Deno.serve(async (req) => {
         status: campaign.status,
         enrollmentMode: campaign.enrollmentMode,
         requiresApproval: campaign.requiresApproval || false,
+        returnAddressMode: campaign.returnAddressMode || 'company',
         description: campaign.description,
         enrolledCount,
         upcomingCount,

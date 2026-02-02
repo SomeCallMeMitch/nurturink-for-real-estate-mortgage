@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, type, enrollmentMode, requiresApproval, description, steps, status } = await req.json();
+    const { name, type, enrollmentMode, requiresApproval, returnAddressMode, description, steps, status } = await req.json();
 
     // Validate required fields
     if (!name || !type || !enrollmentMode) {
@@ -36,6 +36,12 @@ Deno.serve(async (req) => {
         error: `Invalid enrollmentMode. Must be one of: ${validModes.join(', ')}` 
       }, { status: 400 });
     }
+
+    // Validate returnAddressMode if provided
+    const validReturnModes = ['company', 'rep', 'none'];
+    const finalReturnAddressMode = returnAddressMode && validReturnModes.includes(returnAddressMode) 
+      ? returnAddressMode 
+      : 'company';
 
     // Get user's orgId from UserProfile
     const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
@@ -80,6 +86,7 @@ Deno.serve(async (req) => {
       enrollmentMode,
       triggerField,
       requiresApproval: requiresApproval || false,
+      returnAddressMode: finalReturnAddressMode,
       description: description || null
     };
 

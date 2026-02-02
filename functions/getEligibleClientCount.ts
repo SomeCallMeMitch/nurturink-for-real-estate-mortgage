@@ -9,7 +9,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { campaignType } = await req.json();
+    const body = await req.json();
+    const campaignType = body?.campaignType;
 
     // Validate campaign type
     const validTypes = ['birthday', 'welcome', 'renewal'];
@@ -23,14 +24,17 @@ Deno.serve(async (req) => {
     // Get user's orgId from UserProfile
     const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
     if (!userProfiles || userProfiles.length === 0) {
-      return Response.json({ 
-        success: false, 
-        error: 'User profile not found. Please complete onboarding.' 
-      }, { status: 400 });
+      // If no user profile, return 0 eligible clients (not an error)
+      return Response.json({ success: true, count: 0, triggerField: null });
     }
 
     const userProfile = userProfiles[0];
     const orgId = userProfile.orgId;
+
+    if (!orgId) {
+      // If no orgId, return 0 eligible clients (not an error)
+      return Response.json({ success: true, count: 0, triggerField: null });
+    }
 
     // Determine which field to check based on campaign type
     const triggerFieldMap = {
