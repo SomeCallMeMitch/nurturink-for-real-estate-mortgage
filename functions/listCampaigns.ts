@@ -10,16 +10,30 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get user's organization ID from UserProfile
-    const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
-    if (!userProfiles || userProfiles.length === 0) {
-      // If no user profile, return empty campaigns (not an error)
-      return Response.json({ success: true, campaigns: [] });
+    // === DIAGNOSTIC LOGGING START ===
+    console.log('[listCampaigns] User ID:', user.id);
+    console.log('[listCampaigns] User role:', user.role);
+    console.log('[listCampaigns] User orgId (direct):', user.orgId);
+    // === DIAGNOSTIC LOGGING END ===
+
+    // Get user's organization ID - check user object first, then UserProfile
+    let orgId = user.orgId;
+    
+    if (!orgId) {
+      // Fallback to UserProfile lookup
+      const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
+      console.log('[listCampaigns] UserProfile lookup result:', JSON.stringify(userProfiles));
+      
+      if (userProfiles && userProfiles.length > 0) {
+        orgId = userProfiles[0].orgId;
+      }
     }
-    const orgId = userProfiles[0].orgId;
+
+    console.log('[listCampaigns] Final orgId being used:', orgId);
 
     if (!orgId) {
       // If no orgId found, return empty campaigns (not an error)
+      console.log('[listCampaigns] No orgId found - returning empty campaigns');
       return Response.json({ success: true, campaigns: [] });
     }
 
