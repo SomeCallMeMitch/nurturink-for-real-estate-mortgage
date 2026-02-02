@@ -134,7 +134,10 @@ Deno.serve(async (req) => {
       description: description || null
     };
 
+    console.log('[createCampaign] Creating campaign with data:', JSON.stringify(campaignData, null, 2));
+
     const campaign = await base44.entities.Campaign.create(campaignData);
+    console.log('[createCampaign] Campaign created successfully, id:', campaign.id);
 
     // Create CampaignStep records if provided
     if (steps && Array.isArray(steps) && steps.length > 0) {
