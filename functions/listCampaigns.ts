@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
 
     // Get all campaigns for this organization
     const campaigns = await base44.entities.Campaign.filter({ orgId: orgId });
+    console.log('[listCampaigns] Campaigns found by filter:', JSON.stringify(campaigns));
 
     // Get stats for each campaign
     const campaignsWithStats = await Promise.all(campaigns.map(async (campaign) => {
