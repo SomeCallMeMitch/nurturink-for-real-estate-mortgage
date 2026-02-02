@@ -110,6 +110,8 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
+import Campaigns from './pages/Campaigns';
+import CampaignWizard from './pages/CampaignWizard';
 import __Layout from './Layout.jsx';
 
 
@@ -177,6 +179,8 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
+    "Campaigns": Campaigns,
+    "CampaignWizard": CampaignWizard,
 }
 
 export const pagesConfig = {
