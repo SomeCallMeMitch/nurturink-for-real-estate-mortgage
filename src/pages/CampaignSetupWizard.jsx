@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 
 // Icons
-import { ArrowLeft, ArrowRight, Save, Rocket, Loader2, Plus } from 'lucide-react';
+import { ArrowRight, Save, Rocket, Loader2, Plus } from 'lucide-react';
 
 // Wizard Step Components
 import CampaignTypeSelector from '@/components/campaigns/CampaignTypeSelector';
@@ -18,7 +18,7 @@ import EnrollmentModeSelector from '@/components/campaigns/EnrollmentModeSelecto
 import CardStepConfigurator from '@/components/campaigns/CardStepConfigurator';
 import CampaignReturnAddressSelector from '@/components/campaigns/CampaignReturnAddressSelector';
 import CampaignReviewSummary from '@/components/campaigns/CampaignReviewSummary';
-import WizardProgressIndicator from '@/components/campaigns/WizardProgressIndicator';
+import CampaignWorkflowHeader from '@/components/campaigns/CampaignWorkflowHeader';
 
 // Existing Picker Modals
 import CardDesignPickerModal from '@/components/quicksend/CardDesignPickerModal';
