@@ -3,14 +3,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 /**
  * approveScheduledSend.js
  * 
- * Purpose: Approve a send that's awaiting approval.
+ * Purpose: Approve a send that's awaiting approval with real-time credit checking.
  * 
  * Input: { scheduledSendId: string } or { scheduledSendIds: string[] }
  * 
  * Logic:
  * 1. Verify send(s) are in 'awaiting_approval' status
- * 2. Update status to 'pending'
- * 3. Return count of approved sends
+ * 2. Check credit availability for the organization
+ * 3. If credits available: Update status to 'pending'
+ * 4. If credits insufficient: Update status to 'insufficient_credits'
+ * 5. Return detailed results
  */
 
 Deno.serve(async (req) => {
@@ -29,10 +31,15 @@ Deno.serve(async (req) => {
 
     const results = {
       approved: [],
+      insufficientCredits: [],
       notFound: [],
       notApprovable: []
     };
 
+    // Group sends by orgId for efficient credit checking
+    const sendsByOrg = new Map();
+
+    // First pass: collect all sends and group by org
     for (const id of idsToApprove) {
       const sends = await base44.asServiceRole.entities.ScheduledSend.filter({ id });
       
@@ -51,15 +58,70 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      await base44.asServiceRole.entities.ScheduledSend.update(id, {
-        status: 'pending'
-      });
-
-      results.approved.push(id);
+      // Group by orgId
+      if (!sendsByOrg.has(send.orgId)) {
+        sendsByOrg.set(send.orgId, []);
+      }
+      sendsByOrg.get(send.orgId).push(send);
     }
 
-    const success = results.approved.length > 0;
-    const message = `Approved ${results.approved.length} send(s). Not found: ${results.notFound.length}. Not approvable: ${results.notApprovable.length}.`;
+    // Second pass: check credits per org and approve/reject accordingly
+    for (const [orgId, sends] of sendsByOrg) {
+      // Get organization's credit pool balance
+      const orgs = await base44.asServiceRole.entities.Organization.filter({ id: orgId });
+      if (!orgs || orgs.length === 0) {
+        // Org not found - mark all sends as not approvable
+        for (const send of sends) {
+          results.notApprovable.push({
+            id: send.id,
+            reason: 'Organization not found'
+          });
+        }
+        continue;
+      }
+
+      const org = orgs[0];
+      const poolBalance = org.creditBalance || 0;
+
+      // Get count of pending/processing ScheduledSends for this org (already reserved)
+      const pendingSends = await base44.asServiceRole.entities.ScheduledSend.filter({ orgId });
+      const reservedStatuses = ['pending', 'processing'];
+      const reservedCredits = pendingSends.filter(s => reservedStatuses.includes(s.status)).length;
+      
+      // Calculate available credits
+      let availableCredits = Math.max(0, poolBalance - reservedCredits);
+
+      // Process each send for this org
+      for (const send of sends) {
+        if (availableCredits >= 1) {
+          // Credits available - approve the send
+          await base44.asServiceRole.entities.ScheduledSend.update(send.id, {
+            status: 'pending'
+          });
+          results.approved.push(send.id);
+          // Decrement available credits for subsequent sends in this batch
+          availableCredits--;
+        } else {
+          // Insufficient credits - mark accordingly
+          await base44.asServiceRole.entities.ScheduledSend.update(send.id, {
+            status: 'insufficient_credits',
+            failureReason: `Insufficient credits. Pool balance: ${poolBalance}, Reserved: ${reservedCredits}`
+          });
+          results.insufficientCredits.push({
+            id: send.id,
+            orgId,
+            availableCredits: Math.max(0, poolBalance - reservedCredits),
+            poolBalance,
+            reservedCredits
+          });
+        }
+      }
+    }
+
+    const totalProcessed = results.approved.length + results.insufficientCredits.length;
+    const success = results.approved.length > 0 || totalProcessed > 0;
+    
+    const message = `Processed ${totalProcessed} send(s). Approved: ${results.approved.length}. Insufficient credits: ${results.insufficientCredits.length}. Not found: ${results.notFound.length}. Not approvable: ${results.notApprovable.length}.`;
 
     console.log(`[approveScheduledSend] ${message}`);
 
@@ -67,6 +129,7 @@ Deno.serve(async (req) => {
       success,
       message,
       approvedCount: results.approved.length,
+      insufficientCreditsCount: results.insufficientCredits.length,
       results
     });
 
