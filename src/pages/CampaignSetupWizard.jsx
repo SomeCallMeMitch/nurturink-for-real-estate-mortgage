@@ -543,6 +543,7 @@ export default function CampaignSetupWizard() {
           )}
         </div>
       </div>
+      </div> {/* End of container */}
 
       {/* Card Design Picker Modal */}
       <CardDesignPickerModal
