@@ -64,6 +64,28 @@ Deno.serve(async (req) => {
 
     console.log(`[cancelScheduledSend] ${message}`);
 
+    // Send notifications for cancelled sends
+    if (results.cancelled.length > 0) {
+      try {
+        if (results.cancelled.length > 1) {
+          // Bulk cancellation - send summary email
+          await base44.asServiceRole.functions.invoke('sendBulkApprovalNotification', {
+            scheduledSendIds: results.cancelled,
+            action: 'cancelled'
+          });
+        } else {
+          // Single cancellation
+          await base44.asServiceRole.functions.invoke('sendApprovalNotification', {
+            scheduledSendId: results.cancelled[0],
+            action: 'cancelled'
+          });
+        }
+      } catch (notifError) {
+        // Log but don't fail the main operation
+        console.error('[cancelScheduledSend] Notification error:', notifError);
+      }
+    }
+
     return Response.json({
       success,
       message,
