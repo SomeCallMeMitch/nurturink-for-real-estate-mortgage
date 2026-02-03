@@ -39,14 +39,14 @@ export default function Layout({ children, currentPageName }) {
           return;
         }
 
-        // Redirect logged-in users away from Welcome page to Home (mobile or desktop)
-        if (authenticated && isWelcomePage) {
-          if (isMobile) {
-            navigate('/MobileHome', { replace: true });
-          } else {
-            navigate('/Home', { replace: true });
-          }
-        }
+        // Redirect logged-in users away from Welcome page to Dashboard (mobile or desktop)
+                      if (authenticated && isWelcomePage) {
+                        if (isMobile) {
+                          navigate('/MobileHome', { replace: true });
+                        } else {
+                          navigate('/Dashboard', { replace: true });
+                        }
+                      }
 
         // Redirect non-logged-in users to Welcome page if they try to access other pages
         if (!authenticated && !isWelcomePage) {
