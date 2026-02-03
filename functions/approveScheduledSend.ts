@@ -125,6 +125,37 @@ Deno.serve(async (req) => {
 
     console.log(`[approveScheduledSend] ${message}`);
 
+    // Send notifications asynchronously (don't block the response)
+    // For bulk approvals, send a single summary email
+    if (results.approved.length > 0 || results.insufficientCredits.length > 0) {
+      try {
+        if (results.approved.length > 1) {
+          // Bulk approval - send summary email
+          await base44.asServiceRole.functions.invoke('sendBulkApprovalNotification', {
+            scheduledSendIds: results.approved,
+            action: 'approved'
+          });
+        } else if (results.approved.length === 1) {
+          // Single approval
+          await base44.asServiceRole.functions.invoke('sendApprovalNotification', {
+            scheduledSendId: results.approved[0],
+            action: 'approved'
+          });
+        }
+
+        // Send notifications for insufficient credits
+        for (const item of results.insufficientCredits) {
+          await base44.asServiceRole.functions.invoke('sendApprovalNotification', {
+            scheduledSendId: item.id,
+            action: 'insufficient_credits'
+          });
+        }
+      } catch (notifError) {
+        // Log but don't fail the main operation
+        console.error('[approveScheduledSend] Notification error:', notifError);
+      }
+    }
+
     return Response.json({
       success,
       message,
