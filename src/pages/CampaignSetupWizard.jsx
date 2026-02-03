@@ -288,23 +288,29 @@ export default function CampaignSetupWizard() {
     }));
   };
 
-  // Handle adding second Welcome step
+  // Handle adding second step (Welcome or Renewal)
   const handleAddStep = () => {
-    if (campaignData.type !== 'welcome' || campaignData.steps.length >= 2) return;
-    
+    const isAllowedType = ['welcome', 'renewal'].includes(campaignData.type);
+    if (!isAllowedType || campaignData.steps.length >= 2) return;
+
+    let newStep = {
+      stepOrder: 2,
+      cardDesignId: null,
+      templateId: null,
+      messageText: '',
+    };
+
+    if (campaignData.type === 'welcome') {
+       newStep.timingDays = 14; // 14 days after previous card
+       newStep.timingReference = 'previous_step';
+    } else if (campaignData.type === 'renewal') {
+       newStep.timingDays = -30; // 30 days before renewal
+       newStep.timingReference = 'trigger_date';
+    }
+
     setCampaignData(prev => ({
       ...prev,
-      steps: [
-        ...prev.steps,
-        {
-          stepOrder: 2,
-          cardDesignId: null,
-          templateId: null,
-          messageText: '',
-          timingDays: 14, // 14 days after previous card
-          timingReference: 'previous_step'
-        }
-      ]
+      steps: [...prev.steps, newStep]
     }));
   };
 
@@ -462,8 +468,8 @@ export default function CampaignSetupWizard() {
                   />
                 ))}
 
-                {/* Add Second Card Button (Welcome campaigns only) */}
-                {campaignData.type === 'welcome' && campaignData.steps.length < 2 && (
+                {/* Add Second Card Button (Welcome and Renewal campaigns) */}
+                {['welcome', 'renewal'].includes(campaignData.type) && campaignData.steps.length < 2 && (
                   <Button
                     variant="outline"
                     onClick={handleAddStep}

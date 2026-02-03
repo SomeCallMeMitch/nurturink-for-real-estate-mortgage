@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import PlaceholderSelector from '@/components/mailing/PlaceholderSelector';
+import PlaceholderModal from '@/components/mailing/PlaceholderModal';
 
 /**
  * CardStepConfigurator Component
@@ -220,7 +220,7 @@ export default function CardStepConfigurator({
         {messageMode === 'custom' && (
           <div className="mt-3 space-y-2">
             <div className="flex justify-end mb-2">
-              <PlaceholderSelector onPlaceholderSelect={handleInsertPlaceholder} />
+              <PlaceholderModal onPlaceholderSelect={handleInsertPlaceholder} />
             </div>
             <Textarea
               placeholder="Write your personalized message here..."
