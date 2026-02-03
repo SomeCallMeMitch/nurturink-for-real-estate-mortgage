@@ -495,9 +495,9 @@ export default function CampaignSetupWizard() {
             templates={templates}
           />
         )}
-      </div>
+        </div>
 
-      {/* Navigation Footer */}
+        {/* Navigation Footer */}
       <div className="flex items-center justify-end pt-6 border-t border-border">
         <div className="flex items-center gap-3">
           {/* Save as Draft (steps 2-5) */}
