@@ -13,8 +13,12 @@ import {
   CalendarDays,
   UserPlus,
   Building,
-  Trophy
+  Trophy,
+  Zap
 } from 'lucide-react';
+import ApprovalQueueWidget from '@/components/dashboard/ApprovalQueueWidget';
+import CampaignActivityWidget from '@/components/dashboard/CampaignActivityWidget';
+import UpcomingSendsWidget from '@/components/dashboard/UpcomingSendsWidget';
 import { useCredits } from '@/components/context/CreditContext';
 import moment from 'moment';
 
@@ -241,6 +245,20 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Campaign Widgets Row */}
+        {user?.orgId && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Approval Queue Widget */}
+            <ApprovalQueueWidget orgId={user.orgId} />
+            
+            {/* Upcoming Sends Widget */}
+            <UpcomingSendsWidget orgId={user.orgId} />
+            
+            {/* Campaign Activity Widget - spans 1 column on this row */}
+            <CampaignActivityWidget orgId={user.orgId} />
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">

@@ -62,6 +62,7 @@ import AdminSendDetails from './pages/AdminSendDetails';
 import AdminSends from './pages/AdminSends';
 import AdminTestEmails from './pages/AdminTestEmails';
 import AdminUploadWhiteImage from './pages/AdminUploadWhiteImage';
+import ApprovalQueue from './pages/ApprovalQueue';
 import CampaignDetail from './pages/CampaignDetail';
 import CampaignSetupWizard from './pages/CampaignSetupWizard';
 import Campaigns from './pages/Campaigns';
@@ -113,7 +114,6 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import ApprovalQueue from './pages/ApprovalQueue';
 import __Layout from './Layout.jsx';
 
 
@@ -133,6 +133,7 @@ export const PAGES = {
     "AdminSends": AdminSends,
     "AdminTestEmails": AdminTestEmails,
     "AdminUploadWhiteImage": AdminUploadWhiteImage,
+    "ApprovalQueue": ApprovalQueue,
     "CampaignDetail": CampaignDetail,
     "CampaignSetupWizard": CampaignSetupWizard,
     "Campaigns": Campaigns,
@@ -184,7 +185,6 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
-    "ApprovalQueue": ApprovalQueue,
 }
 
 export const pagesConfig = {
