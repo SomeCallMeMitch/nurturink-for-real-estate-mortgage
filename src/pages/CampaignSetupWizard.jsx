@@ -498,16 +498,7 @@ export default function CampaignSetupWizard() {
       </div>
 
       {/* Navigation Footer */}
-      <div className="flex items-center justify-between pt-6 border-t border-border">
-        <Button
-          variant="outline"
-          onClick={handleBack}
-          disabled={currentStep === 1 || isSubmitting}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-
+      <div className="flex items-center justify-end pt-6 border-t border-border">
         <div className="flex items-center gap-3">
           {/* Save as Draft (steps 2-5) */}
           {currentStep >= 2 && (
