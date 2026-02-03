@@ -386,24 +386,22 @@ export default function CampaignSetupWizard() {
 
   const isSubmitting = createCampaignMutation.isPending;
 
-  return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      {/* Header */}
-      <div className="mb-8">
-        <Link 
-          to={createPageUrl('Campaigns')} 
-          className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          Back to Campaigns
-        </Link>
-        <h1 className="text-2xl font-bold text-foreground">Create New Campaign</h1>
-      </div>
+  // Get current step title for header
+  const getCurrentStepTitle = () => {
+    const step = WIZARD_STEPS.find(s => s.number === currentStep);
+    return step ? step.title : 'Create Campaign';
+  };
 
-      {/* Progress Indicator (now with 5 steps) */}
-      <div className="mb-10">
-        <WizardProgressIndicator currentStep={currentStep} steps={WIZARD_STEPS} />
-      </div>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Workflow Header - matches Send a Card design */}
+      <CampaignWorkflowHeader
+        currentStep={currentStep}
+        pageTitle={getCurrentStepTitle()}
+        onBackClick={currentStep > 1 ? handleBack : null}
+        isFirstStep={currentStep === 1}
+        steps={WIZARD_STEPS}
+      />
 
       {/* Step Content */}
       <div className="min-h-[400px] mb-8">
