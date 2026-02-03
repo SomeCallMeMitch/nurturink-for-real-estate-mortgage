@@ -27,7 +27,7 @@ export default function Layout({ children, currentPageName }) {
         setIsAuthChecked(true);
         
         const normalizedPath = location.pathname.toLowerCase();
-        const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing';
+        const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing' || normalizedPath === '/home';
         
         // Check if user is on AcceptInvitation page (handle ?page= query param)
         const searchParams = new URLSearchParams(location.search);
@@ -114,7 +114,7 @@ export default function Layout({ children, currentPageName }) {
   const isAcceptInvitationPageCheck = pageParam?.toLowerCase() === 'acceptinvitation';
   
   // Check if this is Welcome/Landing page (root path without AcceptInvitation query param)
-  const isWelcomePage = (normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing') && !isAcceptInvitationPageCheck;
+  const isWelcomePage = (normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing' || normalizedPath === '/home') && !isAcceptInvitationPageCheck;
   
   return (
     <WhitelabelThemeProvider>
