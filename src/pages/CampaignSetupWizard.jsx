@@ -403,8 +403,10 @@ export default function CampaignSetupWizard() {
         steps={WIZARD_STEPS}
       />
 
-      {/* Step Content */}
-      <div className="min-h-[400px] mb-8">
+      {/* Main Content Area */}
+      <div className="container mx-auto p-6 max-w-4xl">
+        {/* Step Content */}
+        <div className="min-h-[400px] mb-8">
         {/* Step 1: Campaign Type */}
         {currentStep === 1 && (
           <CampaignTypeSelector
