@@ -113,6 +113,9 @@ const FIELD_OPTIONS = [
   { value: "state", label: "State", required: true },
   { value: "zipCode", label: "ZIP Code", required: true },
   { value: "notes", label: "Notes", required: false },
+  { value: "birthday", label: "Birthday (YYYY-MM-DD)", required: false },
+  { value: "policy_start_date", label: "Policy Start Date (YYYY-MM-DD)", required: false },
+  { value: "renewal_date", label: "Renewal Date (YYYY-MM-DD)", required: false },
 ];
 
 // Valid importable field values (excludes system fields)
@@ -278,6 +281,9 @@ const autoMapFields = (columns) => {
     state: ["state", "province", "region"],
     zipCode: ["zip", "zipcode", "zip_code", "postal", "postal_code"],
     notes: ["notes", "note", "comments", "comment", "description"],
+    birthday: ["birthday", "dob", "date_of_birth", "birth_date"],
+    policy_start_date: ["policy_start", "start_date", "policy_date", "effective_date"],
+    renewal_date: ["renewal", "renewal_date", "expiration_date", "expiry"],
     // Note: tags removed from auto-mapping - users apply tags via the tag selector during import
   };
 
@@ -303,17 +309,17 @@ const autoMapFields = (columns) => {
 
 // Download template CSV
 const downloadTemplate = () => {
-  const csvContent = `first_name,last_name,company,email,phone,street,address2,city,state,zip,tags
-John,Smith,ABC Roofing,john@abcroofing.com,(555) 123-4567,123 Main Street,,Denver,CO,80202,Quote
-Sarah,Johnson,Johnson Construction,sarah@jconstruct.com,(555) 234-5678,456 Oak Avenue,Suite 100,Boulder,CO,80301,Re-Roof
-Mike,Williams,Williams Builders,mike@williamsb.com,(555) 345-6789,789 Elm Street,,Aurora,CO,80010,Storm
-Emily,Davis,Davis Homes,emily@davishomes.com,(555) 456-7890,321 Pine Road,Apt 2B,Lakewood,CO,80226,Repair
-Robert,Anderson,Anderson Roofing,robert@andersonroof.com,(555) 567-8901,555 Cedar Lane,,Westminster,CO,80031,Quote`;
+  const csvContent = `first_name,last_name,company,email,phone,street,address2,city,state,zip,tags,birthday,policy_start_date,renewal_date
+John,Smith,ABC Roofing,john@abcroofing.com,(555) 123-4567,123 Main Street,,Denver,CO,80202,Quote,1980-05-15,2023-06-01,2024-06-01
+Sarah,Johnson,Johnson Construction,sarah@jconstruct.com,(555) 234-5678,456 Oak Avenue,Suite 100,Boulder,CO,80301,Re-Roof,1985-08-20,2023-07-15,2024-07-15
+Mike,Williams,Williams Builders,mike@williamsb.com,(555) 345-6789,789 Elm Street,,Aurora,CO,80010,Storm,1978-03-10,2023-08-01,2024-08-01
+Emily,Davis,Davis Homes,emily@davishomes.com,(555) 456-7890,321 Pine Road,Apt 2B,Lakewood,CO,80226,Repair,1990-11-25,2023-09-10,2024-09-10
+Robert,Anderson,Anderson Roofing,robert@andersonroof.com,(555) 567-8901,555 Cedar Lane,,Westminster,CO,80031,Quote,1982-01-30,2023-10-05,2024-10-05`;
 
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = "roofscribe_client_import_template.csv";
+  link.download = "nurturink_client_import_template.csv";
   link.click();
 };
 
@@ -972,7 +978,7 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
                     <TableRow className="bg-gray-50">
                       <TableHead className="w-1/4">Your Column</TableHead>
                       <TableHead className="w-8"></TableHead>
-                      <TableHead className="w-1/4">RoofScribe Field</TableHead>
+                      <TableHead className="w-1/4">NurturInk Field</TableHead>
                       <TableHead>Sample Data</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1337,7 +1343,7 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
                   Import Complete!
                 </h3>
                 <p className="text-gray-600 mt-1">
-                  Your clients have been successfully imported into RoofScribe.
+                  Your clients have been successfully imported into NurturInk.
                 </p>
               </div>
 
