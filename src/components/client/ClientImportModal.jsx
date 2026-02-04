@@ -990,7 +990,7 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
                   )}
                 </div>
                 <p className="text-xs text-gray-500 mt-3">
-                  Optional: Company, Email, Phone, Tags
+                  Optional: Company, Email, Phone, Birthday, Policy Start Date, Renewal Date
                 </p>
               </div>
             </div>
@@ -1231,7 +1231,7 @@ export default function ClientImportModal({ open, onOpenChange, onImportComplete
               {/* Preview Table */}
               <div className="border rounded-xl overflow-hidden">
                 <div className="max-h-64 overflow-auto">
-                  <Table>
+                  <Table className="min-w-[1000px]">
                     <TableHeader className="sticky top-0 bg-gray-50">
                       <TableRow>
                         <TableHead className="w-20">Status</TableHead>
