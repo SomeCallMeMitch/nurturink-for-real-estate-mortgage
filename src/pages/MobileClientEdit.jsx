@@ -27,7 +27,10 @@ export default function MobileClientEdit() {
     city: '',
     state: '',
     zipCode: '',
-    notes: ''
+    notes: '',
+    birthday: '',
+    policy_start_date: '',
+    renewal_date: ''
   });
 
   useEffect(() => {
@@ -64,7 +67,10 @@ export default function MobileClientEdit() {
           city: client.city || '',
           state: client.state || '',
           zipCode: client.zipCode || '',
-          notes: client.notes || ''
+          notes: client.notes || '',
+          birthday: client.birthday || '',
+          policy_start_date: client.policy_start_date || '',
+          renewal_date: client.renewal_date || ''
         });
       }
     } catch (error) {
@@ -233,6 +239,48 @@ export default function MobileClientEdit() {
                   className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c87533]"
                   placeholder="Company Name"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Key Dates Section */}
+          <div className="bg-white rounded-xl border border-gray-200 p-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Key Dates</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Birthday
+                </label>
+                <input
+                  type="date"
+                  value={formData.birthday}
+                  onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Policy Start
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.policy_start_date}
+                    onChange={(e) => setFormData({ ...formData, policy_start_date: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Renewal Date
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.renewal_date}
+                    onChange={(e) => setFormData({ ...formData, renewal_date: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#c87533]"
+                  />
+                </div>
               </div>
             </div>
           </div>
