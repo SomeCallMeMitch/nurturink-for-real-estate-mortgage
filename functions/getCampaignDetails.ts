@@ -50,6 +50,15 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
 
+    // PHASE 1: Additional check for rep-level access
+    // Regular users (reps) can only view their own campaigns
+    if (user.role === 'user' && campaign.ownerId && campaign.ownerId !== user.id) {
+      return Response.json({ 
+        success: false, 
+        error: 'Permission denied. You do not have access to this campaign.' 
+      }, { status: 403 });
+    }
+
     // Load all CampaignStep records for this campaign
     const allSteps = await base44.entities.CampaignStep.filter({ campaignId });
     // Sort by stepOrder
