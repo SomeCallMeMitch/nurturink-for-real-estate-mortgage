@@ -81,16 +81,9 @@ Deno.serve(async (req) => {
     
     console.log('[createCampaign] Final orgId to be used:', orgId);
 
-    // Validate user has permission (owner or manager) - skip for super_admin
-    if (userProfile && user.role !== 'admin') {
-      const allowedRoles = ['owner', 'manager'];
-      if (!allowedRoles.includes(userProfile.orgRole)) {
-        return Response.json({ 
-          success: false, 
-          error: 'Permission denied. Only organization owners and managers can create campaigns.' 
-        }, { status: 403 });
-      }
-    }
+    // PHASE 1: Removed role restriction - ALL users (reps) can now create campaigns
+    // Campaign ownership is tracked by ownerId field
+    console.log('[createCampaign] User role:', user.role, 'OrgRole:', userProfile?.orgRole);
 
     // Determine triggerField based on type
     const triggerFieldMap = {
@@ -105,8 +98,10 @@ Deno.serve(async (req) => {
     const campaignStatus = status && validStatuses.includes(status) ? status : 'draft';
 
     // Create Campaign record
+    // PHASE 1: Added ownerId field for rep-based campaign ownership
     const campaignData = {
       orgId,
+      ownerId: user.id,  // Rep who owns this campaign
       createdBy: user.id,
       name,
       type,

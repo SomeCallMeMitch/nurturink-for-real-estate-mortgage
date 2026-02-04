@@ -26,9 +26,18 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, campaigns: [] });
     }
 
-    // Get all campaigns for this organization
-    // Using simple filter which is efficient
-    const campaigns = await base44.entities.Campaign.filter({ orgId: orgId });
+    // PHASE 1: Determine filter based on user role
+    // Regular users (reps) only see their own campaigns
+    // Admins and managers see all campaigns in the org
+    const campaignFilter = { orgId: orgId };
+    if (user.role === 'user') {
+      campaignFilter.ownerId = user.id;
+    }
+
+    console.log('[listCampaigns] User role:', user.role, 'Filter:', JSON.stringify(campaignFilter));
+
+    // Get campaigns based on the filter
+    const campaigns = await base44.entities.Campaign.filter(campaignFilter);
 
     // Return plain campaigns first to avoid 502s from heavy processing
     // We can add stats back later if needed, or fetch them in a separate call
