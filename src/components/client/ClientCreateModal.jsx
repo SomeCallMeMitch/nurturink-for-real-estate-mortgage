@@ -43,7 +43,10 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
     address2: '',
     city: '',
     state: '',
-    zipCode: ''
+    zipCode: '',
+    birthday: '',
+    policy_start_date: '',
+    renewal_date: ''
   });
 
   // Load user and tags when modal opens
@@ -102,7 +105,10 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
       address2: '',
       city: '',
       state: '',
-      zipCode: ''
+      zipCode: '',
+      birthday: '',
+      policy_start_date: '',
+      renewal_date: ''
     });
     setSelectedTags([]);
     setCustomTagInput('');
@@ -283,6 +289,40 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
                     value={formData.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
                     placeholder="(555) 123-4567"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              {/* Key Dates */}
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <Label htmlFor="birthday" className="text-sm">Birthday</Label>
+                  <Input
+                    id="birthday"
+                    type="date"
+                    value={formData.birthday}
+                    onChange={(e) => handleChange('birthday', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="policy_start_date" className="text-sm">Policy Start</Label>
+                  <Input
+                    id="policy_start_date"
+                    type="date"
+                    value={formData.policy_start_date}
+                    onChange={(e) => handleChange('policy_start_date', e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="renewal_date" className="text-sm">Renewal Date</Label>
+                  <Input
+                    id="renewal_date"
+                    type="date"
+                    value={formData.renewal_date}
+                    onChange={(e) => handleChange('renewal_date', e.target.value)}
                     className="mt-1"
                   />
                 </div>
