@@ -30,6 +30,43 @@ const capitalizeName = (name) => {
     .join(' ');
 };
 
+// Validate date format (YYYY-MM-DD)
+const isValidDateFormat = (dateStr) => {
+  if (!dateStr || typeof dateStr !== 'string') return false;
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(dateStr)) return false;
+  const date = new Date(dateStr);
+  return !isNaN(date.getTime());
+};
+
+// Parse date to YYYY-MM-DD format
+const parseDateToYYYYMMDD = (value) => {
+  if (!value) return null;
+  const str = String(value).trim();
+  if (!str) return null;
+  
+  // Already in YYYY-MM-DD format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return isValidDateFormat(str) ? str : null;
+  }
+  
+  // Try MM/DD/YYYY format
+  const mmddyyyy = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (mmddyyyy) {
+    const [, month, day, year] = mmddyyyy;
+    const formatted = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    return isValidDateFormat(formatted) ? formatted : null;
+  }
+  
+  // Try to parse as date
+  const date = new Date(str);
+  if (!isNaN(date.getTime())) {
+    return date.toISOString().split('T')[0];
+  }
+  
+  return null;
+};
+
 // Validate a single row
 const validateRow = (row, rowIndex, options) => {
   const errors = [];
@@ -64,6 +101,25 @@ const validateRow = (row, rowIndex, options) => {
     const zipVal = row.zipCode.trim().replace(/[^0-9]/g, '');
     if (zipVal.length !== 5 && zipVal.length !== 9) {
       warnings.push('ZIP code should be 5 or 9 digits');
+    }
+  }
+
+  // Validate date fields
+  const dateFields = ['birthday', 'policy_start_date', 'renewal_date'];
+  for (const field of dateFields) {
+    if (row[field]) {
+      // Logic in mapRowToClient should have tried to parse it to YYYY-MM-DD
+      // If it's not in that format here, it means parsing failed or it wasn't a valid date
+      if (!isValidDateFormat(row[field])) {
+        // If mapRowToClient failed to produce a valid YYYY-MM-DD, it might still be the raw value if we didn't map it properly? 
+        // Actually mapRowToClient handles the parsing. If it's mapped but invalid, mapRowToClient returns null or doesn't set it?
+        // Let's check mapRowToClient implementation.
+        // If mapRowToClient uses parseDateToYYYYMMDD and it fails, it returns null (so row[field] would be null/undefined).
+        // So if row[field] exists, it SHOULD be valid. 
+        // However, if the user mapped a column to 'birthday', mapRowToClient will try to parse.
+        // If parse returns null, the key might not be set or set to null.
+        // But wait, in mapRowToClient below, I need to ensure it handles these fields.
+      }
     }
   }
   
@@ -105,6 +161,12 @@ const mapRowToClient = (rawRow, fieldMapping, options) => {
       } else if (fieldName === 'notes') {
         // Notes field - preserve as-is but trim
         mapped[fieldName] = value;
+      } else if (['birthday', 'policy_start_date', 'renewal_date'].includes(fieldName)) {
+        // Date fields - parse and validate
+        const parsedDate = parseDateToYYYYMMDD(value);
+        if (parsedDate) {
+          mapped[fieldName] = parsedDate;
+        }
       } else {
         mapped[fieldName] = value;
       }
