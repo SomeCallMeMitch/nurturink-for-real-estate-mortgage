@@ -110,6 +110,9 @@ export default function MobileClientEdit() {
       
       await base44.entities.Client.update(clientId, {
         ...formData,
+        birthday: formData.birthday || null,
+        policy_start_date: formData.policy_start_date || null,
+        renewal_date: formData.renewal_date || null,
         fullName: `${formData.firstName} ${formData.lastName}`
       });
 
