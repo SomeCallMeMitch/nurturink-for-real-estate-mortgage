@@ -76,8 +76,14 @@ export default function Dashboard() {
       }, {});
       setCardDesignsMap(designsById);
 
-      // Fetch clients count
-      const clients = await base44.entities.Client.filter({ orgId: currentUser.orgId });
+      // PHASE 3: Fetch clients count based on user role
+      // Regular users (reps) only see their own clients
+      // Admins and managers see all clients in the org
+      const clientFilter = { orgId: currentUser.orgId };
+      if (currentUser.role === 'user') {
+        clientFilter.ownerId = currentUser.id;  // Only count the rep's own clients
+      }
+      const clients = await base44.entities.Client.filter(clientFilter);
       setClientsCount(clients.length);
 
       // Fetch notes sent by this user (all time)
