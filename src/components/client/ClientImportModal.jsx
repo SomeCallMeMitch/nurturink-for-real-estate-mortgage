@@ -352,12 +352,12 @@ const autoMapFields = (columns) => {
 
 // Download template CSV
 const downloadTemplate = () => {
-  const csvContent = `first_name,last_name,company,email,phone,street,address2,city,state,zip,tags,birthday,policy_start_date,renewal_date
-John,Smith,ABC Roofing,john@abcroofing.com,(555) 123-4567,123 Main Street,,Denver,CO,80202,Quote,1980-05-15,2023-06-01,2024-06-01
-Sarah,Johnson,Johnson Construction,sarah@jconstruct.com,(555) 234-5678,456 Oak Avenue,Suite 100,Boulder,CO,80301,Re-Roof,1985-08-20,2023-07-15,2024-07-15
-Mike,Williams,Williams Builders,mike@williamsb.com,(555) 345-6789,789 Elm Street,,Aurora,CO,80010,Storm,1978-03-10,2023-08-01,2024-08-01
-Emily,Davis,Davis Homes,emily@davishomes.com,(555) 456-7890,321 Pine Road,Apt 2B,Lakewood,CO,80226,Repair,1990-11-25,2023-09-10,2024-09-10
-Robert,Anderson,Anderson Roofing,robert@andersonroof.com,(555) 567-8901,555 Cedar Lane,,Westminster,CO,80031,Quote,1982-01-30,2023-10-05,2024-10-05`;
+  const csvContent = `first_name,last_name,company,email,phone,street,address2,city,state,zip,birthday,policy_start_date,renewal_date
+John,Smith,ABC Roofing,john@abcroofing.com,(555) 123-4567,123 Main Street,,Denver,CO,80202,1980-05-15,2023-06-01,2024-06-01
+Sarah,Johnson,Johnson Construction,sarah@jconstruct.com,(555) 234-5678,456 Oak Avenue,Suite 100,Boulder,CO,80301,1985-08-20,2023-07-15,2024-07-15
+Mike,Williams,Williams Builders,mike@williamsb.com,(555) 345-6789,789 Elm Street,,Aurora,CO,80010,1978-03-10,2023-08-01,2024-08-01
+Emily,Davis,Davis Homes,emily@davishomes.com,(555) 456-7890,321 Pine Road,Apt 2B,Lakewood,CO,80226,1990-11-25,2023-09-10,2024-09-10
+Robert,Anderson,Anderson Roofing,robert@andersonroof.com,(555) 567-8901,555 Cedar Lane,,Westminster,CO,80031,1982-01-30,2023-10-05,2024-10-05`;
 
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
