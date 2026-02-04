@@ -45,6 +45,12 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Campaign not found' }, { status: 404 });
     }
 
+    // PHASE 2: Additional check for rep-level access
+    // Regular users (reps) can only view their own campaigns
+    if (user.role === 'user' && campaign.ownerId && campaign.ownerId !== user.id) {
+      return Response.json({ success: false, error: 'Campaign not found' }, { status: 404 });
+    }
+
     // Fetch enrollments
     let enrollments = await base44.entities.CampaignEnrollment.filter({ campaignId });
 
@@ -56,8 +62,11 @@ Deno.serve(async (req) => {
     // Get all client IDs from enrollments
     const clientIds = enrollments.map(e => e.clientId);
 
-    // Fetch all clients in one query
-    const allClients = await base44.entities.Client.filter({ orgId: campaign.orgId });
+    // PHASE 2: Fetch only the campaign owner's clients
+    const allClients = await base44.entities.Client.filter({ 
+      orgId: campaign.orgId,
+      ownerId: campaign.ownerId  // Only show the campaign owner's clients
+    });
     const clientMap = new Map(allClients.map(c => [c.id, c]));
 
     // Join enrollment data with client data

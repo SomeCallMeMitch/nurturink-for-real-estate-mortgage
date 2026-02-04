@@ -44,8 +44,11 @@ Deno.serve(async (req) => {
     };
     const triggerField = triggerFieldMap[campaignType];
 
-    // Fetch all clients for this organization
-    const allClients = await base44.entities.Client.filter({ orgId });
+    // PHASE 2: Fetch only the rep's own clients (not all org clients)
+    const allClients = await base44.entities.Client.filter({ 
+      orgId,
+      ownerId: user.id  // Count only the rep's own clients
+    });
 
     // Count clients where the trigger field is set and automation is enabled
     const eligibleClients = allClients.filter(client => {

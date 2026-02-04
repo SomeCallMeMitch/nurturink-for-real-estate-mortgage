@@ -51,16 +51,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Check permission
-    if (userProfile && user.role !== 'admin') {
-      const allowedRoles = ['owner', 'manager'];
-      if (!allowedRoles.includes(userProfile.orgRole)) {
-        return Response.json({ 
-          success: false, 
-          error: 'Permission denied.' 
-        }, { status: 403 });
-      }
-    }
+    // PHASE 2: Removed role restriction - all users can enroll clients in their own campaigns
 
     // Fetch the campaign
     const campaigns = await base44.entities.Campaign.filter({ id: campaignId });
@@ -74,6 +65,12 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Campaign not found' }, { status: 404 });
     }
 
+    // PHASE 2: Additional check for rep-level access
+    // Regular users (reps) can only enroll clients in their own campaigns
+    if (user.role === 'user' && campaign.ownerId && campaign.ownerId !== user.id) {
+      return Response.json({ success: false, error: 'Permission denied. You can only enroll clients in your own campaigns.' }, { status: 403 });
+    }
+
     // Determine required field
     const triggerFieldMap = {
       birthday: 'birthday',
@@ -82,8 +79,11 @@ Deno.serve(async (req) => {
     };
     const requiredField = triggerFieldMap[campaign.type];
 
-    // Fetch all clients in the org
-    const allClients = await base44.entities.Client.filter({ orgId: campaign.orgId });
+    // PHASE 2: Fetch only the campaign owner's clients (not all org clients)
+    const allClients = await base44.entities.Client.filter({ 
+      orgId: campaign.orgId,
+      ownerId: campaign.ownerId  // Only allow enrolling the campaign owner's clients
+    });
     
     // Filter to only requested clients
     const requestedClients = allClients.filter(c => clientIds.includes(c.id));

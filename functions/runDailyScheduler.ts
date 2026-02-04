@@ -177,6 +177,13 @@ Deno.serve(async (req) => {
             }
             const client = clients[0];
 
+            // PHASE 2: Verify client belongs to the campaign owner
+            // This prevents duplicate sends if a client was somehow enrolled in wrong campaign
+            if (campaign.ownerId && client.ownerId !== campaign.ownerId) {
+              console.log(`[runDailyScheduler] Client ${client.id} ownerId (${client.ownerId}) doesn't match campaign ownerId (${campaign.ownerId}), skipping`);
+              continue;
+            }
+
             // Get trigger date field based on campaign type
             const triggerField = getTriggerField(campaign.type);
             const triggerDateStr = client[triggerField];

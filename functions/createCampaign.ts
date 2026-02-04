@@ -155,8 +155,11 @@ Deno.serve(async (req) => {
     let enrolledCount = 0;
     if (enrollmentMode === 'opt_out' && campaignStatus === 'active') {
       try {
-        // Fetch all clients for this organization
-        const allClients = await base44.entities.Client.filter({ orgId });
+        // PHASE 2: Fetch only the rep's own clients (not all org clients)
+        const allClients = await base44.entities.Client.filter({ 
+          orgId,
+          ownerId: user.id  // Only enroll the rep's own clients
+        });
 
         // Filter eligible clients (have trigger field value and automation enabled)
         const eligibleClients = allClients.filter(client => {

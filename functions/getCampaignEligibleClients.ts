@@ -44,6 +44,12 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Campaign not found' }, { status: 404 });
     }
 
+    // PHASE 2: Additional check for rep-level access
+    // Regular users (reps) can only access their own campaigns
+    if (user.role === 'user' && campaign.ownerId && campaign.ownerId !== user.id) {
+      return Response.json({ success: false, error: 'Campaign not found' }, { status: 404 });
+    }
+
     // Determine required field
     const triggerFieldMap = {
       birthday: 'birthday',
@@ -52,8 +58,11 @@ Deno.serve(async (req) => {
     };
     const requiredField = triggerFieldMap[campaign.type];
 
-    // Fetch all clients in the org
-    const allClients = await base44.entities.Client.filter({ orgId: campaign.orgId });
+    // PHASE 2: Fetch only the campaign owner's clients (not all org clients)
+    const allClients = await base44.entities.Client.filter({ 
+      orgId: campaign.orgId,
+      ownerId: campaign.ownerId  // Only show the campaign owner's clients
+    });
 
     // Fetch existing enrollments
     const existingEnrollments = await base44.entities.CampaignEnrollment.filter({ campaignId });
