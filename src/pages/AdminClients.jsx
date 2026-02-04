@@ -101,9 +101,17 @@ export default function AdminClients() {
       setLoading(true);
       const user = await base44.auth.me();
       
+      // PHASE 3: Build client filter based on user role
+      // Regular users (reps) only see their own clients
+      // Admins and managers see all clients in the org
+      const clientFilter = { orgId: user.orgId };
+      if (user.role === 'user') {
+        clientFilter.ownerId = user.id;  // Only show the rep's own clients
+      }
+      
       // Load clients and favorites in parallel
       const [clientList, favoritesList] = await Promise.all([
-        base44.entities.Client.filter({ orgId: user.orgId }),
+        base44.entities.Client.filter(clientFilter),
         base44.entities.FavoriteClient.filter({ userId: user.id })
       ]);
       

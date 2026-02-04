@@ -256,6 +256,9 @@ export default function CreateContent() {
       setLocalNoteStyleProfileOverrides(batchData.noteStyleProfileOverrides || {});
       
       console.log('📡 Step 4: Loading clients...');
+      // PHASE 3: Filter clients by selected IDs
+      // Note: The selectedClientIds already contain only the rep's clients
+      // (filtered in FindClients), so we just need to fetch by ID
       const clientList = await base44.entities.Client.filter({
         id: { $in: batchData.selectedClientIds }
       });

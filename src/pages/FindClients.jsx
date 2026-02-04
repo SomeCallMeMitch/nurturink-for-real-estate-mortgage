@@ -113,8 +113,17 @@ export default function FindClients() {
       console.log('🔍 FindClients: Current user:', currentUser);
       console.log('🔍 FindClients: User orgId:', currentUser.orgId);
 
+      // PHASE 3: Build client filter based on user role
+      // Regular users (reps) only see their own clients
+      // Admins and managers see all clients in the org
+      const clientFilter = { orgId: currentUser.orgId };
+      if (currentUser.role === 'user') {
+        clientFilter.ownerId = currentUser.id;  // Only show the rep's own clients
+      }
+      console.log('🔍 FindClients: Client filter:', clientFilter);
+
       const [clientList, favoritesList] = await Promise.all([
-        base44.entities.Client.filter({ orgId: currentUser.orgId }),
+        base44.entities.Client.filter(clientFilter),
         base44.entities.FavoriteClient.filter({ userId: currentUser.id })
       ]);
 

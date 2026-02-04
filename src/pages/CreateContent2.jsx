@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
@@ -193,6 +192,9 @@ export default function CreateContent2() {
       setLocalSelectedNoteStyleProfileId(batchData.selectedNoteStyleProfileId);
       
       console.log('📡 Step 3: Loading clients...');
+      // PHASE 3: Filter clients by selected IDs
+      // Note: The selectedClientIds already contain only the rep's clients
+      // (filtered in FindClients), so we just need to fetch by ID
       const clientList = await base44.entities.Client.filter({
         id: { $in: batchData.selectedClientIds }
       });
