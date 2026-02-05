@@ -9,8 +9,10 @@ import {
   X,
   Copy,
   Check,
-  Download
+  Download,
+  AlertTriangle
 } from 'lucide-react';
+import { uploadImageVariants } from '@/components/utils/imageHelpers';
 import {
   Dialog,
   DialogContent,
@@ -160,6 +162,7 @@ export default function CardDesignFormWithUpload({
           name: '',
           insideImageUrl: '',
           outsideImageUrl: '',
+          outsideImageVariants: null,
           frontImageUrl: '',
           backImageUrl: '',
           cardDesignCategoryIds: [],
@@ -214,8 +217,31 @@ export default function CardDesignFormWithUpload({
   const handleUpload = async (field, file) => {
     try {
       setUploading(prev => ({ ...prev, [field]: true }));
-      const url = await onUploadFile(file);
-      setForm(prev => ({ ...prev, [`${field}ImageUrl`]: url }));
+      
+      if (field === 'outside') {
+        // Use client-side generation for outside variants
+        const variants = await uploadImageVariants(file);
+        
+        // Extract derived variants only (w600, w400, w200) for storage
+        const derivedVariants = {
+          w600: variants.w600,
+          w400: variants.w400,
+          w200: variants.w200
+        };
+        
+        setForm(prev => ({ 
+          ...prev, 
+          outsideImageUrl: variants.full, // Canonical full
+          outsideImageVariants: derivedVariants
+        }));
+      } else {
+        // Standard upload for other images
+        const url = await onUploadFile(file);
+        setForm(prev => ({ ...prev, [`${field}ImageUrl`]: url }));
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+      // Fallback or error handling
     } finally {
       setUploading(prev => ({ ...prev, [field]: false }));
     }
@@ -311,15 +337,35 @@ export default function CardDesignFormWithUpload({
               />
               
               {/* Outside Image */}
-              <ImageUploader
-                label="Outside"
-                sublabel="Digital preview"
-                imageUrl={form.outsideImageUrl}
-                onImageChange={(url) => setForm({ ...form, outsideImageUrl: url })}
-                onUpload={(file) => handleUpload('outside', file)}
-                uploading={uploading.outside}
-                aspectRatio="412/600"
-              />
+              <div className="flex flex-col gap-1">
+                <ImageUploader
+                  label="Outside"
+                  sublabel="Digital preview"
+                  imageUrl={form.outsideImageUrl}
+                  onImageChange={(url) => setForm({ ...form, outsideImageUrl: url, outsideImageVariants: null })}
+                  onUpload={(file) => handleUpload('outside', file)}
+                  uploading={uploading.outside}
+                  aspectRatio="412/600"
+                />
+                {/* Variant Status Indicator */}
+                {form.outsideImageUrl && (
+                  <div className="flex items-center gap-1.5 px-1">
+                    {uploading.outside ? (
+                      <span className="text-[10px] text-blue-600 flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" /> Generating...
+                      </span>
+                    ) : form.outsideImageVariants?.w600 ? (
+                      <span className="text-[10px] text-green-600 flex items-center gap-1" title="All sizes generated">
+                        <Check className="w-3 h-3" /> Variants: Generated
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-amber-600 flex items-center gap-1" title="Missing resized variants">
+                        <AlertTriangle className="w-3 h-3" /> Variants: Missing
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
               
               {/* Right side: Front, Back, Categories stacked */}
               <div className="col-span-2 flex flex-col gap-3">
