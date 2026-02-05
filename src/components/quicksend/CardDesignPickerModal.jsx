@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Star, Check } from 'lucide-react';
+import { getBestOutsideUrl } from '@/components/utils/imageHelpers';
 import {
   Dialog,
   DialogContent,
@@ -166,9 +167,10 @@ export default function CardDesignPickerModal({
                 const isFavorite = favoriteIds.includes(design.id);
                 const isHovered = hoveredDesignId === design.id;
                 // Show front by default, back on hover (smaller physical card images)
+                // Use optimized outside image for front view
                 const displayImageUrl = isHovered 
                   ? (design.backImageUrl || design.insideImageUrl || design.imageUrl)
-                  : (design.frontImageUrl || design.outsideImageUrl || design.imageUrl);
+                  : (design.frontImageUrl || getBestOutsideUrl(design, 'picker'));
                 
                 return (
                   <div

@@ -15,6 +15,7 @@ import EditModeSelector from "@/components/mailing/EditModeSelector";
 import CardPreview from "@/components/preview/CardPreview";
 import CardDetailsModal from "@/components/card/CardDetailsModal";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
+import { getBestOutsideUrl } from "@/components/utils/imageHelpers";
 
 // PHASE 2: Import CreditContext hook for global credit state
 import { useCredits } from "../components/context/CreditContext";
@@ -622,7 +623,7 @@ export default function SelectDesign() {
                             {/* Single Design Image with "See Inside" Button */}
                             <div className="relative rounded-t-lg overflow-hidden bg-muted" style={{ aspectRatio: '412/600' }}>
                               <img
-                                src={design.outsideImageUrl || design.imageUrl}
+                                src={getBestOutsideUrl(design, 'preview')}
                                 alt={design.name}
                                 className="w-full h-full object-cover"
                               />

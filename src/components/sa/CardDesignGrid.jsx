@@ -11,6 +11,7 @@ import {
   Loader2,
   Check
 } from 'lucide-react';
+import { getBestOutsideUrl } from '@/components/utils/imageHelpers';
 
 /**
  * CardDesignCard Component
@@ -46,7 +47,7 @@ function CardDesignCard({
       <div className="grid grid-cols-2 gap-px bg-gray-100 border-b border-gray-200" style={{ height: '180px' }}>
         <div className="relative overflow-hidden">
           <img
-            src={design.outsideImageUrl || design.imageUrl}
+            src={getBestOutsideUrl(design, 'thumbnail')}
             alt={`${design.name} - Outside`}
             className="w-full h-full object-cover"
           />
