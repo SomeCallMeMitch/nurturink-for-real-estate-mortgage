@@ -116,6 +116,7 @@ export default function CardDesignFormWithUpload({
     name: '',
     insideImageUrl: '',
     outsideImageUrl: '',
+    outsideImageVariants: null,
     frontImageUrl: '',
     backImageUrl: '',
     cardDesignCategoryIds: [],
