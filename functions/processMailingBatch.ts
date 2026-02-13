@@ -201,16 +201,25 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'mailingBatchId is required' }, { status: 400 });
     }
     
+    console.log('[PMB] User:', user.id, user.email, 'orgId:', user.orgId, 'role:', user.role);
+    console.log('[PMB] mailingBatchId:', mailingBatchId);
+    
     // Load mailing batch
     const batches = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
+    console.log('[PMB] Batch lookup result:', batches?.length || 0, 'batch(es) found');
+    
     if (!batches?.length) {
       return Response.json({ error: 'Mailing batch not found' }, { status: 404 });
     }
     
     const batch = batches[0];
+    console.log('[PMB] Batch data - userId:', batch.userId, 'organizationId:', batch.organizationId, 
+      'status:', batch.status, 'selectedClientIds:', batch.selectedClientIds?.length);
     
     // Verify ownership
     if (batch.userId !== user.id && batch.organizationId !== user.orgId) {
+      console.error('[PMB] Ownership check FAILED - batch.userId:', batch.userId, 'vs user.id:', user.id, 
+        '| batch.organizationId:', batch.organizationId, 'vs user.orgId:', user.orgId);
       return Response.json({ error: 'Unauthorized to process this batch' }, { status: 403 });
     }
     
