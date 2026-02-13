@@ -157,31 +157,40 @@ export default function ReviewAndSend() {
 
   // NEW: Check credit availability
   const checkCreditAvailability = useCallback(async () => {
-    if (!clients.length) return;
+    if (!clients.length || !user?.orgId) return;
     
     try {
       setCheckingCredits(true);
       
-      const response = await base44.functions.invoke('checkCreditAvailability', {
-        creditsNeeded: clients.length
+      console.log('[CreditCheck] Calling checkCreditAvailability with:', {
+        orgId: user.orgId,
+        requiredCredits: clients.length
       });
+      
+      const response = await base44.functions.invoke('checkCreditAvailability', {
+        orgId: user.orgId,
+        requiredCredits: clients.length
+      });
+      
+      console.log('[CreditCheck] Response:', response.data);
       
       setCreditCheckResult(response.data);
       
       // If not available, don't show modal automatically, wait for user to click send
       
     } catch (error) {
-      console.error('Failed to check credit availability:', error);
+      console.error('[CreditCheck] Failed:', error);
+      console.error('[CreditCheck] Response data:', error.response?.data);
       toast({
         title: 'Credit check failed',
-        description: 'Unable to verify credit balance. Please try again.',
+        description: error.response?.data?.error || 'Unable to verify credit balance. Please try again.',
         variant: 'destructive',
         duration: 3000
       });
     } finally {
       setCheckingCredits(false);
     }
-  }, [clients.length, toast]);
+  }, [clients.length, user?.orgId, toast]);
 
   // Check credits when component loads and clients are available
   useEffect(() => {
