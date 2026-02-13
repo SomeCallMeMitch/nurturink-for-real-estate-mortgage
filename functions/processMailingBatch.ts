@@ -241,20 +241,37 @@ Deno.serve(async (req) => {
     const personalPurchasedCredits = user.personalPurchasedCredits || 0;
     const canAccessCompanyPool = user.canAccessCompanyPool !== false;
     
+    console.log('[PMB] Credits needed:', creditsNeeded);
+    console.log('[PMB] User credit fields - companyAllocatedCredits:', user.companyAllocatedCredits, 
+      'personalPurchasedCredits:', user.personalPurchasedCredits, 'canAccessCompanyPool:', user.canAccessCompanyPool);
+    console.log('[PMB] Resolved - allocated:', companyAllocatedCredits, 'personal:', personalPurchasedCredits, 
+      'canAccessPool:', canAccessCompanyPool);
+    
     let companyPoolCredits = 0;
     let organization = null;
     
     if (user.orgId) {
+      console.log('[PMB] Looking up organization:', user.orgId);
       const orgs = await base44.asServiceRole.entities.Organization.filter({ id: user.orgId });
+      console.log('[PMB] Organization lookup: found', orgs?.length || 0, 'org(s)');
+      
       if (orgs?.length) {
         organization = orgs[0];
+        console.log('[PMB] Org creditBalance:', organization.creditBalance, 'name:', organization.name);
         companyPoolCredits = canAccessCompanyPool ? (organization.creditBalance || 0) : 0;
+      } else {
+        console.warn('[PMB] No organization found for orgId:', user.orgId);
       }
+    } else {
+      console.warn('[PMB] User has no orgId!');
     }
     
     const totalAvailable = companyAllocatedCredits + companyPoolCredits + personalPurchasedCredits;
+    console.log('[PMB] CREDIT SUMMARY - total available:', totalAvailable, '(allocated:', companyAllocatedCredits, 
+      '+ pool:', companyPoolCredits, '+ personal:', personalPurchasedCredits, ') vs needed:', creditsNeeded);
     
     if (totalAvailable < creditsNeeded) {
+      console.error('[PMB] INSUFFICIENT CREDITS - available:', totalAvailable, 'needed:', creditsNeeded);
       return Response.json({ 
         error: 'Insufficient credits',
         creditsNeeded,
@@ -263,6 +280,8 @@ Deno.serve(async (req) => {
         deficit: creditsNeeded - totalAvailable
       }, { status: 402 });
     }
+    
+    console.log('[PMB] Credit check PASSED');
     
     // Calculate deduction plan
     let remaining = creditsNeeded;
