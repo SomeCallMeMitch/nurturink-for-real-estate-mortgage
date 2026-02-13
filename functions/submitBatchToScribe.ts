@@ -285,6 +285,10 @@ function resolveClientPlaceholders(text, client) {
  * Convert client placeholders to Scribe merge tags
  * Only used for greeting-only placeholders
  */
+/**
+ * Convert client placeholders to Scribe merge tags.
+ * UPDATED: Removed {STREET_ADDRESS} — not a supported Scribe merge tag.
+ */
 function convertToScribeMergeTags(template) {
   if (!template) return '';
   
@@ -296,7 +300,7 @@ function convertToScribeMergeTags(template) {
     .replace(/\{\{client\.email\}\}/g, '{EMAIL}')
     .replace(/\{\{client\.phone\}\}/g, '{PHONE}')
     .replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}')
-    .replace(/\{\{client\.street\}\}/g, '{STREET_ADDRESS}')
+    // NOTE: {{client.street}} deliberately excluded — {STREET_ADDRESS} not a supported Scribe merge tag
     .replace(/\{\{client\.city\}\}/g, '{CITY}')
     .replace(/\{\{client\.state\}\}/g, '{STATE}')
     .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}')
@@ -501,15 +505,34 @@ async function submitScribeCampaign(campaignId) {
 }
 
 /**
- * Fetch ZIP file from Base44 storage
+ * Fetch ZIP file from Base44 storage (raw fetch — used by cache wrapper)
  */
-async function fetchZipFromStorage(base44, fileUri) {
+async function fetchZipFromStorageRaw(base44, fileUri) {
   console.log('[Storage] Fetching ZIP from:', fileUri);
   const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: fileUri });
   const response = await fetch(signedUrlResult.signed_url);
   if (!response.ok) throw new Error(`Failed to fetch ZIP: ${response.status}`);
   const buffer = await response.arrayBuffer();
   console.log('[Storage] ZIP fetched:', buffer.byteLength, 'bytes');
+  return buffer;
+}
+
+/**
+ * In-memory ZIP cache for a single batch execution.
+ * Prevents fetching the same ZIP multiple times when a batch has
+ * multiple campaign groups using the same card design.
+ * Cache key is fileUri (scribeZipUrl), not cardDesignId.
+ * Cache is cleared at the start of each invocation.
+ */
+const zipCache = new Map();
+
+async function fetchZipFromStorage(base44, fileUri) {
+  if (zipCache.has(fileUri)) {
+    console.log('[Storage] ZIP cache HIT for:', fileUri);
+    return zipCache.get(fileUri);
+  }
+  const buffer = await fetchZipFromStorageRaw(base44, fileUri);
+  zipCache.set(fileUri, buffer);
   return buffer;
 }
 
@@ -523,6 +546,9 @@ Deno.serve(async (req) => {
   console.log('===========================================');
   console.log('SCRIBE_API_BASE_URL:', SCRIBE_API_BASE_URL);
   console.log('SCRIBE_API_TOKEN set:', !!SCRIBE_API_TOKEN);
+  
+  // Clear ZIP cache at the start of each invocation
+  zipCache.clear();
   
   try {
     const base44 = createClientFromRequest(req);
@@ -736,18 +762,23 @@ Deno.serve(async (req) => {
         console.log('✅ Campaign created:', scribeCampaignId);
         
         // 4. Build contacts array
-        const contacts = group.recipients.map(r => ({
-          first_name: r.client.firstName || '',
-          last_name: r.client.lastName || '',
-          street: r.client.street || '',
-          address2: r.client.address2 || '',
-          city: r.client.city || '',
-          state: r.client.state || '',
-          zip: r.client.zipCode || '',
-          email: r.client.email || '',
-          phone: r.client.phone || '',
-          company_name: r.client.company || ''
-        }));
+        //    FIX: Merge address2 into street field. Scribe does NOT support
+        //    address2 as a separate field — it gets silently ignored, losing
+        //    apartment/suite numbers. Now we combine them.
+        const contacts = group.recipients.map(r => {
+          const streetParts = [r.client.street, r.client.address2].filter(Boolean);
+          return {
+            first_name: r.client.firstName || '',
+            last_name: r.client.lastName || '',
+            street: streetParts.join(', ') || '',
+            city: r.client.city || '',
+            state: r.client.state || '',
+            zip: r.client.zipCode || '',
+            email: r.client.email || '',
+            phone: r.client.phone || '',
+            company_name: r.client.company || ''
+          };
+        });
         
         // 5. Add contacts
         await addScribeContacts(scribeCampaignId, contacts);
