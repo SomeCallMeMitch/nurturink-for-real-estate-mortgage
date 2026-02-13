@@ -123,6 +123,14 @@ function resolveAllPlaceholders(text, client, user, organization) {
  * Supports both new and legacy syntax
  * {{client.firstName}} OR {{firstName}} -> {FIRST_NAME}
  */
+/**
+ * Map client placeholders to Scribe merge tag format.
+ * Only includes tags that Scribe actually supports in message body.
+ * REMOVED: {{client.street}}, {{client.address2}}, {{address1}} — 
+ * Scribe confirmed {STREET_ADDRESS} and {ADDRESS_2} are NOT supported 
+ * as message merge tags. Street/address data is handled separately 
+ * in the contacts payload, not in message body.
+ */
 function mapToScribePlaceholders(text) {
   if (!text) return '';
   return text
@@ -133,8 +141,8 @@ function mapToScribePlaceholders(text) {
     .replace(/\{\{client\.email\}\}/g, '{EMAIL}')
     .replace(/\{\{client\.phone\}\}/g, '{PHONE}')
     .replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}')
-    .replace(/\{\{client\.street\}\}/g, '{STREET_ADDRESS}')
-    .replace(/\{\{client\.address2\}\}/g, '{ADDRESS_2}')
+    // NOTE: {{client.street}}, {{client.address2}} deliberately excluded
+    // Scribe does not support {STREET_ADDRESS} or {ADDRESS_2} as message merge tags
     .replace(/\{\{client\.city\}\}/g, '{CITY}')
     .replace(/\{\{client\.state\}\}/g, '{STATE}')
     .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}')
@@ -143,7 +151,7 @@ function mapToScribePlaceholders(text) {
     .replace(/\{\{lastName\}\}/g, '{LAST_NAME}')
     .replace(/\{\{fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
     .replace(/\{\{company\}\}/g, '{COMPANY_NAME}')
-    .replace(/\{\{address1\}\}/g, '{STREET_ADDRESS}')
+    // NOTE: {{address1}} deliberately excluded — same reason as above
     .replace(/\{\{city\}\}/g, '{CITY}')
     .replace(/\{\{state\}\}/g, '{STATE}')
     .replace(/\{\{zip\}\}/g, '{ZIP}');
@@ -221,6 +229,34 @@ Deno.serve(async (req) => {
       console.error('[PMB] Ownership check FAILED - batch.userId:', batch.userId, 'vs user.id:', user.id, 
         '| batch.organizationId:', batch.organizationId, 'vs user.orgId:', user.orgId);
       return Response.json({ error: 'Unauthorized to process this batch' }, { status: 403 });
+    }
+    
+    // ============================================================
+    // IDEMPOTENCY GUARD
+    // Prevents double-processing if called twice for the same batch
+    // (network retry, double-click, race condition, etc.)
+    // ============================================================
+    const existingNotes = await base44.asServiceRole.entities.Note.filter({ 
+      mailingBatchId: mailingBatchId 
+    });
+    if (existingNotes && existingNotes.length > 0) {
+      console.log(`[IDEMPOTENCY] Batch ${mailingBatchId} already has ${existingNotes.length} Notes. Returning existing result.`);
+      return Response.json({ 
+        error: 'Batch already processed',
+        mailingBatchId,
+        existingNoteCount: existingNotes.length,
+        message: 'This batch has already been processed. Notes already exist.'
+      }, { status: 409 });
+    }
+    
+    // BATCH STATUS GUARD
+    // Only process batches in 'draft' or 'ready_to_send' status
+    if (batch.status !== 'draft' && batch.status !== 'ready_to_send') {
+      console.log(`[STATUS] Batch ${mailingBatchId} status is "${batch.status}", expected draft or ready_to_send.`);
+      return Response.json({ 
+        error: `Batch status is "${batch.status}", expected "draft" or "ready_to_send"`,
+        mailingBatchId
+      }, { status: 400 });
     }
     
     // Validate batch data
