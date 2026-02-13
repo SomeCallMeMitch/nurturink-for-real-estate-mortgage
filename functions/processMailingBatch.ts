@@ -119,11 +119,6 @@ function resolveAllPlaceholders(text, client, user, organization) {
 }
 
 /**
- * Map RoofScribe client placeholders to Scribe format
- * Supports both new and legacy syntax
- * {{client.firstName}} OR {{firstName}} -> {FIRST_NAME}
- */
-/**
  * Map client placeholders to Scribe merge tag format.
  * Only includes tags that Scribe actually supports in message body.
  * REMOVED: {{client.street}}, {{client.address2}}, {{address1}} — 
