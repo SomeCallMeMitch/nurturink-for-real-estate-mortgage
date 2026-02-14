@@ -368,30 +368,87 @@ Deno.serve(async (req) => {
 
         // ---------------------------------------------------------
         // 5g. CALL submitBatchToScribe (Scribe API submission)
+        //     Only call if batch is in 'pending_review' (REQUIRE_ADMIN_APPROVAL=true)
+        //     or 'completed' with notes created (REQUIRE_ADMIN_APPROVAL=false).
+        //     submitBatchToScribe expects 'pending_review' or 'ready_to_send'.
         // ---------------------------------------------------------
-        console.log(`[processPendingSends] Calling submitBatchToScribe for batch ${mailingBatch.id}...`);
 
-        let scribeResult;
-        try {
-          const scribeResponse = await base44.asServiceRole.functions.invoke('submitBatchToScribe', {
-            mailingBatchId: mailingBatch.id
-          });
-          scribeResult = scribeResponse.data || scribeResponse;
-          console.log(`[processPendingSends] submitBatchToScribe result:`, JSON.stringify(scribeResult).substring(0, 300));
-          stats.batchesSubmitted++;
-        } catch (scribeError) {
-          console.error(`[processPendingSends] submitBatchToScribe FAILED:`, scribeError.message);
-          // Notes/Mailings already created by PMB — mark sends as failed at Scribe stage
+        // Re-read batch to get PMB's final status
+        const updatedBatchList = await base44.asServiceRole.entities.MailingBatch.filter({ id: mailingBatch.id });
+        const updatedBatch = updatedBatchList?.[0];
+        const batchStatusAfterPMB = updatedBatch?.status;
+
+        console.log(`[processPendingSends] Batch ${mailingBatch.id} status after PMB: ${batchStatusAfterPMB}`);
+
+        let scribeResult = null;
+
+        if (batchStatusAfterPMB === 'pending_review') {
+          // REQUIRE_ADMIN_APPROVAL=true → submitBatchToScribe handles the Scribe submission
+          console.log(`[processPendingSends] Calling submitBatchToScribe for batch ${mailingBatch.id}...`);
+
+          try {
+            const scribeResponse = await base44.asServiceRole.functions.invoke('submitBatchToScribe', {
+              mailingBatchId: mailingBatch.id
+            });
+            scribeResult = scribeResponse.data || scribeResponse;
+            console.log(`[processPendingSends] submitBatchToScribe result:`, JSON.stringify(scribeResult).substring(0, 300));
+            stats.batchesSubmitted++;
+          } catch (scribeError) {
+            console.error(`[processPendingSends] submitBatchToScribe FAILED:`, scribeError.message);
+            // Notes/Mailings already created by PMB — mark sends as failed at Scribe stage
+            for (const send of affordableSends) {
+              if (clientMap[send.clientId]) {
+                await base44.asServiceRole.entities.ScheduledSend.update(send.id, {
+                  status: 'failed',
+                  failureReason: `submitBatchToScribe failed: ${scribeError.message}`
+                });
+                stats.sendsFailed++;
+              }
+            }
+            stats.errors.push({ groupKey, error: `submitBatchToScribe failed: ${scribeError.message}` });
+            continue;
+          }
+        } else if (batchStatusAfterPMB === 'completed') {
+          // REQUIRE_ADMIN_APPROVAL=false → PMB already completed the batch.
+          // Notes/Mailings created but NOT submitted to Scribe yet.
+          // We still need to submit to Scribe, so update status to 'pending_review' first.
+          console.log(`[processPendingSends] Batch completed by PMB (no approval required). Updating to pending_review for Scribe submission...`);
+          await base44.asServiceRole.entities.MailingBatch.update(mailingBatch.id, { status: 'pending_review' });
+
+          try {
+            const scribeResponse = await base44.asServiceRole.functions.invoke('submitBatchToScribe', {
+              mailingBatchId: mailingBatch.id
+            });
+            scribeResult = scribeResponse.data || scribeResponse;
+            console.log(`[processPendingSends] submitBatchToScribe result:`, JSON.stringify(scribeResult).substring(0, 300));
+            stats.batchesSubmitted++;
+          } catch (scribeError) {
+            console.error(`[processPendingSends] submitBatchToScribe FAILED:`, scribeError.message);
+            for (const send of affordableSends) {
+              if (clientMap[send.clientId]) {
+                await base44.asServiceRole.entities.ScheduledSend.update(send.id, {
+                  status: 'failed',
+                  failureReason: `submitBatchToScribe failed: ${scribeError.message}`
+                });
+                stats.sendsFailed++;
+              }
+            }
+            stats.errors.push({ groupKey, error: `submitBatchToScribe failed: ${scribeError.message}` });
+            continue;
+          }
+        } else {
+          // Unexpected status — PMB may have failed or returned an error status
+          console.error(`[processPendingSends] Unexpected batch status after PMB: ${batchStatusAfterPMB}`);
           for (const send of affordableSends) {
             if (clientMap[send.clientId]) {
               await base44.asServiceRole.entities.ScheduledSend.update(send.id, {
                 status: 'failed',
-                failureReason: `submitBatchToScribe failed: ${scribeError.message}`
+                failureReason: `Unexpected batch status after processMailingBatch: ${batchStatusAfterPMB}`
               });
               stats.sendsFailed++;
             }
           }
-          stats.errors.push({ groupKey, error: `submitBatchToScribe failed: ${scribeError.message}` });
+          stats.errors.push({ groupKey, error: `Unexpected batch status: ${batchStatusAfterPMB}` });
           continue;
         }
 
