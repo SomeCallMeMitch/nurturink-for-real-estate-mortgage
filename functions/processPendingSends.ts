@@ -455,7 +455,7 @@ Deno.serve(async (req) => {
         // ---------------------------------------------------------
         // 5h. UPDATE ScheduledSend STATUSES based on final result
         // ---------------------------------------------------------
-        const finalBatchStatus = scribeResult.status || 'unknown';
+        const finalBatchStatus = scribeResult?.status || 'unknown';
         const now = new Date().toISOString();
 
         for (const send of affordableSends) {
