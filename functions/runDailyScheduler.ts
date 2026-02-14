@@ -34,8 +34,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 function getNextOccurrence(dateStr, campaignType) {
   if (!dateStr) return null;
   
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // ⚠️ TEMPORARY TEST OVERRIDE — treat "today" as 2026-02-15 so scheduler sees Feb 15 as today
+  // REVERT THIS AFTER TESTING
+  const today = new Date('2026-02-15T00:00:00Z');
+  console.log(`[runDailyScheduler] ⚠️ TEST OVERRIDE: Using hardcoded today = ${today.toISOString()}`);
   
   if (campaignType === 'welcome') {
     // Welcome is one-time, use the actual date
