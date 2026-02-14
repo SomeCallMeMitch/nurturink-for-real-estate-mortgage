@@ -331,8 +331,9 @@ Deno.serve(async (req) => {
         let pmbResult;
         try {
           const pmbResponse = await base44.asServiceRole.functions.invoke('processMailingBatch', {
-            mailingBatchId: mailingBatch.id
-          });
+              mailingBatchId: mailingBatch.id,
+              serviceRoleBypass: true
+            });
           pmbResult = pmbResponse.data || pmbResponse;
           console.log(`[processPendingSends] processMailingBatch result:`, JSON.stringify(pmbResult).substring(0, 300));
         } catch (pmbError) {
