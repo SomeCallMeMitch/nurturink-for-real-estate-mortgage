@@ -268,17 +268,33 @@ Deno.serve(async (req) => {
     }
     
     // ============================================================
+    // RESOLVE THE BATCH OWNER (may differ from caller in automation)
+    // ============================================================
+    
+    let batchOwner = user; // Default: caller is the batch owner
+    if (serviceRoleBypass && batch.userId && batch.userId !== user.id) {
+      console.log('[PMB] Service-role bypass: loading batch owner user', batch.userId);
+      const ownerUsers = await base44.asServiceRole.entities.User.filter({ id: batch.userId });
+      if (ownerUsers?.length) {
+        batchOwner = ownerUsers[0];
+        console.log('[PMB] Batch owner loaded:', batchOwner.id, batchOwner.email);
+      } else {
+        console.warn('[PMB] Batch owner not found, falling back to caller');
+      }
+    }
+    
+    // ============================================================
     // CREDIT VALIDATION & CALCULATION
     // ============================================================
     
     const creditsNeeded = batch.selectedClientIds.length;
-    const companyAllocatedCredits = user.companyAllocatedCredits || 0;
-    const personalPurchasedCredits = user.personalPurchasedCredits || 0;
-    const canAccessCompanyPool = user.canAccessCompanyPool !== false;
+    const companyAllocatedCredits = batchOwner.companyAllocatedCredits || 0;
+    const personalPurchasedCredits = batchOwner.personalPurchasedCredits || 0;
+    const canAccessCompanyPool = batchOwner.canAccessCompanyPool !== false;
     
     console.log('[PMB] Credits needed:', creditsNeeded);
-    console.log('[PMB] User credit fields - companyAllocatedCredits:', user.companyAllocatedCredits, 
-      'personalPurchasedCredits:', user.personalPurchasedCredits, 'canAccessCompanyPool:', user.canAccessCompanyPool);
+    console.log('[PMB] Batch owner credit fields - companyAllocatedCredits:', batchOwner.companyAllocatedCredits, 
+      'personalPurchasedCredits:', batchOwner.personalPurchasedCredits, 'canAccessCompanyPool:', batchOwner.canAccessCompanyPool);
     console.log('[PMB] Resolved - allocated:', companyAllocatedCredits, 'personal:', personalPurchasedCredits, 
       'canAccessPool:', canAccessCompanyPool);
     
