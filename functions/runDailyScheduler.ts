@@ -73,8 +73,9 @@ function addDays(date, days) {
  * Check if a date is within the next N days from today
  */
 function isWithinDays(date, days) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  // ⚠️ TEMPORARY TEST OVERRIDE — REVERT AFTER TESTING
+  const today = new Date('2026-02-15T00:00:00Z');
+  console.log(`[isWithinDays] ⚠️ TEST OVERRIDE: Using hardcoded today = ${today.toISOString()}`);
   
   const futureLimit = addDays(today, days);
   futureLimit.setHours(23, 59, 59, 999);
