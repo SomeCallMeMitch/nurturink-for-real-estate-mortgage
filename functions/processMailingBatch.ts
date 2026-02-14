@@ -419,8 +419,8 @@ Deno.serve(async (req) => {
         
         // Create Note with BOTH messages
         const note = await base44.asServiceRole.entities.Note.create({
-          orgId: user.orgId,
-          userId: user.id,
+          orgId: effectiveOrgId,
+          userId: batchOwner.id,
           clientId: client.id,
           mailingBatchId: mailingBatchId,
           cardDesignId: cardDesignId,
@@ -432,15 +432,15 @@ Deno.serve(async (req) => {
           sentDate: currentTimestamp,
           creditCost: 1,
           recipientName: client.fullName,
-          senderUserId: user.id,
-          senderName: user.full_name,
+          senderUserId: batchOwner.id,
+          senderName: batchOwner.full_name,
           returnAddressMode: returnMode
         });
         
         // Create Mailing
         const mailing = await base44.asServiceRole.entities.Mailing.create({
           noteId: note.id,
-          orgId: user.orgId,
+          orgId: effectiveOrgId,
           mailingBatchId: mailingBatchId,
           recipientAddress: {
             name: client.fullName || '',
@@ -501,12 +501,12 @@ Deno.serve(async (req) => {
         remainingToDeduct -= actualFromCompanyAllocated;
         
         const newBalance = companyAllocatedCredits - actualFromCompanyAllocated;
-        await base44.asServiceRole.entities.User.update(user.id, { companyAllocatedCredits: newBalance });
+        await base44.asServiceRole.entities.User.update(batchOwner.id, { companyAllocatedCredits: newBalance });
         
         await base44.asServiceRole.entities.Transaction.create({
-          fromAccountType: 'organization', fromAccountId: user.orgId,
-          toAccountId: user.id, toAccountType: 'user',
-          orgId: user.orgId, userId: user.id,
+          fromAccountType: 'organization', fromAccountId: effectiveOrgId,
+          toAccountId: batchOwner.id, toAccountType: 'user',
+          orgId: effectiveOrgId, userId: batchOwner.id,
           type: 'deduction', amount: -actualFromCompanyAllocated,
           balanceAfter: newBalance, balanceType: 'user',
           description: `Sent ${actualFromCompanyAllocated} handwritten note(s) (company-allocated)`,
@@ -523,8 +523,8 @@ Deno.serve(async (req) => {
         
         await base44.asServiceRole.entities.Transaction.create({
           fromAccountType: 'organization', fromAccountId: organization.id,
-          toAccountId: user.id, toAccountType: 'user',
-          orgId: user.orgId, userId: user.id,
+          toAccountId: batchOwner.id, toAccountType: 'user',
+          orgId: effectiveOrgId, userId: batchOwner.id,
           type: 'deduction', amount: -actualFromCompanyPool,
           balanceAfter: newBalance, balanceType: 'organization',
           description: `Sent ${actualFromCompanyPool} handwritten note(s) (company pool)`,
@@ -536,12 +536,12 @@ Deno.serve(async (req) => {
         actualFromPersonalPurchased = Math.min(fromPersonalPurchased, remainingToDeduct);
         
         const newBalance = personalPurchasedCredits - actualFromPersonalPurchased;
-        await base44.asServiceRole.entities.User.update(user.id, { personalPurchasedCredits: newBalance });
+        await base44.asServiceRole.entities.User.update(batchOwner.id, { personalPurchasedCredits: newBalance });
         
         await base44.asServiceRole.entities.Transaction.create({
-          fromAccountType: 'user', fromAccountId: user.id,
-          toAccountId: user.id, toAccountType: 'user',
-          orgId: user.orgId, userId: user.id,
+          fromAccountType: 'user', fromAccountId: batchOwner.id,
+          toAccountId: batchOwner.id, toAccountType: 'user',
+          orgId: effectiveOrgId, userId: batchOwner.id,
           type: 'deduction', amount: -actualFromPersonalPurchased,
           balanceAfter: newBalance, balanceType: 'user',
           description: `Sent ${actualFromPersonalPurchased} handwritten note(s) (personal)`,
