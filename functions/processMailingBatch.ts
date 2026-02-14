@@ -198,17 +198,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    const { mailingBatchId } = await req.json();
+    const { mailingBatchId, serviceRoleBypass } = await req.json();
     
     if (!mailingBatchId) {
       return Response.json({ error: 'mailingBatchId is required' }, { status: 400 });
     }
     
     console.log('[PMB] User:', user.id, user.email, 'orgId:', user.orgId, 'role:', user.role);
-    console.log('[PMB] mailingBatchId:', mailingBatchId);
+    console.log('[PMB] mailingBatchId:', mailingBatchId, 'serviceRoleBypass:', !!serviceRoleBypass);
     
-    // Load mailing batch
-    const batches = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
+    // Load mailing batch — use service role for system automation calls
+    const batches = serviceRoleBypass
+      ? await base44.asServiceRole.entities.MailingBatch.filter({ id: mailingBatchId })
+      : await base44.entities.MailingBatch.filter({ id: mailingBatchId });
     console.log('[PMB] Batch lookup result:', batches?.length || 0, 'batch(es) found');
     
     if (!batches?.length) {
@@ -219,8 +221,10 @@ Deno.serve(async (req) => {
     console.log('[PMB] Batch data - userId:', batch.userId, 'organizationId:', batch.organizationId, 
       'status:', batch.status, 'selectedClientIds:', batch.selectedClientIds?.length);
     
-    // Verify ownership
-    if (batch.userId !== user.id && batch.organizationId !== user.orgId) {
+    // Verify ownership — skip for service-role automation callers (admin role required)
+    if (serviceRoleBypass && user.role === 'admin') {
+      console.log('[PMB] Service-role bypass active (admin caller). Skipping ownership check.');
+    } else if (batch.userId !== user.id && batch.organizationId !== user.orgId) {
       console.error('[PMB] Ownership check FAILED - batch.userId:', batch.userId, 'vs user.id:', user.id, 
         '| batch.organizationId:', batch.organizationId, 'vs user.orgId:', user.orgId);
       return Response.json({ error: 'Unauthorized to process this batch' }, { status: 403 });
