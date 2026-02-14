@@ -243,7 +243,8 @@ Deno.serve(async (req) => {
                 status: status,
                 cardDesignId: step.cardDesignId,
                 messageTemplateId: step.templateId || null,
-                customMessage: step.messageText || null
+                customMessage: step.messageText || null,
+                returnAddressMode: campaign.returnAddressMode || 'company'
               });
 
               stats.sendsCreated++;
