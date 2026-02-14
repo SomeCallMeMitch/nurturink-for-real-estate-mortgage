@@ -301,9 +301,10 @@ Deno.serve(async (req) => {
     let companyPoolCredits = 0;
     let organization = null;
     
-    if (user.orgId) {
-      console.log('[PMB] Looking up organization:', user.orgId);
-      const orgs = await base44.asServiceRole.entities.Organization.filter({ id: user.orgId });
+    const effectiveOrgId = batchOwner.orgId || batch.organizationId;
+    if (effectiveOrgId) {
+      console.log('[PMB] Looking up organization:', effectiveOrgId);
+      const orgs = await base44.asServiceRole.entities.Organization.filter({ id: effectiveOrgId });
       console.log('[PMB] Organization lookup: found', orgs?.length || 0, 'org(s)');
       
       if (orgs?.length) {
@@ -311,10 +312,10 @@ Deno.serve(async (req) => {
         console.log('[PMB] Org creditBalance:', organization.creditBalance, 'name:', organization.name);
         companyPoolCredits = canAccessCompanyPool ? (organization.creditBalance || 0) : 0;
       } else {
-        console.warn('[PMB] No organization found for orgId:', user.orgId);
+        console.warn('[PMB] No organization found for orgId:', effectiveOrgId);
       }
     } else {
-      console.warn('[PMB] User has no orgId!');
+      console.warn('[PMB] No orgId available from batch owner or batch!');
     }
     
     const totalAvailable = companyAllocatedCredits + companyPoolCredits + personalPurchasedCredits;
