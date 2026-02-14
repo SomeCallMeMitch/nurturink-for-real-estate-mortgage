@@ -73,7 +73,10 @@ Deno.serve(async (req) => {
     // ============================================================
     // 2. QUERY PENDING SENDS DUE TODAY OR EARLIER
     // ============================================================
-    const today = new Date().toISOString().split('T')[0];
+    // ⚠️ TEMPORARY TEST OVERRIDE — treat "today" as 2026-02-15 so pending sends for that date are picked up now
+    // REVERT THIS AFTER TESTING
+    const today = '2026-02-15';
+    console.log(`[processPendingSends] ⚠️ TEST OVERRIDE: Using hardcoded today = ${today}`);
 
     const allPendingSends = await base44.asServiceRole.entities.ScheduledSend.filter({
       status: 'pending'
