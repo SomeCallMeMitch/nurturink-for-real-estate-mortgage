@@ -119,12 +119,9 @@ function resolveAllPlaceholders(text, client, user, organization) {
 }
 
 /**
- * Map client placeholders to Scribe merge tag format.
- * Only includes tags that Scribe actually supports in message body.
- * REMOVED: {{client.street}}, {{client.address2}}, {{address1}} — 
- * Scribe confirmed {STREET_ADDRESS} and {ADDRESS_2} are NOT supported 
- * as message merge tags. Street/address data is handled separately 
- * in the contacts payload, not in message body.
+ * Map RoofScribe client placeholders to Scribe format
+ * Supports both new and legacy syntax
+ * {{client.firstName}} OR {{firstName}} -> {FIRST_NAME}
  */
 function mapToScribePlaceholders(text) {
   if (!text) return '';
@@ -136,8 +133,8 @@ function mapToScribePlaceholders(text) {
     .replace(/\{\{client\.email\}\}/g, '{EMAIL}')
     .replace(/\{\{client\.phone\}\}/g, '{PHONE}')
     .replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}')
-    // NOTE: {{client.street}}, {{client.address2}} deliberately excluded
-    // Scribe does not support {STREET_ADDRESS} or {ADDRESS_2} as message merge tags
+    .replace(/\{\{client\.street\}\}/g, '{STREET_ADDRESS}')
+    .replace(/\{\{client\.address2\}\}/g, '{ADDRESS_2}')
     .replace(/\{\{client\.city\}\}/g, '{CITY}')
     .replace(/\{\{client\.state\}\}/g, '{STATE}')
     .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}')
@@ -146,7 +143,7 @@ function mapToScribePlaceholders(text) {
     .replace(/\{\{lastName\}\}/g, '{LAST_NAME}')
     .replace(/\{\{fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
     .replace(/\{\{company\}\}/g, '{COMPANY_NAME}')
-    // NOTE: {{address1}} deliberately excluded — same reason as above
+    .replace(/\{\{address1\}\}/g, '{STREET_ADDRESS}')
     .replace(/\{\{city\}\}/g, '{CITY}')
     .replace(/\{\{state\}\}/g, '{STATE}')
     .replace(/\{\{zip\}\}/g, '{ZIP}');
@@ -193,13 +190,19 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Try to get user, but for service-role calls user may be null
-    let user = null;
-    try {
-      user = await base44.auth.me();
-    } catch (authErr) {
-      console.log('[PMB] auth.me() failed (may be service-role call):', authErr.message);
-    }
+    // ============================================================
+    // AUTH: Parse payload and determine caller context
+    // ============================================================
+    // 
+    // Two call paths:
+    //   1. Interactive (UI) — user clicks Send → auth.me() returns the logged-in user
+    //   2. Automated (processPendingSends) — calls via asServiceRole.functions.invoke()
+    //      with serviceRoleBypass: true → auth.me() returns null, so we load the
+    //      batch owner from the User entity instead
+    //
+    // In BOTH paths, the "user" variable ends up as the batch owner, and all
+    // downstream logic (credits, Note creation, Transactions) works identically.
+    // ============================================================
     
     const { mailingBatchId, serviceRoleBypass } = await req.json();
     
@@ -207,65 +210,42 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'mailingBatchId is required' }, { status: 400 });
     }
     
-    // For non-service-role calls, user must be authenticated
-    if (!serviceRoleBypass && !user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    console.log('[PMB] User:', user?.id, user?.email, 'role:', user?.role);
-    console.log('[PMB] mailingBatchId:', mailingBatchId, 'serviceRoleBypass:', !!serviceRoleBypass);
-    
-    // Load mailing batch — use service role for system automation calls
-    const batches = serviceRoleBypass
-      ? await base44.asServiceRole.entities.MailingBatch.filter({ id: mailingBatchId })
-      : await base44.entities.MailingBatch.filter({ id: mailingBatchId });
-    console.log('[PMB] Batch lookup result:', batches?.length || 0, 'batch(es) found');
-    
+    // Load mailing batch
+    const batches = await base44.asServiceRole.entities.MailingBatch.filter({ id: mailingBatchId });
     if (!batches?.length) {
       return Response.json({ error: 'Mailing batch not found' }, { status: 404 });
     }
     
     const batch = batches[0];
-    console.log('[PMB] Batch data - userId:', batch.userId, 'organizationId:', batch.organizationId, 
-      'status:', batch.status, 'selectedClientIds:', batch.selectedClientIds?.length);
     
-    // Verify ownership — skip for service-role automation callers
-    // When called via base44.asServiceRole.functions.invoke(), the caller is already trusted
-    if (serviceRoleBypass) {
-      console.log('[PMB] Service-role bypass active. Skipping ownership check.');
-    } else if (batch.userId !== user.id && batch.organizationId !== user.orgId) {
-      console.error('[PMB] Ownership check FAILED - batch.userId:', batch.userId, 'vs user.id:', user.id, 
-        '| batch.organizationId:', batch.organizationId, 'vs user.orgId:', user.orgId);
-      return Response.json({ error: 'Unauthorized to process this batch' }, { status: 403 });
+    let user;
+    
+    if (serviceRoleBypass === true) {
+      // Automated call from processPendingSends — no interactive user session
+      // Load the batch owner directly from the User entity
+      console.log(`[PMB] Service role bypass — loading batch owner ${batch.userId}`);
+      const ownerList = await base44.asServiceRole.entities.User.filter({ id: batch.userId });
+      if (!ownerList?.length) {
+        return Response.json({ error: `Batch owner user ${batch.userId} not found` }, { status: 400 });
+      }
+      user = ownerList[0];
+      console.log(`[PMB] Batch owner resolved: ${user.email || user.full_name}`);
+    } else {
+      // Interactive call from UI — authenticate the caller normally
+      user = await base44.auth.me();
+      if (!user) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      // Verify caller owns this batch
+      if (batch.userId !== user.id && batch.organizationId !== user.orgId) {
+        return Response.json({ error: 'Unauthorized to process this batch' }, { status: 403 });
+      }
     }
     
     // ============================================================
-    // IDEMPOTENCY GUARD
-    // Prevents double-processing if called twice for the same batch
-    // (network retry, double-click, race condition, etc.)
+    // FROM HERE DOWN: Everything is identical to the working version.
+    // "user" is the batch owner regardless of call path.
     // ============================================================
-    const existingNotes = await base44.asServiceRole.entities.Note.filter({ 
-      mailingBatchId: mailingBatchId 
-    });
-    if (existingNotes && existingNotes.length > 0) {
-      console.log(`[IDEMPOTENCY] Batch ${mailingBatchId} already has ${existingNotes.length} Notes. Returning existing result.`);
-      return Response.json({ 
-        error: 'Batch already processed',
-        mailingBatchId,
-        existingNoteCount: existingNotes.length,
-        message: 'This batch has already been processed. Notes already exist.'
-      }, { status: 409 });
-    }
-    
-    // BATCH STATUS GUARD
-    // Only process batches in 'draft' or 'ready_to_send' status
-    if (batch.status !== 'draft' && batch.status !== 'ready_to_send') {
-      console.log(`[STATUS] Batch ${mailingBatchId} status is "${batch.status}", expected draft or ready_to_send.`);
-      return Response.json({ 
-        error: `Batch status is "${batch.status}", expected "draft" or "ready_to_send"`,
-        mailingBatchId
-      }, { status: 400 });
-    }
     
     // Validate batch data
     if (!batch.selectedClientIds?.length) {
@@ -277,63 +257,28 @@ Deno.serve(async (req) => {
     }
     
     // ============================================================
-    // RESOLVE THE BATCH OWNER (may differ from caller in automation)
-    // ============================================================
-    
-    let batchOwner = user; // Default: caller is the batch owner
-    if (serviceRoleBypass && batch.userId) {
-      // In service-role calls, always load the batch owner from the batch
-      console.log('[PMB] Service-role bypass: loading batch owner user', batch.userId);
-      const ownerUsers = await base44.asServiceRole.entities.User.filter({ id: batch.userId });
-      if (ownerUsers?.length) {
-        batchOwner = ownerUsers[0];
-        console.log('[PMB] Batch owner loaded:', batchOwner.id, batchOwner.email);
-      } else {
-        console.warn('[PMB] Batch owner not found, falling back to caller');
-      }
-    }
-    
-    // ============================================================
     // CREDIT VALIDATION & CALCULATION
     // ============================================================
     
     const creditsNeeded = batch.selectedClientIds.length;
-    const companyAllocatedCredits = batchOwner.companyAllocatedCredits || 0;
-    const personalPurchasedCredits = batchOwner.personalPurchasedCredits || 0;
-    const canAccessCompanyPool = batchOwner.canAccessCompanyPool !== false;
-    
-    console.log('[PMB] Credits needed:', creditsNeeded);
-    console.log('[PMB] Batch owner credit fields - companyAllocatedCredits:', batchOwner.companyAllocatedCredits, 
-      'personalPurchasedCredits:', batchOwner.personalPurchasedCredits, 'canAccessCompanyPool:', batchOwner.canAccessCompanyPool);
-    console.log('[PMB] Resolved - allocated:', companyAllocatedCredits, 'personal:', personalPurchasedCredits, 
-      'canAccessPool:', canAccessCompanyPool);
+    const companyAllocatedCredits = user.companyAllocatedCredits || 0;
+    const personalPurchasedCredits = user.personalPurchasedCredits || 0;
+    const canAccessCompanyPool = user.canAccessCompanyPool !== false;
     
     let companyPoolCredits = 0;
     let organization = null;
     
-    const effectiveOrgId = batchOwner.orgId || batch.organizationId;
-    if (effectiveOrgId) {
-      console.log('[PMB] Looking up organization:', effectiveOrgId);
-      const orgs = await base44.asServiceRole.entities.Organization.filter({ id: effectiveOrgId });
-      console.log('[PMB] Organization lookup: found', orgs?.length || 0, 'org(s)');
-      
+    if (user.orgId) {
+      const orgs = await base44.asServiceRole.entities.Organization.filter({ id: user.orgId });
       if (orgs?.length) {
         organization = orgs[0];
-        console.log('[PMB] Org creditBalance:', organization.creditBalance, 'name:', organization.name);
         companyPoolCredits = canAccessCompanyPool ? (organization.creditBalance || 0) : 0;
-      } else {
-        console.warn('[PMB] No organization found for orgId:', effectiveOrgId);
       }
-    } else {
-      console.warn('[PMB] No orgId available from batch owner or batch!');
     }
     
     const totalAvailable = companyAllocatedCredits + companyPoolCredits + personalPurchasedCredits;
-    console.log('[PMB] CREDIT SUMMARY - total available:', totalAvailable, '(allocated:', companyAllocatedCredits, 
-      '+ pool:', companyPoolCredits, '+ personal:', personalPurchasedCredits, ') vs needed:', creditsNeeded);
     
     if (totalAvailable < creditsNeeded) {
-      console.error('[PMB] INSUFFICIENT CREDITS - available:', totalAvailable, 'needed:', creditsNeeded);
       return Response.json({ 
         error: 'Insufficient credits',
         creditsNeeded,
@@ -342,8 +287,6 @@ Deno.serve(async (req) => {
         deficit: creditsNeeded - totalAvailable
       }, { status: 402 });
     }
-    
-    console.log('[PMB] Credit check PASSED');
     
     // Calculate deduction plan
     let remaining = creditsNeeded;
@@ -429,8 +372,8 @@ Deno.serve(async (req) => {
         
         // Create Note with BOTH messages
         const note = await base44.asServiceRole.entities.Note.create({
-          orgId: effectiveOrgId,
-          userId: batchOwner.id,
+          orgId: user.orgId,
+          userId: user.id,
           clientId: client.id,
           mailingBatchId: mailingBatchId,
           cardDesignId: cardDesignId,
@@ -442,15 +385,15 @@ Deno.serve(async (req) => {
           sentDate: currentTimestamp,
           creditCost: 1,
           recipientName: client.fullName,
-          senderUserId: batchOwner.id,
-          senderName: batchOwner.full_name,
+          senderUserId: user.id,
+          senderName: user.full_name,
           returnAddressMode: returnMode
         });
         
         // Create Mailing
         const mailing = await base44.asServiceRole.entities.Mailing.create({
           noteId: note.id,
-          orgId: effectiveOrgId,
+          orgId: user.orgId,
           mailingBatchId: mailingBatchId,
           recipientAddress: {
             name: client.fullName || '',
@@ -511,12 +454,12 @@ Deno.serve(async (req) => {
         remainingToDeduct -= actualFromCompanyAllocated;
         
         const newBalance = companyAllocatedCredits - actualFromCompanyAllocated;
-        await base44.asServiceRole.entities.User.update(batchOwner.id, { companyAllocatedCredits: newBalance });
+        await base44.asServiceRole.entities.User.update(user.id, { companyAllocatedCredits: newBalance });
         
         await base44.asServiceRole.entities.Transaction.create({
-          fromAccountType: 'organization', fromAccountId: effectiveOrgId,
-          toAccountId: batchOwner.id, toAccountType: 'user',
-          orgId: effectiveOrgId, userId: batchOwner.id,
+          fromAccountType: 'organization', fromAccountId: user.orgId,
+          toAccountId: user.id, toAccountType: 'user',
+          orgId: user.orgId, userId: user.id,
           type: 'deduction', amount: -actualFromCompanyAllocated,
           balanceAfter: newBalance, balanceType: 'user',
           description: `Sent ${actualFromCompanyAllocated} handwritten note(s) (company-allocated)`,
@@ -533,8 +476,8 @@ Deno.serve(async (req) => {
         
         await base44.asServiceRole.entities.Transaction.create({
           fromAccountType: 'organization', fromAccountId: organization.id,
-          toAccountId: batchOwner.id, toAccountType: 'user',
-          orgId: effectiveOrgId, userId: batchOwner.id,
+          toAccountId: user.id, toAccountType: 'user',
+          orgId: user.orgId, userId: user.id,
           type: 'deduction', amount: -actualFromCompanyPool,
           balanceAfter: newBalance, balanceType: 'organization',
           description: `Sent ${actualFromCompanyPool} handwritten note(s) (company pool)`,
@@ -546,12 +489,12 @@ Deno.serve(async (req) => {
         actualFromPersonalPurchased = Math.min(fromPersonalPurchased, remainingToDeduct);
         
         const newBalance = personalPurchasedCredits - actualFromPersonalPurchased;
-        await base44.asServiceRole.entities.User.update(batchOwner.id, { personalPurchasedCredits: newBalance });
+        await base44.asServiceRole.entities.User.update(user.id, { personalPurchasedCredits: newBalance });
         
         await base44.asServiceRole.entities.Transaction.create({
-          fromAccountType: 'user', fromAccountId: batchOwner.id,
-          toAccountId: batchOwner.id, toAccountType: 'user',
-          orgId: effectiveOrgId, userId: batchOwner.id,
+          fromAccountType: 'user', fromAccountId: user.id,
+          toAccountId: user.id, toAccountType: 'user',
+          orgId: user.orgId, userId: user.id,
           type: 'deduction', amount: -actualFromPersonalPurchased,
           balanceAfter: newBalance, balanceType: 'user',
           description: `Sent ${actualFromPersonalPurchased} handwritten note(s) (personal)`,
