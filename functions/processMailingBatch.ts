@@ -191,16 +191,17 @@ Deno.serve(async (req) => {
   console.log('REQUIRE_ADMIN_APPROVAL:', REQUIRE_ADMIN_APPROVAL);
   
   try {
-    // Parse body BEFORE createClientFromRequest to avoid double-consumption
-    const body = await req.json();
-    const { mailingBatchId, serviceRoleBypass } = body;
-    
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
     
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Try to get user, but for service-role calls user may be null
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch (authErr) {
+      console.log('[PMB] auth.me() failed (may be service-role call):', authErr.message);
     }
+    
+    const { mailingBatchId, serviceRoleBypass } = await req.json();
     
     if (!mailingBatchId) {
       return Response.json({ error: 'mailingBatchId is required' }, { status: 400 });
