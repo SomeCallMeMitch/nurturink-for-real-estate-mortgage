@@ -221,9 +221,10 @@ Deno.serve(async (req) => {
     console.log('[PMB] Batch data - userId:', batch.userId, 'organizationId:', batch.organizationId, 
       'status:', batch.status, 'selectedClientIds:', batch.selectedClientIds?.length);
     
-    // Verify ownership — skip for service-role automation callers (admin role required)
-    if (serviceRoleBypass && user.role === 'admin') {
-      console.log('[PMB] Service-role bypass active (admin caller). Skipping ownership check.');
+    // Verify ownership — skip for service-role automation callers
+    // When called via base44.asServiceRole.functions.invoke(), the caller is already trusted
+    if (serviceRoleBypass) {
+      console.log('[PMB] Service-role bypass active. Skipping ownership check.');
     } else if (batch.userId !== user.id && batch.organizationId !== user.orgId) {
       console.error('[PMB] Ownership check FAILED - batch.userId:', batch.userId, 'vs user.id:', user.id, 
         '| batch.organizationId:', batch.organizationId, 'vs user.orgId:', user.orgId);
