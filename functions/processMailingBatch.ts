@@ -281,7 +281,8 @@ Deno.serve(async (req) => {
     // ============================================================
     
     let batchOwner = user; // Default: caller is the batch owner
-    if (serviceRoleBypass && batch.userId && batch.userId !== user.id) {
+    if (serviceRoleBypass && batch.userId) {
+      // In service-role calls, always load the batch owner from the batch
       console.log('[PMB] Service-role bypass: loading batch owner user', batch.userId);
       const ownerUsers = await base44.asServiceRole.entities.User.filter({ id: batch.userId });
       if (ownerUsers?.length) {
