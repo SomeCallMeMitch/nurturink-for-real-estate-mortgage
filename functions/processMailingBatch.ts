@@ -207,7 +207,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'mailingBatchId is required' }, { status: 400 });
     }
     
-    console.log('[PMB] User:', user.id, user.email, 'orgId:', user.orgId, 'role:', user.role);
+    // For non-service-role calls, user must be authenticated
+    if (!serviceRoleBypass && !user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    console.log('[PMB] User:', user?.id, user?.email, 'role:', user?.role);
     console.log('[PMB] mailingBatchId:', mailingBatchId, 'serviceRoleBypass:', !!serviceRoleBypass);
     
     // Load mailing batch — use service role for system automation calls
