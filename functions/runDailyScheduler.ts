@@ -34,10 +34,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 function getNextOccurrence(dateStr, campaignType) {
   if (!dateStr) return null;
   
-  // ⚠️ TEMPORARY TEST OVERRIDE — treat "today" as 2026-02-15 so scheduler sees Feb 15 as today
-  // REVERT THIS AFTER TESTING
-  const today = new Date('2026-02-15T00:00:00Z');
-  console.log(`[runDailyScheduler] ⚠️ TEST OVERRIDE: Using hardcoded today = ${today.toISOString()}`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   
   if (campaignType === 'welcome') {
     // Welcome is one-time, use the actual date
@@ -73,9 +71,8 @@ function addDays(date, days) {
  * Check if a date is within the next N days from today
  */
 function isWithinDays(date, days) {
-  // ⚠️ TEMPORARY TEST OVERRIDE — REVERT AFTER TESTING
-  const today = new Date('2026-02-15T00:00:00Z');
-  console.log(`[isWithinDays] ⚠️ TEST OVERRIDE: Using hardcoded today = ${today.toISOString()}`);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   
   const futureLimit = addDays(today, days);
   futureLimit.setHours(23, 59, 59, 999);
@@ -236,6 +233,7 @@ Deno.serve(async (req) => {
               }
 
               // Create ScheduledSend record
+              // ADDED: returnAddressMode — inherited from Campaign at scheduling time
               const scheduledSend = await base44.asServiceRole.entities.ScheduledSend.create({
                 campaignId: campaign.id,
                 campaignStepId: step.id,
