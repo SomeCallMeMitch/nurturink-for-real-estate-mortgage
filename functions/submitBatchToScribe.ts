@@ -579,8 +579,12 @@ Deno.serve(async (req) => {
     
     console.log(`${adminUser?.email || 'System (automated)'} approving batch ${mailingBatchId}`);
     
+    // When called via serviceRoleBypass, use asServiceRole for all entity operations
+    // (no interactive user session → user-scoped calls would fail)
+    const db = serviceRoleBypass ? base44.asServiceRole.entities : base44.entities;
+    
     // Load batch
-    const batchList = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
+    const batchList = await db.MailingBatch.filter({ id: mailingBatchId });
     if (!batchList?.length) {
       return Response.json({ success: false, error: 'Batch not found' }, { status: 404 });
     }
