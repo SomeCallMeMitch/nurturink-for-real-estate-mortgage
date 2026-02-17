@@ -233,7 +233,6 @@ Deno.serve(async (req) => {
               }
 
               // Create ScheduledSend record
-              // ADDED: returnAddressMode — inherited from Campaign at scheduling time
               const scheduledSend = await base44.asServiceRole.entities.ScheduledSend.create({
                 campaignId: campaign.id,
                 campaignStepId: step.id,
@@ -244,7 +243,7 @@ Deno.serve(async (req) => {
                 status: status,
                 cardDesignId: step.cardDesignId,
                 messageTemplateId: step.templateId || null,
-                customMessage: step.messageText || null,
+                 customMessage: step.messageText || null,
                 returnAddressMode: campaign.returnAddressMode || 'company'
               });
 
