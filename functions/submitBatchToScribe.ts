@@ -507,9 +507,9 @@ async function submitScribeCampaign(campaignId) {
 /**
  * Fetch ZIP file from Base44 storage (raw fetch — used by cache wrapper)
  */
-async function fetchZipFromStorageRaw(base44, fileUri) {
+async function fetchZipFromStorageRaw(integrations, fileUri) {
   console.log('[Storage] Fetching ZIP from:', fileUri);
-  const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: fileUri });
+  const signedUrlResult = await integrations.Core.CreateFileSignedUrl({ file_uri: fileUri });
   const response = await fetch(signedUrlResult.signed_url);
   if (!response.ok) throw new Error(`Failed to fetch ZIP: ${response.status}`);
   const buffer = await response.arrayBuffer();
@@ -526,12 +526,12 @@ async function fetchZipFromStorageRaw(base44, fileUri) {
  */
 const zipCache = new Map();
 
-async function fetchZipFromStorage(base44, fileUri) {
+async function fetchZipFromStorage(integrations, fileUri) {
   if (zipCache.has(fileUri)) {
     console.log('[Storage] ZIP cache HIT for:', fileUri);
     return zipCache.get(fileUri);
   }
-  const buffer = await fetchZipFromStorageRaw(base44, fileUri);
+  const buffer = await fetchZipFromStorageRaw(integrations, fileUri);
   zipCache.set(fileUri, buffer);
   return buffer;
 }
@@ -759,8 +759,9 @@ Deno.serve(async (req) => {
         console.log(`🔍 DEBUG: group.formattedMessage:`, group.formattedMessage.substring(0, 150));
         console.log(`Message preview: ${group.formattedMessage.substring(0, 100)}...`);
         
-        // 1. Fetch ZIP
-        const zipBuffer = await fetchZipFromStorage(base44, group.cardDesign.scribeZipUrl);
+        // 1. Fetch ZIP (use service role integrations when in bypass mode)
+        const integ = serviceRoleBypass ? base44.asServiceRole.integrations : base44.integrations;
+        const zipBuffer = await fetchZipFromStorage(integ, group.cardDesign.scribeZipUrl);
         
         // 2. Build return address
         const returnAddress = buildReturnAddress(group.returnAddressMode, senderUser, organization);
