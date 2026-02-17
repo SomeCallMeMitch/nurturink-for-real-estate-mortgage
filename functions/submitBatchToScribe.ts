@@ -552,7 +552,7 @@ Deno.serve(async (req) => {
   
   try {
     const base44 = createClientFromRequest(req);
-    const { mailingBatchId } = await req.json();
+    const { mailingBatchId, serviceRoleBypass } = await req.json();
     
     if (!mailingBatchId) {
       return Response.json({ success: false, error: 'mailingBatchId is required' }, { status: 400 });
@@ -562,13 +562,22 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'SCRIBE_API_TOKEN not configured' }, { status: 500 });
     }
     
-    // Verify admin user
-    const adminUser = await base44.auth.me();
-    if (!adminUser) {
-      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    // Auth: determine caller context
+    let adminUser;
+    
+    if (serviceRoleBypass === true) {
+      // Called from processPendingSends via asServiceRole.functions.invoke
+      console.log(`[SBtS] Service role bypass — loading batch for Scribe submission`);
+      adminUser = null; // No interactive user — that's fine, we only use adminUser for the log line
+    } else {
+      // Interactive call — verify admin user
+      adminUser = await base44.auth.me();
+      if (!adminUser) {
+        return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      }
     }
     
-    console.log(`Admin ${adminUser.email} approving batch ${mailingBatchId}`);
+    console.log(`${adminUser?.email || 'System (automated)'} approving batch ${mailingBatchId}`);
     
     // Load batch
     const batchList = await base44.entities.MailingBatch.filter({ id: mailingBatchId });

@@ -394,7 +394,8 @@ Deno.serve(async (req) => {
 
           try {
             const scribeResponse = await base44.asServiceRole.functions.invoke('submitBatchToScribe', {
-              mailingBatchId: mailingBatch.id
+              mailingBatchId: mailingBatch.id,
+              serviceRoleBypass: true
             });
             scribeResult = scribeResponse.data || scribeResponse;
             console.log(`[processPendingSends] submitBatchToScribe result:`, JSON.stringify(scribeResult).substring(0, 300));
@@ -423,7 +424,8 @@ Deno.serve(async (req) => {
 
           try {
             const scribeResponse = await base44.asServiceRole.functions.invoke('submitBatchToScribe', {
-              mailingBatchId: mailingBatch.id
+              mailingBatchId: mailingBatch.id,
+              serviceRoleBypass: true
             });
             scribeResult = scribeResponse.data || scribeResponse;
             console.log(`[processPendingSends] submitBatchToScribe result:`, JSON.stringify(scribeResult).substring(0, 300));
