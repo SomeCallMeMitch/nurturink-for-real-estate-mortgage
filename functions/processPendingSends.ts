@@ -73,20 +73,22 @@ Deno.serve(async (req) => {
     // ============================================================
     // 2. QUERY PENDING SENDS DUE TODAY OR EARLIER
     // ============================================================
-    // ⚠️ TEMPORARY TEST OVERRIDE — treat "today" as 2026-02-15 so pending sends for that date are picked up now
-    // REVERT THIS AFTER TESTING
-    const today = '2026-02-15';
-    console.log(`[processPendingSends] ⚠️ TEST OVERRIDE: Using hardcoded today = ${today}`);
+    const today = new Date().toISOString().split('T')[0];
+    console.log(`[processPendingSends] Today's date (UTC): ${today}`);
+    console.log(`[processPendingSends] Full UTC timestamp: ${new Date().toISOString()}`);
 
     const allPendingSends = await base44.asServiceRole.entities.ScheduledSend.filter({
       status: 'pending'
     });
 
-    // Filter to only those with scheduledDate <= today
-    const pendingSends = allPendingSends.filter(send => send.scheduledDate <= today);
-    stats.sendsFound = pendingSends.length;
+    console.log(`[processPendingSends] Total pending sends found: ${allPendingSends.length}`);
+    for (const s of allPendingSends) {
+      console.log(`[processPendingSends] Send ${s.id}: scheduledDate=${s.scheduledDate}, status=${s.status}, clientId=${s.clientId}`);
+    }
 
-    console.log(`[processPendingSends] Found ${pendingSends.length} pending sends ready to process (of ${allPendingSends.length} total pending)`);
+    const pendingSends = allPendingSends.filter(send => send.scheduledDate <= today);
+    console.log(`[processPendingSends] After date filter (scheduledDate <= ${today}): ${pendingSends.length} sends`);
+    stats.sendsFound = pendingSends.length;
 
     if (pendingSends.length === 0) {
       await base44.asServiceRole.entities.AutomationHistory.update(historyRecord.id, {
