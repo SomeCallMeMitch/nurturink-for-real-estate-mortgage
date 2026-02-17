@@ -601,23 +601,23 @@ Deno.serve(async (req) => {
     }
     
     // Update status to sending
-    await base44.entities.MailingBatch.update(mailingBatchId, { status: 'sending' });
+    await db.MailingBatch.update(mailingBatchId, { status: 'sending' });
     
     // Load sender user and organization
     let senderUser = null, organization = null;
     if (batch.userId) {
-      const userList = await base44.entities.User.filter({ id: batch.userId });
+      const userList = await db.User.filter({ id: batch.userId });
       if (userList?.length) senderUser = userList[0];
     }
     if (batch.organizationId) {
-      const orgList = await base44.entities.Organization.filter({ id: batch.organizationId });
+      const orgList = await db.Organization.filter({ id: batch.organizationId });
       if (orgList?.length) organization = orgList[0];
     }
     
     // Load notes for this batch
-    const notes = await base44.entities.Note.filter({ mailingBatchId });
+    const notes = await db.Note.filter({ mailingBatchId });
     if (!notes?.length) {
-      await base44.entities.MailingBatch.update(mailingBatchId, { status: 'failed' });
+      await db.MailingBatch.update(mailingBatchId, { status: 'failed' });
       return Response.json({ success: false, error: 'No notes found for this batch' }, { status: 400 });
     }
     
@@ -625,14 +625,14 @@ Deno.serve(async (req) => {
     
     // Load related data
     const clientIds = [...new Set(notes.map(n => n.clientId).filter(Boolean))];
-    const clientList = clientIds.length ? await base44.entities.Client.filter({ id: { $in: clientIds } }) : [];
+    const clientList = clientIds.length ? await db.Client.filter({ id: { $in: clientIds } }) : [];
     const clientMap = Object.fromEntries(clientList.map(c => [c.id, c]));
     
     const designIds = [...new Set(notes.map(n => n.cardDesignId).filter(Boolean))];
-    const designList = designIds.length ? await base44.entities.CardDesign.filter({ id: { $in: designIds } }) : [];
+    const designList = designIds.length ? await db.CardDesign.filter({ id: { $in: designIds } }) : [];
     const cardDesignMap = Object.fromEntries(designList.map(d => [d.id, d]));
     
-    const mailingList = await base44.entities.Mailing.filter({ mailingBatchId });
+    const mailingList = await db.Mailing.filter({ mailingBatchId });
     const mailingMap = Object.fromEntries(mailingList.map(m => [m.noteId, m]));
     
     // ========================================
@@ -805,7 +805,7 @@ Deno.serve(async (req) => {
         const scribeStatus = submitResult.status === 'needs_credits' ? 'pending_credits' : 'sent';
         
         for (const note of notesByGroupKey.get(groupKey)) {
-          await base44.entities.Note.update(note.id, { 
+          await db.Note.update(note.id, { 
             scribeCampaignId: String(scribeCampaignId), 
             status: scribeStatus 
           });
@@ -813,7 +813,7 @@ Deno.serve(async (req) => {
         
         for (const r of group.recipients) {
           if (r.mailingId) {
-            await base44.entities.Mailing.update(r.mailingId, { 
+            await db.Mailing.update(r.mailingId, { 
               scribeCampaignId: String(scribeCampaignId), 
               status: scribeStatus 
             });
@@ -835,7 +835,7 @@ Deno.serve(async (req) => {
         
         // Mark notes as failed
         for (const note of notesByGroupKey.get(groupKey) || []) {
-          await base44.entities.Note.update(note.id, { status: 'failed' });
+          await db.Note.update(note.id, { status: 'failed' });
         }
         
         scribeCampaigns.push({
@@ -875,7 +875,7 @@ Deno.serve(async (req) => {
       finalStatus = 'failed';
     }
     
-    await base44.entities.MailingBatch.update(mailingBatchId, {
+    await db.MailingBatch.update(mailingBatchId, {
       status: finalStatus,
       scribeCampaigns,
       processingErrors: processingErrors.length ? processingErrors : null,
