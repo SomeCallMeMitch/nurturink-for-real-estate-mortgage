@@ -152,8 +152,8 @@ export default function Layout({ children, currentPageName }) {
           // WORKAROUND: Explicitly render AcceptInvitation when ?page=AcceptInvitation
           // This bypasses the Base44 router's default behavior of rendering the landing page for "/"
           <AcceptInvitation />
-          ) : isWelcomePage ? (
-          // Welcome page renders directly without sidebar
+          ) : isWelcomePage || isPublicLandingPage ? (
+          // Welcome page and public landing pages render directly without sidebar
           children
           ) : (
           // PHASE 2: Wrap authenticated pages in CreditProvider for global credit state
