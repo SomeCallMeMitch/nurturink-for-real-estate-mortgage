@@ -9,11 +9,12 @@ export default function RECTA() {
     <section id="get-sample" style={{ background: '#007bff', padding: '88px 40px', textAlign: 'center' }}>
       <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
         <h2 className="font-sora" style={{ color: '#ffffff', fontSize: 'clamp(1.8rem, 3vw, 2.7rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '14px' }}>
-          Your Past Clients Don't Need Another Email.<br />
-          They Need to Know You Still Remember Them.
+          {/* Change 16: Updated CTA headline */}
+          Two Extra Referrals. One Year of Cards.<br /><em style={{ fontStyle: 'normal' }}>The Math Is Pretty Simple.</em>
         </h2>
         <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.9)', maxWidth: '500px', margin: '0 auto 36px', lineHeight: 1.55 }}>
-          Get a free sample card mailed directly to you. Hold it. Read it. Then decide if this is the relationship system your business has been missing.
+          {/* Change 17: Updated CTA subhead */}
+          Get a free sample card mailed directly to you. Hold it. Read it. That is exactly what lands in your past client's mailbox — and what makes them think of you when their neighbor mentions they're thinking of selling.
         </p>
         <a
           href="https://nurturink.com"

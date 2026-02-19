@@ -98,7 +98,8 @@ export default function RECalculator() {
                 <div key={s.key} style={{ marginBottom: '22px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '8px' }}>
                     <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{s.label}</span>
-                    <strong style={{ fontSize: '15px', color: '#007bff', fontWeight: 700 }}>{s.format(vals[s.key])}</strong>
+                    {/* Change 10: slider value display text → amber */}
+                    <strong style={{ fontSize: '15px', color: '#f59e0b', fontWeight: 700 }}>{s.format(vals[s.key])}</strong>
                   </div>
                   <input
                     type="range" min={s.min} max={s.max} step={s.step} value={vals[s.key]}
@@ -135,9 +136,9 @@ export default function RECalculator() {
               <ResultRow label="Annual program cost" value={fmt(programCost)} />
               <ResultRow label="Total annual value generated" value={fmt(totalValue)} noBorder />
 
-              {/* ROI highlight */}
+              {/* ROI highlight — Change 10: keep amber/orange per brief */}
               <div style={{
-                background: '#007bff', borderRadius: '5px', padding: '18px 22px', marginTop: '16px',
+                background: '#f59e0b', borderRadius: '5px', padding: '18px 22px', marginTop: '16px',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
                 <span style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>Return on Investment</span>
@@ -164,8 +165,8 @@ export default function RECalculator() {
         }
         .re-calc-grid input[type=range]::-webkit-slider-thumb {
           -webkit-appearance: none; width: 20px; height: 20px;
-          border-radius: 50%; background: #007bff; cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,123,255,0.4);
+          border-radius: 50%; background: #f59e0b; cursor: pointer;
+          box-shadow: 0 2px 8px rgba(245,158,11,0.4);
           transition: transform 0.15s;
         }
         .re-calc-grid input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
@@ -184,7 +185,7 @@ function StreamLabel({ children, style }) {
   return (
     <div style={{
       fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-      color: '#007bff', marginBottom: '4px', marginTop: '4px', ...style,
+      color: '#f59e0b', marginBottom: '4px', marginTop: '4px', ...style, // Change 10: stream labels → amber
     }}>
       {children}
     </div>
