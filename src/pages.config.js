@@ -91,6 +91,7 @@ import PaymentCancel from './pages/PaymentCancel';
 import PaymentSuccess from './pages/PaymentSuccess';
 import PillDemo from './pages/PillDemo';
 import QuickSendTemplates from './pages/QuickSendTemplates';
+import RealEstate from './pages/RealEstate';
 import ReviewAndSend from './pages/ReviewAndSend';
 import Roofing from './pages/Roofing';
 import ScribeTest from './pages/ScribeTest';
@@ -117,7 +118,6 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import RealEstate from './pages/RealEstate';
 import __Layout from './Layout.jsx';
 
 
@@ -166,6 +166,7 @@ export const PAGES = {
     "PaymentSuccess": PaymentSuccess,
     "PillDemo": PillDemo,
     "QuickSendTemplates": QuickSendTemplates,
+    "RealEstate": RealEstate,
     "ReviewAndSend": ReviewAndSend,
     "Roofing": Roofing,
     "ScribeTest": ScribeTest,
@@ -192,7 +193,6 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
-    "RealEstate": RealEstate,
 }
 
 export const pagesConfig = {
