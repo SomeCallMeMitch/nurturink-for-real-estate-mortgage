@@ -45,22 +45,20 @@ export default function SolarVideoSection() {
           <div style={{
             position: 'relative', borderRadius: '8px', overflow: 'hidden',
             boxShadow: '0 16px 48px rgba(0,0,0,0.55)', background: '#0d1a28',
-            aspectRatio: '16/9', cursor: 'pointer',
           }}>
-            <img
-              src="https://images.unsplash.com/photo-1586339949216-35c2747cc36d?w=900&q=80"
-              alt="Video placeholder"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.4, display: 'block' }}
-            />
-            <div style={{
-              position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-              width: '64px', height: '64px', borderRadius: '50%', background: '#FF7A00',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 6px 24px rgba(255,122,0,0.55)',
-              transition: 'transform 0.22s ease, box-shadow 0.22s ease',
-            }}>
-              <Play size={24} fill="white" color="white" />
-            </div>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              style={{ width: '100%', height: 'auto', display: 'block' }}
+            >
+              <source
+                src="https://res.cloudinary.com/dge8qy1ps/video/upload/Handwritten_Note_process_zuyc3z.mp4"
+                type="video/mp4"
+              />
+              Your browser does not support the video tag.
+            </video>
           </div>
           <p style={{ marginTop: '12px', fontSize: '13px', color: 'rgba(255,255,255,0.65)', fontStyle: 'italic' }}>
             A real robotic arm. A real ballpoint pen. Real ink on real cardstock.
