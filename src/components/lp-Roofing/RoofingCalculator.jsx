@@ -7,17 +7,17 @@ import React, { useState, useCallback } from 'react';
 const fmt = (n) => '$' + Math.round(n).toLocaleString();
 
 const sliderDefs = [
-  { key: 'installs', label: 'Jobs Per Year', min: 10, max: 500, step: 5, def: 60, format: v => v },
-  { key: 'saleval', label: 'Average Sale Value', min: 8000, max: 60000, step: 1000, def: 25000, format: v => fmt(v) },
-  { key: 'margin', label: 'Your Commission / Margin', min: 3, max: 25, step: 1, def: 8, format: v => v + '%' },
+  { key: 'installs', label: 'Jobs Per Year', min: 10, max: 300, step: 5, def: 60, format: v => v },
+  { key: 'saleval', label: 'Average Job Value', min: 5000, max: 50000, step: 500, def: 18000, format: v => fmt(v) },
+  { key: 'margin', label: 'Your Margin / Commission', min: 5, max: 40, step: 1, def: 12, format: v => v + '%' },
   { key: 'ref', label: 'Current Referral Rate', min: 5, max: 50, step: 5, def: 15, format: v => v + '%' },
-  { key: 'radius', label: 'Radius Neighbours Per Job', min: 0, max: 50, step: 5, def: 20, format: v => v },
+  { key: 'radius', label: 'Radius Cards Per Job', min: 0, max: 100, step: 5, def: 50, format: v => v },
   { key: 'card', label: 'Card Cost Per Card', min: 2, max: 4, step: 0.25, def: 2.5, format: v => '$' + Number(v).toFixed(2) },
 ];
 
 export default function RoofingCalculator() {
   const [vals, setVals] = useState({
-    installs: 60, saleval: 25000, margin: 8, ref: 15, radius: 20, card: 2.5,
+    installs: 60, saleval: 18000, margin: 12, ref: 15, radius: 50, card: 2.5,
   });
 
   const update = useCallback((key, raw) => {
@@ -55,12 +55,12 @@ export default function RoofingCalculator() {
   const year3 = (extraRev * 3) - (programCost * 3);
 
   const results = [
-    { label: 'Your income per sale', value: fmt(perSale) },
-    { label: 'Referral sales per year (current)', value: refNow },
+    { label: 'Your income per job', value: fmt(perSale) },
+    { label: 'Referral jobs per year (current)', value: refNow },
     { label: 'Referral income per year (current)', value: fmt(refRevNow) },
     { label: 'Projected referral improvement', value: '+' + (newRefRate - vals.ref) + '%' },
-    { label: 'Additional sales per year', value: totalExtra },
-    { label: 'Annual program cost', value: fmt(programCost) },
+    { label: 'Additional jobs per year', value: totalExtra },
+    { label: 'Annual program cost (post-job + radius)', value: fmt(programCost) },
     { label: 'Additional annual income', value: fmt(extraRev) },
   ];
 
@@ -74,7 +74,7 @@ export default function RoofingCalculator() {
           What Is One Referral Worth in Roofing?
         </h2>
         <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, maxWidth: '700px' }}>
-          Roofing is a high-ticket, high-referral business. Adjust the sliders to reflect your situation and see what a consistent follow-up program means for your income over three years.
+          Roofing is a high-ticket business with strong word-of-mouth potential. Adjust the sliders to match your situation. The program cost includes both the post-job card and the radius neighbor campaign.
         </p>
 
         <div className="roofing-calc-box" style={{
@@ -127,7 +127,7 @@ export default function RoofingCalculator() {
                 </strong>
               </div>
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.32)', marginTop: '16px', lineHeight: 1.5 }}>
-                Referral improvement based on research on personal outreach and reciprocity in home services. Individual results will vary based on market, message quality, and follow-up consistency.
+                Referral improvement assumes +20 percentage points from systematic follow-up and neighborhood outreach, capped at 80%. Program cost includes 1 post-job thank-you card plus the radius campaign per job. One radius job referral assumed per campaign. Individual results will vary.
               </p>
             </div>
           </div>
