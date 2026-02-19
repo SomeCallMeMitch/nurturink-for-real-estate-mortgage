@@ -32,7 +32,7 @@ export default function RoofingHero() {
             fontSize: '12px', fontWeight: 700, letterSpacing: '0.12em',
             textTransform: 'uppercase', padding: '6px 14px', borderRadius: '3px', marginBottom: '24px',
           }}>
-            Solar Sales Professionals
+            Roofing Sales Professionals
           </div>
 
           <h1 className="font-sora" style={{
