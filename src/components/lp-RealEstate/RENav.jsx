@@ -2,7 +2,8 @@ import React from 'react';
 
 /**
  * RENav — sticky nav bar
- * Real Estate: navy bg, blue accent, "Lead Conversion Calculator" link
+ * Real Estate: navy bg, blue accent
+ * Change 1: Added "Open House Calculator" link; renamed to "ROI Calculator"
  */
 export default function RENav() {
   return (
@@ -23,7 +24,10 @@ export default function RENav() {
 
       {/* Right side: links + CTA */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-a
+        <RENavLink href="#why-nurturink">Why NurturInk</RENavLink>
+        <RENavLink href="#calculator">ROI Calculator</RENavLink>
+        <RENavLink href="#oh-calculator">Open House Calculator</RENavLink>
+        <a
           href="#get-sample"
           className="font-inter"
           style={{
