@@ -16,7 +16,7 @@ import { Toaster } from '@/components/ui/toaster';
 /**
  * Solar Landing Page — NurturInk Solar v5
  * Built strictly from nurturink-solar-b44-spec.txt and nurturink-solar-v5.txt
- * 
+ *
  * Section order:
  * 1. Nav (sticky)
  * 2. Hero
