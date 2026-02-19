@@ -28,6 +28,7 @@ export default function Layout({ children, currentPageName }) {
         
         const normalizedPath = location.pathname.toLowerCase();
         const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing' || normalizedPath === '/home';
+        const isPublicLandingPage = normalizedPath === '/solar';
         
         // Check if user is on AcceptInvitation page (handle ?page= query param)
         const searchParams = new URLSearchParams(location.search);
@@ -36,6 +37,11 @@ export default function Layout({ children, currentPageName }) {
         
         // Skip redirects for AcceptInvitation page - it handles its own auth flow
         if (isAcceptInvitationPage) {
+          return;
+        }
+
+        // Skip redirects for public landing pages (e.g. /Solar)
+        if (isPublicLandingPage) {
           return;
         }
 
