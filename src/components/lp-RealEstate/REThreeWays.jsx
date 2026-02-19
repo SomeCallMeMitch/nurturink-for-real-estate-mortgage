@@ -1,11 +1,9 @@
 import React from 'react';
 import REWayCard from './REWayCard';
-import REOpenHouseCard from './REOpenHouseCard';
 
 /**
- * REThreeWays — SECTION 5: FOUR WAYS + OPEN HOUSE WIDE CARD
- * Real Estate: 4 cards in grid (delta change 1), Open House card below grid (delta change 2)
- * Blue accent, RE-specific copy
+ * REThreeWays — SECTION 5: FOUR WAYS
+ * Real Estate: 4 cards in grid. Open House card removed per brief.
  */
 const ways = [
   { num: '01', title: 'New Client Closing Card', body: 'Sent within days of closing. No ask. Just gratitude. "Thank you for trusting me with one of the biggest decisions of your life." Most agents disappear after the sale. This card signals you are different before the relationship is even established. Industry data shows clients who receive a handwritten card within 30 days of closing are twice as likely to refer friends and family.' },
@@ -17,7 +15,7 @@ const ways = [
 export default function REThreeWays() {
   return (
     <section style={{ background: '#ffffff', padding: '80px 40px' }}>
-      <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#007bff', marginBottom: '14px' }}>
           The System That Works
         </div>
@@ -31,8 +29,6 @@ export default function REThreeWays() {
         <div className="re-ways-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '22px', marginTop: '40px' }}>
           {ways.map((w, i) => <REWayCard key={i} num={w.num} title={w.title} body={w.body} />)}
         </div>
-        {/* Delta change 2: Open House card sits BELOW the grid, not inside it */}
-        <REOpenHouseCard />
       </div>
       <style>{`
         @media (max-width: 1024px) {
