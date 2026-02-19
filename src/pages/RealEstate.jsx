@@ -43,6 +43,7 @@ export default function RealEstate() {
       <REThreeWays />
       <REPSL />
       <REFurmanSection />
+      <REFurmanCalculator />
       <REScience />
       <RECalculator />
       <RECTA />
