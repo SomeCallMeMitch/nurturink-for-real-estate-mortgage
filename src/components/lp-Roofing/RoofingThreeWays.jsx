@@ -18,7 +18,7 @@ export default function RoofingThreeWays() {
     <section style={{ background: '#ffffff', padding: '80px 40px' }}>
       <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#FF7A00', marginBottom: '14px' }}>
-          Three Ways It Works
+          Four Ways It Works
         </div>
         <h2 className="font-sora" style={{ fontSize: 'clamp(1.75rem, 2.6vw, 2.3rem)', fontWeight: 800, lineHeight: 1.15, color: '#1a2d4a', marginBottom: '16px' }}>
           Close More Estimates. Generate More Referrals. Own the Neighborhood.
