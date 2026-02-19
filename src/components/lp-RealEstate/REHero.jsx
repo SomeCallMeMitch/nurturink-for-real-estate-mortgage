@@ -41,7 +41,7 @@ export default function REHero() {
             fontSize: 'clamp(2rem, 3.8vw, 3rem)', fontWeight: 900,
             lineHeight: 1.12, color: '#ffffff', marginBottom: '20px',
           }}>
-            What Would Two Extra Referrals<br/>Per Year Be Worth to You?
+            What Would Two Extra Referrals Per Year Be Worth<br/>To You?
           </h1>
 
           {/* Change 3: Updated subhead */}
