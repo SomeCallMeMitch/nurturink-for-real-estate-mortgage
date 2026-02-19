@@ -35,20 +35,23 @@ export default function REHero() {
             Real Estate Agents &amp; Teams
           </div>
 
+          {/* Change 2: Updated headline */}
           <h1 className="font-sora" style={{
             fontSize: 'clamp(2rem, 3.8vw, 3rem)', fontWeight: 900,
             lineHeight: 1.12, color: '#ffffff', marginBottom: '20px',
           }}>
-            You Closed the Deal. They Forgot Your Name.<br/>A <em style={{ color: '#007bff', fontStyle: 'normal' }}>Real Pen</em> Changes That.
+            What Would Two Extra Referrals<br/>Per Year Be Worth to You?
           </h1>
 
+          {/* Change 3: Updated subhead */}
           <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, marginBottom: '36px', maxWidth: '480px' }}>
-            75% of internet leads never get proper follow-up. 80% of past clients use a different agent next time — not because they were unhappy, but because no one stayed in touch. A handwritten card fixes the silence and turns every closed deal into a referral engine.
+            NAR's 2025 data shows 66% of sellers and 61% of buyers choose their agent through a referral or past relationship. More than 9 in 10 say they would use their agent again. The ones who don't call back aren't unhappy — they just haven't heard from you. Two extra referrals a year at average commission covers years of this program.
           </p>
 
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <REBtnBlue href="#get-sample">Get Your Free Sample Card</REBtnBlue>
-            <REBtnOutline href="#calculator">Run the Conversion Math</REBtnOutline>
+            {/* Change 4: Updated secondary button text */}
+            <REBtnOutline href="#calculator">Run the Numbers</REBtnOutline>
           </div>
         </div>
 

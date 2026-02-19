@@ -23,9 +23,7 @@ export default function RENav() {
 
       {/* Right side: links + CTA */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
-        <RENavLink href="#why-nurturink">Why NurturInk</RENavLink>
-        <RENavLink href="#calculator">Lead Conversion Calculator</RENavLink>
-        <a
+a
           href="#get-sample"
           className="font-inter"
           style={{
