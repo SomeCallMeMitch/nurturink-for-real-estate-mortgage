@@ -122,6 +122,9 @@ export default function Layout({ children, currentPageName }) {
   // Check if this is Welcome/Landing page (root path without AcceptInvitation query param)
   const isWelcomePage = (normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing' || normalizedPath === '/home') && !isAcceptInvitationPageCheck;
   
+  // Public industry landing pages — render without sidebar/auth chrome
+  const isPublicLandingPage = normalizedPath === '/solar';
+  
   return (
     <WhitelabelThemeProvider>
       {/* Google Fonts for handwritten card preview */}
