@@ -3,7 +3,13 @@ import React, { useState, useCallback } from 'react';
 /**
  * SolarCalculator — SECTION 8: ROI CALCULATOR
  * id="calculator", bg #1a2d4a, interactive sliders + results
- * Calculator logic copied exactly from spec.
+ * Calculator logic ported from corrected vanilla JS version.
+ *
+ * Key fixes vs previous version:
+ * 1. Added "radius" slider (Radius Neighbours Per Job)
+ * 2. Program cost = installs * (1 + radius) * cardCost
+ * 3. Additional sales = extra referral sales + radius-driven sales
+ * 4. 3-Year gain is NET of program cost
  */
 const fmt = (n) => '$' + Math.round(n).toLocaleString();
 
@@ -12,34 +18,55 @@ const sliderDefs = [
   { key: 'saleval', label: 'Average Sale Value', min: 8000, max: 60000, step: 1000, def: 25000, format: v => fmt(v) },
   { key: 'margin', label: 'Your Commission / Margin', min: 3, max: 25, step: 1, def: 8, format: v => v + '%' },
   { key: 'ref', label: 'Current Referral Rate', min: 5, max: 50, step: 5, def: 15, format: v => v + '%' },
+  { key: 'radius', label: 'Radius Neighbours Per Job', min: 0, max: 50, step: 5, def: 20, format: v => v },
   { key: 'card', label: 'Card Cost Per Card', min: 2, max: 4, step: 0.25, def: 2.5, format: v => '$' + Number(v).toFixed(2) },
 ];
 
 export default function SolarCalculator() {
   const [vals, setVals] = useState({
-    installs: 60, saleval: 25000, margin: 8, ref: 15, card: 2.5,
+    installs: 60, saleval: 25000, margin: 8, ref: 15, radius: 20, card: 2.5,
   });
 
   const update = useCallback((key, raw) => {
     setVals(prev => ({ ...prev, [key]: key === 'card' ? parseFloat(raw) : parseInt(raw) }));
   }, []);
 
+  // --- Corrected calculation logic ---
+
+  // Income per sale
   const perSale = Math.round(vals.saleval * vals.margin / 100);
+
+  // Current referral sales and income
   const refNow = Math.round(vals.installs * vals.ref / 100);
   const refRevNow = refNow * perSale;
+
+  // Improved referral rate: +20 points, capped at 80%
   const newRefRate = Math.min(vals.ref + 20, 80);
   const refNew = Math.round(vals.installs * newRefRate / 100);
-  const extra = Math.max(0, refNew - refNow);
-  const programCost = Math.round(vals.installs * vals.card);
-  const extraRev = extra * perSale;
-  const year3 = extraRev * 3;
+  const extraFromRef = Math.max(0, refNew - refNow);
+
+  // Radius program: 1 additional sale per install's radius campaign
+  const radiusJobsPerYear = vals.radius > 0 ? vals.installs : 0;
+
+  // Total additional sales
+  const totalExtra = extraFromRef + radiusJobsPerYear;
+
+  // Program cost: 1 post-install card + radius cards, per install
+  const cardsPerJob = 1 + vals.radius;
+  const programCost = Math.round(vals.installs * cardsPerJob * vals.card);
+
+  // Additional annual income
+  const extraRev = totalExtra * perSale;
+
+  // 3-year gain NET of program cost
+  const year3 = (extraRev * 3) - (programCost * 3);
 
   const results = [
     { label: 'Your income per sale', value: fmt(perSale) },
     { label: 'Referral sales per year (current)', value: refNow },
     { label: 'Referral income per year (current)', value: fmt(refRevNow) },
-    { label: 'Projected referral improvement', value: '+20%' },
-    { label: 'Additional sales per year', value: extra },
+    { label: 'Projected referral improvement', value: '+' + (newRefRate - vals.ref) + '%' },
+    { label: 'Additional sales per year', value: totalExtra },
     { label: 'Annual program cost', value: fmt(programCost) },
     { label: 'Additional annual income', value: fmt(extraRev) },
   ];
@@ -102,7 +129,9 @@ export default function SolarCalculator() {
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
                 <span style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>3-Year Income Gain</span>
-                <strong className="font-sora" style={{ fontSize: '2.2rem', fontWeight: 900, color: '#ffffff' }}>{fmt(year3)}</strong>
+                <strong className="font-sora" style={{ fontSize: '2.2rem', fontWeight: 900, color: '#ffffff' }}>
+                  {(year3 >= 0 ? '' : '-') + fmt(Math.abs(year3))}
+                </strong>
               </div>
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.32)', marginTop: '16px', lineHeight: 1.5 }}>
                 Referral improvement based on research on personal outreach and reciprocity in home services. Individual results will vary based on market, message quality, and follow-up consistency.
