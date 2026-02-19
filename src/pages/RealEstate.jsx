@@ -6,6 +6,7 @@ import REVideoSection from '../components/lp-RealEstate/REVideoSection';
 import REDifferentiators from '../components/lp-RealEstate/REDifferentiators';
 import REThreeWays from '../components/lp-RealEstate/REThreeWays';
 import REPSL from '../components/lp-RealEstate/REPSL';
+import REFurmanSection from '../components/lp-RealEstate/REFurmanSection';
 import REScience from '../components/lp-RealEstate/REScience';
 import RECalculator from '../components/lp-RealEstate/RECalculator';
 import RECTA from '../components/lp-RealEstate/RECTA';
@@ -40,6 +41,7 @@ export default function RealEstate() {
       <REDifferentiators />
       <REThreeWays />
       <REPSL />
+      <REFurmanSection />
       <REScience />
       <RECalculator />
       <RECTA />
