@@ -24,7 +24,7 @@ export default function REHero() {
         pointerEvents: 'none',
       }} />
 
-      <div className="re-hero-inner" style={{ maxWidth: '1060px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 400px', gap: '72px', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+      <div className="re-hero-inner" style={{ maxWidth: '1200px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 480px', gap: '72px', alignItems: 'center', position: 'relative', zIndex: 1 }}>
         {/* Left column */}
         <div>
           <div style={{
