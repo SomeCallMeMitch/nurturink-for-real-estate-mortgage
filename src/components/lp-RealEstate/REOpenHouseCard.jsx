@@ -22,14 +22,13 @@ export default function REOpenHouseCard() {
           <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#007bff', display: 'block', marginBottom: '10px' }}>
             05 — Open House Follow-Up
           </span>
+          {/* Change 6: Updated title */}
           <h3 className="font-sora" style={{ fontSize: '1.3rem', fontWeight: 900, color: '#ffffff', lineHeight: 1.2, marginBottom: '14px' }}>
-            Turn Every Open House Visitor Into a Warm Lead
+            Open House Follow-Up: The Other Agents Called Monday
           </h3>
+          {/* Change 6: Updated body */}
           <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55 }}>
-            Every visitor at your open house gets the same generic follow-up email — if they get one at all. A handwritten card changes the dynamic completely. It says: "I remember you. You matter. I'm not just another agent." That distinction is the difference between a forgotten open house and a signed listing agreement.
-          </p>
-          <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, marginTop: '12px' }}>
-            Open house visitors are warm leads who took the time to show up in person. They deserve more than a drip campaign. A handwritten note within 48 hours puts you in a category of one.
+            Most agents send a follow-up email Monday morning. You send a card Saturday. It mails out within two to four business days and lands in their mailbox three to seven days after that — right when the calls have stopped and the buyer is quietly deciding who they actually want to work with. They are not dodging your call anymore. They are sitting with a handwritten note from you on the counter. When you do call that week, they answer.
           </p>
         </div>
 

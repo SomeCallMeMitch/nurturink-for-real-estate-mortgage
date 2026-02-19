@@ -5,11 +5,12 @@ import REHeroStatCard from './REHeroStatCard';
  * REHero — SECTION 2: HERO
  * Real Estate: dark navy bg, blue accent, RE-specific copy & stats
  */
+// Change 5: Updated stats per brief v2
 const stats = [
-  { value: '3-9x', label: 'higher response rate on handwritten direct mail vs. digital (DMA)' },
-  { value: '75%', label: 'of all internet leads are never followed up with properly (NAR)' },
-  { value: '70%', label: 'higher brand recall from physical mail vs. digital (Canada Post)' },
-  { value: '89%', label: 'of sellers would use their agent again IF they receive quality follow-up (NAR)' },
+  { value: '90%+', label: "of past clients say they'd use their agent again — most never call because agents stop reaching out (NAR 2025)" },
+  { value: '66%', label: 'of sellers find their agent through referral or a past relationship (NAR 2025)' },
+  { value: '65%', label: 'repeat client rate for agents who send handwritten thank-yous vs. 40-50% industry average' },
+  { value: '5x', label: 'more likely to refer when clients feel a personal connection (Deloitte)' },
 ];
 
 export default function REHero() {
