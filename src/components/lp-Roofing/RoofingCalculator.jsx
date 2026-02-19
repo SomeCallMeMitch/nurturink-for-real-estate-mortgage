@@ -71,10 +71,10 @@ export default function RoofingCalculator() {
           ROI Calculator
         </div>
         <h2 className="font-sora" style={{ fontSize: 'clamp(1.75rem, 2.6vw, 2.3rem)', fontWeight: 800, lineHeight: 1.15, color: '#ffffff', marginBottom: '16px' }}>
-          What Is One Referral Worth in Solar?
+          What Is One Referral Worth in Roofing?
         </h2>
         <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, maxWidth: '700px' }}>
-          Solar is a high-ticket, high-referral business. Adjust the sliders to reflect your situation and see what a consistent follow-up program means for your income over three years.
+          Roofing is a high-ticket, high-referral business. Adjust the sliders to reflect your situation and see what a consistent follow-up program means for your income over three years.
         </p>
 
         <div className="roofing-calc-box" style={{
