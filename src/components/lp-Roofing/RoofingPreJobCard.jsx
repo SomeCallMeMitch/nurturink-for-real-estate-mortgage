@@ -28,7 +28,7 @@ export default function RoofingPreJobCard() {
             Before your crew arrives, a handwritten note goes out to the homes within earshot. It comes from the owner. It says your crew is coming, they will be respectful and clean, and here is a direct cell number if there is any issue. No pitch. No offer. Just consideration for people who did not ask for the disruption.
           </p>
           <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, marginTop: '12px' }}>
-            Nobody does this. The neighbor who gets that note does not just tolerate the noise. They remember that a company cared enough to reach out personally before the job started. When they start thinking about solar, that is the company they call. When their friend asks for a recommendation, that is the name they give.
+            Nobody does this. The neighbor who gets that note does not just tolerate the noise. They remember that a company cared enough to reach out personally before the job started. When they need a roof, that is the company they call. When their friend asks for a recommendation, that is the name they give.
           </p>
           <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, marginTop: '12px' }}>
             50 to 60 cards covers a meaningful radius. At current card pricing, that is roughly $150 before the job starts. One call from that neighborhood pays for hundreds of jobs worth of cards.
@@ -45,7 +45,7 @@ export default function RoofingPreJobCard() {
             borderRadius: '4px', padding: '22px 24px',
             fontSize: '15px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.62, fontStyle: 'italic',
           }}>
-            "Hi [Name], my name is [Owner], and my crew will be installing solar panels at your neighbor's home on [day]. They are good people and they will keep everything clean, but you may hear some noise those mornings. I wanted to reach out personally before we started. If anything at all bothers you, please call my cell directly: [number]. I appreciate your patience and I am happy to talk anytime."
+            "Hi [Name], my name is [Owner], and my crew will be doing a roofing job at your neighbor's home on [day]. They are good people and they will keep everything clean, but you may hear some noise those mornings. I wanted to reach out personally before we started. If anything at all bothers you, please call my cell directly: [number]. I appreciate your patience and I am happy to talk anytime."
           </div>
           <div style={{ marginTop: '20px', display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             {['50 cards ~ $125', 'One job = $25,000+', 'Nobody else does this'].map((t, i) => (

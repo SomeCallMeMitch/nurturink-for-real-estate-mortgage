@@ -7,7 +7,7 @@ import React, { useState, useCallback } from 'react';
 const fmt = (n) => '$' + Math.round(n).toLocaleString();
 
 const sliderDefs = [
-  { key: 'installs', label: 'Installations Per Year', min: 10, max: 500, step: 5, def: 60, format: v => v },
+  { key: 'installs', label: 'Jobs Per Year', min: 10, max: 500, step: 5, def: 60, format: v => v },
   { key: 'saleval', label: 'Average Sale Value', min: 8000, max: 60000, step: 1000, def: 25000, format: v => fmt(v) },
   { key: 'margin', label: 'Your Commission / Margin', min: 3, max: 25, step: 1, def: 8, format: v => v + '%' },
   { key: 'ref', label: 'Current Referral Rate', min: 5, max: 50, step: 5, def: 15, format: v => v + '%' },
@@ -26,10 +26,10 @@ export default function RoofingCalculator() {
 
   // --- Corrected calculation logic ---
 
-  // Income per sale
+  // Income per job
   const perSale = Math.round(vals.saleval * vals.margin / 100);
 
-  // Current referral sales and income
+  // Current referral jobs and income
   const refNow = Math.round(vals.installs * vals.ref / 100);
   const refRevNow = refNow * perSale;
 
@@ -38,13 +38,13 @@ export default function RoofingCalculator() {
   const refNew = Math.round(vals.installs * newRefRate / 100);
   const extraFromRef = Math.max(0, refNew - refNow);
 
-  // Radius program: 1 additional sale per install's radius campaign
+  // Radius program: 1 additional job per job's radius campaign
   const radiusJobsPerYear = vals.radius > 0 ? vals.installs : 0;
 
-  // Total additional sales
+  // Total additional jobs
   const totalExtra = extraFromRef + radiusJobsPerYear;
 
-  // Program cost: 1 post-install card + radius cards, per install
+  // Program cost: 1 post-job card + radius cards, per job
   const cardsPerJob = 1 + vals.radius;
   const programCost = Math.round(vals.installs * cardsPerJob * vals.card);
 

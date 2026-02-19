@@ -39,12 +39,12 @@ export default function RoofingHero() {
             fontSize: 'clamp(2rem, 3.8vw, 3rem)', fontWeight: 900,
             lineHeight: 1.12, color: '#ffffff', marginBottom: '20px',
           }}>
-            You Just Installed a 25-Year Asset. They'll Forget You in{' '}
+            You Just Built a 25-Year Roof. They'll Forget You in{' '}
             <em style={{ color: '#f59e0b', fontStyle: 'normal' }}>90 Days.</em>
           </h1>
 
           <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, marginBottom: '36px', maxWidth: '480px' }}>
-            Solar customers make one of the largest purchases of their lives. Then they go back to their neighborhood where their neighbors are asking who did it. A handwritten card makes sure they remember your name when that conversation happens.
+            Roofing customers make one of the largest purchases of their lives. Then they go back to their neighborhood where their neighbors are asking who did it. A handwritten card makes sure they remember your name when that conversation happens.
           </p>
 
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>

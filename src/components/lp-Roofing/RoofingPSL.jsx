@@ -5,8 +5,8 @@ import React from 'react';
  * Cloned from SolarPSL
  */
 const cards = [
-  { letter: 'P', title: 'Proximity', body: 'You are not a solar company sending mass mail. You are the installer who just finished a job on their street, reaching out personally because of that. Geographic context makes it feel like a neighbor, not a campaign.' },
-  { letter: 'S', title: 'Situation', body: 'Mention the installation, rising utility rates, the neighborhood context. Give them a specific reason why now is a natural time for this conversation. Specifics build trust that generic mail never earns.' },
+  { letter: 'P', title: 'Proximity', body: 'You are not a roofing company sending mass mail. You are the contractor who just finished a job on their street, reaching out personally because of that. Geographic context makes it feel like a neighbor, not a campaign.' },
+  { letter: 'S', title: 'Situation', body: 'Mention the job, rising utility rates, the neighborhood context. Give them a specific reason why now is a natural time for this conversation. Specifics build trust that generic mail never earns.' },
   { letter: 'L', title: 'Low-Barrier Ask', body: 'No pressure. No urgency. Just an offer for a free look while you are already nearby. An easy yes. No commitment required. One small, reasonable next step.' },
 ];
 
@@ -18,7 +18,7 @@ export default function RoofingPSL() {
           Neighborhood Prospecting Formula
         </div>
         <h2 className="font-sora" style={{ fontSize: 'clamp(1.75rem, 2.6vw, 2.3rem)', fontWeight: 800, lineHeight: 1.15, color: '#ffffff', marginBottom: '16px' }}>
-          The PSL Method for Solar
+          The PSL Method for Roofing
         </h2>
         <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, maxWidth: '700px' }}>
           Adapted from home services research, this three-part structure makes a cold note feel warm and specific. It works because it leads with genuine context instead of a sales pitch.
@@ -47,7 +47,7 @@ export default function RoofingPSL() {
         }}>
           <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#f59e0b', display: 'block', marginBottom: '10px' }}>Sample Note</span>
           <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.62, fontStyle: 'italic' }}>
-            "Hi [Name], I just finished installing a solar system at [nearby address] this week. Since I'm already in the neighborhood and know the local utility rates well, I wanted to reach out personally. If you've thought about solar at all, I'd be glad to stop by for a quick look while I'm close. No cost, no pressure, just a conversation. You can reach me at [number]."
+            "Hi [Name], I just finished a roofing job at [nearby address] this week. Since I'm already in the neighborhood, I wanted to reach out personally. If you've thought about your roof at all, I'd be glad to stop by for a quick look while I'm close. No cost, no pressure, just a conversation. You can reach me at [number]."
           </p>
         </div>
       </div>
