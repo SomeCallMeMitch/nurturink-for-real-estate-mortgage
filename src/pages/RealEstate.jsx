@@ -7,6 +7,7 @@ import REDifferentiators from '../components/lp-RealEstate/REDifferentiators';
 import REThreeWays from '../components/lp-RealEstate/REThreeWays';
 import REPSL from '../components/lp-RealEstate/REPSL';
 import REFurmanSection from '../components/lp-RealEstate/REFurmanSection';
+import REFurmanCalculator from '../components/lp-RealEstate/REFurmanCalculator';
 import REScience from '../components/lp-RealEstate/REScience';
 import RECalculator from '../components/lp-RealEstate/RECalculator';
 import RECTA from '../components/lp-RealEstate/RECTA';
