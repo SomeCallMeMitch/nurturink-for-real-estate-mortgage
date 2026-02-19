@@ -73,6 +73,7 @@ import Dashboard from './pages/Dashboard';
 import EditQuickSendTemplate from './pages/EditQuickSendTemplate';
 import EditTemplate from './pages/EditTemplate';
 import FindClients from './pages/FindClients';
+import Insurance from './pages/Insurance';
 import Landing from './pages/Landing';
 import LandingPremium from './pages/LandingPremium';
 import Legal from './pages/Legal';
@@ -116,7 +117,7 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import Insurance from './pages/Insurance';
+import RealEstate from './pages/RealEstate';
 import __Layout from './Layout.jsx';
 
 
@@ -147,6 +148,7 @@ export const PAGES = {
     "EditQuickSendTemplate": EditQuickSendTemplate,
     "EditTemplate": EditTemplate,
     "FindClients": FindClients,
+    "Insurance": Insurance,
     "Landing": Landing,
     "LandingPremium": LandingPremium,
     "Legal": Legal,
@@ -190,7 +192,7 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
-    "Insurance": Insurance,
+    "RealEstate": RealEstate,
 }
 
 export const pagesConfig = {
