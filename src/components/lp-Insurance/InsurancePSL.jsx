@@ -1,13 +1,13 @@
 import React from 'react';
 
 /**
- * InsurancePSL — SECTION 6: PSL FORMULA
- * Cloned from RoofingPSL
+ * InsurancePSL — SECTION 6: BEYOND THE CORE THREE
+ * Insurance-specific: Post-Claim, Anniversary, Referral (replaces PSL formula)
  */
 const cards = [
-  { letter: 'P', title: 'Proximity', body: 'You are not a roofing company sending mass mail. You are the crew that just finished a job on their street, or the inspector who just assessed storm damage nearby. Geographic context makes it feel like a neighbor reaching out, not a marketing campaign.' },
-  { letter: 'S', title: 'Situation', body: 'Mention the job, the storm event, the age of roofs in the neighborhood, or whatever makes this outreach timely and specific. A reason that is true and relevant earns attention that a generic offer never will.' },
-  { letter: 'L', title: 'Low-Barrier Ask', body: 'No pressure. No urgency. Just an offer for a free look while you are already nearby. An easy yes. No commitment required. One small, reasonable next step.' },
+  { label: 'Post-Claim', title: 'After a Claim Is Resolved', body: "A claim is stressful. Most agents process it and move on. A handwritten note saying \"I'm glad we could help get that resolved\" arrives during an emotional moment and does something no email can. It makes the client feel that their agent actually cared about them, not just the paperwork." },
+  { label: 'Anniversary', title: 'Policy Anniversary', body: '"Thanks for being a client for three years." That is the whole note. Acknowledging loyalty does two things: it reminds the client there is a relationship worth keeping, and it makes them think twice before calling around for a better rate. Most agents never send this. The ones who do stand out immediately.' },
+  { label: 'Referral', title: 'After Someone Refers a Friend', body: 'When a client sends you a referral, a handwritten thank-you does two things. It expresses genuine appreciation for something genuinely valuable. And it makes them want to do it again. According to Deloitte research, retained clients who feel a personal connection are 5x more likely to refer. Thanking them in writing reinforces exactly that connection.' },
 ];
 
 export default function InsurancePSL() {
@@ -15,13 +15,13 @@ export default function InsurancePSL() {
     <section style={{ background: '#213659', padding: '80px 40px' }}>
       <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#f59e0b', marginBottom: '14px' }}>
-          Neighborhood Prospecting Formula
+          Beyond the Core Three
         </div>
         <h2 className="font-sora" style={{ fontSize: 'clamp(1.75rem, 2.6vw, 2.3rem)', fontWeight: 800, lineHeight: 1.15, color: '#ffffff', marginBottom: '16px' }}>
-          The PSL Method for Roofing
+          More Moments That Deepen the Relationship
         </h2>
         <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, maxWidth: '700px' }}>
-          Whether following up after a job or reaching out after a storm, this three-part structure makes a cold note feel personal and specific. It works because it leads with real context instead of a sales pitch.
+          Welcome, birthday, and pre-renewal are the foundation. Once those are running, these additional touchpoints compound the effect. Each one is a moment where most agents do nothing — and where a handwritten card stands completely alone.
         </p>
 
         <div className="insurance-psl-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '20px', marginTop: '40px' }}>
@@ -33,7 +33,7 @@ export default function InsurancePSL() {
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
             >
-              <span className="font-sora" style={{ fontSize: '3rem', fontWeight: 900, color: '#f59e0b', display: 'block', lineHeight: 1, marginBottom: '12px' }}>{c.letter}</span>
+              <span className="font-sora" style={{ fontSize: '2rem', fontWeight: 900, color: '#f59e0b', display: 'block', lineHeight: 1, marginBottom: '8px' }}>{c.label}</span>
               <h3 className="font-sora" style={{ fontSize: '1rem', fontWeight: 800, color: '#ffffff', marginBottom: '8px' }}>{c.title}</h3>
               <p style={{ fontSize: '15px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.5 }}>{c.body}</p>
             </div>
@@ -45,9 +45,9 @@ export default function InsurancePSL() {
           marginTop: '32px', background: 'rgba(245,158,11,0.08)',
           border: '1px solid rgba(245,158,11,0.2)', borderRadius: '5px', padding: '26px 30px',
         }}>
-          <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#f59e0b', display: 'block', marginBottom: '10px' }}>Sample Note — Neighborhood Radius</span>
+          <span style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#f59e0b', display: 'block', marginBottom: '10px' }}>Sample — Pre-Renewal Card</span>
           <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.62, fontStyle: 'italic' }}>
-            "Hi [Name], we just finished a roof replacement a few houses down on [street]. Since we're already set up in the neighborhood, I wanted to reach out personally. Roofs in this area are all about the same age, and I'd be glad to take a quick look at yours while we're close. Free, no pressure, just a few minutes. Give me a call at [number] and I'll stop by whenever works for you."
+            "Hi [Name], can you believe it's been [X] years already? Thank you for being a client. Your renewal is coming up in [timeframe] — if you'd like to review your coverage or have any questions, just call or text me. Either way, I've got you covered. — [Your Name]"
           </p>
         </div>
       </div>

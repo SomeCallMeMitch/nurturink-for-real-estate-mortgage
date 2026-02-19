@@ -2,18 +2,18 @@ import React from 'react';
 
 /**
  * InsuranceCTA — SECTION 9: CTA
- * Cloned from RoofingCTA
+ * Insurance-specific copy per Step 12
  */
 export default function InsuranceCTA() {
   return (
     <section id="get-sample" style={{ background: '#FF7A00', padding: '88px 40px', textAlign: 'center' }}>
       <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
         <h2 className="font-sora" style={{ color: '#ffffff', fontSize: 'clamp(1.8rem, 3vw, 2.7rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '14px' }}>
-          They'll Remember the Roofer Who Sent a Card.<br />
-          Make Sure That Roofer Is You.
+          Your Clients Don't Need Another Email.<br />
+          They Need to Know You Still Remember Them.
         </h2>
         <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.9)', maxWidth: '500px', margin: '0 auto 36px', lineHeight: 1.55 }}>
-          Get a free sample card mailed directly to you. Hold it. See exactly what arrives in your prospect's mailbox. Then decide if this is the follow-up your business has been missing.
+          Get a free sample card mailed directly to you. Hold it. Read it. Then decide if this is the retention system your book has been missing.
         </p>
         <a
           href="https://nurturink.com"

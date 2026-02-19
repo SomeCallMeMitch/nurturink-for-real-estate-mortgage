@@ -1,15 +1,14 @@
 import React from 'react';
-import { Play } from 'lucide-react';
 
 /**
  * InsuranceVideoSection — SECTION 3: VIDEO + PROOF BULLETS
- * Cloned from RoofingVideoSection
+ * Insurance-specific bullet tweaks per Step 6
  */
 const bullets = [
   'Real ballpoint pen on real cardstock',
-  'No postmark at all',
+  'No commercial postmark — looks locally mailed',
   'Real stamp, postage included',
-  'No minimums or contracts',
+  'No minimums — send one card or one thousand',
   'Passes the Grandma Test',
 ];
 
@@ -27,7 +26,7 @@ export default function InsuranceVideoSection() {
             Watch a Card Being Made
           </h2>
           <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, marginBottom: '32px' }}>
-            From the robotic arm writing your message to the addressed envelope, stuffed, sealed, stamped, and mailed. This is exactly what arrives in your customer's mailbox.
+            From the robotic arm writing your message to the addressed envelope, stuffed, sealed, stamped, and mailed. This is exactly what arrives in your client's mailbox.
           </p>
           <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '12px', padding: 0, margin: 0 }}>
             {bullets.map((b, i) => (

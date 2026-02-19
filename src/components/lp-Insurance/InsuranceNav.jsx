@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * InsuranceNav — sticky nav bar
- * Cloned from RoofingNav
+ * Insurance-specific: "Retention Calculator" nav link
  */
 export default function InsuranceNav() {
   return (
@@ -24,7 +24,7 @@ export default function InsuranceNav() {
       {/* Right side: links + CTA */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
         <InsuranceNavLink href="#why-nurturink">Why NurturInk</InsuranceNavLink>
-        <InsuranceNavLink href="#calculator">ROI Calculator</InsuranceNavLink>
+        <InsuranceNavLink href="#calculator">Retention Calculator</InsuranceNavLink>
         <a
           href="#get-sample"
           className="font-lato"

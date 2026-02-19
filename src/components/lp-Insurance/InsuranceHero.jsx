@@ -3,13 +3,13 @@ import InsuranceHeroStatCard from './InsuranceHeroStatCard';
 
 /**
  * InsuranceHero — SECTION 2: HERO
- * Cloned from RoofingHero
+ * Insurance-specific copy, stats, and CTAs
  */
 const stats = [
-  { value: '99%', label: 'open rate vs. 22% for email (DMA 2024)' },
-  { value: '7x', label: 'higher response rate than printed mail' },
-  { value: '$2.50', label: 'per card, including postage' },
-  { value: '70%', label: 'higher brand recall vs. digital (Canada Post)' },
+  { value: '15%', label: 'average annual churn for insurance agencies (Insurance Back Office Hub)' },
+  { value: '5-9x', label: 'more expensive to acquire a client than keep one' },
+  { value: '7-11%', label: 'retention improvement from systematic handwritten touches (industry testing data)' },
+  { value: '88%', label: 'of insurance customers want more personalized contact from their agent (McKinsey)' },
 ];
 
 export default function InsuranceHero() {
@@ -32,24 +32,23 @@ export default function InsuranceHero() {
             fontSize: '12px', fontWeight: 700, letterSpacing: '0.12em',
             textTransform: 'uppercase', padding: '6px 14px', borderRadius: '3px', marginBottom: '24px',
           }}>
-            Roofing Sales Professionals
+            Insurance Agents &amp; Brokers
           </div>
 
           <h1 className="font-sora" style={{
             fontSize: 'clamp(2rem, 3.8vw, 3rem)', fontWeight: 900,
             lineHeight: 1.12, color: '#ffffff', marginBottom: '20px',
           }}>
-            You Gave a Great Estimate.<br/>They'll Forget You in{' '}
-            <em style={{ color: '#f59e0b', fontStyle: 'normal' }}>a Week.</em>
+            Your Clients Don't Leave Because They're Unhappy.<br/>They Leave Because <em style={{ color: '#f59e0b', fontStyle: 'normal' }}>You Went Silent.</em>
           </h1>
 
           <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, marginBottom: '36px', maxWidth: '480px' }}>
-            Homeowners get three to five estimates before they decide. Most roofers follow up with a text or an email that looks like everyone else's. A handwritten note arrives in the mailbox and stays on the kitchen counter. That is the one they remember when they are ready to sign.
+            The average insurance agency loses 15% of its book every year — not to complaints or price, but to quiet drift. A client who never hears from you between sales is a client another agent can reach first. Handwritten cards fix the silence.
           </p>
 
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <InsuranceBtnOrange href="#get-sample">Get Your Free Sample Card</InsuranceBtnOrange>
-            <InsuranceBtnOutline href="#calculator">See the ROI Math</InsuranceBtnOutline>
+            <InsuranceBtnOutline href="#calculator">Run the Retention Math</InsuranceBtnOutline>
           </div>
         </div>
 

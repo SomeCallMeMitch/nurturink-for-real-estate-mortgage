@@ -1,64 +1,58 @@
 import React, { useState, useCallback } from 'react';
 
 /**
- * InsuranceCalculator — SECTION 8: ROI CALCULATOR
- * Cloned from RoofingCalculator
+ * InsuranceCalculator — SECTION 8: RETENTION CALCULATOR
+ * Insurance-specific: retention/churn model (replaces roofing referral model)
  */
 const fmt = (n) => '$' + Math.round(n).toLocaleString();
 
 const sliderDefs = [
-  { key: 'installs', label: 'Jobs Per Year', min: 10, max: 300, step: 5, def: 60, format: v => v },
-  { key: 'saleval', label: 'Average Job Value', min: 5000, max: 50000, step: 500, def: 18000, format: v => fmt(v) },
-  { key: 'margin', label: 'Your Margin / Commission', min: 5, max: 40, step: 1, def: 12, format: v => v + '%' },
-  { key: 'ref', label: 'Current Referral Rate', min: 5, max: 50, step: 5, def: 15, format: v => v + '%' },
-  { key: 'radius', label: 'Radius Cards Per Job', min: 0, max: 100, step: 5, def: 50, format: v => v },
-  { key: 'card', label: 'Card Cost Per Card', min: 2, max: 4, step: 0.25, def: 2.5, format: v => '$' + Number(v).toFixed(2) },
+  { key: 'clients', label: 'Number of Clients', min: 50, max: 2000, step: 25, def: 400, format: v => v },
+  { key: 'commission', label: 'Avg Annual Commission Per Client', min: 100, max: 1000, step: 25, def: 200, format: v => fmt(v) },
+  { key: 'churn', label: 'Current Annual Churn Rate', min: 5, max: 30, step: 1, def: 15, format: v => v + '%' },
+  { key: 'cards', label: 'Cards Per Client Per Year', min: 1, max: 6, step: 1, def: 3, format: v => v },
+  { key: 'cardCost', label: 'Card Cost Per Card', min: 2, max: 4, step: 0.25, def: 2.5, format: v => '$' + Number(v).toFixed(2) },
 ];
 
 export default function InsuranceCalculator() {
   const [vals, setVals] = useState({
-    installs: 60, saleval: 18000, margin: 12, ref: 15, radius: 50, card: 2.5,
+    clients: 400, commission: 200, churn: 15, cards: 3, cardCost: 2.5,
   });
 
   const update = useCallback((key, raw) => {
-    setVals(prev => ({ ...prev, [key]: key === 'card' ? parseFloat(raw) : parseInt(raw) }));
+    setVals(prev => ({ ...prev, [key]: key === 'cardCost' ? parseFloat(raw) : parseInt(raw) }));
   }, []);
 
-  // --- Calculation logic ---
-  const perSale = Math.round(vals.saleval * vals.margin / 100);
-  const refNow = Math.round(vals.installs * vals.ref / 100);
-  const refRevNow = refNow * perSale;
-  const newRefRate = Math.min(vals.ref + 20, 80);
-  const refNew = Math.round(vals.installs * newRefRate / 100);
-  const extraFromRef = Math.max(0, refNew - refNow);
-  const radiusJobsPerYear = vals.radius > 0 ? vals.installs : 0;
-  const totalExtra = extraFromRef + radiusJobsPerYear;
-  const cardsPerJob = 1 + vals.radius;
-  const programCost = Math.round(vals.installs * cardsPerJob * vals.card);
-  const extraRev = totalExtra * perSale;
-  const year3 = (extraRev * 3) - (programCost * 3);
+  // --- Retention calculation logic ---
+  const lostNow = Math.round(vals.clients * vals.churn / 100);
+  const revLost = lostNow * vals.commission;
+  const newChurn = Math.max(vals.churn - 3, 1);
+  const lostWithProg = Math.round(vals.clients * newChurn / 100);
+  const saved = lostNow - lostWithProg;
+  const programCost = Math.round(vals.clients * vals.cards * vals.cardCost);
+  const protectedRev = saved * vals.commission;
+  const net5Year = (protectedRev * 5) - (programCost * 5);
 
   const results = [
-    { label: 'Your income per job', value: fmt(perSale) },
-    { label: 'Referral jobs per year (current)', value: refNow },
-    { label: 'Referral income per year (current)', value: fmt(refRevNow) },
-    { label: 'Projected referral improvement', value: '+' + (newRefRate - vals.ref) + '%' },
-    { label: 'Additional jobs per year', value: totalExtra },
-    { label: 'Annual program cost (post-job + radius)', value: fmt(programCost) },
-    { label: 'Additional annual income', value: fmt(extraRev) },
+    { label: 'Clients lost per year (current)', value: lostNow },
+    { label: 'Annual revenue lost to churn', value: fmt(revLost) },
+    { label: 'Churn with program (3-pt improvement)', value: lostWithProg },
+    { label: 'Clients saved per year', value: saved },
+    { label: 'Annual program cost', value: fmt(programCost) },
+    { label: 'Annual protected revenue', value: fmt(protectedRev) },
   ];
 
   return (
     <section id="calculator" style={{ background: '#1a2d4a', padding: '80px 40px' }}>
       <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#f59e0b', marginBottom: '14px' }}>
-          ROI Calculator
+          Retention Calculator
         </div>
         <h2 className="font-sora" style={{ fontSize: 'clamp(1.75rem, 2.6vw, 2.3rem)', fontWeight: 800, lineHeight: 1.15, color: '#ffffff', marginBottom: '16px' }}>
-          What Is One Referral Worth in Roofing?
+          Run the Math on Your Own Book
         </h2>
         <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, maxWidth: '700px' }}>
-          Roofing is a high-ticket business with strong word-of-mouth potential. Adjust the sliders to match your situation. The program cost includes both the post-job card and the radius neighbor campaign.
+          Adjust the sliders to match your situation. The model shows what a 3-point improvement in retention means over five years — before accounting for the referral multiplier that comes from clients who feel genuinely valued.
         </p>
 
         <div className="insurance-calc-box" style={{
@@ -69,7 +63,7 @@ export default function InsuranceCalculator() {
             {/* Left — sliders */}
             <div>
               <div style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.35)', marginBottom: '28px' }}>
-                Your Numbers
+                Your Book
               </div>
               {sliderDefs.map(s => (
                 <div key={s.key} style={{ marginBottom: '26px' }}>
@@ -100,18 +94,18 @@ export default function InsuranceCalculator() {
                   <strong style={{ fontSize: '16px', color: '#ffffff', fontWeight: 700 }}>{r.value}</strong>
                 </div>
               ))}
-              {/* 3-year highlight */}
+              {/* 5-year highlight */}
               <div style={{
                 background: '#FF7A00', borderRadius: '5px', padding: '18px 22px', marginTop: '16px',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
               }}>
-                <span style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>3-Year Income Gain</span>
+                <span style={{ fontSize: '15px', fontWeight: 700, color: '#ffffff' }}>5-Year Net (retention only)</span>
                 <strong className="font-sora" style={{ fontSize: '2.2rem', fontWeight: 900, color: '#ffffff' }}>
-                  {(year3 >= 0 ? '' : '-') + fmt(Math.abs(year3))}
+                  {(net5Year >= 0 ? '+' : '') + fmt(Math.abs(net5Year))}
                 </strong>
               </div>
               <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.32)', marginTop: '16px', lineHeight: 1.5 }}>
-                Referral improvement assumes +20 percentage points from systematic follow-up and neighborhood outreach, capped at 80%. Program cost includes 1 post-job thank-you card plus the radius campaign per job. One radius job referral assumed per campaign. Individual results will vary.
+                Based on a 3-point churn improvement. Does not include referral multiplier, cross-sell, or review generation upside. Independent research and vendor data both support 3-point or greater retention improvement with systematic personal outreach.
               </p>
             </div>
           </div>

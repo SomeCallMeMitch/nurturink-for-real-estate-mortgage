@@ -2,26 +2,26 @@ import React from 'react';
 
 /**
  * InsuranceScience — SECTION 7: SCIENCE / RESEARCH
- * Cloned from RoofingScience
+ * Insurance-specific research cards per Step 10
  */
 const cards = [
   {
-    institution: 'Canada Post / TrueImpact, 2015',
-    finding: 'Physical mail requires 21% less cognitive effort to process than digital',
-    body: "The brain doesn't have to work as hard. Physical mail just lands. The study also found a motivation-to-cognitive load ratio of 1.31 for physical mail versus 0.87 for digital. Scores above 1.0 are associated with behavior change. Digital typically doesn't cross that threshold.",
+    institution: 'Canada Post / TrueImpact Neuromarketing Study',
+    finding: 'Physical mail requires 21% less cognitive effort — and produces 70% higher brand recall',
+    body: "The brain treats something you can hold as more real and more trustworthy than something on a screen. The study's motivation-to-cognitive load ratio of 1.31 for physical mail (versus 0.87 for digital) puts it above the behavior-change threshold that digital consistently fails to reach.",
     source: 'fMRI and EEG study, 270 participants',
   },
   {
-    institution: 'Temple University fMRI Study / USPS OIG, 2015',
-    finding: 'Physical mail activates emotional and memory centers simultaneously',
-    body: "Brain imaging showed physical mail creating cross-lobe integration — visual, emotional, and memory regions activating at the same time. The emotional processing regions triggered are directly wired to memory formation. That is why your client remembers the card two years later but not last week's email.",
-    source: 'fMRI comparison: physical postcards vs. digital email',
+    institution: 'McKinsey & Company — Insurance Personalization Research',
+    finding: 'Personalized trigger-based outreach delivers 20–40% lifts in key outcomes vs. generic campaigns',
+    body: "McKinsey's research on insurance specifically found 10–15% revenue uplift and up to 20% better retention tied to personalization. Separately, 88% of insurance customers say they want more personalized contact from their agent. A handwritten card is the highest-signal form that desire can take.",
+    source: 'McKinsey insurance personalization studies, 2018',
   },
   {
-    institution: 'Norwegian Univ. of Science & Technology, Frontiers in Psychology 2024',
-    finding: 'Handwriting produces brain connectivity patterns linked to memory formation',
-    body: 'A high-density EEG study found that handwriting produced significantly increased connectivity in theta and alpha frequency bands — the neural patterns associated with memory encoding. This connectivity appeared during handwriting and not during typing. When a client sees handwriting on an envelope, something registers before they even open it.',
-    source: '256-channel EEG study on handwriting vs. typing',
+    institution: 'ClientCircle — Insurance Agency Data',
+    finding: '2x more likely to refer. 7.5x more likely to leave a Google review.',
+    body: "New clients who receive two handwritten cards in their first 60 days are twice as likely to refer friends and family. Birthday card recipients are 7.5x more likely to leave a Google review than clients who don't receive one. This is vendor data from their insurance agency client base — cited as directional, not an independent study.",
+    source: 'ClientCircle insurance agency analytics',
   },
 ];
 
@@ -33,10 +33,10 @@ export default function InsuranceScience() {
           The Research Behind It
         </div>
         <h2 className="font-sora" style={{ fontSize: 'clamp(1.75rem, 2.6vw, 2.3rem)', fontWeight: 800, lineHeight: 1.15, color: '#1a2d4a', marginBottom: '16px' }}>
-          What Brain Scans Actually Show About Physical Mail
+          Why Physical Mail Works Differently in the Brain
         </h2>
         <p style={{ fontSize: '17px', color: '#4a5568', lineHeight: 1.55, maxWidth: '700px' }}>
-          Canada Post partnered with neuromarketing firm TrueImpact to put participants in fMRI machines and measure how the brain processes physical mail versus digital. The results weren't subtle. Here is what the science shows, across four independent studies.
+          The insurance industry already knows mail builds relationships — USPS data shows insurers are among the heaviest users of direct mail for loyalty, not acquisition. Handwritten notes are the premium tier of that established channel, backed by independent neuroscience on why physical outreach is processed and remembered differently than digital.
         </p>
 
         <div className="insurance-sci-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '22px', marginTop: '40px' }}>
