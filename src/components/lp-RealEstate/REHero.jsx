@@ -3,23 +3,23 @@ import REHeroStatCard from './REHeroStatCard';
 
 /**
  * REHero — SECTION 2: HERO
- * Cloned from InsuranceHero for Real Estate LP
+ * Real Estate: dark navy bg, blue accent, RE-specific copy & stats
  */
 const stats = [
-  { value: '15%', label: 'average annual churn for insurance agencies (Insurance Back Office Hub)' },
-  { value: '5-9x', label: 'more expensive to acquire a client than keep one' },
-  { value: '7-11%', label: 'retention improvement from systematic handwritten touches (industry testing data)' },
-  { value: '88%', label: 'of insurance customers want more personalized contact from their agent (McKinsey)' },
+  { value: '3-9x', label: 'higher response rate on handwritten direct mail vs. digital (DMA)' },
+  { value: '75%', label: 'of all internet leads are never followed up with properly (NAR)' },
+  { value: '70%', label: 'higher brand recall from physical mail vs. digital (Canada Post)' },
+  { value: '89%', label: 'of sellers would use their agent again IF they receive quality follow-up (NAR)' },
 ];
 
 export default function REHero() {
   return (
-    <section style={{ background: '#213659', padding: '88px 40px 80px', position: 'relative', overflow: 'hidden' }}>
+    <section style={{ background: '#0f1623', padding: '88px 40px 80px', position: 'relative', overflow: 'hidden' }}>
       {/* Glow */}
       <div style={{
         position: 'absolute', top: '-10%', right: '-5%',
         width: '500px', height: '500px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 68%)',
+        background: 'radial-gradient(circle, rgba(0,123,255,0.1) 0%, transparent 68%)',
         pointerEvents: 'none',
       }} />
 
@@ -27,28 +27,28 @@ export default function REHero() {
         {/* Left column */}
         <div>
           <div style={{
-            display: 'inline-block', background: 'rgba(245,158,11,0.15)',
-            border: '1px solid rgba(245,158,11,0.35)', color: '#f59e0b',
+            display: 'inline-block', background: 'rgba(0,123,255,0.1)',
+            border: '1px solid rgba(0,123,255,0.3)', color: '#007bff',
             fontSize: '12px', fontWeight: 700, letterSpacing: '0.12em',
             textTransform: 'uppercase', padding: '6px 14px', borderRadius: '3px', marginBottom: '24px',
           }}>
-            Insurance Agents &amp; Brokers
+            Real Estate Agents &amp; Teams
           </div>
 
           <h1 className="font-sora" style={{
             fontSize: 'clamp(2rem, 3.8vw, 3rem)', fontWeight: 900,
             lineHeight: 1.12, color: '#ffffff', marginBottom: '20px',
           }}>
-            Your Clients Don't Leave Because They're Unhappy.<br/>They Leave Because <em style={{ color: '#f59e0b', fontStyle: 'normal' }}>You Went Silent.</em>
+            You Closed the Deal. They Forgot Your Name.<br/>A <em style={{ color: '#007bff', fontStyle: 'normal' }}>Real Pen</em> Changes That.
           </h1>
 
           <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, marginBottom: '36px', maxWidth: '480px' }}>
-            The average insurance agency loses 15% of its book every year — not to complaints or price, but to quiet drift. A client who never hears from you between sales is a client another agent can reach first. Handwritten cards fix the silence.
+            75% of internet leads never get proper follow-up. 80% of past clients use a different agent next time — not because they were unhappy, but because no one stayed in touch. A handwritten card fixes the silence and turns every closed deal into a referral engine.
           </p>
 
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <REBtnOrange href="#get-sample">Get Your Free Sample Card</REBtnOrange>
-            <REBtnOutline href="#calculator">Run the Retention Math</REBtnOutline>
+            <REBtnBlue href="#get-sample">Get Your Free Sample Card</REBtnBlue>
+            <REBtnOutline href="#calculator">Run the Conversion Math</REBtnOutline>
           </div>
         </div>
 
@@ -71,26 +71,26 @@ export default function REHero() {
   );
 }
 
-/* Shared button helpers */
-function REBtnOrange({ href, children }) {
+/* Shared button helpers — blue scheme */
+function REBtnBlue({ href, children }) {
   return (
-    <a href={href} className="font-lato" style={{
+    <a href={href} className="font-inter" style={{
       display: 'inline-block', padding: '13px 28px', borderRadius: '4px',
       fontSize: '15px', fontWeight: 700, letterSpacing: '0.02em',
       textDecoration: 'none', border: '2px solid transparent',
-      background: '#FF7A00', color: '#ffffff',
-      boxShadow: '0 3px 12px rgba(255,122,0,0.3)',
+      background: '#007bff', color: '#ffffff',
+      boxShadow: '0 3px 12px rgba(0,123,255,0.3)',
       transition: 'transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease',
     }}
-      onMouseEnter={e => { e.currentTarget.style.background = '#e86e00'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(255,122,0,0.45)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = '#FF7A00'; e.currentTarget.style.boxShadow = '0 3px 12px rgba(255,122,0,0.3)'; e.currentTarget.style.transform = 'none'; }}
+      onMouseEnter={e => { e.currentTarget.style.background = '#0056b3'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,123,255,0.45)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = '#007bff'; e.currentTarget.style.boxShadow = '0 3px 12px rgba(0,123,255,0.3)'; e.currentTarget.style.transform = 'none'; }}
     >{children}</a>
   );
 }
 
 function REBtnOutline({ href, children }) {
   return (
-    <a href={href} className="font-lato" style={{
+    <a href={href} className="font-inter" style={{
       display: 'inline-block', padding: '13px 28px', borderRadius: '4px',
       fontSize: '15px', fontWeight: 700, letterSpacing: '0.02em',
       textDecoration: 'none', border: '2px solid rgba(255,255,255,0.45)',

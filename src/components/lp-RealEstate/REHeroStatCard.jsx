@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * REHeroStatCard — individual stat card in the hero 2×2 grid
- * Cloned from InsuranceHeroStatCard for Real Estate LP
+ * Real Estate: blue accent for value text
  */
 export default function REHeroStatCard({ value, label }) {
   return (
@@ -17,7 +17,7 @@ export default function REHeroStatCard({ value, label }) {
       onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
     >
       <span className="font-sora" style={{
-        fontSize: '2.5rem', fontWeight: 900, color: '#f59e0b',
+        fontSize: '2.5rem', fontWeight: 900, color: '#007bff',
         display: 'block', lineHeight: 1, marginBottom: '8px',
       }}>
         {value}

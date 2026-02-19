@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * REWayCard — individual way-card in SECTION 5
- * Cloned from InsuranceWayCard for Real Estate LP
+ * Real Estate: blue accent for number, navy bg
  */
 export default function REWayCard({ num, title, body }) {
   return (
@@ -15,10 +15,10 @@ export default function REWayCard({ num, title, body }) {
       onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
     >
       <div style={{
-        background: '#172840', padding: '16px 22px',
+        background: '#1a2d4a', padding: '16px 22px',
         display: 'flex', alignItems: 'center', gap: '14px',
       }}>
-        <span className="font-sora" style={{ fontSize: '1.9rem', fontWeight: 900, color: '#f59e0b', lineHeight: 1, flexShrink: 0 }}>
+        <span className="font-sora" style={{ fontSize: '1.9rem', fontWeight: 900, color: '#007bff', lineHeight: 1, flexShrink: 0 }}>
           {num}
         </span>
         <span className="font-sora" style={{ fontSize: '0.95rem', fontWeight: 800, color: '#ffffff', lineHeight: 1.25 }}>

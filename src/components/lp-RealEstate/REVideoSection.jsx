@@ -2,7 +2,7 @@ import React from 'react';
 
 /**
  * REVideoSection — SECTION 3: VIDEO + PROOF BULLETS
- * Cloned from InsuranceVideoSection for Real Estate LP
+ * Real Estate: blue accent, RE-specific subtitle
  */
 const bullets = [
   'Real ballpoint pen on real cardstock',
@@ -14,12 +14,12 @@ const bullets = [
 
 export default function REVideoSection() {
   return (
-    <section style={{ background: '#172840', padding: '72px 40px' }}>
+    <section style={{ background: '#1a2d4a', padding: '72px 40px' }}>
       <div className="re-video-inner" style={{ maxWidth: '1060px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 480px', gap: '56px', alignItems: 'center' }}>
 
         {/* Left — bullets */}
         <div>
-          <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#f59e0b', marginBottom: '14px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#007bff', marginBottom: '14px' }}>
             See It for Yourself
           </div>
           <h2 className="font-sora" style={{ fontSize: 'clamp(1.75rem, 2.6vw, 2.3rem)', fontWeight: 800, lineHeight: 1.15, color: '#ffffff', marginBottom: '12px' }}>
@@ -80,7 +80,7 @@ export default function REVideoSection() {
 function CheckCircleIcon() {
   return (
     <div style={{
-      width: '22px', height: '22px', borderRadius: '50%', background: '#FF7A00',
+      width: '22px', height: '22px', borderRadius: '50%', background: '#007bff',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0, fontSize: '11px', fontWeight: 900, color: 'white',
     }}>
