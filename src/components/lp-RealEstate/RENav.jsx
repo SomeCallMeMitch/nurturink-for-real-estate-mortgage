@@ -26,7 +26,6 @@ export default function RENav() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
         <RENavLink href="#why-nurturink">Why NurturInk</RENavLink>
         <RENavLink href="#calculator">ROI Calculator</RENavLink>
-        <RENavLink href="#oh-calculator">Open House Calculator</RENavLink>
         <a
           href="#get-sample"
           className="font-inter"

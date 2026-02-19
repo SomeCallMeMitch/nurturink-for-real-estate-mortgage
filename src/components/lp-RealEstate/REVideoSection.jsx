@@ -15,7 +15,7 @@ const bullets = [
 export default function REVideoSection() {
   return (
     <section style={{ background: '#1a2d4a', padding: '72px 40px' }}>
-      <div className="re-video-inner" style={{ maxWidth: '1060px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 480px', gap: '56px', alignItems: 'center' }}>
+      <div className="re-video-inner" style={{ maxWidth: '1060px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 528px', gap: '56px', alignItems: 'center' }}>
 
         {/* Left — bullets */}
         <div>

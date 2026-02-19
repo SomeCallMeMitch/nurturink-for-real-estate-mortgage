@@ -15,7 +15,7 @@ const cards = [
 export default function REPSL() {
   return (
     <section style={{ background: '#1a2d4a', padding: '80px 40px' }}>
-      <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#007bff', marginBottom: '14px' }}>
           Beyond the Core Four
         </div>

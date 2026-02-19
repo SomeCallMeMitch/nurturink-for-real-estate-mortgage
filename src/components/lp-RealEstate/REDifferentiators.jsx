@@ -18,7 +18,7 @@ const cards = [
 export default function REDifferentiators() {
   return (
     <section id="why-nurturink" style={{ background: '#faf9f6', padding: '80px 40px' }}>
-      <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#007bff', marginBottom: '14px' }}>
           Why NurturInk
         </div>
