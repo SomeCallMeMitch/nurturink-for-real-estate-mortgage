@@ -104,7 +104,7 @@ export default function Layout({ children, currentPageName }) {
 
   // Public landing pages can render immediately without auth/whitelabel
   const earlyPublicPath = location.pathname.toLowerCase();
-  const isEarlyPublicPage = earlyPublicPath === '/solar' || earlyPublicPath === '/roofing' || earlyPublicPath === '/insurance';
+  const isEarlyPublicPage = earlyPublicPath === '/solar' || earlyPublicPath === '/roofing' || earlyPublicPath === '/insurance' || earlyPublicPath === '/realestate';
 
   // Show loading state while checking auth AND waiting for whitelabel settings
   // This prevents the logo flicker by ensuring branding is loaded before rendering MainLayout
