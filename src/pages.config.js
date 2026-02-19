@@ -91,6 +91,7 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import PillDemo from './pages/PillDemo';
 import QuickSendTemplates from './pages/QuickSendTemplates';
 import ReviewAndSend from './pages/ReviewAndSend';
+import Roofing from './pages/Roofing';
 import ScribeTest from './pages/ScribeTest';
 import SeedClone from './pages/SeedClone';
 import SelectDesign from './pages/SelectDesign';
@@ -115,7 +116,7 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import Roofing from './pages/Roofing';
+import Insurance from './pages/Insurance';
 import __Layout from './Layout.jsx';
 
 
@@ -164,6 +165,7 @@ export const PAGES = {
     "PillDemo": PillDemo,
     "QuickSendTemplates": QuickSendTemplates,
     "ReviewAndSend": ReviewAndSend,
+    "Roofing": Roofing,
     "ScribeTest": ScribeTest,
     "SeedClone": SeedClone,
     "SelectDesign": SelectDesign,
@@ -188,7 +190,7 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
-    "Roofing": Roofing,
+    "Insurance": Insurance,
 }
 
 export const pagesConfig = {
