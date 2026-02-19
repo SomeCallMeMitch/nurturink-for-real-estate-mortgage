@@ -128,7 +128,7 @@ export default function Layout({ children, currentPageName }) {
   const isWelcomePage = (normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing' || normalizedPath === '/home') && !isAcceptInvitationPageCheck;
   
   // Public industry landing pages — render without sidebar/auth chrome
-  const isPublicLandingPage = normalizedPath === '/solar';
+  const isPublicLandingPage = normalizedPath === '/solar' || normalizedPath === '/roofing';
   
   return (
     <WhitelabelThemeProvider>
