@@ -101,9 +101,13 @@ export default function Layout({ children, currentPageName }) {
     loadWhitelabelSettings();
   }, [isAuthenticated]);
 
+  // Public landing pages can render immediately without auth/whitelabel
+  const earlyPublicPath = location.pathname.toLowerCase();
+  const isEarlyPublicPage = earlyPublicPath === '/solar';
+
   // Show loading state while checking auth AND waiting for whitelabel settings
   // This prevents the logo flicker by ensuring branding is loaded before rendering MainLayout
-  if (!isAuthChecked || (isAuthenticated && whitelabelSettings === null)) {
+  if (!isEarlyPublicPage && (!isAuthChecked || (isAuthenticated && whitelabelSettings === null))) {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
