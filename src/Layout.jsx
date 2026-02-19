@@ -55,7 +55,8 @@ export default function Layout({ children, currentPageName }) {
                       }
 
         // Redirect non-logged-in users to Welcome page if they try to access other pages
-        if (!authenticated && !isWelcomePage) {
+        // (but NOT public landing pages like /solar)
+        if (!authenticated && !isWelcomePage && !isPublicLandingPage) {
           navigate('/Welcome', { replace: true });
         }
       } catch (error) {
