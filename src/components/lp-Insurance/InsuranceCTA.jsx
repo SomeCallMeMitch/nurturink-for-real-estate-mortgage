@@ -6,8 +6,9 @@ import React from 'react';
  */
 export default function InsuranceCTA() {
   return (
-    <section id="get-sample" style={{ background: '#FF7A00', padding: '88px 40px', textAlign: 'center' }}>
-      <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
+    <section id="get-sample" style={{ background: '#FF7A00', padding: '88px 0', textAlign: 'center' }}>
+      {/* Widened inner container to 1200px */}
+      <div className="insurance-cta-inner" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 48px' }}>
         <h2 className="font-sora" style={{ color: '#ffffff', fontSize: 'clamp(1.8rem, 3vw, 2.7rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '14px' }}>
           Your Clients Don't Need Another Email.<br />
           They Need to Know You Still Remember Them.
