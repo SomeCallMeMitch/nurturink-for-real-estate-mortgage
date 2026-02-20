@@ -60,12 +60,15 @@ export default function InsuranceHero() {
       </div>
 
       <style>{`
+        @media (max-width: 1024px) {
+          .insurance-hero-inner { padding: 0 32px !important; }
+        }
         @media (max-width: 960px) {
           .insurance-hero-inner { grid-template-columns: 1fr !important; }
           .insurance-hero-stats { display: none !important; }
         }
         @media (max-width: 768px) {
-          section { padding: 64px 24px !important; }
+          .insurance-hero-inner { padding: 0 20px !important; }
         }
       `}</style>
     </section>
