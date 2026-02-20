@@ -12,8 +12,9 @@ const cards = [
 
 export default function InsurancePSL() {
   return (
-    <section style={{ background: '#213659', padding: '80px 40px' }}>
-      <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
+    <section style={{ background: '#213659', padding: '80px 0' }}>
+      {/* Widened inner container to 1200px */}
+      <div className="insurance-psl-inner" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 48px' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#f59e0b', marginBottom: '14px' }}>
           Beyond the Core Three
         </div>
