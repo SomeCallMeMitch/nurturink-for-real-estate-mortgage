@@ -14,7 +14,7 @@ const stats = [
 
 export default function InsuranceHero() {
   return (
-    <section style={{ background: '#213659', padding: '88px 40px 80px', position: 'relative', overflow: 'hidden' }}>
+    <section style={{ background: '#213659', padding: '88px 0 80px', position: 'relative', overflow: 'hidden' }}>
       {/* Glow */}
       <div style={{
         position: 'absolute', top: '-10%', right: '-5%',
@@ -23,7 +23,8 @@ export default function InsuranceHero() {
         pointerEvents: 'none',
       }} />
 
-      <div className="insurance-hero-inner" style={{ maxWidth: '1060px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 400px', gap: '72px', alignItems: 'center', position: 'relative', zIndex: 1 }}>
+      {/* Widened inner container: 1200px max-width, 48px horizontal padding */}
+      <div className="insurance-hero-inner" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 48px', display: 'grid', gridTemplateColumns: '1fr 400px', gap: '72px', alignItems: 'center', position: 'relative', zIndex: 1 }}>
         {/* Left column */}
         <div>
           <div style={{
