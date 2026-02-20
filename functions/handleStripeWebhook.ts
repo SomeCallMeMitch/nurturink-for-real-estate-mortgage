@@ -1,7 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.11.0';
 
-// Production mode - full Stripe signature validation enabled
 const DEV_MODE = false;
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
@@ -19,7 +18,6 @@ Deno.serve(async (req) => {
     console.log('🔑 Webhook Secret Present:', !!webhookSecret);
     console.log('🔑 Stripe Key Present:', !!Deno.env.get("STRIPE_SECRET_KEY"));
 
-    // Get the raw body as text
     const body = await req.text();
     const signature = req.headers.get('stripe-signature');
 
@@ -32,25 +30,17 @@ Deno.serve(async (req) => {
       console.warn('⚠️⚠️⚠️ DEVELOPMENT MODE: SKIPPING SIGNATURE VALIDATION ⚠️⚠️⚠️');
       try {
         event = JSON.parse(body);
-        console.log('✅ Event parsed directly from body');
       } catch (parseErr) {
-        console.error('❌ Failed to parse webhook body as JSON:', parseErr);
         return Response.json({ error: 'Invalid JSON in webhook body' }, { status: 400 });
       }
     } else {
       console.log('🔒 PRODUCTION MODE: Verifying Stripe signature...');
-
       if (!signature) {
         console.error('❌ Missing stripe-signature header');
         return Response.json({ error: 'Missing stripe-signature header' }, { status: 400 });
       }
-
       try {
-        event = await stripe.webhooks.constructEventAsync(
-          body,
-          signature,
-          webhookSecret
-        );
+        event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
         console.log('✅ Signature verified successfully');
       } catch (err) {
         console.error('❌ Webhook signature verification failed:', err.message);
@@ -60,10 +50,7 @@ Deno.serve(async (req) => {
 
     console.log('📨 Processing event type:', event.type);
 
-    // createClientFromRequest is the ONLY supported way to get asServiceRole
-    // in a Base44-hosted backend function (confirmed by B44 Discord/docs)
     const base44 = createClientFromRequest(req);
-
     console.log('✅ Base44 client initialized');
 
     if (event.type === 'checkout.session.completed') {
@@ -73,7 +60,6 @@ Deno.serve(async (req) => {
       console.log('💳 Session ID:', session.id);
       console.log('💳 Payment Intent:', session.payment_intent);
       console.log('💳 Amount Total:', session.amount_total);
-      console.log('💳 Currency:', session.currency);
       console.log('📦 Metadata:', JSON.stringify(session.metadata, null, 2));
 
       const {
@@ -88,23 +74,9 @@ Deno.serve(async (req) => {
         finalPrice
       } = session.metadata;
 
-      console.log('🔍 Extracted metadata:');
-      console.log('  - userId:', userId);
-      console.log('  - orgId:', orgId);
-      console.log('  - pricingTierId:', pricingTierId);
-      console.log('  - creditAmount:', creditAmount);
-      console.log('  - purchaseType:', purchaseType);
-      console.log('  - couponCode:', couponCode);
-      console.log('  - originalPrice:', originalPrice);
-      console.log('  - discountApplied:', discountApplied);
-      console.log('  - finalPrice:', finalPrice);
-
       if (!userId || !pricingTierId || !creditAmount) {
         console.error('❌ Missing required metadata in webhook');
-        return Response.json({
-          error: 'Missing metadata',
-          received: session.metadata
-        }, { status: 400 });
+        return Response.json({ error: 'Missing metadata', received: session.metadata }, { status: 400 });
       }
 
       const credits = parseInt(creditAmount);
@@ -134,8 +106,7 @@ Deno.serve(async (req) => {
           organization = orgs[0];
           console.log('✅ Organization loaded:', organization.name);
         } else {
-          console.warn('⚠️ Organization not found:', orgId);
-          console.warn('⚠️ Falling back to personal purchase');
+          console.warn('⚠️ Organization not found, falling back to personal purchase');
         }
       }
 
@@ -151,7 +122,6 @@ Deno.serve(async (req) => {
 
       // ==================== COUPON PROCESSING ====================
       let couponUsed = null;
-
       if (couponCode && couponCode.trim()) {
         console.log('🎟️ Processing coupon:', couponCode);
         try {
@@ -161,9 +131,7 @@ Deno.serve(async (req) => {
           if (coupons && coupons.length > 0) {
             couponUsed = coupons[0];
             const newUsedCount = (couponUsed.usedCount || 0) + 1;
-            await base44.asServiceRole.entities.Coupon.update(couponUsed.id, {
-              usedCount: newUsedCount
-            });
+            await base44.asServiceRole.entities.Coupon.update(couponUsed.id, { usedCount: newUsedCount });
             console.log(`✅ Coupon ${couponCode} usage incremented to ${newUsedCount}`);
           } else {
             console.warn(`⚠️ Coupon ${couponCode} not found in database`);
@@ -176,17 +144,16 @@ Deno.serve(async (req) => {
       // ==================== CREDIT BALANCE UPDATE ====================
 
       if (isCompanyPurchase && organization) {
+        // Company purchase — credits go to organization.creditBalance
         console.log('🏢 Processing company purchase...');
 
         const currentBalance = organization.creditBalance || 0;
         const newBalance = currentBalance + credits;
-
         console.log(`💳 Organization balance: ${currentBalance} → ${newBalance}`);
 
         await base44.asServiceRole.entities.Organization.update(organization.id, {
           creditBalance: newBalance
         });
-
         console.log('✅ Organization balance updated');
 
         let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes (Company Pool)`;
@@ -196,6 +163,10 @@ Deno.serve(async (req) => {
         }
 
         const transaction = await base44.asServiceRole.entities.Transaction.create({
+          fromAccountType: 'platform',
+          fromAccountId: null,
+          toAccountType: 'company',
+          toAccountId: organization.id,
           orgId: organization.id,
           userId: user.id,
           type: 'purchase_org',
@@ -203,6 +174,7 @@ Deno.serve(async (req) => {
           balanceAfter: newBalance,
           balanceType: 'organization',
           description: description,
+          totalPriceCents: session.amount_total,
           metadata: {
             stripeSessionId: session.id,
             stripePaymentIntent: session.payment_intent,
@@ -224,17 +196,16 @@ Deno.serve(async (req) => {
         console.log(`✅ Company purchase complete: ${credits} credits added to ${organization.name} pool`);
 
       } else {
+        // Personal purchase — credits go to user.personalPurchasedCredits
         console.log('👤 Processing personal purchase...');
 
         const currentPersonalPurchased = user.personalPurchasedCredits || 0;
         const newPersonalPurchased = currentPersonalPurchased + credits;
-
         console.log(`💳 User personalPurchasedCredits: ${currentPersonalPurchased} → ${newPersonalPurchased}`);
 
         await base44.asServiceRole.entities.User.update(user.id, {
           personalPurchasedCredits: newPersonalPurchased
         });
-
         console.log('✅ User personalPurchasedCredits updated');
 
         let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes (Personal)`;
@@ -244,6 +215,10 @@ Deno.serve(async (req) => {
         }
 
         const transaction = await base44.asServiceRole.entities.Transaction.create({
+          fromAccountType: 'platform',
+          fromAccountId: null,
+          toAccountType: 'user',
+          toAccountId: user.id,
           orgId: user.orgId || '',
           userId: user.id,
           type: 'purchase_user',
@@ -251,6 +226,7 @@ Deno.serve(async (req) => {
           balanceAfter: newPersonalPurchased,
           balanceType: 'user',
           description: description,
+          totalPriceCents: session.amount_total,
           metadata: {
             stripeSessionId: session.id,
             stripePaymentIntent: session.payment_intent,
@@ -298,10 +274,7 @@ Deno.serve(async (req) => {
     console.error('========================================\n');
 
     return Response.json(
-      {
-        error: error.message || 'Webhook processing failed',
-        details: error.stack
-      },
+      { error: error.message || 'Webhook processing failed', details: error.stack },
       { status: 500 }
     );
   }
