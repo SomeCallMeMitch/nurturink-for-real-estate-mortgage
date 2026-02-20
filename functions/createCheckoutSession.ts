@@ -311,8 +311,8 @@ Deno.serve(async (req) => {
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `${appBaseUrl}?page=PaymentSuccess&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appBaseUrl}?page=Credits&payment=cancelled`,
+    success_url: `${appBaseUrl}/PaymentSuccess?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${appBaseUrl}/Credits?payment=cancelled`,
       metadata: {
         userId: user.id,
         orgId: user.orgId || '',
