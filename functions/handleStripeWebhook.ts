@@ -1,10 +1,8 @@
-
 import { createServiceClient } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.11.0';
 
-// ⚠️ DEV MODE - SET TO FALSE BEFORE PRODUCTION ⚠️
-// When true, skips Stripe signature validation for testing in sandbox
-const DEV_MODE = true;
+// Production mode - full Stripe signature validation enabled
+const DEV_MODE = false;
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
   apiVersion: '2023-10-16',
