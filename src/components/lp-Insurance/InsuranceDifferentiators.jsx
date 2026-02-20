@@ -17,8 +17,9 @@ const cards = [
 
 export default function InsuranceDifferentiators() {
   return (
-    <section id="why-nurturink" style={{ background: '#faf9f6', padding: '80px 40px' }}>
-      <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
+    <section id="why-nurturink" style={{ background: '#faf9f6', padding: '80px 0' }}>
+      {/* Widened inner container to 1200px */}
+      <div className="insurance-diff-inner" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 48px' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#FF7A00', marginBottom: '14px' }}>
           Why NurturInk
         </div>
