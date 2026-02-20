@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
       
       // Load user using service role
       console.log('👤 Loading user:', userId);
-      const users = await base44.entities.User.filter({ id: userId });
+      const users = await base44.asServiceRole.entities.User.filter({ id: userId });
       if (!users || users.length === 0) {
         console.error('❌ User not found:', userId);
         return Response.json({ error: 'User not found' }, { status: 404 });
@@ -146,20 +146,19 @@ Deno.serve(async (req) => {
       let organization = null;
       if (isCompanyPurchase && orgId) {
         console.log('🏢 Loading organization:', orgId);
-        const orgs = await base44.entities.Organization.filter({ id: orgId });
+        const orgs = await base44.asServiceRole.entities.Organization.filter({ id: orgId });
         if (orgs && orgs.length > 0) {
           organization = orgs[0];
           console.log('✅ Organization loaded:', organization.name);
         } else {
           console.warn('⚠️ Organization not found:', orgId);
-          // Fall back to personal purchase if org not found
           console.warn('⚠️ Falling back to personal purchase');
         }
       }
       
       // Load pricing tier for details
       console.log('💰 Loading pricing tier:', pricingTierId);
-      const tiers = await base44.entities.PricingTier.filter({ 
+      const tiers = await base44.asServiceRole.entities.PricingTier.filter({ 
         id: pricingTierId 
       });
       const tier = tiers && tiers.length > 0 ? tiers[0] : null;
@@ -176,7 +175,7 @@ Deno.serve(async (req) => {
         console.log('🎟️ Processing coupon:', couponCode);
         
         try {
-          const coupons = await base44.entities.Coupon.filter({ 
+          const coupons = await base44.asServiceRole.entities.Coupon.filter({ 
             code: couponCode.trim().toUpperCase() 
           });
           
@@ -184,10 +183,8 @@ Deno.serve(async (req) => {
             couponUsed = coupons[0];
             console.log('✅ Coupon found:', couponUsed.code);
             
-            // Increment coupon usage count
             const newUsedCount = (couponUsed.usedCount || 0) + 1;
-            
-            await base44.entities.Coupon.update(couponUsed.id, {
+            await base44.asServiceRole.entities.Coupon.update(couponUsed.id, {
               usedCount: newUsedCount
             });
             
@@ -211,22 +208,19 @@ Deno.serve(async (req) => {
         
         console.log(`💳 Organization balance: ${currentBalance} → ${newBalance}`);
         
-        // Update organization credit balance
-        await base44.entities.Organization.update(organization.id, {
+        await base44.asServiceRole.entities.Organization.update(organization.id, {
           creditBalance: newBalance
         });
         
         console.log('✅ Organization balance updated');
         
-        // Build transaction description
         let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes (Company Pool)`;
         if (couponUsed) {
           const discountAmount = discountApplied ? parseInt(discountApplied) : 0;
           description += ` (${couponUsed.code}: -$${(discountAmount / 100).toFixed(2)})`;
         }
         
-        // Create transaction record
-        const transaction = await base44.entities.Transaction.create({
+        const transaction = await base44.asServiceRole.entities.Transaction.create({
           orgId: organization.id,
           userId: user.id,
           type: 'purchase_org',
@@ -267,22 +261,19 @@ Deno.serve(async (req) => {
         
         console.log(`💳 User personalPurchasedCredits: ${currentPersonalPurchased} → ${newPersonalPurchased}`);
         
-        // Update user's personal purchased credit balance
-        await base44.entities.User.update(user.id, {
+        await base44.asServiceRole.entities.User.update(user.id, {
           personalPurchasedCredits: newPersonalPurchased
         });
         
         console.log('✅ User personalPurchasedCredits updated');
         
-        // Build transaction description
         let description = `Purchased ${tier?.name || 'credits'} - ${credits} notes (Personal)`;
         if (couponUsed) {
           const discountAmount = discountApplied ? parseInt(discountApplied) : 0;
           description += ` (${couponUsed.code}: -$${(discountAmount / 100).toFixed(2)})`;
         }
         
-        // Create transaction record
-        const transaction = await base44.entities.Transaction.create({
+        const transaction = await base44.asServiceRole.entities.Transaction.create({
           orgId: user.orgId || '',
           userId: user.id,
           type: 'purchase_user',
