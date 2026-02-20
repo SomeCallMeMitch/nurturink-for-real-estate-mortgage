@@ -71,8 +71,10 @@ Deno.serve(async (req) => {
     // Initialize Base44 service client using the app ID env var directly
     // (Stripe webhooks come from Stripe servers, not the browser, so no Base44-App-Id header exists)
     const appId = Deno.env.get("BASE44_APP_ID");
+    const serviceToken = Deno.env.get("BASE44_SERVICE_TOKEN");
     console.log('🆔 BASE44_APP_ID:', appId);
-    const base44 = createClient({ appId });
+    console.log('🔑 BASE44_SERVICE_TOKEN present:', !!serviceToken);
+    const base44 = createClient({ appId, serviceToken });
     
     console.log('✅ Base44 service client initialized');
     
