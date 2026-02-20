@@ -66,12 +66,15 @@ export default function InsuranceVideoSection() {
       </div>
 
       <style>{`
+        @media (max-width: 1024px) {
+          .insurance-video-inner { padding: 0 32px !important; }
+        }
         @media (max-width: 960px) {
           .insurance-video-inner { grid-template-columns: 1fr !important; }
           .insurance-video-right { order: -1; }
         }
         @media (max-width: 768px) {
-          section { padding: 60px 24px !important; }
+          .insurance-video-inner { padding: 0 20px !important; }
         }
       `}</style>
     </section>
