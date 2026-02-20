@@ -67,10 +67,11 @@ Deno.serve(async (req) => {
     
     console.log('📨 Processing event type:', event.type);
     
-    // Initialize Base44 client using request context (includes Base44-App-Id header automatically)
-    // Then use asServiceRole for admin-level operations without requiring a logged-in user
-    console.log('🆔 BASE44_APP_ID:', Deno.env.get("BASE44_APP_ID"));
-    const base44 = createClientFromRequest(req);
+    // Initialize Base44 service client using the app ID env var directly
+    // (Stripe webhooks come from Stripe servers, not the browser, so no Base44-App-Id header exists)
+    const appId = Deno.env.get("BASE44_APP_ID");
+    console.log('🆔 BASE44_APP_ID:', appId);
+    const base44 = createClient({ appId });
     
     console.log('✅ Base44 service client initialized');
     
