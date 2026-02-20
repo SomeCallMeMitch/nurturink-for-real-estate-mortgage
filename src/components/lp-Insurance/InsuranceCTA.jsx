@@ -34,8 +34,11 @@ export default function InsuranceCTA() {
         </a>
       </div>
       <style>{`
+        @media (max-width: 1024px) {
+          .insurance-cta-inner { padding: 0 32px !important; }
+        }
         @media (max-width: 768px) {
-          section { padding: 60px 24px !important; }
+          .insurance-cta-inner { padding: 0 20px !important; }
         }
       `}</style>
     </section>
