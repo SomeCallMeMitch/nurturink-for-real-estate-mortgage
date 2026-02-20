@@ -14,8 +14,9 @@ const bullets = [
 
 export default function InsuranceVideoSection() {
   return (
-    <section style={{ background: '#172840', padding: '72px 40px' }}>
-      <div className="insurance-video-inner" style={{ maxWidth: '1060px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 480px', gap: '56px', alignItems: 'center' }}>
+    <section style={{ background: '#172840', padding: '72px 0' }}>
+      {/* Widened to 1200px; video column grown 20% (480→576px) */}
+      <div className="insurance-video-inner" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 48px', display: 'grid', gridTemplateColumns: '1fr 576px', gap: '56px', alignItems: 'center' }}>
 
         {/* Left — bullets */}
         <div>
