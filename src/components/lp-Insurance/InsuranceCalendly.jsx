@@ -17,8 +17,9 @@ export default function InsuranceCalendly() {
   }, []);
 
   return (
-    <section style={{ background: '#172840', padding: '80px 40px' }}>
-      <div style={{ maxWidth: '1060px', margin: '0 auto', textAlign: 'center' }}>
+    <section style={{ background: '#172840', padding: '80px 0' }}>
+      {/* Widened inner container to 1200px */}
+      <div className="insurance-calendly-inner" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 48px', textAlign: 'center' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#FF7A00', marginBottom: '14px' }}>
           Book a Demo
         </div>
