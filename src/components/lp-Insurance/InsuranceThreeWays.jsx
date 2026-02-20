@@ -14,8 +14,9 @@ const ways = [
 
 export default function InsuranceThreeWays() {
   return (
-    <section style={{ background: '#ffffff', padding: '80px 40px' }}>
-      <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
+    <section style={{ background: '#ffffff', padding: '80px 0' }}>
+      {/* Widened inner container to 1200px */}
+      <div className="insurance-ways-inner" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 48px' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#FF7A00', marginBottom: '14px' }}>
           The System That Works
         </div>
