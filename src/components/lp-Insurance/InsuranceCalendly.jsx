@@ -36,8 +36,11 @@ export default function InsuranceCalendly() {
         />
       </div>
       <style>{`
+        @media (max-width: 1024px) {
+          .insurance-calendly-inner { padding: 0 32px !important; }
+        }
         @media (max-width: 768px) {
-          section { padding: 60px 24px !important; }
+          .insurance-calendly-inner { padding: 0 20px !important; }
         }
       `}</style>
     </section>
