@@ -1,5 +1,4 @@
-import { createClient } from 'npm:@base44/sdk@0.8.6';
-// NOTE: createClientFromRequest intentionally NOT imported — Stripe webhooks have no Base44 headers
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.11.0';
 
 // Production mode - full Stripe signature validation enabled
@@ -20,7 +19,8 @@ Deno.serve(async (req) => {
     console.log('🔑 Webhook Secret Present:', !!webhookSecret);
     console.log('🔑 Stripe Key Present:', !!Deno.env.get("STRIPE_SECRET_KEY"));
     
-    // Get the raw body as text
+    // Get the raw body as text BEFORE creating the client
+    // (req.text() can only be called once, must be before req.json())
     const body = await req.text();
     const signature = req.headers.get('stripe-signature');
     
@@ -32,9 +32,6 @@ Deno.serve(async (req) => {
     if (DEV_MODE) {
       // ⚠️ DEVELOPMENT MODE: Skip signature validation
       console.warn('⚠️⚠️⚠️ DEVELOPMENT MODE: SKIPPING SIGNATURE VALIDATION ⚠️⚠️⚠️');
-      console.warn('⚠️ This should NEVER be deployed to production!');
-      
-      // Parse the body directly as JSON
       try {
         event = JSON.parse(body);
         console.log('✅ Event parsed directly from body');
@@ -45,7 +42,7 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Invalid JSON in webhook body' }, { status: 400 });
       }
     } else {
-      // PRODUCTION MODE: Verify signature
+      // PRODUCTION MODE: Verify Stripe signature
       console.log('🔒 PRODUCTION MODE: Verifying Stripe signature...');
       
       if (!signature) {
@@ -68,15 +65,11 @@ Deno.serve(async (req) => {
     
     console.log('📨 Processing event type:', event.type);
     
-    // Initialize Base44 service client using the app ID env var directly
-    // (Stripe webhooks come from Stripe servers, not the browser, so no Base44-App-Id header exists)
-    const appId = Deno.env.get("BASE44_APP_ID");
-    const serviceToken = Deno.env.get("BASE44_SERVICE_TOKEN");
-    console.log('🆔 BASE44_APP_ID:', appId);
-    console.log('🔑 BASE44_SERVICE_TOKEN present:', !!serviceToken);
-    const base44 = createClient({ appId, serviceToken });
+    // Use createClientFromRequest — Base44 injects app headers automatically
+    // asServiceRole works without a logged-in user (confirmed by B44 Discord)
+    const base44 = createClientFromRequest(req);
     
-    console.log('✅ Base44 service client initialized');
+    console.log('✅ Base44 client initialized');
     
     // Handle different event types
     if (event.type === 'checkout.session.completed') {
@@ -124,11 +117,7 @@ Deno.serve(async (req) => {
       
       const credits = parseInt(creditAmount);
       
-      // ==================== NEW PURCHASE TYPE LOGIC ====================
-      // purchaseType can be: 'company', 'personal', or 'organization' (legacy)
-      // - 'company' = credits go to Organization.creditBalance
-      // - 'personal' = credits go to User.personalPurchasedCredits
-      // - 'organization' = legacy value, treat as 'company'
+      // purchaseType: 'company' or 'organization' = org pool, 'personal' = user credits
       const isCompanyPurchase = purchaseType === 'company' || purchaseType === 'organization';
       
       console.log('📊 Purchase details:');
@@ -136,7 +125,7 @@ Deno.serve(async (req) => {
       console.log('  - Purchase Type:', purchaseType);
       console.log('  - Is Company Purchase:', isCompanyPurchase);
       
-      // Load user using service role
+      // Load user
       console.log('👤 Loading user:', userId);
       const users = await base44.asServiceRole.entities.User.filter({ id: userId });
       if (!users || users.length === 0) {
@@ -160,11 +149,9 @@ Deno.serve(async (req) => {
         }
       }
       
-      // Load pricing tier for details
+      // Load pricing tier
       console.log('💰 Loading pricing tier:', pricingTierId);
-      const tiers = await base44.asServiceRole.entities.PricingTier.filter({ 
-        id: pricingTierId 
-      });
+      const tiers = await base44.asServiceRole.entities.PricingTier.filter({ id: pricingTierId });
       const tier = tiers && tiers.length > 0 ? tiers[0] : null;
       if (tier) {
         console.log('✅ Pricing tier loaded:', tier.name);
@@ -177,21 +164,16 @@ Deno.serve(async (req) => {
       
       if (couponCode && couponCode.trim()) {
         console.log('🎟️ Processing coupon:', couponCode);
-        
         try {
           const coupons = await base44.asServiceRole.entities.Coupon.filter({ 
             code: couponCode.trim().toUpperCase() 
           });
-          
           if (coupons && coupons.length > 0) {
             couponUsed = coupons[0];
-            console.log('✅ Coupon found:', couponUsed.code);
-            
             const newUsedCount = (couponUsed.usedCount || 0) + 1;
             await base44.asServiceRole.entities.Coupon.update(couponUsed.id, {
               usedCount: newUsedCount
             });
-            
             console.log(`✅ Coupon ${couponCode} usage incremented to ${newUsedCount}`);
           } else {
             console.warn(`⚠️ Coupon ${couponCode} not found in database`);
@@ -204,7 +186,7 @@ Deno.serve(async (req) => {
       // ==================== CREDIT BALANCE UPDATE ====================
       
       if (isCompanyPurchase && organization) {
-        // Company purchase - goes to organization.creditBalance
+        // Company purchase — credits go to organization.creditBalance
         console.log('🏢 Processing company purchase...');
         
         const currentBalance = organization.creditBalance || 0;
@@ -252,12 +234,8 @@ Deno.serve(async (req) => {
         console.log('✅ Transaction record created:', transaction.id);
         console.log(`✅ Company purchase complete: ${credits} credits added to ${organization.name} pool`);
         
-        if (couponUsed) {
-          console.log(`🎉 Coupon ${couponUsed.code} applied successfully`);
-        }
-        
       } else {
-        // Personal purchase - goes to user.personalPurchasedCredits
+        // Personal purchase — credits go to user.personalPurchasedCredits
         console.log('👤 Processing personal purchase...');
         
         const currentPersonalPurchased = user.personalPurchasedCredits || 0;
@@ -303,11 +281,7 @@ Deno.serve(async (req) => {
         });
         
         console.log('✅ Transaction record created:', transaction.id);
-        console.log(`✅ Personal purchase complete: ${credits} credits added to ${user.email} (personalPurchasedCredits)`);
-        
-        if (couponUsed) {
-          console.log(`🎉 Coupon ${couponUsed.code} applied successfully`);
-        }
+        console.log(`✅ Personal purchase complete: ${credits} credits added to ${user.email}`);
       }
       
       console.log('========================================');
@@ -323,7 +297,7 @@ Deno.serve(async (req) => {
       });
     }
     
-    // Handle other event types
+    // Unhandled event type — acknowledge receipt
     console.log(`ℹ️ Unhandled event type: ${event.type}`);
     return Response.json({ received: true });
     
