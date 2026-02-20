@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@base44/sdk@0.8.6';
+// NOTE: createClientFromRequest intentionally NOT imported — Stripe webhooks have no Base44 headers
 import Stripe from 'npm:stripe@14.11.0';
 
 // Production mode - full Stripe signature validation enabled
