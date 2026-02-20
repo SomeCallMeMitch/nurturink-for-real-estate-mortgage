@@ -53,9 +53,12 @@ export default function InsurancePSL() {
         </div>
       </div>
       <style>{`
+        @media (max-width: 1024px) {
+          .insurance-psl-inner { padding: 0 32px !important; }
+        }
         @media (max-width: 768px) {
+          .insurance-psl-inner { padding: 0 20px !important; }
           .insurance-psl-grid { grid-template-columns: 1fr !important; }
-          section { padding: 60px 24px !important; }
         }
       `}</style>
     </section>
