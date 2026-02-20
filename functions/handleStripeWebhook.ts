@@ -67,10 +67,10 @@ Deno.serve(async (req) => {
     
     console.log('📨 Processing event type:', event.type);
     
-    // Initialize Base44 client in service role mode (no user authentication required)
-    const base44 = createServiceClient({
-      appId: Deno.env.get("BASE44_APP_ID")
-    });
+    // Initialize Base44 client using request context (includes Base44-App-Id header automatically)
+    // Then use asServiceRole for admin-level operations without requiring a logged-in user
+    console.log('🆔 BASE44_APP_ID:', Deno.env.get("BASE44_APP_ID"));
+    const base44 = createClientFromRequest(req);
     
     console.log('✅ Base44 service client initialized');
     
