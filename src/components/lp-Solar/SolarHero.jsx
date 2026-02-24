@@ -15,7 +15,8 @@ const stats = [
 
 export default function SolarHero() {
   return (
-    <section style={{ background: '#213659', padding: '88px 40px 80px', position: 'relative', overflow: 'hidden' }}>
+    {/* Reduced top padding by ~60%: was 88px → 35px */}
+    <section style={{ background: '#213659', padding: '35px 40px 80px', position: 'relative', overflow: 'hidden' }}>
       {/* Glow */}
       <div style={{
         position: 'absolute', top: '-10%', right: '-5%',
