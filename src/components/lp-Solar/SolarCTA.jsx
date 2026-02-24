@@ -6,7 +6,8 @@ import React from 'react';
  */
 export default function SolarCTA() {
   return (
-    <section id="get-sample" style={{ background: '#FF7A00', padding: '88px 40px', textAlign: 'center' }}>
+    {/* Removed id="get-sample" — that id now belongs to SolarSampleForm. CTA button links to the form. */}
+    <section style={{ background: '#FF7A00', padding: '88px 40px', textAlign: 'center' }}>
       <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
         <h2 className="font-sora" style={{ color: '#ffffff', fontSize: 'clamp(1.8rem, 3vw, 2.7rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '14px' }}>
           Your Panels Will Be Visible for 25 Years.<br />
