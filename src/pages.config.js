@@ -120,6 +120,7 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
+import Ecommerce from './pages/Ecommerce';
 import __Layout from './Layout.jsx';
 
 
@@ -197,6 +198,7 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
+    "Ecommerce": Ecommerce,
 }
 
 export const pagesConfig = {
