@@ -9,6 +9,7 @@ import SolarPSL from '../components/lp-Solar/SolarPSL';
 import SolarScience from '../components/lp-Solar/SolarScience';
 import SolarCalculator from '../components/lp-Solar/SolarCalculator';
 import SolarCTA from '../components/lp-Solar/SolarCTA';
+import SolarSampleForm from '../components/lp-Solar/SolarSampleForm';
 import SolarCalendly from '../components/lp-Solar/SolarCalendly';
 import SolarFooter from '../components/lp-Solar/SolarFooter';
 import { Toaster } from '@/components/ui/toaster';
