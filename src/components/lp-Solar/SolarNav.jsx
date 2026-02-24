@@ -29,8 +29,9 @@ export default function SolarNav() {
       <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
         <NavLink href="#why-nurturink">Why NurturInk</NavLink>
         <NavLink href="#calculator">ROI Calculator</NavLink>
+        {/* Changed: text → "Meet with Us", href → Calendly section */}
         <a
-          href="#get-sample"
+          href="#schedule-demo"
           className="font-lato"
           style={{
             background: '#FF7A00', color: '#ffffff', padding: '9px 20px',
@@ -41,7 +42,7 @@ export default function SolarNav() {
           onMouseEnter={e => { e.currentTarget.style.background = '#e86e00'; e.currentTarget.style.borderColor = '#e86e00'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(255,122,0,0.35)'; }}
           onMouseLeave={e => { e.currentTarget.style.background = '#FF7A00'; e.currentTarget.style.borderColor = '#FF7A00'; e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}
         >
-          Get Free Sample
+          Meet with Us
         </a>
       </div>
 
