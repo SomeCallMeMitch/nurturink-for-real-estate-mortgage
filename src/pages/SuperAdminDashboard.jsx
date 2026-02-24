@@ -97,6 +97,13 @@ export default function SuperAdminDashboard() {
       icon: Layout,
       path: 'AdminCreateContentLayout',
       color: 'teal'
+    },
+    {
+      title: 'Sample Requests',
+      description: 'View and manage free sample card requests from landing pages',
+      icon: ClipboardList,
+      path: 'AdminSampleRequests',
+      color: 'blue'
     }
   ];
 
