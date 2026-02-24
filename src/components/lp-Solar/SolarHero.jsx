@@ -45,7 +45,8 @@ export default function SolarHero() {
             <em style={{ color: '#f59e0b', fontStyle: 'normal' }}>90 Days.</em>
           </h1>
 
-          <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.55, marginBottom: '36px', maxWidth: '480px' }}>
+          {/* Reduced line-height: was 1.55 → 1.25 */}
+          <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.25, marginBottom: '36px', maxWidth: '480px' }}>
             Solar customers make one of the largest purchases of their lives. Then they go back to their neighborhood where their neighbors are asking who did it. A handwritten card makes sure they remember your name when that conversation happens.
           </p>
 
