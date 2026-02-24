@@ -58,6 +58,7 @@ import AdminEmailTesting from './pages/AdminEmailTesting';
 import AdminEnvelopeLayout from './pages/AdminEnvelopeLayout';
 import AdminPricing from './pages/AdminPricing';
 import AdminRefunds from './pages/AdminRefunds';
+import AdminSampleRequests from './pages/AdminSampleRequests';
 import AdminSendDetails from './pages/AdminSendDetails';
 import AdminSends from './pages/AdminSends';
 import AdminTestEmails from './pages/AdminTestEmails';
@@ -118,7 +119,7 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import AdminSampleRequests from './pages/AdminSampleRequests';
+import Dream100 from './pages/Dream100';
 import __Layout from './Layout.jsx';
 
 
@@ -134,6 +135,7 @@ export const PAGES = {
     "AdminEnvelopeLayout": AdminEnvelopeLayout,
     "AdminPricing": AdminPricing,
     "AdminRefunds": AdminRefunds,
+    "AdminSampleRequests": AdminSampleRequests,
     "AdminSendDetails": AdminSendDetails,
     "AdminSends": AdminSends,
     "AdminTestEmails": AdminTestEmails,
@@ -194,7 +196,7 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
-    "AdminSampleRequests": AdminSampleRequests,
+    "Dream100": Dream100,
 }
 
 export const pagesConfig = {
