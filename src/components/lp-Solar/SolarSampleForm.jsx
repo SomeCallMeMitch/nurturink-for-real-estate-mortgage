@@ -78,7 +78,6 @@ export default function SolarSampleForm() {
   };
 
   return (
-    {/* id="get-sample" so hero buttons and nav CTA scroll to this form */}
     <section id="get-sample" style={{ background: '#213659', padding: '80px 0' }}>
       {/* Scoped styles matching the Solar LP design tokens */}
       <style>{`
