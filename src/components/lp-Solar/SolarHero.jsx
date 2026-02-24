@@ -5,6 +5,7 @@ import SolarHeroStatCard from './SolarHeroStatCard';
  * SolarHero — SECTION 2: HERO
  * bg #213659, glow, 2-col grid (content + stat cards)
  * Mobile (<960px): single column, hide stats
+ * Changes: top padding reduced ~60% (88px → 35px), paragraph line-height 1.55 → 1.25
  */
 const stats = [
   { value: '99%', label: 'open rate vs. 22% for email (DMA 2024)' },
@@ -15,7 +16,6 @@ const stats = [
 
 export default function SolarHero() {
   return (
-    {/* Reduced top padding by ~60%: was 88px → 35px */}
     <section style={{ background: '#213659', padding: '35px 40px 80px', position: 'relative', overflow: 'hidden' }}>
       {/* Glow */}
       <div style={{
@@ -45,12 +45,12 @@ export default function SolarHero() {
             <em style={{ color: '#f59e0b', fontStyle: 'normal' }}>90 Days.</em>
           </h1>
 
-          {/* Reduced line-height: was 1.55 → 1.25 */}
+          {/* line-height reduced from 1.55 → 1.25 */}
           <p style={{ fontSize: '17px', color: 'rgba(255,255,255,0.92)', lineHeight: 1.25, marginBottom: '36px', maxWidth: '480px' }}>
             Solar customers make one of the largest purchases of their lives. Then they go back to their neighborhood where their neighbors are asking who did it. A handwritten card makes sure they remember your name when that conversation happens.
           </p>
 
-          {/* Changed: orange btn now links to #get-sample (the SolarSampleForm section) */}
+          {/* Orange btn → #get-sample (SolarSampleForm) */}
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <SolarBtnOrange href="#get-sample">Get Your Free Sample Card</SolarBtnOrange>
             <SolarBtnOutline href="#calculator">See the ROI Math</SolarBtnOutline>
