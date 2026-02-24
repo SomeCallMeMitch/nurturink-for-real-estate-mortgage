@@ -44,6 +44,8 @@ export default function Solar() {
       <SolarScience />
       <SolarCalculator />
       <SolarCTA />
+      {/* Free sample request form — placed between CTA and Calendly booking */}
+      <SolarSampleForm />
       <SolarCalendly />
       <SolarFooter />
       <Toaster />
