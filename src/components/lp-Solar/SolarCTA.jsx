@@ -2,11 +2,11 @@ import React from 'react';
 
 /**
  * SolarCTA — SECTION 9: CTA
- * id="get-sample", bg #FF7A00, centered text + white button
+ * id="get-sample" removed (now belongs to SolarSampleForm).
+ * Button now links to #get-sample to scroll to the sample request form.
  */
 export default function SolarCTA() {
   return (
-    {/* Removed id="get-sample" — that id now belongs to SolarSampleForm. CTA button links to the form. */}
     <section style={{ background: '#FF7A00', padding: '88px 40px', textAlign: 'center' }}>
       <div style={{ maxWidth: '1060px', margin: '0 auto' }}>
         <h2 className="font-sora" style={{ color: '#ffffff', fontSize: 'clamp(1.8rem, 3vw, 2.7rem)', fontWeight: 800, lineHeight: 1.15, marginBottom: '14px' }}>
@@ -16,7 +16,6 @@ export default function SolarCTA() {
         <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.9)', maxWidth: '500px', margin: '0 auto 36px', lineHeight: 1.55 }}>
           Get a free sample card mailed directly to you. Hold it. See what your customers will receive. Then decide if this is the follow-up your business has been missing.
         </p>
-        {/* Changed href to #get-sample to scroll down to the sample request form */}
         <a
           href="#get-sample"
           className="font-lato"
