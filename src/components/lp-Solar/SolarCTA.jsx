@@ -16,8 +16,9 @@ export default function SolarCTA() {
         <p style={{ fontSize: '18px', color: 'rgba(255,255,255,0.9)', maxWidth: '500px', margin: '0 auto 36px', lineHeight: 1.55 }}>
           Get a free sample card mailed directly to you. Hold it. See what your customers will receive. Then decide if this is the follow-up your business has been missing.
         </p>
+        {/* Changed href to #get-sample to scroll down to the sample request form */}
         <a
-          href="https://nurturink.com"
+          href="#get-sample"
           className="font-lato"
           style={{
             display: 'inline-block', padding: '13px 28px', borderRadius: '4px',
