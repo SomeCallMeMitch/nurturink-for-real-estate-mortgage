@@ -108,7 +108,7 @@ export default function EcommerceHero() {
           preload="none"
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         >
-          <source src="YOUR_VIDEO_URL_HERE.mp4" type="video/mp4" />
+          <source src="https://res.cloudinary.com/dge8qy1ps/video/upload/Handwritten_Note_process_zuyc3z.mp4" type="video/mp4" />
         </video>
         {!playing && (
           <div style={{
