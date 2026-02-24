@@ -42,31 +42,12 @@ export default function EcommerceBookCall() {
             </div>
           </div>
 
-          <div>
-            <div style={{
-              background: '#fff', border: '1px solid #dde1e7',
-              borderRadius: 8, overflow: 'hidden',
-              minHeight: 360, display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              {/* Calendly embed placeholder — replace with actual embed */}
-              <div style={{ textAlign: 'center', padding: '38px 22px' }}>
-                <h3 style={{ fontFamily: "'Sora', sans-serif", color: '#1a2d4a', marginBottom: 7, fontWeight: 800 }}>Schedule a 30-Minute Call</h3>
-                <p style={{ color: '#4a5568', fontSize: 17 }}>Add your Calendly embed here.</p>
-                <a
-                  href="mailto:hello@nurturink.com?subject=Call Request"
-                  style={{
-                    display: 'inline-block', marginTop: 16,
-                    padding: '14px 26px', background: '#FF7A00', color: '#fff',
-                    fontFamily: "'Lato', sans-serif", fontSize: 17, fontWeight: 700,
-                    borderRadius: 4, textDecoration: 'none',
-                    boxShadow: '0 3px 14px rgba(255,122,0,0.35)'
-                  }}
-                >
-                  Email to Schedule
-                </a>
-              </div>
-            </div>
-          </div>
+          {/* Calendly inline widget — same URL as Solar page */}
+          <div
+            className="calendly-inline-widget"
+            data-url="https://calendly.com/nurturink/30min?hide_gdpr_banner=1&primary_color=FF7A00"
+            style={{ minWidth: 320, height: 700, borderRadius: 8, overflow: 'hidden' }}
+          />
         </div>
       </div>
 
