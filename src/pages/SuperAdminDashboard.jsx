@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +5,7 @@ import { createPageUrl } from '@/utils';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Layout, Mail, ArrowRight, Loader2, ImageIcon, DollarSign, Tag, Palette } from 'lucide-react';
+import { Layout, Mail, ArrowRight, Loader2, ImageIcon, DollarSign, Tag, Palette, ClipboardList } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
