@@ -17,7 +17,8 @@ export default function SolarCalendly() {
   }, []);
 
   return (
-    <section style={{ background: '#172840', padding: '80px 40px' }}>
+    {/* Added id="schedule-demo" so the nav "Meet with Us" button scrolls here */}
+    <section id="schedule-demo" style={{ background: '#172840', padding: '80px 40px' }}>
       <div style={{ maxWidth: '1060px', margin: '0 auto', textAlign: 'center' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#FF7A00', marginBottom: '14px' }}>
           Book a Demo
