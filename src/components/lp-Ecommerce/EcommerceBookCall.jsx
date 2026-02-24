@@ -1,6 +1,17 @@
 import React, { useEffect } from 'react';
 
 export default function EcommerceBookCall() {
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://assets.calendly.com/assets/external/widget.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      const existing = document.querySelector('script[src="https://assets.calendly.com/assets/external/widget.js"]');
+      if (existing) existing.remove();
+    };
+  }, []);
+
   return (
     <section id="book-call" style={{ background: '#faf9f6', padding: '64px 0 36px' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
