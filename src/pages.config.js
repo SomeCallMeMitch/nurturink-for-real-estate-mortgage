@@ -71,6 +71,7 @@ import CreateContent from './pages/CreateContent';
 import CreateContent2 from './pages/CreateContent2';
 import Credits from './pages/Credits';
 import Dashboard from './pages/Dashboard';
+import Dream100 from './pages/Dream100';
 import EditQuickSendTemplate from './pages/EditQuickSendTemplate';
 import EditTemplate from './pages/EditTemplate';
 import FindClients from './pages/FindClients';
@@ -119,7 +120,6 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
-import Dream100 from './pages/Dream100';
 import __Layout from './Layout.jsx';
 
 
@@ -148,6 +148,7 @@ export const PAGES = {
     "CreateContent2": CreateContent2,
     "Credits": Credits,
     "Dashboard": Dashboard,
+    "Dream100": Dream100,
     "EditQuickSendTemplate": EditQuickSendTemplate,
     "EditTemplate": EditTemplate,
     "FindClients": FindClients,
@@ -196,7 +197,6 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
-    "Dream100": Dream100,
 }
 
 export const pagesConfig = {

@@ -28,7 +28,7 @@ export default function Layout({ children, currentPageName }) {
         
         const normalizedPath = location.pathname.toLowerCase();
         const isWelcomePage = normalizedPath === '/' || normalizedPath === '/welcome' || normalizedPath === '/landing' || normalizedPath === '/home';
-        const isPublicLandingPage = normalizedPath === '/solar' || normalizedPath === '/roofing' || normalizedPath === '/insurance' || normalizedPath === '/realestate' || normalizedPath === '/dream100';
+        const isPublicLandingPage = normalizedPath === '/solar' || normalizedPath === '/roofing' || normalizedPath === '/insurance' || normalizedPath === '/realestate' || normalizedPath === '/dream100' || normalizedPath === '/ecommerce';
         
         // Check if user is on AcceptInvitation page (handle ?page= query param)
         const searchParams = new URLSearchParams(location.search);
