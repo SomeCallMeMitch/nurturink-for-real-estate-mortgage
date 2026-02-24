@@ -50,6 +50,7 @@ export default function SolarHero() {
             Solar customers make one of the largest purchases of their lives. Then they go back to their neighborhood where their neighbors are asking who did it. A handwritten card makes sure they remember your name when that conversation happens.
           </p>
 
+          {/* Changed: orange btn now links to #get-sample (the SolarSampleForm section) */}
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <SolarBtnOrange href="#get-sample">Get Your Free Sample Card</SolarBtnOrange>
             <SolarBtnOutline href="#calculator">See the ROI Math</SolarBtnOutline>
