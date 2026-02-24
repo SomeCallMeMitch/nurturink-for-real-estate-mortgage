@@ -118,6 +118,7 @@ import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
 import landing1 from './pages/landing1';
 import lp from './pages/lp';
+import AdminSampleRequests from './pages/AdminSampleRequests';
 import __Layout from './Layout.jsx';
 
 
@@ -193,6 +194,7 @@ export const PAGES = {
     "WelcomeRoof": WelcomeRoof,
     "landing1": landing1,
     "lp": lp,
+    "AdminSampleRequests": AdminSampleRequests,
 }
 
 export const pagesConfig = {
