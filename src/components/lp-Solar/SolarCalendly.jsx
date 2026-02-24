@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 
 /**
  * SolarCalendly — Appointment booking section with Calendly embed
- * Added per user requirement (not in original HTML spec but discussed and approved)
+ * id="schedule-demo" added so the nav "Meet with Us" button scrolls here
  */
 export default function SolarCalendly() {
   useEffect(() => {
@@ -17,7 +17,6 @@ export default function SolarCalendly() {
   }, []);
 
   return (
-    {/* Added id="schedule-demo" so the nav "Meet with Us" button scrolls here */}
     <section id="schedule-demo" style={{ background: '#172840', padding: '80px 40px' }}>
       <div style={{ maxWidth: '1060px', margin: '0 auto', textAlign: 'center' }}>
         <div style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#FF7A00', marginBottom: '14px' }}>
