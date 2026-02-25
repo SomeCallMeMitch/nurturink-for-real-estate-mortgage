@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+// Replaced with shared SampleRequestForm — see components/shared/SampleRequestForm.jsx
+import SampleRequestForm from '../shared/SampleRequestForm';
 
 // Monthly order options matching the original HTML spec
 const MONTHLY_ORDER_OPTIONS = [
