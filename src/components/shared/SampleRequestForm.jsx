@@ -373,31 +373,6 @@ export default function SampleRequestForm({
                 No credit card. No obligation. No spam. Processed within 24-48 hours.
               </p>
             </div>
-          ) : (
-            /* CONFIRMATION STATE */
-            <div className="srf-confirm">
-              <h3 className="srf-confirm-title">Your sample is being processed.</h3>
-              <p className="srf-confirm-body">
-                We'll have it written and in the mail within 24-48 hours.
-              </p>
-              <div className="srf-highlight">
-                <p>
-                  <strong>Check your email inbox right now.</strong> We're sending you something
-                  worth seeing before your card arrives, including a chance to lock in our lowest
-                  rate before we speak.<br /><br />
-                  <strong>Add our email to your contacts</strong> so it doesn't land in spam.
-                  Look for a message from NurturInk arriving in the next few minutes.
-                </p>
-              </div>
-              <p style={{ marginTop: 14, fontSize: 14, color: '#4a5568', fontFamily: "'Lato', sans-serif", lineHeight: 1.55 }}>
-                Once your sample arrives and you want to talk through whether this makes sense
-                for your business,{' '}
-                <a href={`#${bookCallAnchor}`} style={{ color: accentColor, fontWeight: 700, textDecoration: 'none' }}>
-                  book a 30-minute call here
-                </a>.
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </section>
