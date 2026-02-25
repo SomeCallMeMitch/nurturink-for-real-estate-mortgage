@@ -44,6 +44,7 @@ export default function Insurance() {
       <InsuranceScience />
       <InsuranceCalculator />
       <InsuranceCTA />
+      <InsuranceSampleForm />
       <InsuranceCalendly />
       <InsuranceFooter />
       <Toaster />

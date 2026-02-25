@@ -44,6 +44,7 @@ export default function Roofing() {
       <RoofingScience />
       <RoofingCalculator />
       <RoofingCTA />
+      <RoofingSampleForm />
       <RoofingCalendly />
       <RoofingFooter />
       <Toaster />

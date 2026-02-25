@@ -48,6 +48,7 @@ export default function RealEstate() {
       <REScience />
       <RECalculator />
       <RECTA />
+      <RESampleForm />
       <RECalendly />
       <REFooter />
       <Toaster />
