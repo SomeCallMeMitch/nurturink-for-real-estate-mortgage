@@ -48,9 +48,16 @@ export default function AdminSampleRequests() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const data = await base44.entities.SampleRequest.list('-created_date', 500);
-    setRequests(data);
-    setLoading(false);
+    setError(null);
+    try {
+      const data = await base44.entities.SampleRequest.list('-created_date', 500);
+      setRequests(data || []);
+    } catch (err) {
+      console.error('Failed to load sample requests:', err);
+      setError(err?.message || 'Failed to load sample requests.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { load(); }, [load]);
