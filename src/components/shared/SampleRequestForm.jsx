@@ -218,10 +218,41 @@ export default function SampleRequestForm({
           </p>
         </div>
 
-        {/* RIGHT — form or confirmation */}
+        {/* RIGHT — form (always shown) + confirmation dialog */}
         <div>
-          {!submitted ? (
-            <div className="srf-card">
+          {/* Confirmation modal — shown after successful submission */}
+          <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
+            <DialogContent style={{ fontFamily: "'Lato', sans-serif", maxWidth: 480 }}>
+              <DialogHeader>
+                <DialogTitle style={{ fontFamily: "'Sora', sans-serif", color: '#1a2d4a', fontSize: '1.2rem' }}>
+                  Your sample is being processed!
+                </DialogTitle>
+                <DialogDescription asChild>
+                  <div style={{ marginTop: 8 }}>
+                    <p style={{ fontSize: 15, color: '#4a5568', lineHeight: 1.6, marginBottom: 12 }}>
+                      We'll have it written and in the mail within <strong>24–48 hours</strong>. Cards typically arrive within <strong>6–10 days</strong>.
+                    </p>
+                    <div style={{ background: '#1a2d4a', borderRadius: 6, padding: '14px 16px', marginBottom: 12 }}>
+                      <p style={{ color: 'rgba(255,255,255,0.85)', margin: 0, fontSize: 14, lineHeight: 1.55 }}>
+                        <strong style={{ color: '#f59e0b' }}>Check your inbox right now.</strong> We're sending you something worth reading before your card arrives — including a chance to lock in our lowest rate before we speak.<br /><br />
+                        <strong style={{ color: '#f59e0b' }}>Add us to your contacts</strong> so our email doesn't land in spam. Look for a message from <strong style={{ color: '#fff' }}>noreply@nurturink.com</strong>.
+                      </p>
+                    </div>
+                    <p style={{ fontSize: 13, color: '#718096', lineHeight: 1.55, margin: 0 }}>
+                      Once your sample arrives and you'd like to talk, <a href={`#${bookCallAnchor}`} onClick={() => setShowConfirmation(false)} style={{ color: accentColor, fontWeight: 700, textDecoration: 'none' }}>book a 30-minute call here</a>.
+                    </p>
+                  </div>
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button onClick={() => setShowConfirmation(false)} style={{ background: accentColor, color: '#fff', fontFamily: "'Lato', sans-serif", fontWeight: 700 }}>
+                  Got it, thanks!
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          <div className="srf-card">
               <h3 className="srf-card-title">Request Your Free Sample Card</h3>
               <p className="srf-card-sub">We'll use your details to personalize your sample.</p>
 
