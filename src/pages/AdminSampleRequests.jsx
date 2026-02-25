@@ -287,6 +287,8 @@ export default function AdminSampleRequests() {
             ))}
           </div>
         )}
+        </>
+        )}
       </div>
     </SuperAdminLayout>
   );
