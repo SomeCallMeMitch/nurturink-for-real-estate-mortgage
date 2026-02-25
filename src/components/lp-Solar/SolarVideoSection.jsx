@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { Play, Pause } from 'lucide-react';
+import React from 'react';
+import { Play } from 'lucide-react';
 
 /**
  * SolarVideoSection — SECTION 3: VIDEO + PROOF BULLETS
@@ -15,16 +15,6 @@ const bullets = [
 ];
 
 export default function SolarVideoSection() {
-  const videoRef = useRef(null);
-  const [paused, setPaused] = useState(false);
-
-  const togglePlay = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (v.paused) { v.play(); setPaused(false); }
-    else { v.pause(); setPaused(true); }
-  };
-
   return (
     <section style={{ background: '#172840', padding: '72px 40px' }}>
       <div className="solar-video-inner" style={{ maxWidth: '1060px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 480px', gap: '56px', alignItems: 'center' }}>
