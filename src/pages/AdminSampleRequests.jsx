@@ -34,6 +34,7 @@ export default function AdminSampleRequests() {
   const [loading, setLoading]         = useState(true);
   const [updatingId, setUpdatingId]   = useState(null);
   const [exporting, setExporting]     = useState(false);
+  const [error, setError]             = useState(null);
   const [sourceFilter, setSourceFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
 
