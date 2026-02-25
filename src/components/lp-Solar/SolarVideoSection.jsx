@@ -1,5 +1,5 @@
-import React from 'react';
-import { Play } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { Play, Pause } from 'lucide-react';
 
 /**
  * SolarVideoSection — SECTION 3: VIDEO + PROOF BULLETS
