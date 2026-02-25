@@ -34,9 +34,10 @@ const WelcomeHeader = () => {
     base44.auth.redirectToLogin('/Home');
   };
 
-  // Scroll to Calendly section instead of login redirect
+  // Scroll to free sample form section
   const handleGetSample = () => {
-    const element = document.querySelector('#book-appointment');
+    // Try #get-sample first (landing pages), fall back to #book-appointment (Welcome page)
+    const element = document.querySelector('#get-sample') || document.querySelector('#book-appointment');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
       setMobileMenuOpen(false);
