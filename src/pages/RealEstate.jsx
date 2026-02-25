@@ -11,6 +11,7 @@ import REFurmanCalculator from '../components/lp-RealEstate/REFurmanCalculator';
 import REScience from '../components/lp-RealEstate/REScience';
 import RECalculator from '../components/lp-RealEstate/RECalculator';
 import RECTA from '../components/lp-RealEstate/RECTA';
+import RESampleForm from '../components/lp-RealEstate/RESampleForm';
 import RECalendly from '../components/lp-RealEstate/RECalendly';
 import REFooter from '../components/lp-RealEstate/REFooter';
 import { Toaster } from '@/components/ui/toaster';

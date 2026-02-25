@@ -9,6 +9,7 @@ import InsurancePSL from '../components/lp-Insurance/InsurancePSL';
 import InsuranceScience from '../components/lp-Insurance/InsuranceScience';
 import InsuranceCalculator from '../components/lp-Insurance/InsuranceCalculator';
 import InsuranceCTA from '../components/lp-Insurance/InsuranceCTA';
+import InsuranceSampleForm from '../components/lp-Insurance/InsuranceSampleForm';
 import InsuranceCalendly from '../components/lp-Insurance/InsuranceCalendly';
 import InsuranceFooter from '../components/lp-Insurance/InsuranceFooter';
 import { Toaster } from '@/components/ui/toaster';

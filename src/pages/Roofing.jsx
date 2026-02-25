@@ -9,6 +9,7 @@ import RoofingPSL from '../components/lp-Roofing/RoofingPSL';
 import RoofingScience from '../components/lp-Roofing/RoofingScience';
 import RoofingCalculator from '../components/lp-Roofing/RoofingCalculator';
 import RoofingCTA from '../components/lp-Roofing/RoofingCTA';
+import RoofingSampleForm from '../components/lp-Roofing/RoofingSampleForm';
 import RoofingCalendly from '../components/lp-Roofing/RoofingCalendly';
 import RoofingFooter from '../components/lp-Roofing/RoofingFooter';
 import { Toaster } from '@/components/ui/toaster';
