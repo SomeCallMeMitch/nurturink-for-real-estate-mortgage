@@ -64,8 +64,7 @@ export default function SuperAdminLayout({ children }) {
       { id: 'coupons', label: 'Coupons', icon: Tag, path: 'AdminCoupons' },
       { id: 'preview-layout', label: 'Preview Layout', icon: Layout, path: 'AdminCardLayout' },
       { id: 'content-layout', label: 'Content Layout', icon: Layout, path: 'AdminCreateContentLayout' },
-      { id: 'envelope-layout', label: 'Envelope Layout', icon: Mail, path: 'AdminEnvelopeLayout' },
-      { id: 'sample-requests', label: 'Sample Requests', icon: Inbox, path: 'AdminSampleRequests' }
+      { id: 'envelope-layout', label: 'Envelope Layout', icon: Mail, path: 'AdminEnvelopeLayout' }
     );
   } else if (isOrgOwner) {
     // Organization owner only sees pricing management
