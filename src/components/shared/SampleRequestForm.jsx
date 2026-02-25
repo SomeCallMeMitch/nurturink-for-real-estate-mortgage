@@ -94,7 +94,8 @@ export default function SampleRequestForm({
         source,
       });
       if (res.data?.success) {
-        setSubmitted(true);
+        setShowConfirmation(true);
+        setForm(INITIAL_FORM);
       } else {
         setServerError('Something went wrong. Please try again or email us directly.');
       }
