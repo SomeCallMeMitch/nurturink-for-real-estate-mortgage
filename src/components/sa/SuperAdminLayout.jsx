@@ -23,8 +23,8 @@ export default function SuperAdminLayout({ children }) {
       const isOrgOwner = currentUser.role === 'organization_owner';
       
       if (!isSuperAdmin && !isOrgOwner) {
-        // Redirect to home if neither role
-        window.location.href = createPageUrl('Home');
+        // Redirect to dashboard if neither role
+        window.location.href = createPageUrl('Dashboard');
         return;
       }
       
@@ -32,7 +32,7 @@ export default function SuperAdminLayout({ children }) {
       setLoading(false);
     } catch (error) {
       console.error('Access check failed:', error);
-      window.location.href = createPageUrl('Home');
+      window.location.href = createPageUrl('Dashboard');
     }
   };
 
