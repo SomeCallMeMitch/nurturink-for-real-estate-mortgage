@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
   await resend.emails.send({
     from: 'NurturInk <noreply@nurturink.com>',
     to: NOTIFY_EMAIL,
-    replyTo: NOTIFY_EMAIL,
+    replyTo: [NOTIFY_EMAIL], // Resend requires array for replyTo
     subject: `New Free Sample Request — ${firstName} ${lastName} (${source})`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #2d3748;">
@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
   // 3. Send confirmation email to the requester
   await resend.emails.send({
     from: 'NurturInk <noreply@nurturink.com>',
-    replyTo: NOTIFY_EMAIL,
+    replyTo: [NOTIFY_EMAIL], // Resend requires array for replyTo
     to: email,
     subject: 'Your NurturInk Sample Card is On Its Way!',
     html: `

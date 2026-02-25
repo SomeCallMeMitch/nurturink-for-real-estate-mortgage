@@ -160,6 +160,9 @@ export function AppSidebar({ whitelabelSettings, user }) {
     ...(hasRole(['organization_owner', 'super_admin']) ? [{ title: "Company Settings", url: "SettingsOrganization", icon: Building }] : []),
   ];
 
+  // DEBUG: log user role so we can confirm what role is being received
+  console.log('AppSidebar adminItems: user.role=', user?.role, '| user.appRole=', user?.appRole);
+
   const adminItems = [
     { title: "Dashboard", url: "SuperAdminDashboard", icon: LayoutDashboard },
     { title: "All Sends", url: "AdminSends", icon: Send },
@@ -170,6 +173,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
     { title: "Content Layout", url: "AdminCreateContentLayout", icon: PenTool },
     { title: "Envelope Layout", url: "AdminEnvelopeLayout", icon: Mail },
     { title: "Email Testing", url: "AdminEmailTesting", icon: Mail },
+    { title: "Sample Requests", url: "AdminSampleRequests", icon: FileText }, // Added sample requests
   ];
 
   const whitelabelItems = [

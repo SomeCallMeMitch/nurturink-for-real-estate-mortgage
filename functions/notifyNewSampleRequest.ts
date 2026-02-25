@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
     // Send notification email
     await resend.emails.send({
       from: 'NurturInk Leads <noreply@nurturink.com>',
-      replyTo: NOTIFY_EMAIL,
+      replyTo: [NOTIFY_EMAIL], // Resend requires array for replyTo
       to: NOTIFY_EMAIL,
       subject: `New Sample Request — ${firstName} ${lastName} (${source})`,
       html: `
