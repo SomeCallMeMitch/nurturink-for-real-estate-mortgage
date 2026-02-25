@@ -18,8 +18,9 @@ export default function SuperAdminLayout({ children }) {
       const currentUser = await base44.auth.me();
       
       // Check if user is super admin OR organization owner
-      const isSuperAdmin = currentUser.appRole === 'super_admin';
-      const isOrgOwner = currentUser.appRole === 'organization_owner';
+      // NOTE: Base44 user object uses `role`, not `appRole`
+      const isSuperAdmin = currentUser.role === 'super_admin';
+      const isOrgOwner = currentUser.role === 'organization_owner';
       
       if (!isSuperAdmin && !isOrgOwner) {
         // Redirect to home if neither role
@@ -47,8 +48,8 @@ export default function SuperAdminLayout({ children }) {
   }
 
   // Determine which menu items to show based on role
-  const isSuperAdmin = user?.appRole === 'super_admin';
-  const isOrgOwner = user?.appRole === 'organization_owner';
+  const isSuperAdmin = user?.role === 'super_admin';
+  const isOrgOwner = user?.role === 'organization_owner';
 
   // Build menu items based on role
   const menuItems = [];

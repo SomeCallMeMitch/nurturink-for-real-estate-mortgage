@@ -29,7 +29,7 @@ export default function EcommerceNav() {
           <li><a href="#the-math" style={{ color: 'rgba(255,255,255,0.82)', fontSize: 15, textDecoration: 'none', fontWeight: 600 }}>The Math</a></li>
           <li><a href="#pricing" style={{ color: 'rgba(255,255,255,0.82)', fontSize: 15, textDecoration: 'none', fontWeight: 600 }}>Pricing</a></li>
           <li><a href="#book-call" style={{ background: '#FF7A00', color: '#fff', padding: '8px 18px', borderRadius: 4, fontWeight: 700, textDecoration: 'none', fontSize: 15 }}>Book a Call</a></li>
-          <li><a href="#sample" style={{ background: '#FF7A00', color: '#fff', padding: '8px 18px', borderRadius: 4, fontWeight: 700, textDecoration: 'none', fontSize: 15 }}>Free Sample</a></li>
+          <li><a href="#get-sample" onClick={(e) => { e.preventDefault(); document.getElementById('get-sample')?.scrollIntoView({ behavior: 'smooth' }); }} style={{ background: '#FF7A00', color: '#fff', padding: '8px 18px', borderRadius: 4, fontWeight: 700, textDecoration: 'none', fontSize: 15, cursor: 'pointer' }}>Free Sample</a></li>
         </ul>
 
         {/* Mobile CTA only */}
