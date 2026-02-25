@@ -107,6 +107,22 @@ export default function AdminSampleRequests() {
     <SuperAdminLayout>
       <div className="max-w-6xl mx-auto">
 
+        {/* ── Loading state ── */}
+        {loading && (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+          </div>
+        )}
+
+        {/* ── Error state ── */}
+        {error && !loading && (
+          <div className="text-center py-16 text-red-500">{error}</div>
+        )}
+
+        {/* ── Main content ── */}
+        {!loading && !error && (
+        <>
+
         {/* ── Header ── */}
         <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
           <div>
