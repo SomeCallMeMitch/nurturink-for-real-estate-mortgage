@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const stats = [
   { val: '2x', label: 'future spending from customers who received a handwritten note', source: 'Univ. of Maryland / Yonsei, 2022' },
@@ -8,14 +8,6 @@ const stats = [
 ];
 
 export default function EcommerceHero() {
-  const [playing, setPlaying] = useState(false);
-
-  const handlePlay = () => {
-    setPlaying(true);
-    const video = document.getElementById('ec-demo-video');
-    if (video) video.play();
-  };
-
   return (
     <section id="top" style={{ background: '#1a2d4a', padding: '22px 0 0' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
@@ -96,37 +88,22 @@ export default function EcommerceHero() {
       {/* Full-bleed video */}
       <div
         id="ec-video-wrap"
-        onClick={handlePlay}
         style={{
           position: 'relative', width: '100%', aspectRatio: '16/9',
-          background: '#000', overflow: 'hidden', cursor: 'pointer',
+          background: '#000', overflow: 'hidden',
           boxShadow: '0 8px 32px rgba(0,0,0,0.6)'
         }}
       >
         <video
           id="ec-demo-video"
-          preload="none"
+          autoPlay
+          loop
+          muted
+          playsInline
           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
         >
           <source src="https://res.cloudinary.com/dge8qy1ps/video/upload/Handwritten_Note_process_zuyc3z.mp4" type="video/mp4" />
         </video>
-        {!playing && (
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(0,0,0,0.28)'
-          }}>
-            <div style={{
-              width: 64, height: 64, borderRadius: '50%',
-              background: '#FF7A00', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 4px 20px rgba(255,122,0,0.5)'
-            }}>
-              <svg viewBox="0 0 24 24" style={{ width: 24, height: 24, fill: 'white', marginLeft: 4 }}>
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
-          </div>
-        )}
       </div>
 
       <p style={{
