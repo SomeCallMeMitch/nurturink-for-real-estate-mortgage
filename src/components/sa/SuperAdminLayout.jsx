@@ -6,46 +6,19 @@ import { Settings, LayoutGrid, Mail, Shield, Home, Layout, DollarSign, Tag, Send
 
 export default function SuperAdminLayout({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const location = useLocation();
 
   useEffect(() => {
-    checkAccess();
-  }, []);
-
-  const checkAccess = async () => {
-    try {
-      const currentUser = await base44.auth.me();
-      
-      // Check if user is super admin OR organization owner
-      // NOTE: Base44 user object uses `role`, not `appRole`
-      const isSuperAdmin = currentUser.role === 'super_admin';
-      const isOrgOwner = currentUser.role === 'organization_owner';
-      
-      if (!isSuperAdmin && !isOrgOwner) {
-        // Redirect to dashboard if neither role
-        window.location.href = createPageUrl('Dashboard');
-        return;
+    const fetchUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (error) {
+        console.error('Failed to fetch user:', error);
       }
-      
-      setUser(currentUser);
-      setLoading(false);
-    } catch (error) {
-      console.error('Access check failed:', error);
-      window.location.href = createPageUrl('Dashboard');
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Shield className="w-12 h-12 text-indigo-600 mx-auto mb-4 animate-pulse" />
-          <p className="text-gray-600">Verifying access...</p>
-        </div>
-      </div>
-    );
-  }
+    };
+    fetchUser();
+  }, []);
 
   // Determine which menu items to show based on role
   const isSuperAdmin = user?.role === 'super_admin';
