@@ -4,7 +4,7 @@ const stats = [
   { val: '2x', label: 'future spending from customers who received a handwritten note', source: 'Univ. of Maryland / Yonsei, 2022' },
   { val: '5-25x', label: 'more expensive to acquire a new customer than keep one', source: 'Yotpo / Bain and Company' },
   { val: '65%', label: 'of total brand revenue comes from existing customers', source: 'BIA Advisory / Bluecore' },
-  { val: '$2.49', label: 'per card, real pen, real cardstock, postage included', source: 'NurturInk flat rate' },
+  { val: '$2.50', label: 'per card, real pen, real cardstock, postage included', source: 'NurturInk flat rate' },
 ];
 
 export default function EcommerceHero() {
@@ -31,14 +31,14 @@ export default function EcommerceHero() {
               fontSize: 'clamp(1.7rem, 6.5vw, 3rem)', lineHeight: 1.12,
               color: '#fff', marginBottom: 7
             }}>
-              A $2.49 Card.<br />Customers Spend<br /><span style={{ color: '#FF7A00' }}>2x More.</span>
+              A $2.50 Card.<br />Customers Spend<br /><span style={{ color: '#FF7A00' }}>2x More.</span>
             </h1>
             <h1 className="ec-h1-desktop" style={{
               fontFamily: "'Sora', sans-serif", fontWeight: 900,
               fontSize: 'clamp(1.7rem, 6.5vw, 3rem)', lineHeight: 1.12,
               color: '#fff', marginBottom: 7
             }}>
-              A $2.49 Handwritten Card.<br />Peer-Reviewed Research Shows<br />Customers Spend <span style={{ color: '#FF7A00' }}>2x More.</span>
+              A $2.50 Handwritten Card.<br />Peer-Reviewed Research Shows<br />Customers Spend <span style={{ color: '#FF7A00' }}>2x More.</span>
             </h1>
 
             <p style={{
