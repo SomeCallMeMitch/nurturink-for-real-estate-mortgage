@@ -36,13 +36,13 @@ export default function EcommerceCalculators() {
   const [c1Orders, setC1Orders] = useState(500);
   const [c1New, setC1New] = useState(70);
   const [c1Aov, setC1Aov] = useState(115);
-  const [c1Price, setC1Price] = useState(249);
+  const [c1Price, setC1Price] = useState(250);
   const [c1Ltv, setC1Ltv] = useState(0);
 
   // Calculator 2 state
   const [c2Lapsed, setC2Lapsed] = useState(1000);
   const [c2Aov, setC2Aov] = useState(115);
-  const [c2Price, setC2Price] = useState(249);
+  const [c2Price, setC2Price] = useState(250);
 
   // Calc 1 results
   const price1 = c1Price / 100;

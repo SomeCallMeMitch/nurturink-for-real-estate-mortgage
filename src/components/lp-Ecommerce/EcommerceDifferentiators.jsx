@@ -4,7 +4,7 @@ const cards = [
   { icon: '✏️', title: 'Real Ballpoint Pen, Every Card', body: 'Every note is written with a real pen on real cardstock. AI-controlled plotters calibrated for human-like variation. Your customers will feel the pen impression because it is there.' },
   { icon: '🎉', title: 'Pure Gratitude. No Sales Pitch.', body: 'We will never add a discount code, logo placement, or call to action. The research is clear: promotional content neutralizes the emotional effect. Every card is pure appreciation.' },
   { icon: '⚙️', title: 'Connects to Your Shopify Store', body: 'Post-purchase triggers, milestone recognition, win-back campaigns, designed around how Shopify stores operate. We walk through setup on your onboarding call.' },
-  { icon: '💰', title: 'One Price. Everything Included.', body: '$2.49 per card. Real pen. Quality cardstock. Stamp. Mailed. No monthly minimums. No subscription. No postage line on your invoice.' },
+  { icon: '💰', title: 'One Price. Everything Included.', body: '$2.50 per card. Real pen. Quality cardstock. Stamp. Mailed. No monthly minimums. No subscription. No postage line on your invoice.' },
   { icon: '🎁', title: 'High-Value Moments Only', body: 'First-time buyers. Loyalty milestones like order #10 or a one-year anniversary. Special occasions including birthdays. Win-back at 90-180 days.' },
   { icon: '📦', title: 'No Minimums. Scales With You.', body: '10 cards a month or 10,000, same quality, same turnaround. Volume pricing available at $2.00/card for 500+ monthly. No setup cost.' },
 ];

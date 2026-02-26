@@ -39,7 +39,7 @@ export default function EcommercePricing() {
               {[
                 { brand: 'Competitor A', amount: '$3.50+', detail: 'Per card at retail pricing', gotcha: '+ monthly subscription required for competitive rates', isOurs: false },
                 { brand: 'Competitor B', amount: '$3.00+', detail: 'Per card quoted rate', gotcha: '+ postage billed separately', isOurs: false },
-                { brand: 'NurturInk', amount: '$2.49', detail: 'Per card, completely all-in', extra: 'Real pen. Cardstock. Stamp. Mailed.', isOurs: true },
+                { brand: 'NurturInk', amount: '$2.50', detail: 'Per card, completely all-in', extra: 'Real pen. Cardstock. Stamp. Mailed.', isOurs: true },
               ].map((card, i) => (
                 <div key={i} style={{
                   background: card.isOurs ? 'rgba(255,122,0,0.12)' : 'rgba(255,255,255,0.05)',
