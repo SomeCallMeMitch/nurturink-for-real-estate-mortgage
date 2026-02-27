@@ -369,8 +369,8 @@ export default function SampleRequestForm({
                 {errors.address && <p className="srf-field-error">{errors.address}</p>}
               </div>
 
-              {/* City / State ZIP */}
-              <div className="srf-row">
+              {/* City / State / ZIP — split into 3 separate fields */}
+              <div className="srf-row-3">
                 <div className="srf-field">
                   <label className="srf-label">City</label>
                   <input
@@ -381,13 +381,25 @@ export default function SampleRequestForm({
                   {errors.city && <p className="srf-field-error">{errors.city}</p>}
                 </div>
                 <div className="srf-field">
-                  <label className="srf-label">State and ZIP</label>
+                  <label className="srf-label">State</label>
+                  <select
+                    className={`srf-select${errors.state ? ' err' : ''}`}
+                    name="state" value={form.state} onChange={handleChange}
+                  >
+                    {US_STATES.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                  {errors.state && <p className="srf-field-error">{errors.state}</p>}
+                </div>
+                <div className="srf-field">
+                  <label className="srf-label">ZIP Code</label>
                   <input
-                    className={`srf-input${errors.stateZip ? ' err' : ''}`}
-                    type="text" name="stateZip" placeholder="CA 94102"
-                    value={form.stateZip} onChange={handleChange}
+                    className={`srf-input${errors.zip ? ' err' : ''}`}
+                    type="text" name="zip" placeholder="94102"
+                    maxLength={10} value={form.zip} onChange={handleChange}
                   />
-                  {errors.stateZip && <p className="srf-field-error">{errors.stateZip}</p>}
+                  {errors.zip && <p className="srf-field-error">{errors.zip}</p>}
                 </div>
               </div>
 
