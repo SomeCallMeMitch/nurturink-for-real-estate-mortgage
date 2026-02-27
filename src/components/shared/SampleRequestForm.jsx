@@ -116,8 +116,10 @@ export default function SampleRequestForm({
 
     setLoading(true);
     try {
+      // Combine state + zip back into stateZip for the backend schema
       const res = await base44.functions.invoke('submitSampleRequest', {
         ...form,
+        stateZip: `${form.state} ${form.zip}`.trim(),
         source,
       });
       if (res.data?.success) {
