@@ -223,6 +223,7 @@ export default function SampleRequestForm({
     @media (max-width: 768px) {
       .srf-inner { grid-template-columns: 1fr; padding: 0 20px; gap: 28px; }
       .srf-row { grid-template-columns: 1fr; gap: 0; }
+      .srf-row-3 { grid-template-columns: 1fr; gap: 0; }
       .srf-section { padding: 60px 0; }
     }
   `;
