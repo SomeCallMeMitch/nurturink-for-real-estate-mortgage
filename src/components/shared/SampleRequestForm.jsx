@@ -239,9 +239,42 @@ export default function SampleRequestForm({
                         <strong style={{ color: '#f59e0b' }}>Add us to your contacts</strong> so our email doesn't land in spam. Look for a message from <strong style={{ color: '#fff' }}>noreply@nurturink.com</strong>.
                       </p>
                     </div>
-                    <p style={{ fontSize: 13, color: '#718096', lineHeight: 1.55, margin: 0 }}>
-                      Once your sample arrives and you'd like to talk, <a href={`#${bookCallAnchor}`} onClick={() => setShowConfirmation(false)} style={{ color: accentColor, fontWeight: 700, textDecoration: 'none' }}>book a 30-minute call here</a>.
-                    </p>
+                    {/* CTA: Book a call + LinkedIn — added per user request */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
+                      {/* Book a call button */}
+                      <a
+                        href={`#${bookCallAnchor}`}
+                        onClick={() => setShowConfirmation(false)}
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          background: accentColor, color: '#fff', fontFamily: "'Lato', sans-serif",
+                          fontWeight: 700, fontSize: 15, padding: '12px 18px', borderRadius: 4,
+                          textDecoration: 'none', transition: 'opacity 0.15s',
+                        }}
+                        onMouseOver={e => e.currentTarget.style.opacity = '0.88'}
+                        onMouseOut={e => e.currentTarget.style.opacity = '1'}
+                      >
+                        <Calendar size={16} />
+                        Book a 30-Minute Call
+                      </a>
+                      {/* LinkedIn profile link */}
+                      <a
+                        href="https://www.linkedin.com/in/mitchfields/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                          background: '#0a66c2', color: '#fff', fontFamily: "'Lato', sans-serif",
+                          fontWeight: 700, fontSize: 15, padding: '12px 18px', borderRadius: 4,
+                          textDecoration: 'none', transition: 'opacity 0.15s',
+                        }}
+                        onMouseOver={e => e.currentTarget.style.opacity = '0.88'}
+                        onMouseOut={e => e.currentTarget.style.opacity = '1'}
+                      >
+                        <Linkedin size={16} />
+                        Connect with Mitch on LinkedIn
+                      </a>
+                    </div>
                   </div>
                 </DialogDescription>
               </DialogHeader>
