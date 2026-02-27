@@ -99,7 +99,9 @@ export default function SampleRequestForm({
       e.email = 'Valid email required';
     if (!form.address.trim()) e.address = 'Required';
     if (!form.city.trim()) e.city = 'Required';
-    if (!form.stateZip.trim()) e.stateZip = 'Required';
+    if (!form.state) e.state = 'Required';
+    if (!form.zip.trim()) e.zip = 'Required';
+    else if (!/^\d{5}(-\d{4})?$/.test(form.zip.trim())) e.zip = 'Enter a valid ZIP code';
     if (!form.storeNameOrUrl.trim()) e.storeNameOrUrl = 'Required';
     return e;
   };
