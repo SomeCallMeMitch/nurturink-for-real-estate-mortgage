@@ -166,6 +166,7 @@ export default function SampleRequestForm({
       line-height: 1.36; font-family: 'Lato', sans-serif;
     }
     .srf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .srf-row-3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
     .srf-field { margin-bottom: 14px; }
     .srf-label {
       display: block; font-size: 14px; font-weight: 700;
