@@ -100,7 +100,7 @@ export default function Onboarding() {
   }
 
   if (showMobileModal) {
-      return <MobileOnboardingModal onClose={() => navigate('/Home')} />;
+      return <MobileOnboardingModal onClose={() => navigate('/Dashboard')} />;
   }
 
   return (
