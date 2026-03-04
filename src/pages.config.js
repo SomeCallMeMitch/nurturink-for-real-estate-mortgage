@@ -77,6 +77,7 @@ import EditQuickSendTemplate from './pages/EditQuickSendTemplate';
 import EditTemplate from './pages/EditTemplate';
 import FindClients from './pages/FindClients';
 import Insurance from './pages/Insurance';
+import Join from './pages/Join';
 import Landing from './pages/Landing';
 import LandingPremium from './pages/LandingPremium';
 import Legal from './pages/Legal';
@@ -155,6 +156,7 @@ export const PAGES = {
     "EditTemplate": EditTemplate,
     "FindClients": FindClients,
     "Insurance": Insurance,
+    "Join": Join,
     "Landing": Landing,
     "LandingPremium": LandingPremium,
     "Legal": Legal,
