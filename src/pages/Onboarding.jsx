@@ -60,13 +60,34 @@ export default function Onboarding() {
   };
 
   const handleComplete = async () => {
-    // Final submission logic here, calling setupAccount
-    // On success, check for mobile and show modal or redirect
-    const isMobile = window.innerWidth < 1024;
-    if (isMobile) {
+    try {
+      // Call setupAccount to create the org and mark user as onboarded
+      const result = await base44.functions.invoke('setupAccount', {
+        role: onboardingData.role,
+        companyName: onboardingData.companyName,
+        details: {
+          website: onboardingData.website,
+          phone: onboardingData.phone,
+          jobTitle: onboardingData.jobTitle,
+        },
+      });
+
+      if (!result?.data?.success) {
+        console.error('setupAccount failed:', result);
+        // TODO: Show error toast to user
+        return;
+      }
+
+      // On success, check for mobile and show modal or redirect
+      const isMobile = window.innerWidth < 1024;
+      if (isMobile) {
         setShowMobileModal(true);
-    } else {
-        navigate('/Home');
+      } else {
+        navigate('/Dashboard');
+      }
+    } catch (error) {
+      console.error('Onboarding completion failed:', error);
+      // TODO: Show error toast to user
     }
   };
 
