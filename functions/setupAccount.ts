@@ -29,6 +29,7 @@ Deno.serve(async (req) => {
       const org = await base44.asServiceRole.entities.Organization.create({
         name: `${user.full_name}'s Workspace`,
         accountType: 'company', // Treated as a company of 1
+        industry: details?.industry,
         activeTeamMembers: 1,
         creditBalance: 0
       });
@@ -42,6 +43,7 @@ Deno.serve(async (req) => {
         accountType: 'company',
         website: details?.website,
         phone: details?.phone,
+        industry: details?.industry,
         activeTeamMembers: 1,
         creditBalance: 0
       });
@@ -55,6 +57,7 @@ Deno.serve(async (req) => {
         accountType: 'whitelabel_partner',
         website: details?.website,
         phone: details?.phone,
+        industry: details?.industry,
         activeTeamMembers: 1,
         creditBalance: 0
       });
