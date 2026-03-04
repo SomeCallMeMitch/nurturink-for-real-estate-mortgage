@@ -45,14 +45,40 @@ export default function Layout({ children, currentPageName }) {
           return;
         }
 
-        // Redirect logged-in users away from Welcome page to Dashboard (mobile or desktop)
-                      if (authenticated && isWelcomePage) {
-                        if (isMobile) {
-                          navigate('/MobileHome', { replace: true });
-                        } else {
-                          navigate('/Dashboard', { replace: true });
-                        }
-                      }
+        if (authenticated) {
+          // Check if user has completed onboarding
+          try {
+            const user = await base44.auth.me();
+            const isOnboardingPage = normalizedPath === '/onboarding';
+
+            if (!user?.onboardingComplete && !isOnboardingPage) {
+              // User is authenticated but has NOT completed onboarding — send to wizard
+              navigate('/Onboarding', { replace: true });
+              return;
+            }
+
+            if (user?.onboardingComplete && isOnboardingPage) {
+              // Already onboarded — redirect away from /Onboarding
+              if (isMobile) {
+                navigate('/MobileHome', { replace: true });
+              } else {
+                navigate('/Dashboard', { replace: true });
+              }
+              return;
+            }
+          } catch (err) {
+            console.error('Failed to check onboarding status:', err);
+          }
+
+          // Redirect logged-in, onboarded users away from Welcome page
+          if (isWelcomePage) {
+            if (isMobile) {
+              navigate('/MobileHome', { replace: true });
+            } else {
+              navigate('/Dashboard', { replace: true });
+            }
+          }
+        }
 
         // Redirect non-logged-in users to Welcome page if they try to access other pages
         // (but NOT public landing pages like /solar)

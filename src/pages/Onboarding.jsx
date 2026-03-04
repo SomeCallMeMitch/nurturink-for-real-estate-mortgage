@@ -39,7 +39,7 @@ export default function Onboarding() {
       try {
         const user = await base44.auth.me();
         if (user?.onboardingComplete) {
-          navigate('/Home');
+          navigate('/Dashboard');
         }
       } catch (error) {
         console.error('Auth check failed', error);
