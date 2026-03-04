@@ -127,29 +127,33 @@ export default function Dashboard() {
 
       // Fetch team stats for organization owners
       if (currentUser.appRole === 'organization_owner' && orgData) {
-        const teamMembers = await base44.entities.User.filter({ orgId: currentUser.orgId });
-        
-        // For each team member, count their notes
-        const teamStatsData = await Promise.all(
-          teamMembers.map(async (member) => {
-            const memberNotes = await base44.entities.Note.filter({ senderUserId: member.id });
-            const memberNotesThisMonth = memberNotes.filter(note => {
-              const noteDate = moment(note.created_date);
-              return noteDate.isSameOrAfter(startOfMonth) && noteDate.isSameOrBefore(endOfMonth);
-            });
-            
-            return {
-              id: member.id,
-              name: member.full_name || member.email,
-              cardsSentAllTime: memberNotes.length,
-              cardsSentThisMonth: memberNotesThisMonth.length,
-            };
-          })
-        );
+        try {
+          const teamMembers = await base44.entities.User.filter({ orgId: currentUser.orgId });
+          
+          // For each team member, count their notes
+          const teamStatsData = await Promise.all(
+            teamMembers.map(async (member) => {
+              const memberNotes = await base44.entities.Note.filter({ senderUserId: member.id });
+              const memberNotesThisMonth = memberNotes.filter(note => {
+                const noteDate = moment(note.created_date);
+                return noteDate.isSameOrAfter(startOfMonth) && noteDate.isSameOrBefore(endOfMonth);
+              });
+              
+              return {
+                id: member.id,
+                name: member.full_name || member.email,
+                cardsSentAllTime: memberNotes.length,
+                cardsSentThisMonth: memberNotesThisMonth.length,
+              };
+            })
+          );
 
-        // Sort by cards sent this month (descending)
-        teamStatsData.sort((a, b) => b.cardsSentThisMonth - a.cardsSentThisMonth);
-        setTeamStats(teamStatsData);
+          // Sort by cards sent this month (descending)
+          teamStatsData.sort((a, b) => b.cardsSentThisMonth - a.cardsSentThisMonth);
+          setTeamStats(teamStatsData);
+        } catch (teamErr) {
+          console.warn('Dashboard: Failed to load team stats (possibly due to permissions):', teamErr);
+        }
       }
 
     } catch (err) {

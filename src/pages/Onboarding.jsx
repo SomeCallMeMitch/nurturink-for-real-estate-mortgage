@@ -69,6 +69,8 @@ export default function Onboarding() {
           website: onboardingData.website,
           phone: onboardingData.phone,
           jobTitle: onboardingData.jobTitle,
+          industry: onboardingData.industry,
+          writingStyle: onboardingData.writingStyle,
         },
       });
 
