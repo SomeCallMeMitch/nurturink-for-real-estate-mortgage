@@ -112,7 +112,18 @@ export default function Onboarding() {
                 {step === 1 && <RoleSelectionStep onSelect={(role) => { updateData({ role }); handleNext(); }} />}
                 {step === 2 && <IndustrySelectionStep onSelect={(industry) => { updateData({ industry }); handleNext(); }} />}
                 {step === 3 && <BusinessInfoStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} />}
-                {step === 4 && <PreferencesStep onSelect={(style) => { updateData({ writingStyle: style }); handleNext(); }} onSkip={handleNext} />}
+                {step === 4 && onboardingData.role === 'company' && (
+                  <PreferencesStep
+                    onSelect={(style) => { updateData({ writingStyle: style }); handleNext(); }}
+                    onSkip={handleNext}
+                  />
+                )}
+                {step === 4 && onboardingData.role !== 'company' && (
+                  <PreferencesStep
+                    onSelect={(style) => { updateData({ writingStyle: style }); handleComplete(); }}
+                    onSkip={handleComplete}
+                  />
+                )}
                 {step === 5 && onboardingData.role === 'company' && <TeamInviteStep onComplete={handleComplete} onSkip={handleComplete} />}
             </main>
         </div>
