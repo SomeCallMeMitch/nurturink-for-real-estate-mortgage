@@ -1,0 +1,610 @@
+{
+  "categories": [
+    {
+      "name": "AEP / OEP Reminder",
+      "slug": "ins-aep-oep",
+      "description": "Annual Enrollment Period or Open Enrollment Period reminder for Medicare/health clients.",
+      "industry": "insurance",
+      "whenToSend": "2-4 weeks before enrollment period opens",
+      "automationType": "Automated",
+      "triggerTiming": "Calendar-based: AEP Oct 15, OEP Jan 1, etc.",
+      "phase": "GET",
+      "notes": "Specific to health/Medicare agents. Time-sensitive. Include your direct number.",
+      "sourceSheet": "Insurance",
+      "subcategory": "Business Development",
+      "sortOrder": 0
+    },
+    {
+      "name": "Lost Client / Win-Back",
+      "slug": "ins-win-back",
+      "description": "Graceful note to a client who left. Leave the door open.",
+      "industry": "insurance",
+      "whenToSend": "30-60 days after policy cancellation",
+      "automationType": "Manual + Auto",
+      "triggerTiming": "Triggered by policy cancellation event or manual",
+      "phase": "GET",
+      "notes": "10-20% return within 2 years. No guilt trips. Just 'door is always open.'",
+      "sourceSheet": "Insurance",
+      "subcategory": "Business Development",
+      "sortOrder": 1
+    },
+    {
+      "name": "Cross-Sell Introduction",
+      "slug": "ins-cross-sell",
+      "description": "Introduce additional coverage options to existing clients. Bundling opportunity.",
+      "industry": "insurance",
+      "whenToSend": "After 6+ months of relationship",
+      "automationType": "Manual",
+      "triggerTiming": "Manual. Best after a 'give' touchpoint.",
+      "phase": "GET",
+      "notes": "Best when preceded by a non-sales touch. Never as a cold cross-sell.",
+      "sourceSheet": "Insurance",
+      "subcategory": "Business Development",
+      "sortOrder": 2
+    },
+    {
+      "name": "T65 / Medicare Transition",
+      "slug": "ins-t65",
+      "description": "Reach out to clients approaching age 65 for Medicare transition planning.",
+      "industry": "insurance",
+      "whenToSend": "6-12 months before client turns 65",
+      "automationType": "Automated",
+      "triggerTiming": "Triggered by client DOB (65th birthday minus 6-12 months)",
+      "phase": "GET",
+      "notes": "High-value conversion moment. Frame as helpful, not salesy.",
+      "sourceSheet": "Insurance",
+      "subcategory": "Business Development",
+      "sortOrder": 3
+    },
+    {
+      "name": "Post-Claim Resolution",
+      "slug": "ins-post-claim",
+      "description": "Thank client for trust during stressful claim process. Reinforce relationship.",
+      "industry": "insurance",
+      "whenToSend": "5-10 days after claim is resolved/closed",
+      "automationType": "Manual + Auto",
+      "triggerTiming": "Triggered by claim status change to 'resolved' or manual",
+      "phase": "GIVE",
+      "notes": "Reduces likelihood of shopping around after claims. Very high emotional impact.",
+      "sourceSheet": "Insurance",
+      "subcategory": "Client Care",
+      "sortOrder": 0
+    },
+    {
+      "name": "New Policy / Coverage Added",
+      "slug": "ins-new-policy",
+      "description": "Thank you when client adds a new policy line (auto, home, umbrella, life).",
+      "industry": "insurance",
+      "whenToSend": "Within 5 days of new policy binding",
+      "automationType": "Automated",
+      "triggerTiming": "Triggered by new policy creation for existing client",
+      "phase": "GIVE",
+      "notes": "Reinforces multi-policy behavior. Sets up future cross-sell conversations.",
+      "sourceSheet": "Insurance",
+      "subcategory": "General",
+      "sortOrder": 0
+    },
+    {
+      "name": "Agent Introduction / Transfer",
+      "slug": "ins-agent-transfer",
+      "description": "Introduce yourself when inheriting a book of business or when a client is transferred.",
+      "industry": "insurance",
+      "whenToSend": "Within 1 week of transfer/acquisition",
+      "automationType": "Manual + Auto",
+      "triggerTiming": "Triggered by book transfer event or manual",
+      "phase": "GIVE",
+      "notes": "Critical for retention during agency acquisitions or agent departures.",
+      "sourceSheet": "Insurance",
+      "subcategory": "General",
+      "sortOrder": 1
+    },
+    {
+      "name": "Policy Anniversary",
+      "slug": "ins-policy-anniversary",
+      "description": "Celebrate the anniversary of their policy. 'X years of protecting your family.'",
+      "industry": "insurance",
+      "whenToSend": "On policy anniversary date",
+      "automationType": "Automated",
+      "triggerTiming": "Triggered by original policy start date, annually",
+      "phase": "GIVE",
+      "notes": "Different from client anniversary. This is about the policy milestone specifically.",
+      "sourceSheet": "Insurance",
+      "subcategory": "Milestones",
+      "sortOrder": 0
+    },
+    {
+      "name": "Pre-Renewal",
+      "slug": "ins-pre-renewal",
+      "description": "Check in before policy renewal. Thank for loyalty, offer to review coverage. The bread-and-butter 'get' card.",
+      "industry": "insurance",
+      "whenToSend": "30-90 days before renewal date",
+      "automationType": "Automated",
+      "triggerTiming": "Triggered by policy renewal date field",
+      "phase": "GET",
+      "notes": "THE most important insurance card. Give-give-get sequence: Welcome > Birthday > Pre-Renewal. 40% higher retention vs no touch.",
+      "sourceSheet": "Insurance",
+      "subcategory": "Retention",
+      "sortOrder": 0
+    },
+    {
+      "name": "Life Event / Coverage Review",
+      "slug": "ins-life-event",
+      "description": "Reach out when you learn of marriage, baby, new home, retirement. Offer coverage review.",
+      "industry": "insurance",
+      "whenToSend": "Within 1-2 weeks of learning about event",
+      "automationType": "Manual",
+      "triggerTiming": "Manual. Triggered by social media monitoring or client communication.",
+      "phase": "GIVE",
+      "notes": "Natural cross-sell opportunity disguised as genuine care. 'Congrats! Let's make sure you're covered.'",
+      "sourceSheet": "Insurance",
+      "subcategory": "Retention",
+      "sortOrder": 1
+    },
+    {
+      "name": "Annual Review Invitation",
+      "slug": "ins-annual-review",
+      "description": "Invite client to sit down for yearly coverage review. Frame as service, not sales.",
+      "industry": "insurance",
+      "whenToSend": "On policy anniversary or at year-end",
+      "automationType": "Automated",
+      "triggerTiming": "Timed annually, offset from renewal by 2-3 months",
+      "phase": "GET",
+      "notes": "Position as 'making sure you're not overpaying' rather than upsell.",
+      "sourceSheet": "Insurance",
+      "subcategory": "Retention",
+      "sortOrder": 2
+    }
+  ],
+  "templates": [
+    {
+      "name": "Pre-Renewal - Template 1",
+      "content": "Your policy renews soon and I wanted to reach out personally before that happens. I'd love to do a quick review and make sure your coverage still fits your life. Give me a call when you have a few minutes.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-pre-renewal"
+      ],
+      "toneStyle": "Soft ask / service framing",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Pre-Renewal - Template 2",
+      "content": "Renewal time is coming up and I always reach out because I think it's worth a quick look before anything auto-renews. Happy to do a no-pressure review whenever works for you.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-pre-renewal"
+      ],
+      "toneStyle": "Casual / no pressure",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Pre-Renewal - Template 3",
+      "content": "Just a heads up that your renewal is coming. I'm not reaching out to sell you anything, just want to make sure you're still well covered and not overpaying. Call me anytime.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-pre-renewal"
+      ],
+      "toneStyle": "Direct / helpful framing",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Pre-Renewal - Template 4",
+      "content": "Before your policy renews, I'd love five minutes to make sure everything still makes sense for where you are in life. A lot can change in a year. I'm here whenever you're ready.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-pre-renewal"
+      ],
+      "toneStyle": "Personal / consultative",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Pre-Renewal - Template 5",
+      "content": "Wanted you to hear from me before your renewal hits. I always make it a point to check in with clients at this time of year. Happy to talk through anything at all.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-pre-renewal"
+      ],
+      "toneStyle": "Loyal agent framing",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Post-Claim Resolution - Template 1",
+      "content": "I just wanted to reach out now that your claim is resolved and say I'm glad we got through it together. I know that process isn't easy. I'm always here if anything else comes up.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-post-claim"
+      ],
+      "toneStyle": "Empathetic / personal",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Post-Claim Resolution - Template 2",
+      "content": "Claims are stressful and I'm just glad yours is behind you. Thank you for your patience throughout and for trusting me to help navigate it.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-post-claim"
+      ],
+      "toneStyle": "Grateful / warm",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Post-Claim Resolution - Template 3",
+      "content": "Wanted to write this by hand to say how much I appreciate your trust during the claim process. That's when it matters most and I'm glad I could be there for you.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-post-claim"
+      ],
+      "toneStyle": "Sincere / relationship-focused",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Post-Claim Resolution - Template 4",
+      "content": "Now that everything is settled, I hope you can breathe a little easier. I'm always just a call away if anything else comes up.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-post-claim"
+      ],
+      "toneStyle": "Brief / reassuring",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Policy Anniversary - Template 1",
+      "content": "Today marks another year of protecting what matters most to you. I don't take that responsibility lightly. Thank you for continuing to trust me.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-policy-anniversary"
+      ],
+      "toneStyle": "Sincere / meaningful",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Policy Anniversary - Template 2",
+      "content": "Happy policy anniversary! Another year of having your back. Grateful you're still in my corner and I'm still in yours.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-policy-anniversary"
+      ],
+      "toneStyle": "Casual / warm",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Policy Anniversary - Template 3",
+      "content": "It's been another year and I just want to say thank you. I know there are a lot of options out there. The fact that you stick with me means a lot.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-policy-anniversary"
+      ],
+      "toneStyle": "Humble / grateful",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Policy Anniversary - Template 4",
+      "content": "On the anniversary of your policy, I wanted to pause and say how much I value this relationship. Here's to another great year ahead.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-policy-anniversary"
+      ],
+      "toneStyle": "Professional / heartfelt",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "New Policy / Coverage Added - Template 1",
+      "content": "Wanted to say thank you for adding another layer of protection for yourself and your family. That's always a smart move and I'm glad we got this done together.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-new-policy"
+      ],
+      "toneStyle": "Affirming / warm",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "New Policy / Coverage Added - Template 2",
+      "content": "Really glad we were able to add this coverage for you. You're better protected now and that matters a lot to me. Thank you for your trust.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-new-policy"
+      ],
+      "toneStyle": "Personal / caring",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "New Policy / Coverage Added - Template 3",
+      "content": "Adding this policy was a great decision and I'm proud to be the one helping you protect what you've built. Thank you for continuing to work with me.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-new-policy"
+      ],
+      "toneStyle": "Confident / grateful",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "New Policy / Coverage Added - Template 4",
+      "content": "Congratulations on expanding your coverage. This is one of those things you hope you never need but you're going to be really glad you have. I'll be here every step of the way.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-new-policy"
+      ],
+      "toneStyle": "Reassuring / forward-looking",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Life Event / Coverage Review - Template 1",
+      "content": "Heard about the big news in your life and wanted to reach out. First, congratulations! Second, whenever you're ready, I'd love to make sure your coverage reflects your new chapter.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-life-event"
+      ],
+      "toneStyle": "Warm / consultative",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Life Event / Coverage Review - Template 2",
+      "content": "Big life changes often mean your coverage needs a second look. I'm not in a rush, but whenever you're settled in, give me a call and we'll make sure you're fully protected.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-life-event"
+      ],
+      "toneStyle": "Patient / helpful",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Life Event / Coverage Review - Template 3",
+      "content": "Congratulations on this milestone! When things calm down a bit, let's take a few minutes to review your coverage together. Life changes and your protection should too.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-life-event"
+      ],
+      "toneStyle": "Light / service-oriented",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Life Event / Coverage Review - Template 4",
+      "content": "Just wanted to send a personal note to say congrats and to let you know I'm here when you're ready to talk about making sure your coverage keeps up with your life.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-life-event"
+      ],
+      "toneStyle": "Brief / open door",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "AEP / OEP Reminder - Template 1",
+      "content": "Annual enrollment is coming up and I wanted to make sure you're aware of your options before the window closes. This is the time to make changes and I'd love to help you make the right ones.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-aep-oep"
+      ],
+      "toneStyle": "Informative / direct",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "AEP / OEP Reminder - Template 2",
+      "content": "Just a heads up that enrollment season is here. It goes fast and I don't want you to miss the window. Give me a call and let's make sure your coverage is where it needs to be.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-aep-oep"
+      ],
+      "toneStyle": "Urgent / helpful",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "AEP / OEP Reminder - Template 3",
+      "content": "Enrollment period is open and I think it's worth a quick conversation before you renew anything automatically. A few minutes now could make a real difference. I'm available anytime.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-aep-oep"
+      ],
+      "toneStyle": "Casual / practical",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "AEP / OEP Reminder - Template 4",
+      "content": "This is the time of year where your choices really matter. I'm reaching out personally to make sure you don't get left behind. Let's talk soon.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-aep-oep"
+      ],
+      "toneStyle": "Personal / motivating",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Lost Client Win-Back - Template 1",
+      "content": "I know you moved on and I completely understand. I just wanted to write and say it was an honor to have your business. If things ever change, please know the door is always open.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-win-back"
+      ],
+      "toneStyle": "Gracious / no pressure",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Lost Client Win-Back - Template 2",
+      "content": "Heard that our paths have gone in different directions and I respect that. Just wanted to say no hard feelings and that I'm here if you ever need me again.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-win-back"
+      ],
+      "toneStyle": "Casual / genuine",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Lost Client Win-Back - Template 3",
+      "content": "I don't want to overstep, but I also didn't want to just disappear. Thank you for the time you spent as my client. If things ever change, I'd love to earn your business again.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-win-back"
+      ],
+      "toneStyle": "Humble / open",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Lost Client Win-Back - Template 4",
+      "content": "Life changes and so do needs. I get it. Just wanted to leave you with a note that says I valued our relationship and I'm always here if the time is ever right again.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-win-back"
+      ],
+      "toneStyle": "Personal / no agenda",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Annual Review Invitation - Template 1",
+      "content": "Once a year I like to sit down with my clients and just make sure everything still makes sense. No agenda, no upsell. Just want to make sure you're not overpaying and that you're covered right.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-annual-review"
+      ],
+      "toneStyle": "Service framing / no pressure",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Annual Review Invitation - Template 2",
+      "content": "I'd love to schedule a quick annual review with you. It's one of my favorite things I do for clients and it usually takes less than 30 minutes. Let me know when works.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-annual-review"
+      ],
+      "toneStyle": "Warm / practical",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Annual Review Invitation - Template 3",
+      "content": "It's that time of year where I check in with everyone on my book and just make sure your policy is still doing its job. Happy to come to you or hop on a quick call.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-annual-review"
+      ],
+      "toneStyle": "Casual / flexible",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Annual Review Invitation - Template 4",
+      "content": "I make it a habit to review every client's coverage once a year. Not to change things, but just to make sure they still make sense. Can we find 20 minutes soon?",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-annual-review"
+      ],
+      "toneStyle": "Professional / transparent",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Cross-Sell Introduction - Template 1",
+      "content": "I've been thinking about your overall picture and wanted to mention something I think could benefit you. Whenever you have a few minutes, I'd love to share a quick idea. No obligation at all.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-cross-sell"
+      ],
+      "toneStyle": "Soft / curious framing",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Cross-Sell Introduction - Template 2",
+      "content": "I work with a few different coverage options and I think there might be something that makes a lot of sense for where you are right now. Would love to spend just a few minutes walking you through it.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-cross-sell"
+      ],
+      "toneStyle": "Light pitch / consultative",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Cross-Sell Introduction - Template 3",
+      "content": "As someone I trust and who trusts me, I wanted to bring something to your attention. I think you might be leaving some protection on the table. Call me when you get a chance.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-cross-sell"
+      ],
+      "toneStyle": "Personal / interest-based",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Cross-Sell Introduction - Template 4",
+      "content": "I rarely reach out just to sell something, so when I do, I mean it. I think there's a coverage option that would be a really good fit for you. Just a quick call is all I need.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-cross-sell"
+      ],
+      "toneStyle": "Direct but earned",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Agent Introduction / Transfer - Template 1",
+      "content": "I wanted to reach out personally and introduce myself. I'm your new agent and I take over from here with the same commitment to service you've been used to. Please feel free to call me anytime.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-agent-transfer"
+      ],
+      "toneStyle": "Professional / reassuring",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Agent Introduction / Transfer - Template 2",
+      "content": "Hi, my name is [Name] and I'll be taking care of your policy going forward. I know change isn't always comfortable but I want you to know I'm going to take excellent care of you.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-agent-transfer"
+      ],
+      "toneStyle": "Warm / personal",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Agent Introduction / Transfer - Template 3",
+      "content": "Just wanted to put a name to a face and let you know that I'm here. Your policy is in good hands and my door is always open. Looking forward to working with you.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-agent-transfer"
+      ],
+      "toneStyle": "Casual / open",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "Agent Introduction / Transfer - Template 4",
+      "content": "I'm reaching out because I want to make sure this transition feels seamless for you. You're in good hands and I look forward to earning your trust over time.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-agent-transfer"
+      ],
+      "toneStyle": "Confident / patient",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "T65 / Medicare Transition - Template 1",
+      "content": "As you approach 65, there are some important decisions coming up around Medicare and I want to make sure you have the right information before you have to make them. Let's talk soon.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-t65"
+      ],
+      "toneStyle": "Helpful / informative",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "T65 / Medicare Transition - Template 2",
+      "content": "Turning 65 is a big milestone and it comes with some coverage decisions that can really matter down the road. I'd love to walk you through your options before the window opens.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-t65"
+      ],
+      "toneStyle": "Personal / educational",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "T65 / Medicare Transition - Template 3",
+      "content": "I work with a lot of clients approaching Medicare age and I want to make sure you're not caught off guard. This is exactly the time to have a conversation. Call me anytime.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-t65"
+      ],
+      "toneStyle": "Direct / caring",
+      "sourceSheet": "Insurance Templates"
+    },
+    {
+      "name": "T65 / Medicare Transition - Template 4",
+      "content": "Medicare can feel overwhelming but it doesn't have to be. I'd love to sit down and make sure you fully understand your options before you turn 65. This one's worth getting right.",
+      "industry": "insurance",
+      "categorySlugs": [
+        "ins-t65"
+      ],
+      "toneStyle": "Reassuring / expert",
+      "sourceSheet": "Insurance Templates"
+    }
+  ]
+}

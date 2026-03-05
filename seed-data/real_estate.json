@@ -1,0 +1,826 @@
+{
+  "categories": [
+    {
+      "name": "Expired Listing Outreach",
+      "slug": "re-expired-listing",
+      "description": "Reach out to homeowners whose listing expired with another agent.",
+      "industry": "real_estate",
+      "whenToSend": "Within 1-3 days of listing expiration",
+      "automationType": "Manual + Auto",
+      "triggerTiming": "Triggered by MLS expired listing data or manual",
+      "phase": "GET",
+      "notes": "Prospecting card. Must be empathetic, not salesy. 'I know that's frustrating.'",
+      "sourceSheet": "Real Estate",
+      "subcategory": "Business Development",
+      "sortOrder": 0
+    },
+    {
+      "name": "New Neighbor / Just Sold",
+      "slug": "re-just-sold",
+      "description": "Introduce yourself to neighbors around a recent sale.",
+      "industry": "real_estate",
+      "whenToSend": "Within 2 weeks of closing a sale in area",
+      "automationType": "Manual",
+      "triggerTiming": "Manual. Geographic farming strategy.",
+      "phase": "GET",
+      "notes": "Farming card. 'I just helped your neighbor at 123 Oak St. If you ever need anything...'",
+      "sourceSheet": "Real Estate",
+      "subcategory": "Business Development",
+      "sortOrder": 1
+    },
+    {
+      "name": "10-Year Upgrade Nudge",
+      "slug": "re-10-year-upgrade",
+      "description": "After 10 years in their home, suggest it might be time to consider upgrading.",
+      "industry": "real_estate",
+      "whenToSend": "On 10th home anniversary",
+      "automationType": "Automated",
+      "triggerTiming": "Triggered by closing date at 10-year mark",
+      "phase": "GET",
+      "notes": "Gentle. 'A lot changes in 10 years. If your family has grown, I'm here to help.'",
+      "sourceSheet": "Real Estate",
+      "subcategory": "Business Development",
+      "sortOrder": 2
+    },
+    {
+      "name": "FSBO Outreach",
+      "slug": "re-fsbo",
+      "description": "Reach out to For Sale By Owner listings. Offer expertise without pressure.",
+      "industry": "real_estate",
+      "whenToSend": "Within 1-2 weeks of FSBO listing",
+      "automationType": "Manual",
+      "triggerTiming": "Manual. Monitor FSBO listings.",
+      "phase": "GET",
+      "notes": "Empathy first: 'Selling your own home is a big undertaking. If you ever want a second opinion...'",
+      "sourceSheet": "Real Estate",
+      "subcategory": "Business Development",
+      "sortOrder": 3
+    },
+    {
+      "name": "Post-Showing Follow-Up",
+      "slug": "re-post-showing",
+      "description": "Thank buyer for attending showing. Recap highlights, next steps.",
+      "industry": "real_estate",
+      "whenToSend": "Same day or next day after showing",
+      "automationType": "Manual",
+      "triggerTiming": "Manual. After each showing.",
+      "phase": "GIVE",
+      "notes": "Differentiator: most agents just text. A handwritten follow-up stands out.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "General",
+      "sortOrder": 0
+    },
+    {
+      "name": "Offer Submitted / Under Contract",
+      "slug": "re-under-contract",
+      "description": "Excitement card when offer is accepted. Celebrate the milestone.",
+      "industry": "real_estate",
+      "whenToSend": "Within 2 days of accepted offer",
+      "automationType": "Manual",
+      "triggerTiming": "Manual. After offer acceptance notification.",
+      "phase": "GIVE",
+      "notes": "Builds excitement during the stressful waiting period before closing.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "General",
+      "sortOrder": 1
+    },
+    {
+      "name": "Escrow Opened",
+      "slug": "re-escrow-opened",
+      "description": "Acknowledge the escrow milestone. Remind of remaining steps.",
+      "industry": "real_estate",
+      "whenToSend": "Within 3 days of escrow opening",
+      "automationType": "Manual + Auto",
+      "triggerTiming": "Triggered by transaction status change or manual",
+      "phase": "GIVE",
+      "notes": "Keeps client engaged and confident during the process.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "General",
+      "sortOrder": 2
+    },
+    {
+      "name": "Deal Fell Through / Encouragement",
+      "slug": "re-deal-fell-through",
+      "description": "Console and encourage when a deal falls apart. Lay out next steps.",
+      "industry": "real_estate",
+      "whenToSend": "Within 2-3 days of deal falling through",
+      "automationType": "Manual",
+      "triggerTiming": "Manual. After learning deal collapsed.",
+      "phase": "GIVE",
+      "notes": "Most agents disappear when deals fall through. This card builds deep loyalty.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "General",
+      "sortOrder": 3
+    },
+    {
+      "name": "Sphere of Influence Touch",
+      "slug": "re-soi-touch",
+      "description": "Quarterly touch to your sphere. No ask. Just staying connected.",
+      "industry": "real_estate",
+      "whenToSend": "Quarterly rotation",
+      "automationType": "Automated",
+      "triggerTiming": "Quarterly calendar trigger",
+      "phase": "GIVE",
+      "notes": "Amanda Furman model: 5 notes a day to sphere. Referral pipeline maintenance.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "General",
+      "sortOrder": 4
+    },
+    {
+      "name": "Pre-Listing Consultation Follow-Up",
+      "slug": "re-pre-listing",
+      "description": "Thank homeowner for meeting. Recap your marketing plan.",
+      "industry": "real_estate",
+      "whenToSend": "Same day or next day after consultation",
+      "automationType": "Manual",
+      "triggerTiming": "Manual. After listing presentation.",
+      "phase": "GIVE",
+      "notes": "Competitive differentiator. Most agents email a CMA. You send a handwritten note.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "General",
+      "sortOrder": 5
+    },
+    {
+      "name": "Open House Follow-Up",
+      "slug": "re-open-house",
+      "description": "Thank visitors who attended your open house.",
+      "industry": "real_estate",
+      "whenToSend": "1-2 days after open house",
+      "automationType": "Manual",
+      "triggerTiming": "Manual. From sign-in sheet at open house.",
+      "phase": "GIVE",
+      "notes": "Captures leads who might otherwise disappear. Handwritten stands out vs email drip.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "General",
+      "sortOrder": 6
+    },
+    {
+      "name": "Seasonal Homeowner Tips",
+      "slug": "re-seasonal-tips",
+      "description": "Share seasonal home maintenance reminders. Position as helpful resource.",
+      "industry": "real_estate",
+      "whenToSend": "Quarterly with seasons",
+      "automationType": "Automated",
+      "triggerTiming": "Calendar-based: spring/summer/fall/winter",
+      "phase": "GIVE",
+      "notes": "Not a sales touch. Genuine value: 'Winter's coming, don't forget to...' with your info.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "General",
+      "sortOrder": 7
+    },
+    {
+      "name": "Home Anniversary",
+      "slug": "re-home-anniversary",
+      "description": "Celebrate the anniversary of their home purchase. Stay top of mind annually.",
+      "industry": "real_estate",
+      "whenToSend": "On home purchase anniversary date",
+      "automationType": "Automated",
+      "triggerTiming": "Triggered by closing date, annually",
+      "phase": "GIVE",
+      "notes": "Include a 'how's the home treating you?' tone. Natural lead-in to check if they're thinking of moving.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "Milestones",
+      "sortOrder": 0
+    },
+    {
+      "name": "Listing Anniversary / Market Update",
+      "slug": "re-listing-anniversary",
+      "description": "For past sellers: note anniversary and share market appreciation data.",
+      "industry": "real_estate",
+      "whenToSend": "On sale anniversary date",
+      "automationType": "Automated",
+      "triggerTiming": "Triggered by listing sale date, annually",
+      "phase": "GIVE",
+      "notes": "Great for sellers who may buy again or refer. Demonstrates ongoing market expertise.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "Milestones",
+      "sortOrder": 1
+    },
+    {
+      "name": "Post-Closing Congratulations",
+      "slug": "re-post-closing",
+      "description": "Congratulate buyer/seller on closing. THE most important real estate card.",
+      "industry": "real_estate",
+      "whenToSend": "1-3 days after closing",
+      "automationType": "Automated",
+      "triggerTiming": "Triggered by closing date in CRM/MLS",
+      "phase": "GIVE",
+      "notes": "61% of buyers come from referrals/repeat (NAR 2025). This card starts the long game.",
+      "sourceSheet": "Real Estate",
+      "subcategory": "Relationship Building",
+      "sortOrder": 0
+    }
+  ],
+  "templates": [
+    {
+      "name": "Post-Closing Congratulations - Template 1",
+      "content": "You're a homeowner! I don't think that ever gets old to say. Congratulations. This is such a big deal and I was honored to be a part of it.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-post-closing"
+      ],
+      "toneStyle": "Celebratory / personal",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Post-Closing Congratulations - Template 2",
+      "content": "Congratulations on closing! After everything we went through to get here, I hope it feels every bit as good as you imagined. Enjoy every moment in your new home.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-post-closing"
+      ],
+      "toneStyle": "Reflective / warm",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Post-Closing Congratulations - Template 3",
+      "content": "Keys in hand. It's yours. Congratulations! Thank you for trusting me to help make this happen. I couldn't be happier for you.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-post-closing"
+      ],
+      "toneStyle": "Brief / joyful",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Post-Closing Congratulations - Template 4",
+      "content": "Closing day is my favorite day. Watching someone get the keys to their new home never gets old. Congratulations! I hope you love every square foot.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-post-closing"
+      ],
+      "toneStyle": "Authentic / enthusiastic",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Post-Closing Congratulations - Template 5",
+      "content": "What an amazing milestone. I'm so glad I got to be part of this journey with you. Congratulations on your new home and the next chapter that comes with it.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-post-closing"
+      ],
+      "toneStyle": "Meaningful / forward-looking",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Home Anniversary - Template 1",
+      "content": "One year ago you got the keys and I've been thinking about you since. Happy home anniversary! Hope the place has been treating you well.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-home-anniversary"
+      ],
+      "toneStyle": "Casual / personal",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Home Anniversary - Template 2",
+      "content": "Can't believe it's already been a year in your home! Wishing you many more happy years there. And as always, I'm here if you ever need anything.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-home-anniversary"
+      ],
+      "toneStyle": "Warm / open",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Home Anniversary - Template 3",
+      "content": "Happy anniversary in your home! It's been a year since closing day and I just wanted to mark the occasion and say it was a pleasure being your agent.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-home-anniversary"
+      ],
+      "toneStyle": "Professional / reflective",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Home Anniversary - Template 4",
+      "content": "Time flies! A year ago today we closed on your home. I hope it's been everything you hoped for. Reach out anytime if you need me.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-home-anniversary"
+      ],
+      "toneStyle": "Friendly / brief",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Listing Anniversary / Market Update - Template 1",
+      "content": "It's been a year since we sold your home and I wanted to reach out and say homes like yours in the area are doing really well. Hope things have been great for you since.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-listing-anniversary"
+      ],
+      "toneStyle": "Market-aware / warm",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Listing Anniversary / Market Update - Template 2",
+      "content": "One year ago we got your home sold and I'm still proud of how that went. Hope the move treated you well. I'm always around if you need real estate advice.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-listing-anniversary"
+      ],
+      "toneStyle": "Personal / available",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Listing Anniversary / Market Update - Template 3",
+      "content": "Just wanted to mark the anniversary of your sale and share that the market in your old neighborhood has been moving. Hope everything's been great on your end.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-listing-anniversary"
+      ],
+      "toneStyle": "Informative / casual",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Listing Anniversary / Market Update - Template 4",
+      "content": "A year since closing on your sale! Time really does fly. The market has changed a lot since then. Reach out anytime if you want to chat about real estate.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-listing-anniversary"
+      ],
+      "toneStyle": "Open / low pressure",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Post-Showing Follow-Up - Template 1",
+      "content": "Thank you so much for taking the time to come see the property today. I hope it gave you some good ideas for what you're looking for. I'm here whenever you have questions.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-post-showing"
+      ],
+      "toneStyle": "Gracious / helpful",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Post-Showing Follow-Up - Template 2",
+      "content": "Really glad you could make it to the showing. Wanted to follow up and say if anything stood out to you, good or bad, I'd love to hear it. I'm here to help you find the right fit.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-post-showing"
+      ],
+      "toneStyle": "Open / consultative",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Post-Showing Follow-Up - Template 3",
+      "content": "Thanks for coming out today. I know searching for a home takes real time and energy. I appreciate you trusting me to help. Let's keep the conversation going.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-post-showing"
+      ],
+      "toneStyle": "Appreciative / engaged",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Post-Showing Follow-Up - Template 4",
+      "content": "Great seeing you at the showing. No pressure at all, but if you have any thoughts or questions on what you saw, reach out anytime. Happy to help you think it through.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-post-showing"
+      ],
+      "toneStyle": "Casual / low pressure",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Offer Submitted / Under Contract - Template 1",
+      "content": "We're under contract! I'm so excited for you and I just want you to know I'm with you all the way to closing. Let's get you those keys.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-under-contract"
+      ],
+      "toneStyle": "Enthusiastic / committed",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Offer Submitted / Under Contract - Template 2",
+      "content": "Your offer got accepted and I had to write this by hand because an email just didn't feel like enough. This is a big deal. Congratulations! Now let's finish strong.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-under-contract"
+      ],
+      "toneStyle": "Personal / celebratory",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Offer Submitted / Under Contract - Template 3",
+      "content": "Under contract! This is such a great moment. The hard part is mostly behind us and I want you to know I'm going to make sure everything from here goes as smoothly as possible.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-under-contract"
+      ],
+      "toneStyle": "Reassuring / forward",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Offer Submitted / Under Contract - Template 4",
+      "content": "Huge news today. You're under contract! I'm proud of how we navigated this and I'll be right here every step until we close.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-under-contract"
+      ],
+      "toneStyle": "Warm / supportive",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Escrow Opened - Template 1",
+      "content": "Escrow is officially open and we're on our way. I just want you to know where we are and that I'm on top of everything happening between now and closing day.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-escrow-opened"
+      ],
+      "toneStyle": "Informative / reassuring",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Escrow Opened - Template 2",
+      "content": "Just a quick note to let you know escrow is open and things are moving in the right direction. You're in good hands and I'll keep you updated every step of the way.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-escrow-opened"
+      ],
+      "toneStyle": "Brief / confident",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Escrow Opened - Template 3",
+      "content": "We've opened escrow! This is a great sign. The finish line is getting closer. I'll be with you through every step that's left.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-escrow-opened"
+      ],
+      "toneStyle": "Encouraging / present",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Escrow Opened - Template 4",
+      "content": "Escrow is open and the process is humming along. Thank you for your patience and trust. I'll make sure nothing falls through the cracks.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-escrow-opened"
+      ],
+      "toneStyle": "Professional / reliable",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Deal Fell Through / Encouragement - Template 1",
+      "content": "I know today was really disappointing and I'm sorry. I've been in real estate a long time and I can tell you this happens and then the right thing comes along. I'm still in your corner.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-deal-fell-through"
+      ],
+      "toneStyle": "Personal / hopeful",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Deal Fell Through / Encouragement - Template 2",
+      "content": "This one didn't work out and I know that stings. But I also know you're going to find the right home. I'm not going anywhere and I want to keep helping until we get there.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-deal-fell-through"
+      ],
+      "toneStyle": "Committed / warm",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Deal Fell Through / Encouragement - Template 3",
+      "content": "I wanted to write because I know how much you wanted this one. I'm sorry it didn't come together. Take a breath, and when you're ready, I'm ready. We'll find the right one.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-deal-fell-through"
+      ],
+      "toneStyle": "Empathetic / patient",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Deal Fell Through / Encouragement - Template 4",
+      "content": "Deals fall through sometimes and it never gets easier to deliver that news. But I believe the right home is still out there for you. I'm here whenever you're ready to keep going.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-deal-fell-through"
+      ],
+      "toneStyle": "Honest / steady",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Expired Listing Outreach - Template 1",
+      "content": "I noticed your listing expired recently and I'm sure that's frustrating. I've helped a few homeowners in similar situations and I'd love to share what I think makes the difference. No obligation at all.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-expired-listing"
+      ],
+      "toneStyle": "Empathetic / soft ask",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Expired Listing Outreach - Template 2",
+      "content": "Having a listing expire is one of the most discouraging things in real estate. I've been there with clients and helped them come back stronger. I'd love to have a conversation if you're open to it.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-expired-listing"
+      ],
+      "toneStyle": "Understanding / inviting",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Expired Listing Outreach - Template 3",
+      "content": "I'm reaching out because your listing recently expired and I think there are some things worth looking at before you relist. I'd be happy to give you my honest assessment, no strings attached.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-expired-listing"
+      ],
+      "toneStyle": "Direct / value-first",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Expired Listing Outreach - Template 4",
+      "content": "When a listing expires it usually means something needs to change, not necessarily the price. I'd love 20 minutes to walk you through what I'm seeing and what I'd do differently.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-expired-listing"
+      ],
+      "toneStyle": "Expert / consultative",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Sphere of Influence Touch - Template 1",
+      "content": "Just thinking about you today and figured I'd drop a note. Hope life is treating you well. You know I'm always here if you need anything real estate related or otherwise.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-soi-touch"
+      ],
+      "toneStyle": "Personal / casual",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Sphere of Influence Touch - Template 2",
+      "content": "Haven't talked in a while and I just wanted to say hello. Hope everything's great on your end. Reach out anytime, I love hearing from people I care about.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-soi-touch"
+      ],
+      "toneStyle": "Warm / genuine",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Sphere of Influence Touch - Template 3",
+      "content": "Quick note to say I'm still here, still grateful to know you, and always happy to help if anything comes up. Hope your year is going well.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-soi-touch"
+      ],
+      "toneStyle": "Brief / open",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Sphere of Influence Touch - Template 4",
+      "content": "Just a quick hello from my end. No agenda at all. Just didn't want too much time to go by without reaching out. Hope things are wonderful.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-soi-touch"
+      ],
+      "toneStyle": "Light / friendly",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "New Neighbor / Just Sold - Template 1",
+      "content": "Hi neighbor! I just helped someone on your street buy their home and wanted to introduce myself. If you ever have questions about what's happening in the local market, I'd love to be your resource.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-just-sold"
+      ],
+      "toneStyle": "Friendly / relevant",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "New Neighbor / Just Sold - Template 2",
+      "content": "I wanted to reach out because I just closed a sale in your neighborhood. If you've ever thought about what your home might be worth, I'm happy to share what I'm seeing. No obligation.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-just-sold"
+      ],
+      "toneStyle": "Soft ask / informative",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "New Neighbor / Just Sold - Template 3",
+      "content": "Just sold a home nearby and wanted to introduce myself to the neighborhood. Real estate is a relationship business and I'd love to be the agent you think of when the time comes.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-just-sold"
+      ],
+      "toneStyle": "Relationship-building",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "New Neighbor / Just Sold - Template 4",
+      "content": "Hi! I'm a local real estate agent and I just helped one of your neighbors sell their home. If you ever want a no-pressure market update for your area, I'm always happy to chat.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-just-sold"
+      ],
+      "toneStyle": "Casual / value-offer",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Pre-Listing Consultation Follow-Up - Template 1",
+      "content": "Thank you for having me over today. I really enjoyed our conversation and I'm confident we can get your home sold for what it deserves. I'll be in touch soon with next steps.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-pre-listing"
+      ],
+      "toneStyle": "Warm / confident",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Pre-Listing Consultation Follow-Up - Template 2",
+      "content": "Just wanted to follow up from our meeting and say thank you. I put a lot of thought into what I shared with you and I genuinely believe I'm the right person to help you with this.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-pre-listing"
+      ],
+      "toneStyle": "Personal / committed",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Pre-Listing Consultation Follow-Up - Template 3",
+      "content": "Really appreciated the time today. I know you're weighing your options and I want you to know I'll bring everything I have to this if you choose to work with me.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-pre-listing"
+      ],
+      "toneStyle": "Respectful / competitive",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Pre-Listing Consultation Follow-Up - Template 4",
+      "content": "Thank you for the meeting today. I hope the information was useful regardless of what you decide. If you choose me, I promise I'll work hard to earn your trust every day.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-pre-listing"
+      ],
+      "toneStyle": "Gracious / humble",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "10-Year Upgrade Nudge - Template 1",
+      "content": "You've been in your home for 10 years now. A lot has changed, in the market and probably in your life too. If you've ever thought about what's next, I'd love to have that conversation.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-10-year-upgrade"
+      ],
+      "toneStyle": "Conversational / curious",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "10-Year Upgrade Nudge - Template 2",
+      "content": "Ten years is a big milestone in homeownership. If your family has grown or your needs have shifted, it might be worth exploring what a move could look like. I'm happy to think through it with you.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-10-year-upgrade"
+      ],
+      "toneStyle": "Thoughtful / soft ask",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "10-Year Upgrade Nudge - Template 3",
+      "content": "Just noting that it's been about 10 years in your home. The market has been interesting and homes like yours are doing well. If you've ever been curious about what it's worth now, reach out.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-10-year-upgrade"
+      ],
+      "toneStyle": "Market-driven / light",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "10-Year Upgrade Nudge - Template 4",
+      "content": "Hard to believe it's been 10 years! A lot can change. If you've ever wondered whether it's time for something new, I'd love to run some numbers for you. Just say the word.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-10-year-upgrade"
+      ],
+      "toneStyle": "Casual / inviting",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "FSBO Outreach - Template 1",
+      "content": "I noticed you're selling your home on your own and I just want to say I respect that. It's a big undertaking. If you ever want a second set of eyes or a quick conversation about the process, I'm happy to help.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-fsbo"
+      ],
+      "toneStyle": "Respectful / no pressure",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "FSBO Outreach - Template 2",
+      "content": "Selling on your own takes a lot of work. I've helped a number of FSBOs and I know how much goes into it. If there's ever anything I can do to make it easier, please reach out. No strings attached.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-fsbo"
+      ],
+      "toneStyle": "Empathetic / helpful",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "FSBO Outreach - Template 3",
+      "content": "I drove by your sign and wanted to reach out personally. Selling without an agent is absolutely doable and I respect the decision. If you hit any walls, I'm here as a resource.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-fsbo"
+      ],
+      "toneStyle": "Local / casual",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "FSBO Outreach - Template 4",
+      "content": "I know you've chosen to go FSBO and that's completely valid. I just wanted to put my name out there in case you ever want to talk through the process. No pressure, just a resource.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-fsbo"
+      ],
+      "toneStyle": "Humble / open",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Open House Follow-Up - Template 1",
+      "content": "So glad you stopped by the open house! I hope you got a good feel for the property. I'd love to answer any questions you have and help you figure out if it's the right fit.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-open-house"
+      ],
+      "toneStyle": "Warm / helpful",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Open House Follow-Up - Template 2",
+      "content": "Thanks for coming to the open house today. It was great to see you there. If anything stood out to you about the home, I'd love to continue that conversation.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-open-house"
+      ],
+      "toneStyle": "Personal / engaging",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Open House Follow-Up - Template 3",
+      "content": "Really appreciate you taking time out of your day to come see the property. Whether that was the one or not, I'd love to help you find the right home. I'm a great resource.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-open-house"
+      ],
+      "toneStyle": "Grateful / offer of help",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Open House Follow-Up - Template 4",
+      "content": "Thank you for stopping by! Open houses are always better when people like you show up. Reach out anytime if you want to chat about the home or anything else you're looking for.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-open-house"
+      ],
+      "toneStyle": "Friendly / casual",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Seasonal Homeowner Tips - Template 1",
+      "content": "Just wanted to send a quick note as the seasons change. A few things worth doing around the house this time of year: check your gutters, test your smoke detectors, and make sure your HVAC filter is fresh. Happy to recommend any local vendors if needed.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-seasonal-tips"
+      ],
+      "toneStyle": "Practical / helpful",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Seasonal Homeowner Tips - Template 2",
+      "content": "Thinking of you as we head into a new season! Just a friendly reminder to take care of a few home maintenance items before the weather shifts. Your home will thank you.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-seasonal-tips"
+      ],
+      "toneStyle": "Light / caring",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Seasonal Homeowner Tips - Template 3",
+      "content": "Quick homeowner heads up as the season changes. This is a great time to walk the perimeter of your home, check for any weather damage, and prep accordingly. Let me know if you need any local contractor recommendations.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-seasonal-tips"
+      ],
+      "toneStyle": "Informative / resourceful",
+      "sourceSheet": "Real Estate Templates"
+    },
+    {
+      "name": "Seasonal Homeowner Tips - Template 4",
+      "content": "As a homeowner, seasonal maintenance can save a lot of headaches down the road. Just wanted to be a useful resource and remind you to take a look around the house as the weather shifts. I'm always here if you have questions.",
+      "industry": "real_estate",
+      "categorySlugs": [
+        "re-seasonal-tips"
+      ],
+      "toneStyle": "Educational / available",
+      "sourceSheet": "Real Estate Templates"
+    }
+  ]
+}

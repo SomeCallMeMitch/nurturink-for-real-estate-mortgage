@@ -1,10 +1,27 @@
-import React from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, X, Star, User, Users, Grid } from 'lucide-react';
+import { Search, X, Star, User, Users, Grid, ChevronDown, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export default function TemplateFilterControls({ filters, setFilters, categories }) {
+  const [categoryPanelOpen, setCategoryPanelOpen] = useState(false);
+  const [openSubcategories, setOpenSubcategories] = useState({});
+  const panelRef = useRef(null);
+
+  // Close the dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) {
+        setCategoryPanelOpen(false);
+      }
+    };
+    if (categoryPanelOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [categoryPanelOpen]);
+
   const handleSearchChange = (e) => {
     setFilters(prev => ({ ...prev, search: e.target.value }));
   };
@@ -13,32 +30,59 @@ export default function TemplateFilterControls({ filters, setFilters, categories
     setFilters(prev => ({ ...prev, viewMode: mode, categoryId: null }));
   };
 
-  const handleCategoryChange = (categoryId) => {
-    setFilters(prev => ({ 
-      ...prev, 
-      categoryId: categoryId === 'all' ? null : categoryId,
+  const handleCategorySelect = (categoryId) => {
+    setFilters(prev => ({
+      ...prev,
+      categoryId: prev.categoryId === categoryId ? null : categoryId,
       viewMode: 'all'
     }));
+    setCategoryPanelOpen(false);
+  };
+
+  const handleClearCategory = () => {
+    setFilters(prev => ({ ...prev, categoryId: null }));
+    setCategoryPanelOpen(false);
   };
 
   const clearFilters = () => {
     setFilters({ search: '', viewMode: 'all', categoryId: null });
   };
 
-  const hasActiveFilters = filters.search || filters.viewMode !== 'all' || filters.categoryId;
+  const toggleSubcategory = (subcat) => {
+    setOpenSubcategories(prev => ({
+      ...prev,
+      [subcat]: prev[subcat] === false ? true : false
+    }));
+  };
 
-  // Favorites is now a separate toggle button, not part of view modes
+  const hasActiveFilters = filters.search || filters.viewMode !== 'all' || filters.categoryId;
+  const isFavoritesActive = filters.viewMode === 'favorites';
+
   const viewModes = [
     { id: 'my', label: 'My Templates', icon: User },
     { id: 'org', label: 'Organization', icon: Users },
     { id: 'all', label: 'All', icon: Grid }
   ];
 
-  const isFavoritesActive = filters.viewMode === 'favorites';
+  // Group categories by subcategory, sorted by sortOrder within each group
+  const groupedCategories = useMemo(() => {
+    if (!categories || categories.length === 0) return {};
+    const groups = {};
+    const sorted = [...categories].sort((a, b) => (a.sortOrder ?? 99) - (b.sortOrder ?? 99));
+    for (const cat of sorted) {
+      const subcat = cat.subcategory || 'General';
+      if (!groups[subcat]) groups[subcat] = [];
+      groups[subcat].push(cat);
+    }
+    return groups;
+  }, [categories]);
+
+  const subcategoryNames = Object.keys(groupedCategories);
+  const selectedCategory = categories?.find(c => c.id === filters.categoryId);
 
   return (
     <div className="bg-card rounded-lg border border-border p-4 space-y-4">
-      {/* Search Bar and Category Dropdown - Side by Side */}
+      {/* Search Bar and Category Button - Side by Side */}
       <div className="flex items-center gap-3">
         {/* Search Bar */}
         <div className="relative flex-1">
@@ -51,25 +95,88 @@ export default function TemplateFilterControls({ filters, setFilters, categories
           />
         </div>
 
-        {/* Category Filter */}
-        {categories.length > 0 && (
-          <div className="w-64">
-            <Select
-              value={filters.categoryId || 'all'}
-              onValueChange={handleCategoryChange}
+        {/* Category Filter Button + Dropdown */}
+        {categories && categories.length > 0 && (
+          <div className="relative" ref={panelRef}>
+            <button
+              onClick={() => setCategoryPanelOpen(prev => !prev)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all h-10",
+                filters.categoryId
+                  ? "bg-brand-accent text-brand-accent-foreground border-brand-accent shadow-md"
+                  : "bg-card text-muted-foreground border-border hover:bg-accent"
+              )}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {categories.map(category => (
-                  <SelectItem key={category.id} value={category.id}>
-                    {category.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Tag className="w-4 h-4 flex-shrink-0" />
+              <span className="max-w-[140px] truncate">
+                {selectedCategory ? selectedCategory.name : "Category"}
+              </span>
+              <ChevronDown className={cn(
+                "w-4 h-4 flex-shrink-0 transition-transform duration-200",
+                categoryPanelOpen && "rotate-180"
+              )} />
+            </button>
+
+            {/* Grouped Dropdown Panel */}
+            {categoryPanelOpen && (
+              <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-card border border-border rounded-lg shadow-xl overflow-hidden">
+                {/* All Categories option */}
+                <button
+                  onClick={handleClearCategory}
+                  className={cn(
+                    "w-full text-left px-4 py-2.5 text-sm font-medium transition-colors border-b border-border",
+                    !filters.categoryId
+                      ? "bg-brand-accent/10 text-brand-accent"
+                      : "hover:bg-accent text-foreground"
+                  )}
+                >
+                  All Categories
+                </button>
+
+                {/* Accordion grouped by subcategory */}
+                <div className="max-h-80 overflow-y-auto">
+                  {subcategoryNames.map(subcat => {
+                    // Default open unless user has explicitly closed it
+                    const isOpen = openSubcategories[subcat] !== false;
+                    return (
+                      <div key={subcat} className="border-b border-border last:border-0">
+                        {/* Subcategory header */}
+                        <button
+                          onClick={() => toggleSubcategory(subcat)}
+                          className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:bg-accent transition-colors"
+                        >
+                          {subcat}
+                          <ChevronDown className={cn(
+                            "w-3.5 h-3.5 transition-transform duration-200",
+                            isOpen && "rotate-180"
+                          )} />
+                        </button>
+
+                        {/* Category items */}
+                        {isOpen && (
+                          <div className="pb-1">
+                            {groupedCategories[subcat].map(cat => (
+                              <button
+                                key={cat.id}
+                                onClick={() => handleCategorySelect(cat.id)}
+                                className={cn(
+                                  "w-full text-left px-6 py-1.5 text-sm transition-colors",
+                                  filters.categoryId === cat.id
+                                    ? "bg-brand-accent/10 text-brand-accent font-medium"
+                                    : "text-foreground hover:bg-accent"
+                                )}
+                              >
+                                {cat.name}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -91,7 +198,6 @@ export default function TemplateFilterControls({ filters, setFilters, categories
         {viewModes.map((mode) => {
           const Icon = mode.icon;
           const isActive = filters.viewMode === mode.id;
-          
           return (
             <button
               key={mode.id}
@@ -108,7 +214,7 @@ export default function TemplateFilterControls({ filters, setFilters, categories
           );
         })}
 
-        {/* Favorites Toggle Button - Separate from view modes */}
+        {/* Favorites Toggle Button */}
         <button
           onClick={() => handleViewModeChange(isFavoritesActive ? 'all' : 'favorites')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
@@ -122,7 +228,7 @@ export default function TemplateFilterControls({ filters, setFilters, categories
         </button>
       </div>
 
-      {/* Active Filter Summary */}
+      {/* Active Filter Summary Pills */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
           {filters.viewMode !== 'all' && (
