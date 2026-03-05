@@ -1,65 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-const categoriesData = [
-  {
-    "name": "Thank You",
-    "slug": "thank-you",
-    "description": "General thank you notes",
-    "sortOrder": 1,
-    "industry": "universal"
-  },
-  {
-    "name": "Referral Request",
-    "slug": "referral-request",
-    "description": "Asking for referrals",
-    "sortOrder": 2,
-    "industry": "universal"
-  },
-  {
-    "name": "Policy Renewal",
-    "slug": "policy-renewal",
-    "description": "Insurance policy renewals",
-    "sortOrder": 3,
-    "industry": "insurance"
-  },
-  {
-    "name": "Post-Inspection",
-    "slug": "post-inspection",
-    "description": "After an inspection",
-    "sortOrder": 4,
-    "industry": "roofing"
-  }
-];
-
-const templatesData = [
-  {
-    "name": "Standard Thank You",
-    "content": "Thank you for your business. We appreciate your trust in us.",
-    "categorySlugs": ["thank-you"],
-    "industry": "universal"
-  },
-  {
-    "name": "Referral Request (General)",
-    "content": "If you know anyone who could benefit from our services, please let us know.",
-    "categorySlugs": ["referral-request"],
-    "industry": "universal"
-  },
-  {
-    "name": "Insurance Renewal Reminder",
-    "content": "It's time to renew your policy. We are here to help.",
-    "categorySlugs": ["policy-renewal"],
-    "industry": "insurance"
-  },
-  {
-    "name": "Roofing Post-Inspection Thanks",
-    "content": "Thanks for letting us inspect your roof. Here are the next steps.",
-    "categorySlugs": ["post-inspection", "thank-you"],
-    "industry": "roofing"
-  }
-];
+const CATEGORIES_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696020df49a02437cf7a3031/23c06b837_categories.json";
+const TEMPLATES_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696020df49a02437cf7a3031/24e09f52a_templates.json";
 
 // Helper to get unique categories for the given industry
-const getUniqueCategories = (industry) => {
+const getUniqueCategories = (categoriesData, industry) => {
     const industryCategories = categoriesData.filter((c) => c.industry === industry);
     const universalCategories = categoriesData.filter((c) => c.industry === 'universal');
     const all = [...industryCategories, ...universalCategories];
@@ -78,19 +23,36 @@ Deno.serve(async (req) => {
 
     console.log(`[Seeder] Starting content seed for org ${orgId}, industry: ${industry}`);
 
+    // Fetch data directly from the JSON files provided
+    const [categoriesRes, templatesRes] = await Promise.all([
+        fetch(CATEGORIES_URL),
+        fetch(TEMPLATES_URL)
+    ]);
+
+    if (!categoriesRes.ok || !templatesRes.ok) {
+        throw new Error(`Failed to fetch seed data. Categories: ${categoriesRes.status}, Templates: ${templatesRes.status}`);
+    }
+
+    const categoriesData = await categoriesRes.json();
+    const templatesData = await templatesRes.json();
+
     // --- IDEMPOTENT CATEGORY SEEDING ---
     const existingCategories = await base44.asServiceRole.entities.TemplateCategory.filter({ orgId, type: 'platform' });
     const existingCategorySlugs = new Set(existingCategories.map(c => c.slug));
     console.log(`[Seeder] Found ${existingCategorySlugs.size} existing platform categories for this org.`);
 
-    const categoriesToCreate = getUniqueCategories(industry).filter(c => !existingCategorySlugs.has(c.slug));
+    const categoriesToCreate = getUniqueCategories(categoriesData, industry).filter(c => !existingCategorySlugs.has(c.slug));
 
     if (categoriesToCreate.length > 0) {
         const categoryRecords = categoriesToCreate.map(c => ({
-            ...c,
+            name: c.name,
+            slug: c.slug,
+            description: c.description || null,
+            industry: c.industry || 'universal',
             orgId: orgId,
             type: 'platform',
-            createdByUserId: userId
+            createdByUserId: userId,
+            isActive: true
         }));
         await base44.asServiceRole.entities.TemplateCategory.bulkCreate(categoryRecords);
         console.log(`[Seeder] Created ${categoryRecords.length} new categories.`);
@@ -113,20 +75,18 @@ Deno.serve(async (req) => {
         const templateRecords = templatesToCreate.map((t) => ({
             name: t.name,
             content: t.content,
-            industry: t.industry,
+            industry: t.industry || 'universal',
             orgId: orgId,
             createdByUserId: userId,
             type: 'platform',
             status: 'approved',
-            templateCategoryIds: t.categorySlugs.map((slug) => categorySlugToIdMap.get(slug)).filter(Boolean)
+            templateCategoryIds: (t.categorySlugs || []).map((slug) => categorySlugToIdMap.get(slug)).filter(Boolean)
         }));
         await base44.asServiceRole.entities.Template.bulkCreate(templateRecords);
         console.log(`[Seeder] Created ${templateRecords.length} new templates.`);
     } else {
         console.log('[Seeder] No new templates to create.');
     }
-
-    // Note: Designs are not implemented yet, but logic would follow the same pattern.
 
     return Response.json({ success: true, message: "Seeding process completed." });
 
