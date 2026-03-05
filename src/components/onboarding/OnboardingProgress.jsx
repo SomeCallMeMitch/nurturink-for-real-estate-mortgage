@@ -7,11 +7,12 @@ export default function OnboardingProgress({ currentStep, totalSteps, onBack, ro
     { number: 1, label: 'Role' },
     { number: 2, label: 'Industry' },
     { number: 3, label: 'Business' },
-    { number: 4, label: 'Preferences' },
+    { number: 4, label: 'Address' },
+    { number: 5, label: 'Preferences' },
   ];
 
   if (role === 'company') {
-    steps.push({ number: 5, label: 'Team' });
+    steps.push({ number: 6, label: 'Team' });
   }
 
   const getStepState = (stepNumber) => {
