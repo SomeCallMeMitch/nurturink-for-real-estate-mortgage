@@ -28,7 +28,7 @@ export default function BusinessInfoStep({ data, onUpdate, onComplete }) {
 
   const isFormValid = () => {
     if (isCompany && !data.companyName) return false;
-    if (!data.jobTitle || !data.phone || !data.state || !data.zipCode) return false;
+    if (!data.firstName || !data.lastName || !data.jobTitle || !data.phone || !data.state || !data.zipCode) return false;
     if (data.zipCode.length !== 5) return false;
     return true;
   };
@@ -47,6 +47,16 @@ export default function BusinessInfoStep({ data, onUpdate, onComplete }) {
               <Input id="companyName" value={data.companyName} onChange={handleChange} required />
             </div>
           )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input id="firstName" value={data.firstName} onChange={handleChange} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input id="lastName" value={data.lastName} onChange={handleChange} required />
+            </div>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="jobTitle">Job Title</Label>
             <Input id="jobTitle" value={data.jobTitle} onChange={handleChange} required />

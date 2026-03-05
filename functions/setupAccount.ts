@@ -27,8 +27,9 @@ Deno.serve(async (req) => {
     if (role === 'sales_rep') {
       // Create a personal organization for the sales rep
       const org = await base44.asServiceRole.entities.Organization.create({
-        name: `${user.full_name}'s Workspace`,
+        name: `${details?.firstName || user.full_name}'s Workspace`,
         accountType: 'company', // Treated as a company of 1
+        website: details?.website,
         industry: details?.industry,
         activeTeamMembers: 1,
         creditBalance: 0
@@ -74,6 +75,32 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Create UserPhone entity if phone exists
+    let defaultPhoneId = null;
+    if (details?.phone) {
+      const userPhone = await base44.asServiceRole.entities.UserPhone.create({
+        userId: user.id,
+        orgId: orgId,
+        phoneNumber: details.phone,
+        label: 'Primary',
+        isDefault: true
+      });
+      defaultPhoneId = userPhone.id;
+    }
+
+    // Create UserUrl entity if website exists
+    if (details?.website) {
+      await base44.asServiceRole.entities.UserUrl.create({
+        userId: user.id,
+        orgId: orgId,
+        url: details.website,
+        label: 'Website',
+        isDefault: true
+      });
+    }
+
+    const computedFullName = `${details?.firstName || ''} ${details?.lastName || ''}`.trim() || user.full_name;
+
     // Update User
     await base44.auth.updateMe({
       orgId: orgId,
@@ -81,7 +108,14 @@ Deno.serve(async (req) => {
       accountTier: accountTier,
       onboardingComplete: true,
       title: details?.jobTitle,
-      phone: details?.phone
+      phone: details?.phone,
+      firstName: details?.firstName || '',
+      lastName: details?.lastName || '',
+      fullName: computedFullName,
+      full_name: computedFullName,
+      companyName: companyName || '',
+      writingStyle: details?.writingStyle || '',
+      ...(defaultPhoneId && { defaultPhoneId })
     });
 
     return Response.json({ success: true, orgId, appRole });

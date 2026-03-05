@@ -23,6 +23,8 @@ export default function Onboarding() {
   const [onboardingData, setOnboardingData] = useState({
     role: null,
     industry: null,
+    firstName: '',
+    lastName: '',
     companyName: '',
     website: '',
     phone: '',
@@ -66,6 +68,8 @@ export default function Onboarding() {
         role: onboardingData.role,
         companyName: onboardingData.companyName,
         details: {
+          firstName: onboardingData.firstName,
+          lastName: onboardingData.lastName,
           website: onboardingData.website,
           phone: onboardingData.phone,
           jobTitle: onboardingData.jobTitle,
