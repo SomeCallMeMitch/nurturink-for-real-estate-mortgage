@@ -13,7 +13,7 @@ import AddressStep from '@/components/onboarding/AddressStep';
 import PreferencesStep from '@/components/onboarding/PreferencesStep';
 import TeamInviteStep from '@/components/onboarding/TeamInviteStep';
 import MobileOnboardingModal from '@/components/onboarding/MobileOnboardingModal';
-// OnboardingLoader is not needed for Phase 1
+import OnboardingLoader from '@/components/onboarding/OnboardingLoader';
 
 const TOTAL_STEPS_INDIVIDUAL = 5;
 const TOTAL_STEPS_COMPANY = 6;
@@ -22,6 +22,7 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const [isCompleting, setIsCompleting] = useState(false);
   const [onboardingData, setOnboardingData] = useState({
     role: null,
     industry: null,
@@ -70,42 +71,46 @@ export default function Onboarding() {
     setOnboardingData((prev) => ({ ...prev, ...data }));
   };
 
-  // PHASE 1: LOG PAYLOAD TO CONSOLE, DO NOT CALL BACKEND
   const handleComplete = async (invites = []) => {
-    console.log('--- ONBOARDING COMPLETE (PHASE 1) ---');
-    const finalPayload = {
-      role: onboardingData.role,
-      companyName: onboardingData.companyName,
-      details: {
-        firstName: onboardingData.firstName,
-        lastName: onboardingData.lastName,
-        website: onboardingData.website,
-        phone: onboardingData.phone,
-        jobTitle: onboardingData.jobTitle,
-        industry: onboardingData.industry,
-        writingStyle: onboardingData.writingStyle,
-        organizationEmail: onboardingData.organizationEmail,
-        personalStreet: onboardingData.personalStreet,
-        personalCity: onboardingData.personalCity,
-        personalState: onboardingData.personalState,
-        personalZipCode: onboardingData.personalZipCode,
-        companyStreet: onboardingData.companyStreet,
-        companyCity: onboardingData.companyCity,
-        companyState: onboardingData.companyState,
-        companyZipCode: onboardingData.companyZipCode,
-      },
-      teamInvites: invites,
-    };
+    setIsCompleting(true);
+    try {
+      const finalPayload = {
+        role: onboardingData.role,
+        companyName: onboardingData.companyName,
+        details: {
+          firstName: onboardingData.firstName,
+          lastName: onboardingData.lastName,
+          website: onboardingData.website,
+          phone: onboardingData.phone,
+          jobTitle: onboardingData.jobTitle,
+          industry: onboardingData.industry,
+          writingStyle: onboardingData.writingStyle,
+          organizationEmail: onboardingData.organizationEmail,
+          personalStreet: onboardingData.personalStreet,
+          personalCity: onboardingData.personalCity,
+          personalState: onboardingData.personalState,
+          personalZipCode: onboardingData.personalZipCode,
+          companyStreet: onboardingData.companyStreet,
+          companyCity: onboardingData.companyCity,
+          companyState: onboardingData.companyState,
+          companyZipCode: onboardingData.companyZipCode,
+        },
+        teamInvites: invites,
+      };
 
-    console.log('Final payload to be sent to setupAccount:', JSON.stringify(finalPayload, null, 2));
-    alert('Phase 1 complete! Check the developer console for the final payload. Redirecting to dashboard.');
+      await base44.functions.invoke('setupAccount', finalPayload);
 
-    // For testing, navigate to the dashboard as if it were successful.
-    const isMobile = window.innerWidth < 1024;
-    if (isMobile) {
-      setShowMobileModal(true);
-    } else {
-      navigate('/Dashboard');
+      const isMobile = window.innerWidth < 1024;
+      if (isMobile) {
+        setShowMobileModal(true);
+      } else {
+        navigate('/Dashboard');
+      }
+
+    } catch (error) {
+      console.error("Onboarding completion failed:", error);
+      alert(`An error occurred while setting up your account: ${error.message}. Please try again.`);
+      setIsCompleting(false);
     }
   };
 
@@ -123,6 +128,7 @@ export default function Onboarding() {
 
   return (
     <RequireAuth>
+      {isCompleting && <OnboardingLoader />}
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start p-4">
         <div className="w-full max-w-5xl mx-auto">
           <OnboardingProgress currentStep={step} totalSteps={totalSteps} onBack={step > 1 ? handleBack : null} role={onboardingData.role} />

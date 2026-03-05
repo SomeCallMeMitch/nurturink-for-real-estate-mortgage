@@ -1,123 +1,149 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
+  console.log("--- setupAccount function invoked ---");
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
     if (!user) {
+      console.error("Unauthorized: No user found.");
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { role, companyName, details } = await req.json();
-
-    if (!['sales_rep', 'company', 'whitelabel'].includes(role)) {
-      return Response.json({ error: 'Invalid role selected' }, { status: 400 });
+    if (user.onboardingComplete) {
+      console.log(`User ${user.id} is already onboarded.`);
+      return Response.json({ success: true, message: "Already onboarded" });
     }
 
-    // Check if user is already onboarded
-    if (user.onboardingComplete) {
-        return Response.json({ success: true, message: "Already onboarded" });
+    const { role, companyName, details, teamInvites } = await req.json();
+    console.log("Received payload:", { role, companyName, details, teamInvites });
+
+    if (!['sales_rep', 'company', 'whitelabel_partner'].includes(role)) {
+      console.error(`Invalid role: ${role}`);
+      return Response.json({ error: 'Invalid role selected' }, { status: 400 });
     }
 
     let orgId = null;
     let appRole = 'sales_rep';
     let accountTier = 'individual';
 
+    // 1. Create Organization based on Role
     if (role === 'sales_rep') {
-      // Create a personal organization for the sales rep
       const org = await base44.asServiceRole.entities.Organization.create({
         name: `${details?.firstName || user.full_name}'s Workspace`,
-        accountType: 'company', // Treated as a company of 1
-        website: details?.website,
-        industry: details?.industry,
-        activeTeamMembers: 1,
-        creditBalance: 0
-      });
-      orgId = org.id;
-      appRole = 'sales_rep';
-      accountTier = 'individual';
-    } 
-    else if (role === 'company') {
-      const org = await base44.asServiceRole.entities.Organization.create({
-        name: companyName || `${user.full_name}'s Company`,
         accountType: 'company',
         website: details?.website,
-        phone: details?.phone,
         industry: details?.industry,
         activeTeamMembers: 1,
-        creditBalance: 0
+        creditBalance: 0,
+        // Sales rep uses their personal address as the org address
+        street: details?.personalStreet,
+        city: details?.personalCity,
+        state: details?.personalState,
+        zipCode: details?.personalZipCode,
       });
       orgId = org.id;
-      appRole = 'organization_owner';
-      accountTier = 'company';
-    }
-    else if (role === 'whitelabel') {
+      console.log(`Created personal organization ${orgId} for sales_rep.`);
+    } else if (role === 'company' || role === 'whitelabel_partner') {
+      const isWhitelabel = role === 'whitelabel_partner';
       const org = await base44.asServiceRole.entities.Organization.create({
-        name: companyName || `${user.full_name}'s Agency`,
-        accountType: 'whitelabel_partner',
+        name: companyName || `${details?.firstName || user.full_name}'s Company`,
+        accountType: isWhitelabel ? 'whitelabel_partner' : 'company',
         website: details?.website,
         phone: details?.phone,
         industry: details?.industry,
+        email: details?.organizationEmail, // Save organization email
+        street: details?.companyStreet,
+        city: details?.companyCity,
+        state: details?.companyState,
+        zipCode: details?.companyZipCode,
         activeTeamMembers: 1,
         creditBalance: 0
       });
       orgId = org.id;
-      appRole = 'whitelabel_partner'; // Note: User schema enum says 'whitelabel_partner', not 'whitelabel_owner'
-      accountTier = 'whitelabel_partner';
-      
-      // Create WhitelabelPartner entity
-      await base44.asServiceRole.entities.WhitelabelPartner.create({
-        organizationId: org.id,
-        partnerName: org.name,
-        wholesalePricePerCredit: 200, 
-        resalePricePerCredit: 300, 
-      });
+      appRole = isWhitelabel ? 'whitelabel_partner' : 'organization_owner';
+      accountTier = isWhitelabel ? 'whitelabel_partner' : 'company';
+      console.log(`Created ${accountTier} organization ${orgId}.`);
+
+      if (isWhitelabel) {
+        await base44.asServiceRole.entities.WhitelabelPartner.create({
+          organizationId: org.id,
+          partnerName: org.name,
+          wholesalePricePerCredit: 200,
+          resalePricePerCredit: 300,
+        });
+        console.log(`Created WhitelabelPartner entity for org ${orgId}.`);
+      }
     }
 
-    // Create UserPhone entity if phone exists
+    // 2. Create UserPhone and UserUrl entities
     let defaultPhoneId = null;
     if (details?.phone) {
       const userPhone = await base44.asServiceRole.entities.UserPhone.create({
-        userId: user.id,
-        orgId: orgId,
-        phoneNumber: details.phone,
-        label: 'Primary',
-        isDefault: true
+        userId: user.id, orgId, phoneNumber: details.phone, label: 'Primary', isDefault: true
       });
       defaultPhoneId = userPhone.id;
+      console.log(`Created UserPhone ${userPhone.id}.`);
     }
 
-    // Create UserUrl entity if website exists
+    let defaultUrlId = null;
     if (details?.website) {
-      await base44.asServiceRole.entities.UserUrl.create({
-        userId: user.id,
-        orgId: orgId,
-        url: details.website,
-        label: 'Website',
-        isDefault: true
+      const userUrl = await base44.asServiceRole.entities.UserUrl.create({
+        userId: user.id, orgId, url: details.website, label: 'Website', isDefault: true
       });
+      defaultUrlId = userUrl.id;
+      console.log(`Created UserUrl ${userUrl.id}.`);
     }
 
-    const computedFullName = `${details?.firstName || ''} ${details?.lastName || ''}`.trim() || user.full_name;
+    // 3. Find NoteStyleProfile ID for the chosen writing style
+    let favoriteNoteStyleProfileIds = [];
+    if (details?.writingStyle) {
+      const styles = await base44.asServiceRole.entities.NoteStyleProfile.filter({
+        type: 'platform',
+        name: details.writingStyle
+      });
+      if (styles.length > 0) {
+        favoriteNoteStyleProfileIds.push(styles[0].id);
+        console.log(`Found NoteStyleProfile ${styles[0].id} for style '${details.writingStyle}'.`);
+      }
+    }
 
-    // Update User
-    await base44.auth.updateMe({
-      orgId: orgId,
-      appRole: appRole,
-      accountTier: accountTier,
+    // 4. Prepare the final user update payload
+    const computedFullName = `${details?.firstName || ''} ${details?.lastName || ''}`.trim() || user.full_name;
+    const userUpdatePayload = {
+      orgId,
+      appRole,
+      accountTier,
       onboardingComplete: true,
       title: details?.jobTitle,
       phone: details?.phone,
-      firstName: details?.firstName || '',
-      lastName: details?.lastName || '',
+      firstName: details?.firstName,
+      lastName: details?.lastName,
       fullName: computedFullName,
-      full_name: computedFullName,
       companyName: companyName || '',
-      writingStyle: details?.writingStyle || '',
-      ...(defaultPhoneId && { defaultPhoneId })
-    });
+      writingStyle: details?.writingStyle,
+      street: details?.personalStreet,
+      city: details?.personalCity,
+      state: details?.personalState,
+      zipCode: details?.personalZipCode,
+      ...(defaultPhoneId && { defaultPhoneId }),
+      ...(defaultUrlId && { defaultUrlId }),
+      ...(favoriteNoteStyleProfileIds.length > 0 && { favoriteNoteStyleProfileIds })
+    };
 
+    console.log("Final user update payload:", userUpdatePayload);
+    await base44.auth.updateMe(userUpdatePayload);
+    console.log(`Successfully updated user ${user.id}.`);
+
+    // 5. Invite Team Members (if any)
+    // This part is a placeholder for future implementation of an inviteTeamMembers function
+    if (teamInvites && teamInvites.length > 0) {
+        console.log(`Team invites to be sent:`, teamInvites);
+        // await base44.functions.invoke('inviteTeamMembers', { invites: teamInvites, orgId });
+    }
+
+    console.log("--- setupAccount function completed successfully ---");
     return Response.json({ success: true, orgId, appRole });
 
   } catch (error) {
