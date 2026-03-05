@@ -1,9 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 // Base URL for the seed-data directory in Supabase storage.
-// b44: After uploading the per-industry JSON files, update this base URL
-// to match the storage path they are uploaded to.
-const SEED_DATA_BASE_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696020df49a02437cf7a3031/seed-data";
+// Reads from the SEED_DATA_BASE_URL environment variable if set, otherwise
+// falls back to the hardcoded default. Set the env var in the Base44 function
+// settings to avoid hardcoding storage paths.
+const SEED_DATA_BASE_URL = Deno.env.get('SEED_DATA_BASE_URL') ??
+  "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/696020df49a02437cf7a3031/seed-data";
 
 // Fetch a single industry data file. Returns { categories: [], templates: [] }.
 // If the file does not exist (404), returns empty arrays so the seeder degrades
@@ -100,9 +102,15 @@ Deno.serve(async (req) => {
         createdByUserId: userId,
         type: 'platform',
         status: 'approved',
-        templateCategoryIds: (t.categorySlugs || [])
-          .map((slug: string) => categorySlugToIdMap.get(slug))
-          .filter(Boolean)
+        templateCategoryIds: (t.categorySlugs || []).reduce((ids: string[], slug: string) => {
+          const id = categorySlugToIdMap.get(slug);
+          if (id) {
+            ids.push(id);
+          } else {
+            console.warn(`[Seeder] WARNING: Template "${t.name}" references unknown category slug "${slug}" — skipping.`);
+          }
+          return ids;
+        }, [])
       }));
       await base44.asServiceRole.entities.Template.bulkCreate(templateRecords);
       console.log(`[Seeder] Created ${templateRecords.length} new templates.`);
