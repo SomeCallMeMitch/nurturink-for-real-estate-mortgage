@@ -143,6 +143,19 @@ Deno.serve(async (req) => {
         // await base44.functions.invoke('inviteTeamMembers', { invites: teamInvites, orgId });
     }
 
+    // 6. Call the seeding function
+    try {
+      console.log(`Invoking seedInitialContent for orgId: ${orgId}, industry: ${details?.industry || 'universal'}`);
+      await base44.asServiceRole.functions.invoke('seedInitialContent', {
+        industry: details?.industry || 'universal',
+        userId: user.id,
+        orgId: orgId
+      });
+    } catch (seedError) {
+      console.error("Failed to seed initial content:", seedError);
+      // We don't fail the onboarding if seeding fails
+    }
+
     console.log("--- setupAccount function completed successfully ---");
     return Response.json({ success: true, orgId, appRole });
 

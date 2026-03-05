@@ -1,15 +1,70 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-// Import the JSON data directly. Deno will bundle this with the function.
-import categoriesData from '../seed-data/categories.json' assert { type: "json" };
-import templatesData from '../seed-data/templates.json' assert { type: "json" };
+
+const categoriesData = [
+  {
+    "name": "Thank You",
+    "slug": "thank-you",
+    "description": "General thank you notes",
+    "sortOrder": 1,
+    "industry": "universal"
+  },
+  {
+    "name": "Referral Request",
+    "slug": "referral-request",
+    "description": "Asking for referrals",
+    "sortOrder": 2,
+    "industry": "universal"
+  },
+  {
+    "name": "Policy Renewal",
+    "slug": "policy-renewal",
+    "description": "Insurance policy renewals",
+    "sortOrder": 3,
+    "industry": "insurance"
+  },
+  {
+    "name": "Post-Inspection",
+    "slug": "post-inspection",
+    "description": "After an inspection",
+    "sortOrder": 4,
+    "industry": "roofing"
+  }
+];
+
+const templatesData = [
+  {
+    "name": "Standard Thank You",
+    "content": "Thank you for your business. We appreciate your trust in us.",
+    "categorySlugs": ["thank-you"],
+    "industry": "universal"
+  },
+  {
+    "name": "Referral Request (General)",
+    "content": "If you know anyone who could benefit from our services, please let us know.",
+    "categorySlugs": ["referral-request"],
+    "industry": "universal"
+  },
+  {
+    "name": "Insurance Renewal Reminder",
+    "content": "It's time to renew your policy. We are here to help.",
+    "categorySlugs": ["policy-renewal"],
+    "industry": "insurance"
+  },
+  {
+    "name": "Roofing Post-Inspection Thanks",
+    "content": "Thanks for letting us inspect your roof. Here are the next steps.",
+    "categorySlugs": ["post-inspection", "thank-you"],
+    "industry": "roofing"
+  }
+];
 
 // Helper to get unique categories for the given industry
 const getUniqueCategories = (industry) => {
-    const industryCategories = categoriesData.filter((c: any) => c.industry === industry);
-    const universalCategories = categoriesData.filter((c: any) => c.industry === 'universal');
+    const industryCategories = categoriesData.filter((c) => c.industry === industry);
+    const universalCategories = categoriesData.filter((c) => c.industry === 'universal');
     const all = [...industryCategories, ...universalCategories];
     // Use a Map to ensure uniqueness based on the 'slug'
-    return [...new Map(all.map((item: any) => [item.slug, item])).values()];
+    return [...new Map(all.map((item) => [item.slug, item])).values()];
 };
 
 Deno.serve(async (req) => {
@@ -51,11 +106,11 @@ Deno.serve(async (req) => {
     const existingTemplateNames = new Set(existingTemplates.map(t => t.name));
     console.log(`[Seeder] Found ${existingTemplateNames.size} existing platform templates for this org.`);
 
-    const templatesToFilter = templatesData.filter((t: any) => t.industry === 'universal' || t.industry === industry);
-    const templatesToCreate = templatesToFilter.filter((t: any) => !existingTemplateNames.has(t.name));
+    const templatesToFilter = templatesData.filter((t) => t.industry === 'universal' || t.industry === industry);
+    const templatesToCreate = templatesToFilter.filter((t) => !existingTemplateNames.has(t.name));
 
     if (templatesToCreate.length > 0) {
-        const templateRecords = templatesToCreate.map((t: any) => ({
+        const templateRecords = templatesToCreate.map((t) => ({
             name: t.name,
             content: t.content,
             industry: t.industry,
@@ -63,7 +118,7 @@ Deno.serve(async (req) => {
             createdByUserId: userId,
             type: 'platform',
             status: 'approved',
-            templateCategoryIds: t.categorySlugs.map((slug: string) => categorySlugToIdMap.get(slug)).filter(Boolean)
+            templateCategoryIds: t.categorySlugs.map((slug) => categorySlugToIdMap.get(slug)).filter(Boolean)
         }));
         await base44.asServiceRole.entities.Template.bulkCreate(templateRecords);
         console.log(`[Seeder] Created ${templateRecords.length} new templates.`);
@@ -75,7 +130,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ success: true, message: "Seeding process completed." });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('[Seeder] Error in seedInitialContent:', error);
     return Response.json({ success: false, error: error.message }, { status: 500 });
   }
