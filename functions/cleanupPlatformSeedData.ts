@@ -27,15 +27,13 @@ Deno.serve(async (req) => {
 
     // Helper: delete in batches with delay to avoid rate limits
     async function batchDelete(entity, records, label) {
-      const BATCH_SIZE = 10;
       let deleted = 0;
-      for (let i = 0; i < records.length; i += BATCH_SIZE) {
-        const batch = records.slice(i, i + BATCH_SIZE);
-        await Promise.all(batch.map(r => entity.delete(r.id)));
-        deleted += batch.length;
-        console.log(`[Cleanup] Deleted ${deleted}/${records.length} ${label}...`);
-        if (i + BATCH_SIZE < records.length) {
-          await new Promise(r => setTimeout(r, 1000));
+      for (const r of records) {
+        await entity.delete(r.id);
+        deleted++;
+        if (deleted % 20 === 0) {
+          console.log(`[Cleanup] Deleted ${deleted}/${records.length} ${label}...`);
+          await new Promise(res => setTimeout(res, 2000));
         }
       }
       return deleted;
