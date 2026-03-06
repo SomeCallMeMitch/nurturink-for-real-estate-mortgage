@@ -54,10 +54,15 @@ Deno.serve(async (req) => {
         phone: details?.phone,
         industry: details?.industry,
         email: details?.organizationEmail, // Save organization email
-        street: details?.companyStreet,
-        city: details?.companyCity,
-        state: details?.companyState,
-        zipCode: details?.companyZipCode,
+        // Persist company address as the structured companyReturnAddress object
+        companyReturnAddress: {
+          companyName: companyName || '',
+          street: details?.companyStreet || '',
+          address2: null,
+          city: details?.companyCity || '',
+          state: details?.companyState || '',
+          zip: details?.companyZipCode || '',
+        },
         activeTeamMembers: 1,
         creditBalance: 0
       });
@@ -110,12 +115,14 @@ Deno.serve(async (req) => {
     }
 
     // 4. Prepare the final user update payload
+    // Compute full name from first + last; fall back to existing full_name
     const computedFullName = `${details?.firstName || ''} ${details?.lastName || ''}`.trim() || user.full_name;
     const userUpdatePayload = {
       orgId,
       appRole,
       accountTier,
       onboardingComplete: true,
+      full_name: computedFullName, // Built-in User field
       title: details?.jobTitle,
       phone: details?.phone,
       firstName: details?.firstName,

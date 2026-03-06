@@ -42,7 +42,7 @@ export default function SettingsWritingStyle() {
     favorites: false,
     personal: false,
     organization: true,
-    platform: true
+    platform: false // Platform styles start expanded
   });
 
   const [formData, setFormData] = useState({

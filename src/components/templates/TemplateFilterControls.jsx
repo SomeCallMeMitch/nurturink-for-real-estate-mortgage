@@ -137,7 +137,8 @@ export default function TemplateFilterControls({ filters, setFilters, categories
                 <div className="max-h-80 overflow-y-auto">
                   {subcategoryNames.map(subcat => {
                     // Default open unless user has explicitly closed it
-                    const isOpen = openSubcategories[subcat] !== false;
+                    // Subcategories start collapsed; user must click to expand
+                    const isOpen = openSubcategories[subcat] === true;
                     return (
                       <div key={subcat} className="border-b border-border last:border-0">
                         {/* Subcategory header */}
