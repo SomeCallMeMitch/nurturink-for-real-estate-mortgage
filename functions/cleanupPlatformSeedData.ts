@@ -25,23 +25,33 @@ Deno.serve(async (req) => {
       filter.orgId = targetOrgId;
     }
 
-    console.log(`[Cleanup] Deleting platform templates with filter:`, JSON.stringify(filter));
+    // Helper: delete in batches with delay to avoid rate limits
+    async function batchDelete(entity, records, label) {
+      const BATCH_SIZE = 10;
+      let deleted = 0;
+      for (let i = 0; i < records.length; i += BATCH_SIZE) {
+        const batch = records.slice(i, i + BATCH_SIZE);
+        await Promise.all(batch.map(r => entity.delete(r.id)));
+        deleted += batch.length;
+        console.log(`[Cleanup] Deleted ${deleted}/${records.length} ${label}...`);
+        if (i + BATCH_SIZE < records.length) {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+      return deleted;
+    }
+
+    // Delete templates first (they reference categories)
+    console.log(`[Cleanup] Fetching platform templates with filter:`, JSON.stringify(filter));
     const templates = await base44.asServiceRole.entities.Template.filter(filter);
     console.log(`[Cleanup] Found ${templates.length} platform templates to delete.`);
+    const deletedTemplates = await batchDelete(base44.asServiceRole.entities.Template, templates, 'templates');
 
-    for (const t of templates) {
-      await base44.asServiceRole.entities.Template.delete(t.id);
-    }
-    console.log(`[Cleanup] Deleted ${templates.length} templates.`);
-
-    console.log(`[Cleanup] Deleting platform categories with filter:`, JSON.stringify(filter));
+    // Then delete categories
+    console.log(`[Cleanup] Fetching platform categories with filter:`, JSON.stringify(filter));
     const categories = await base44.asServiceRole.entities.TemplateCategory.filter(filter);
     console.log(`[Cleanup] Found ${categories.length} platform categories to delete.`);
-
-    for (const c of categories) {
-      await base44.asServiceRole.entities.TemplateCategory.delete(c.id);
-    }
-    console.log(`[Cleanup] Deleted ${categories.length} categories.`);
+    const deletedCategories = await batchDelete(base44.asServiceRole.entities.TemplateCategory, categories, 'categories');
 
     return Response.json({
       success: true,
