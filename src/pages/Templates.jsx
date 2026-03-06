@@ -43,8 +43,9 @@ export default function TemplatesPage() {
                     type: 'organization'
                 }),
                 
-                // Platform templates (no orgId)
+                // Platform templates — seeder creates them with orgId set to user's org
                 base44.entities.Template.filter({ 
+                    orgId: currentUser.orgId,
                     type: 'platform',
                     status: 'approved' 
                 }),
@@ -56,15 +57,36 @@ export default function TemplatesPage() {
             // Combine all templates into single array
             const combined = [...personal, ...organization, ...platform];
 
-            console.log('📊 Templates loaded:', {
+            console.log('[DIAG] Templates loaded:', {
                 personal: personal.length,
                 organization: organization.length,
                 platform: platform.length,
                 total: combined.length
             });
 
+            // DIAGNOSTIC: Check orgId on platform templates
+            console.log('[DIAG] First 3 platform templates (orgId check):',
+                platform.slice(0, 3).map(t => ({
+                    id: t.id,
+                    name: t.name,
+                    orgId: t.orgId,
+                    type: t.type,
+                    templateCategoryIds: t.templateCategoryIds
+                }))
+            );
+
+            // DIAGNOSTIC: Check what categories came back
+            const cats = categoryResponse.data || [];
+            console.log('[DIAG] Categories returned by getTemplateCategories:', cats.length);
+            console.log('[DIAG] Category list:', cats.map(c => ({
+                id: c.id,
+                name: c.name,
+                slug: c.slug,
+                orgId: c.orgId
+            })));
+
             setAllTemplates(combined);
-            setAllCategories(categoryResponse.data);
+            setAllCategories(cats);
         } catch (err) {
             console.error("Failed to fetch templates:", err);
             setError("Could not load templates. Please try again.");
@@ -173,9 +195,13 @@ export default function TemplatesPage() {
 
       // Category filter
       if (filters.categoryId) {
+        console.log('[DIAG] Category filter selected:', filters.categoryId);
+        console.log('[DIAG] Templates before category filter:', filtered.length);
+        console.log('[DIAG] Sample templateCategoryIds:', filtered.slice(0, 5).map(t => ({ name: t.name, ids: t.templateCategoryIds })));
         filtered = filtered.filter(t => 
           t.templateCategoryIds && t.templateCategoryIds.includes(filters.categoryId)
         );
+        console.log('[DIAG] Templates after category filter:', filtered.length);
       }
 
       // Search filter

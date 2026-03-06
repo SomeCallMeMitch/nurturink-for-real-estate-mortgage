@@ -13,24 +13,35 @@ Deno.serve(async (req) => {
     console.log('🔐 getTemplateCategories - User authenticated:', user.email);
     console.log('🏢 getTemplateCategories - User orgId:', user.orgId);
     
-    // Fetch platform-wide categories (orgId: null) using service role
+    if (!user.orgId) {
+      console.log('⚠️ getTemplateCategories - No orgId on user, returning empty array');
+      return Response.json([]);
+    }
+
+    // Fetch platform categories seeded for this org.
+    // The seeder creates TemplateCategory records with orgId=user.orgId and type='platform'.
+    // We must use service role to read records created by the seeder.
     const platformCategories = await base44.asServiceRole.entities.TemplateCategory.filter({
-      orgId: null
+      orgId: user.orgId,
+      type: 'platform',
     });
     
     console.log('🌐 getTemplateCategories - Platform categories found:', platformCategories.length);
     
-    // Fetch org-specific categories (if user has an org)
-    let orgCategories = [];
-    if (user.orgId) {
-      orgCategories = await base44.entities.TemplateCategory.filter({
-        orgId: user.orgId
-      });
-      console.log('🏢 getTemplateCategories - Org categories found:', orgCategories.length);
-    }
+    // Fetch org-specific categories created by the org itself (type='organization')
+    const orgCategories = await base44.entities.TemplateCategory.filter({
+      orgId: user.orgId,
+      type: 'organization',
+    });
+    console.log('🏢 getTemplateCategories - Org-specific categories found:', orgCategories.length);
     
-    // Combine and return all categories
-    const allCategories = [...platformCategories, ...orgCategories];
+    // Combine and deduplicate by id
+    const seen = new Set();
+    const allCategories = [...platformCategories, ...orgCategories].filter(c => {
+      if (seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
     
     console.log('✅ getTemplateCategories - Total categories returning:', allCategories.length);
     
