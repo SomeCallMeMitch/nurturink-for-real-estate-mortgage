@@ -2,7 +2,7 @@
 ## NurturInk Resend Webhook Integration Issue
 
 **Date:** January 22, 2026  
-**Status:** Partially Working - Webhook receives emails but forwarding fails for real emails  
+**Status:** Partially Working - Webhook receives emails but forwarding fails for real emails again  
 **Last Updated:** 2:30 PM
 
 ---
