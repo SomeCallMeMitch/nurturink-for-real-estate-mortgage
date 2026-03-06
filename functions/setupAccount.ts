@@ -37,11 +37,20 @@ Deno.serve(async (req) => {
         industry: details?.industry,
         activeTeamMembers: 1,
         creditBalance: 0,
-        // Sales rep uses their personal address as the org address
+        // Sales rep uses their personal address as both the flat fields and companyReturnAddress
+        // so SettingsAddresses can read it from org.companyReturnAddress
         street: details?.personalStreet,
         city: details?.personalCity,
         state: details?.personalState,
         zipCode: details?.personalZipCode,
+        companyReturnAddress: {
+          companyName: details?.firstName ? `${details.firstName} ${details.lastName || ''}`.trim() : (user.full_name || ''),
+          street: details?.personalStreet || '',
+          address2: null,
+          city: details?.personalCity || '',
+          state: details?.personalState || '',
+          zip: details?.personalZipCode || '',
+        },
       });
       orgId = org.id;
       console.log(`Created personal organization ${orgId} for sales_rep.`);
@@ -115,8 +124,12 @@ Deno.serve(async (req) => {
     }
 
     // 4. Prepare the final user update payload
-    // Compute full name from first + last; fall back to existing full_name
-    const computedFullName = `${details?.firstName || ''} ${details?.lastName || ''}`.trim() || user.full_name;
+    // Capitalize first letter of each name part, then join with a space.
+    // Only capitalize the first letter; leave the rest as-is (handles names like McDonald, O'Brien, etc.)
+    const capitalize = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+    const capFirst = capitalize(details?.firstName || '');
+    const capLast = capitalize(details?.lastName || '');
+    const computedFullName = [capFirst, capLast].filter(Boolean).join(' ') || user.full_name;
     const userUpdatePayload = {
       orgId,
       appRole,
@@ -125,8 +138,8 @@ Deno.serve(async (req) => {
       full_name: computedFullName, // Built-in User field
       title: details?.jobTitle,
       phone: details?.phone,
-      firstName: details?.firstName,
-      lastName: details?.lastName,
+      firstName: capFirst,
+      lastName: capLast,
       fullName: computedFullName,
       companyName: companyName || '',
       writingStyle: details?.writingStyle,
