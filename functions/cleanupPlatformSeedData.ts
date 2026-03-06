@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      message: `Cleanup complete. Deleted ${templates.length} templates and ${categories.length} categories.`,
+      message: `Cleanup complete. Deleted ${deletedTemplates} templates and ${deletedCategories} categories.`,
       targetOrgId: targetOrgId || 'all orgs',
     });
 
