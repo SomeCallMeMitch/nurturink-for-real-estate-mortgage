@@ -150,18 +150,19 @@ Deno.serve(async (req) => {
         // await base44.functions.invoke('inviteTeamMembers', { invites: teamInvites, orgId });
     }
 
-    // 6. Call the seeding function
-    try {
-      console.log(`Invoking seedInitialContent for orgId: ${orgId}, industry: ${details?.industry || 'universal'}`);
-      await base44.asServiceRole.functions.invoke('seedInitialContent', {
-        industry: details?.industry || 'universal',
-        userId: user.id,
-        orgId: orgId
-      });
-    } catch (seedError) {
-      console.error("Failed to seed initial content:", seedError);
-      // We don't fail the onboarding if seeding fails
-    }
+    // 6. Fire-and-forget the seeder — do NOT await it.
+    // The seeder can take 5-15 seconds for larger industry datasets (e.g. mortgage has 28 templates).
+    // Awaiting it causes setupAccount to hit the Base44 function timeout and return a 502.
+    // We return success immediately and let the seeder run in the background.
+    const seedIndustry = details?.industry || 'universal';
+    console.log(`Firing seedInitialContent (background) for orgId: ${orgId}, industry: ${seedIndustry}`);
+    base44.asServiceRole.functions.invoke('seedInitialContent', {
+      industry: seedIndustry,
+      userId: user.id,
+      orgId: orgId
+    }).catch((seedError: any) => {
+      console.error('Background seedInitialContent failed:', seedError);
+    });
 
     console.log("--- setupAccount function completed successfully ---");
     return Response.json({ success: true, orgId, appRole });
