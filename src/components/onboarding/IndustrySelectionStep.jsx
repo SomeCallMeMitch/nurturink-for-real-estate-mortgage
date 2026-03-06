@@ -7,7 +7,7 @@ import { Home, Shield, TrendingUp, Sun, Sailboat, House, Building, Car, Briefcas
 const industries = [
   { key: 'real_estate', name: 'Real Estate', icon: Home },
   { key: 'insurance', name: 'Insurance', icon: Shield },
-  { key: 'financial_services', name: 'Financial Services', icon: TrendingUp },
+  { key: 'mortgage', name: 'Mortgage', icon: TrendingUp },
   { key: 'solar_home_services', name: 'Solar & Home', icon: Sun },
   { key: 'auto_yacht_sales', name: 'Auto & Yacht Sales', icon: Sailboat },
   { key: 'airbnb_hosts', name: 'Air B&B Hosts', icon: House },
