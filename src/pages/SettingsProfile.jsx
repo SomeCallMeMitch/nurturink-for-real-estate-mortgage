@@ -77,15 +77,13 @@ export default function SettingsProfile() {
         orgId: formData.orgId
       });
 
-      setSuccessMessage('Profile updated successfully!');
-      
-      // Reload user data
-      await loadUser();
-
-      // Clear success message after 3 seconds
+      // Reload the full page so the sidebar (MainLayout) picks up the updated full_name.
+      // MainLayout has its own independent user state that only refreshes on mount.
+      // A short delay lets the user see the success flash before the reload.
+      setSuccessMessage('Profile updated! Refreshing...');
       setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
+        window.location.reload();
+      }, 800);
     } catch (error) {
       console.error('Failed to update profile:', error);
       alert('Failed to update profile. Please try again.');

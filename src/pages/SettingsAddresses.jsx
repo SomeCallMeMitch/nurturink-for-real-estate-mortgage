@@ -73,7 +73,9 @@ export default function SettingsAddresses() {
       
       // Initialize personal address from user
       setPersonalAddress({
-        returnAddressName: currentUser.returnAddressName || currentUser.full_name || '',
+        // returnAddressName is intentionally independent from full_name.
+        // Users may want a different name on their return address (e.g. "M. Fields" vs "Mitchell Fields").
+        returnAddressName: currentUser.returnAddressName || '',
         street: currentUser.street || '',
         address2: currentUser.address2 || '',
         city: currentUser.city || '',
