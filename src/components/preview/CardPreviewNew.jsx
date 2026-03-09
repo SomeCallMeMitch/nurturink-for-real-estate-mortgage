@@ -144,10 +144,10 @@ function messageToLines(message) {
  * Returns an array of unique characters in the message that the robot pen
  * is unlikely to be able to write.
  *
- * The robot uses ballpoint-pen cursive fonts (Caveat, Kalam, Patrick Hand).
- * These cover Basic Latin, Latin Extended-A/B, and common Western punctuation.
- * Anything outside that range — emoji, non-Latin scripts, Unicode symbols —
- * cannot be physically rendered by the pen.
+ * The robot uses ballpoint-pen cursive fonts (Caveat, Kalam, Patrick Hand,
+ * Dancing Script). These cover Basic Latin, Latin Extended-A/B, and common
+ * Western punctuation. Anything outside that range — emoji, non-Latin scripts,
+ * Unicode symbols — cannot be physically rendered by the pen.
  *
  * SAFE ranges (robot can write):
  *   U+0020–U+007E  Basic ASCII printable (letters, digits, common punctuation)
@@ -281,7 +281,7 @@ const composeCompleteMessage = (greeting, message, signature, client, user, orga
 // ─────────────────────────────────────────────
 
 const getFontClass = (fontName) => {
-  // CSS classes defined in Layout.js — must match exactly
+  // CSS classes defined in MainLayout.jsx — must match exactly
   const fontMap = {
     'Caveat': 'font-caveat',
     'Kalam': 'font-kalam',
@@ -304,8 +304,6 @@ const hash32 = (str) => {
 /**
  * Generates a smooth per-line indent offset for the handwritten wobble effect.
  * This is purely visual and does NOT affect line-break calculation.
- * NOTE: Scribe only sees the character-space indent from messageToLines().
- * This wobble is purely cosmetic to simulate handwriting irregularity.
  */
 const makeLineIndenter = (seed, { maxIndent, indentAmplitude, indentNoise, indentFrequency }) => {
   const rng = (s) => {
@@ -505,8 +503,7 @@ const CardPreviewNew = ({
           <span className={`text-sm font-semibold ${exceedsLimit ? 'text-red-600' : 'text-green-600'}`}>
             {lines.length} / {maxLines} max
           </span>
-          {/* Debug toggle — visible only to admin users */}
-          {user?.role === 'admin' && (
+          {user?.appRole === 'super_admin' && (
             <button
               type="button"
               onClick={() => setShowDebug(!showDebug)}
