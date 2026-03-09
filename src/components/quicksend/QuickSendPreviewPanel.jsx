@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Zap } from 'lucide-react';
-import CardPreview from '@/components/preview/CardPreview';
+import CardPreview from '@/components/preview/CardPreviewNew';
 
 // Default preview settings fallback
 const DEFAULT_PREVIEW_SETTINGS = {
