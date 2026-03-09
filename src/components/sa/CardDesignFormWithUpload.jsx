@@ -119,7 +119,7 @@ function CategoryDropdown({ categories, selectedIds, onToggle }) {
     .map(c => c.name);
 
   return (
-    <div className="w-[220px] shrink-0" ref={dropdownRef}>
+    <div className="w-[220px] shrink-0 relative" ref={dropdownRef}>
       <Label className="text-sm">Categories</Label>
       <button
         type="button"
