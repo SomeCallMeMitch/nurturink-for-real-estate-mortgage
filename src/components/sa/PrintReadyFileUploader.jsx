@@ -77,16 +77,16 @@ export default function PrintReadyFileUploader({
   const displayName = fileName || (fileUri ? fileUri.split('/').pop() : null);
 
   return (
-    <div className="space-y-2">
-      <Label className="text-sm font-medium">{label}</Label>
-      {sublabel && <p className="text-xs text-gray-500">{sublabel}</p>}
+    <div className={compact ? "space-y-1" : "space-y-2"}>
+      <Label className={compact ? "text-xs font-medium" : "text-sm font-medium"}>{label}</Label>
+      {sublabel && <p className="text-[10px] text-gray-500">{sublabel}</p>}
 
       {/* Upload state: No file uploaded yet */}
       {!fileUri && !uploading && (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
-          <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+        <div className={`border-2 border-dashed border-gray-300 rounded-lg text-center hover:border-gray-400 transition-colors ${compact ? 'p-2' : 'p-4'}`}>
+          <Upload className={`text-gray-400 mx-auto ${compact ? 'w-5 h-5 mb-1' : 'w-8 h-8 mb-2'}`} />
           <label className="cursor-pointer">
-            <span className="px-3 py-1.5 bg-gray-800 text-white rounded hover:bg-gray-700 inline-block text-sm">
+            <span className={`bg-gray-800 text-white rounded hover:bg-gray-700 inline-block ${compact ? 'px-2 py-1 text-xs' : 'px-3 py-1.5 text-sm'}`}>
               Choose File
             </span>
             <input
@@ -96,7 +96,7 @@ export default function PrintReadyFileUploader({
               onChange={handleFileSelect}
             />
           </label>
-          <p className="text-xs text-gray-500 mt-2">
+          <p className={`text-gray-500 ${compact ? 'text-[10px] mt-1' : 'text-xs mt-2'}`}>
             PDF or image, max {maxSizeMB}MB
           </p>
         </div>
@@ -104,25 +104,25 @@ export default function PrintReadyFileUploader({
 
       {/* Uploading state */}
       {uploading && (
-        <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4 text-center">
-          <Loader2 className="w-8 h-8 text-blue-500 mx-auto mb-2 animate-spin" />
-          <p className="text-sm text-blue-700">Uploading {fileName}...</p>
+        <div className={`border-2 border-blue-200 bg-blue-50 rounded-lg text-center ${compact ? 'p-2' : 'p-4'}`}>
+          <Loader2 className={`text-blue-500 mx-auto animate-spin ${compact ? 'w-5 h-5 mb-1' : 'w-8 h-8 mb-2'}`} />
+          <p className={`text-blue-700 ${compact ? 'text-xs' : 'text-sm'}`}>Uploading...</p>
         </div>
       )}
 
       {/* File uploaded state */}
       {fileUri && !uploading && (
-        <div className="border-2 border-green-200 bg-green-50 rounded-lg p-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-              <FileText className="w-4 h-4 text-green-600" />
+        <div className={`border-2 border-green-200 bg-green-50 rounded-lg flex items-center justify-between ${compact ? 'p-2' : 'p-3'}`}>
+          <div className="flex items-center gap-2 min-w-0">
+            <div className={`bg-green-100 rounded-full flex items-center justify-center shrink-0 ${compact ? 'w-6 h-6' : 'w-8 h-8'}`}>
+              <FileText className={`text-green-600 ${compact ? 'w-3 h-3' : 'w-4 h-4'}`} />
             </div>
-            <div>
-              <p className="text-sm font-medium text-green-800 truncate max-w-[200px]">
+            <div className="min-w-0">
+              <p className={`font-medium text-green-800 truncate ${compact ? 'text-xs max-w-[120px]' : 'text-sm max-w-[200px]'}`}>
                 {displayName || 'File uploaded'}
               </p>
-              <p className="text-xs text-green-600 flex items-center gap-1">
-                <Check className="w-3 h-3" /> Stored securely
+              <p className="text-[10px] text-green-600 flex items-center gap-1">
+                <Check className="w-2.5 h-2.5" /> Stored
               </p>
             </div>
           </div>
@@ -130,17 +130,17 @@ export default function PrintReadyFileUploader({
             variant="ghost"
             size="sm"
             onClick={handleClear}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 shrink-0 h-6 w-6 p-0"
           >
-            <X className="w-4 h-4" />
+            <X className="w-3 h-3" />
           </Button>
         </div>
       )}
 
       {/* Error state */}
       {error && (
-        <div className="flex items-center gap-2 text-red-600 text-sm">
-          <AlertCircle className="w-4 h-4" />
+        <div className={`flex items-center gap-2 text-red-600 ${compact ? 'text-xs' : 'text-sm'}`}>
+          <AlertCircle className="w-3.5 h-3.5" />
           {error}
         </div>
       )}
