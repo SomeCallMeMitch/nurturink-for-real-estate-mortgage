@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { ArrowLeft, Save, Loader2, AlertTriangle, Star } from 'lucide-react';
 import PlaceholderModal from '@/components/mailing/PlaceholderModal';
-import CardPreview from '@/components/preview/CardPreviewNew';
+import CardPreview from '@/components/preview/CardPreview';
 import {
   AlertDialog,
   AlertDialogAction,

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import CardPreview from "@/components/preview/CardPreviewNew";
+import CardPreview from "@/components/preview/CardPreview";
 import { Separator } from "@/components/ui/separator";
 
 export default function CardDetailsModal({

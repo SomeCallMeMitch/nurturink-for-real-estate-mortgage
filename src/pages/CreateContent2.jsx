@@ -13,7 +13,7 @@ import { debounce } from "lodash";
 import EditModeSelector from "@/components/mailing/EditModeSelector";
 import PlaceholderSelector from "@/components/mailing/PlaceholderSelector";
 import TemplateLibrary from "@/components/mailing/TemplateLibrary";
-import CardPreview from "@/components/preview/CardPreviewNew";
+import CardPreview from "@/components/preview/CardPreview";
 
 // Default fallback settings if API fails
 const FALLBACK_SETTINGS = {

@@ -15,7 +15,7 @@ import EditModeSelector from "@/components/mailing/EditModeSelector";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 import PlaceholderModal from "@/components/mailing/PlaceholderModal";
 import TemplateLibrary from "@/components/mailing/TemplateLibrary";
-import CardPreview from "@/components/preview/CardPreviewNew";
+import CardPreview from "@/components/preview/CardPreview";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 
 // PHASE 2: Import CreditContext hook for global credit state

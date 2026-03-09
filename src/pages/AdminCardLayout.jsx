@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, Save, RotateCcw, CheckCircle, AlertCircle } from 'lucide-react';
-import CardPreview from '@/components/preview/CardPreviewNew';
+import CardPreview from '@/components/preview/CardPreview';
 
 // Sample data for preview
 const SAMPLE_CLIENT = {
