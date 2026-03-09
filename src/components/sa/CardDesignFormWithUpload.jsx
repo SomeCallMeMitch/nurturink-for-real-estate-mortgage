@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,9 @@ import {
   Copy,
   Check,
   Download,
-  AlertTriangle
+  AlertTriangle,
+  ChevronDown,
+  Tag
 } from 'lucide-react';
 import { uploadImageVariants } from '@/components/utils/imageHelpers';
 import {
