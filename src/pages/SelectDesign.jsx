@@ -12,7 +12,7 @@ import { debounce } from "lodash";
 
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import EditModeSelector from "@/components/mailing/EditModeSelector";
-import CardPreview from "@/components/preview/CardPreview";
+import CardPreview from "@/components/preview/CardPreviewNew";
 import CardDetailsModal from "@/components/card/CardDetailsModal";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 import { getBestOutsideUrl } from "@/components/utils/imageHelpers";
