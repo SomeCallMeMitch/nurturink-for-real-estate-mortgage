@@ -297,10 +297,11 @@ export default function CardDesignFormWithUpload({
           </div>
         </DialogHeader>
 
-        <div className="p-6 space-y-5">
-          {/* Design Name + Default Checkbox */}
+        <div className="p-6 space-y-4">
+          {/* Row 1: Design Name + Categories Dropdown + Default Checkbox */}
           <div className="flex gap-4 items-end">
-            <div className="flex-1">
+            {/* Design Name - reduced width */}
+            <div className="flex-1 min-w-0">
               <Label htmlFor="design-name">Design Name *</Label>
               <Input
                 id="design-name"
@@ -310,24 +311,31 @@ export default function CardDesignFormWithUpload({
                 className="mt-1"
               />
             </div>
-            <div className="flex items-center space-x-2 pb-2">
+            {/* Categories Multi-Select Dropdown */}
+            <CategoryDropdown
+              categories={categories}
+              selectedIds={form.cardDesignCategoryIds}
+              onToggle={handleCategoryToggle}
+            />
+            {/* Default Checkbox */}
+            <div className="flex items-center space-x-2 pb-2 shrink-0">
               <Checkbox
                 id="isDefault"
                 checked={form.isDefault}
                 onCheckedChange={(checked) => setForm({ ...form, isDefault: checked })}
                 className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
               />
-              <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer">
+              <label htmlFor="isDefault" className="text-sm font-medium cursor-pointer whitespace-nowrap">
                 Set as default design
               </label>
             </div>
           </div>
 
-          {/* Card Images */}
+          {/* Card Images — 4-column grid: Inside | Outside | Front+PrintFront | Back+PrintBack */}
           <div>
             <Label className="text-sm font-semibold mb-2 block">Card Images *</Label>
             <div className="grid grid-cols-4 gap-4">
-              {/* Inside Image */}
+              {/* Inside Image (tall) */}
               <ImageUploader
                 label="Inside"
                 sublabel="Digital preview"
@@ -338,7 +346,7 @@ export default function CardDesignFormWithUpload({
                 aspectRatio="412/600"
               />
               
-              {/* Outside Image */}
+              {/* Outside Image (tall) + variant indicator */}
               <div className="flex flex-col gap-1">
                 <ImageUploader
                   label="Outside"
@@ -369,7 +377,7 @@ export default function CardDesignFormWithUpload({
                 )}
               </div>
               
-              {/* Right side: Front, Back, Categories stacked */}
+              {/* Right side: Front/Back + Print-Ready stacked below each */}
               <div className="col-span-2 flex flex-col gap-3">
                 {/* Front and Back side by side */}
                 <div className="grid grid-cols-2 gap-3">
@@ -394,56 +402,28 @@ export default function CardDesignFormWithUpload({
                   />
                 </div>
                 
-                {/* Categories below Front/Back */}
-                <div className="flex-1">
-                  <Label className="text-xs font-medium mb-1.5 block">Categories</Label>
-                  <div className="border border-gray-200 rounded-lg p-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 max-h-[120px] overflow-y-auto">
-                    {categories.length === 0 ? (
-                      <p className="text-sm text-gray-500 col-span-2">No categories available.</p>
-                    ) : (
-                      categories.map((category) => (
-                        <div key={category.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`cat-${category.id}`}
-                            checked={form.cardDesignCategoryIds.includes(category.id)}
-                            onCheckedChange={() => handleCategoryToggle(category.id)}
-                            className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                          />
-                          <label htmlFor={`cat-${category.id}`} className="text-sm cursor-pointer">
-                            {category.name}
-                          </label>
-                        </div>
-                      ))
-                    )}
-                  </div>
+                {/* Print-Ready files directly below Front/Back — compact layout */}
+                <div className="grid grid-cols-2 gap-3">
+                  <PrintReadyFileUploader
+                    label="Print-Ready Outside"
+                    sublabel="Cover (1.png in ZIP)"
+                    fileUri={form.printReadyFrontUri}
+                    onFileUriChange={(uri) => setForm({ ...form, printReadyFrontUri: uri })}
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    maxSizeMB={10}
+                    compact
+                  />
+                  <PrintReadyFileUploader
+                    label="Print-Ready Inside"
+                    sublabel="Interior (2.png in ZIP)"
+                    fileUri={form.printReadyBackUri}
+                    onFileUriChange={(uri) => setForm({ ...form, printReadyBackUri: uri })}
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    maxSizeMB={10}
+                    compact
+                  />
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Print-Ready File Uploads - MODIFIED SECTION */}
-          <div className="pt-4 border-t">
-            <Label className="text-sm font-semibold mb-3 block">Print-Ready Files (for Scribe Nurture)</Label>
-            <p className="text-xs text-gray-500 mb-4">
-              Upload high-resolution PDF or image files for print production. Files are stored securely and accessed only during print package generation.
-            </p>
-            <div className="grid grid-cols-2 gap-6">
-              <PrintReadyFileUploader
-                label="Print-Ready Outside"
-                sublabel="Cover of physical card (1.png in ZIP)"
-                fileUri={form.printReadyFrontUri}
-                onFileUriChange={(uri) => setForm({ ...form, printReadyFrontUri: uri })}
-                accept=".pdf,.png,.jpg,.jpeg"
-                maxSizeMB={10}
-              />
-              <PrintReadyFileUploader
-                label="Print-Ready Inside"
-                sublabel="Interior of physical card (2.png in ZIP)"
-                fileUri={form.printReadyBackUri}
-                onFileUriChange={(uri) => setForm({ ...form, printReadyBackUri: uri })}
-                accept=".pdf,.png,.jpg,.jpeg"
-                maxSizeMB={10}
-              />
             </div>
           </div>
 
