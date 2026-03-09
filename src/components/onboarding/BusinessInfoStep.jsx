@@ -65,7 +65,7 @@ export default function BusinessInfoStep({ data, onUpdate, onComplete }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="website">Website (Optional)</Label>
-            <Input id="website" value={data.website || ''} onChange={handleChange} placeholder="www.yourcompany.com" />
+            <Input id="website" value={data.website || ''} onChange={handleChange} placeholder="https://yourcompany.com" />
           </div>
           <div className="pt-4">
             <Button size="lg" className="w-full" onClick={onComplete} disabled={!isFormValid()}>

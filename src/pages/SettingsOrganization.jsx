@@ -209,10 +209,10 @@ export default function SettingsOrganization() {
               <Label htmlFor="website">Organization Website</Label>
               <Input
                 id="website"
-                type="text"
+                type="url"
                 value={formData.website}
                 onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                placeholder="www.example.com"
+                placeholder="https://www.example.com"
               />
               <p className="text-xs text-gray-500 mt-1">
                 Used in placeholders like {`{{org.website}}`}
