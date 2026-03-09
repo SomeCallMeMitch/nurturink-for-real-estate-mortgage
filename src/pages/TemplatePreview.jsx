@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Loader2, AlertTriangle, Star } from 'lucide-react';
 import PlaceholderModal from '@/components/mailing/PlaceholderModal';
-import CardPreview from '@/components/preview/CardPreview';
+import CardPreview from '@/components/preview/CardPreviewNew';
 
 // Fallback settings if API fails
 const FALLBACK_SETTINGS = {
