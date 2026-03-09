@@ -25,7 +25,8 @@ export default function PrintReadyFileUploader({
   fileUri,
   onFileUriChange,
   accept = ".pdf,.png,.jpg,.jpeg",
-  maxSizeMB = 10
+  maxSizeMB = 10,
+  compact = false
 }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
