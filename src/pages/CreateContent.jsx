@@ -15,7 +15,7 @@ import EditModeSelector from "@/components/mailing/EditModeSelector";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 import PlaceholderModal from "@/components/mailing/PlaceholderModal";
 import TemplateLibrary from "@/components/mailing/TemplateLibrary";
-import CardPreview from "@/components/preview/CardPreviewNew";
+import CardPreview from "@/components/preview/CardPreview";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 
 // PHASE 2: Import CreditContext hook for global credit state
@@ -276,6 +276,7 @@ export default function CreateContent() {
           type: 'organization'
         }),
         base44.entities.Template.filter({ 
+          orgId: currentUser.orgId,
           type: 'platform',
           status: 'approved' 
         })
