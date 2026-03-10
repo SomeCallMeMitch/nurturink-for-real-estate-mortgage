@@ -51,7 +51,7 @@ export default function TemplateFilterControls({ filters, setFilters, categories
   const toggleSubcategory = (subcat) => {
     setOpenSubcategories(prev => ({
       ...prev,
-      [subcat]: prev[subcat] === false ? true : false
+      [subcat]: !prev[subcat]
     }));
   };
 
