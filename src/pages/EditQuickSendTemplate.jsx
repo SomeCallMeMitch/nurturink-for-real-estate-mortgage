@@ -165,7 +165,7 @@ export default function EditQuickSendTemplate() {
       const [personalTemplates, orgTemplates, platformTemplates] = await Promise.all([
         base44.entities.Template.filter({ createdByUserId: currentUser.id, type: 'personal' }),
         base44.entities.Template.filter({ orgId: currentUser.orgId, type: 'organization', status: 'approved' }),
-        base44.entities.Template.filter({ type: 'platform', status: 'approved' })
+        base44.entities.Template.filter({ orgId: currentUser.orgId, type: 'platform', status: 'approved' })
       ]);
       setTemplates([...personalTemplates, ...orgTemplates, ...platformTemplates]);
       
