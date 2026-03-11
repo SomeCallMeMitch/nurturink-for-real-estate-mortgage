@@ -6,7 +6,6 @@ import { Loader2 } from 'lucide-react';
 
 // Import Step Components
 import OnboardingProgress from '@/components/onboarding/OnboardingProgress';
-import RoleSelectionStep from '@/components/onboarding/RoleSelectionStep';
 import IndustrySelectionStep from '@/components/onboarding/IndustrySelectionStep';
 import BusinessInfoStep from '@/components/onboarding/BusinessInfoStep';
 import AddressStep from '@/components/onboarding/AddressStep';
@@ -15,8 +14,7 @@ import TeamInviteStep from '@/components/onboarding/TeamInviteStep';
 import MobileOnboardingModal from '@/components/onboarding/MobileOnboardingModal';
 import OnboardingLoader from '@/components/onboarding/OnboardingLoader';
 
-const TOTAL_STEPS_INDIVIDUAL = 5;
-const TOTAL_STEPS_COMPANY = 6;
+const TOTAL_STEPS = 5;
 
 export default function Onboarding() {
   const navigate = useNavigate();
@@ -24,7 +22,6 @@ export default function Onboarding() {
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
   const [onboardingData, setOnboardingData] = useState({
-    role: null,
     industry: null,
     firstName: '',
     lastName: '',
@@ -37,10 +34,6 @@ export default function Onboarding() {
     personalCity: '',
     personalState: '',
     personalZipCode: '',
-    companyStreet: '',
-    companyCity: '',
-    companyState: '',
-    companyZipCode: '',
     writingStyle: 'Friendly',
     teamInvites: [],
   });
@@ -62,9 +55,7 @@ export default function Onboarding() {
     checkStatus();
   }, [navigate]);
 
-  const totalSteps = onboardingData.role === 'company' ? TOTAL_STEPS_COMPANY : TOTAL_STEPS_INDIVIDUAL;
-
-  const handleNext = () => setStep((prev) => Math.min(prev + 1, totalSteps));
+  const handleNext = () => setStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
   const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const updateData = (data) => {
@@ -75,7 +66,7 @@ export default function Onboarding() {
     setIsCompleting(true);
     try {
       const finalPayload = {
-        role: onboardingData.role,
+        role: 'company',
         companyName: onboardingData.companyName,
         details: {
           firstName: onboardingData.firstName,
@@ -90,10 +81,10 @@ export default function Onboarding() {
           personalCity: onboardingData.personalCity,
           personalState: onboardingData.personalState,
           personalZipCode: onboardingData.personalZipCode,
-          companyStreet: onboardingData.companyStreet,
-          companyCity: onboardingData.companyCity,
-          companyState: onboardingData.companyState,
-          companyZipCode: onboardingData.companyZipCode,
+          companyStreet: '',
+          companyCity: '',
+          companyState: '',
+          companyZipCode: '',
         },
         teamInvites: invites,
       };
@@ -131,25 +122,18 @@ export default function Onboarding() {
       {isCompleting && <OnboardingLoader />}
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start p-4">
         <div className="w-full max-w-5xl mx-auto">
-          <OnboardingProgress currentStep={step} totalSteps={totalSteps} onBack={step > 1 ? handleBack : null} role={onboardingData.role} />
+          <OnboardingProgress currentStep={step} totalSteps={TOTAL_STEPS} onBack={step > 1 ? handleBack : null} />
           <main className="mt-8">
-            {step === 1 && <RoleSelectionStep onSelect={(role) => { updateData({ role }); handleNext(); }} />}
-            {step === 2 && <IndustrySelectionStep onSelect={(industry) => { updateData({ industry }); handleNext(); }} />}
-            {step === 3 && <BusinessInfoStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} />}
-            {step === 4 && <AddressStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} />}
-            {step === 5 && onboardingData.role === 'company' && (
+            {step === 1 && <IndustrySelectionStep onSelect={(industry) => { updateData({ industry }); handleNext(); }} />}
+            {step === 2 && <BusinessInfoStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} />}
+            {step === 3 && <AddressStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} />}
+            {step === 4 && (
               <PreferencesStep
                 onSelect={(style) => { updateData({ writingStyle: style }); handleNext(); }}
                 onSkip={handleNext}
               />
             )}
-            {step === 5 && onboardingData.role !== 'company' && (
-              <PreferencesStep
-                onSelect={(style) => { updateData({ writingStyle: style }); handleComplete(); }}
-                onSkip={handleComplete}
-              />
-            )}
-            {step === 6 && onboardingData.role === 'company' && <TeamInviteStep onComplete={handleComplete} onSkip={() => handleComplete([])} />}
+            {step === 5 && <TeamInviteStep onComplete={handleComplete} onSkip={() => handleComplete([])} />}
           </main>
         </div>
       </div>
