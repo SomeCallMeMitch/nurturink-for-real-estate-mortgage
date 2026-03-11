@@ -6,8 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function BusinessInfoStep({ data, onUpdate, onComplete }) {
-  const isCompany = data.role === 'company';
-
   const handleChange = (e) => {
     onUpdate({ [e.target.id]: e.target.value });
   };
@@ -19,8 +17,6 @@ export default function BusinessInfoStep({ data, onUpdate, onComplete }) {
   };
 
   const isFormValid = () => {
-    if (isCompany && !data.companyName) return false;
-    // First name, last name, title, and phone are now required for all roles.
     if (!data.firstName || !data.lastName || !data.jobTitle || !data.phone) return false;
     return true;
   };
@@ -33,18 +29,16 @@ export default function BusinessInfoStep({ data, onUpdate, onComplete }) {
           <CardDescription>This information will be used for your account profile.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-4">
-          {isCompany && (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="companyName">Company Name</Label>
-                <Input id="companyName" value={data.companyName || ''} onChange={handleChange} required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="organizationEmail">Organization Email (Optional)</Label>
-                <Input id="organizationEmail" type="email" value={data.organizationEmail || ''} onChange={handleChange} placeholder="info@yourcompany.com" />
-              </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="companyName">Company Name (Optional)</Label>
+              <Input id="companyName" value={data.companyName || ''} onChange={handleChange} placeholder="Your company or agency name" />
             </div>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="organizationEmail">Organization Email (Optional)</Label>
+              <Input id="organizationEmail" type="email" value={data.organizationEmail || ''} onChange={handleChange} placeholder="info@yourcompany.com" />
+            </div>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
