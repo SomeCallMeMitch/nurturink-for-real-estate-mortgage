@@ -39,7 +39,7 @@ export default function SettingsProfile() {
       setFormData({
         firstName: currentUser.firstName || '',
         lastName: currentUser.lastName || '',
-        full_name: currentUser.full_name || '',
+        full_name: currentUser.fullName || currentUser.full_name || '',
         email: currentUser.email || '',
         title: currentUser.title || '',
         phone: currentUser.phone || '',
