@@ -23,6 +23,7 @@ export default function Onboarding() {
   const [isCompleting, setIsCompleting] = useState(false);
   const [onboardingData, setOnboardingData] = useState({
     industry: null,
+    fullName: '',
     firstName: '',
     lastName: '',
     companyName: '',
@@ -73,6 +74,7 @@ export default function Onboarding() {
         role: 'company',
         companyName: onboardingData.companyName,
         details: {
+          fullName: onboardingData.fullName,
           firstName: onboardingData.firstName,
           lastName: onboardingData.lastName,
           website: onboardingData.website,

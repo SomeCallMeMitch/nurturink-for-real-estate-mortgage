@@ -97,22 +97,19 @@ Deno.serve(async (req) => {
     }
 
     // 4. Prepare the final user update payload
-    const capitalize = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
-    const capFirst = capitalize(details?.firstName || '');
-    const capLast = capitalize(details?.lastName || '');
-    const computedFullName = [capFirst, capLast].filter(Boolean).join(' ');
-    console.log("NAME DEBUG — capFirst:", capFirst, "| capLast:", capLast, "| computedFullName:", computedFullName);
+    const fullName = details?.fullName || '';
+    console.log("NAME DEBUG — fullName (user-provided):", fullName);
     const userUpdatePayload = {
       orgId,
       appRole,
       accountTier,
       onboardingComplete: true,
-      full_name: computedFullName,
+      full_name: fullName,
       title: details?.jobTitle,
       phone: details?.phone,
-      firstName: capFirst,
-      lastName: capLast,
-      fullName: computedFullName,
+      firstName: details?.firstName || '',
+      lastName: details?.lastName || '',
+      fullName: fullName,
       companyName: companyName || '',
       writingStyle: details?.writingStyle,
       street: details?.personalStreet,

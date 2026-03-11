@@ -17,7 +17,7 @@ export default function BusinessInfoStep({ data, onUpdate, onComplete }) {
   };
 
   const isFormValid = () => {
-    if (!data.firstName || !data.lastName || !data.jobTitle || !data.phone) return false;
+    if (!data.fullName || !data.firstName || !data.lastName || !data.jobTitle || !data.phone) return false;
     return true;
   };
 
@@ -29,6 +29,11 @@ export default function BusinessInfoStep({ data, onUpdate, onComplete }) {
           <CardDescription>This information will be used for your account profile.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 pt-4">
+          {/* Your Full Name — used as your display name throughout the app */}
+          <div className="space-y-2">
+            <Label htmlFor="fullName">Your Full Name</Label>
+            <Input id="fullName" value={data.fullName || ''} onChange={handleChange} placeholder="e.g. Jane Smith" required />
+          </div>
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="companyName">Company Name (Optional)</Label>
