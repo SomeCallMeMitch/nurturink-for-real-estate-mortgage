@@ -18,6 +18,7 @@ Deno.serve(async (req) => {
 
     const { role, companyName, details, teamInvites } = await req.json();
     console.log("Received payload:", { role, companyName, details, teamInvites });
+    console.log("NAME DEBUG — firstName:", details?.firstName, "| lastName:", details?.lastName);
 
     if (!['company', 'whitelabel_partner'].includes(role)) {
       console.error(`Invalid role: ${role}`);
@@ -100,6 +101,7 @@ Deno.serve(async (req) => {
     const capFirst = capitalize(details?.firstName || '');
     const capLast = capitalize(details?.lastName || '');
     const computedFullName = [capFirst, capLast].filter(Boolean).join(' ');
+    console.log("NAME DEBUG — capFirst:", capFirst, "| capLast:", capLast, "| computedFullName:", computedFullName);
     const userUpdatePayload = {
       orgId,
       appRole,
