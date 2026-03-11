@@ -152,6 +152,7 @@ Deno.serve(async (req) => {
       ...(favoriteNoteStyleProfileIds.length > 0 && { favoriteNoteStyleProfileIds })
     };
 
+   
     console.log("Final user update payload:", userUpdatePayload);
     await base44.auth.updateMe(userUpdatePayload);
     console.log(`Successfully updated user ${user.id}.`);
