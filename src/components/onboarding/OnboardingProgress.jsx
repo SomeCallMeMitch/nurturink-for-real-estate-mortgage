@@ -2,18 +2,14 @@ import React from 'react';
 import { Check, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function OnboardingProgress({ currentStep, totalSteps, onBack, role }) {
+export default function OnboardingProgress({ currentStep, totalSteps, onBack }) {
   const steps = [
-    { number: 1, label: 'Role' },
-    { number: 2, label: 'Industry' },
-    { number: 3, label: 'Business' },
-    { number: 4, label: 'Address' },
-    { number: 5, label: 'Preferences' },
+    { number: 1, label: 'Industry' },
+    { number: 2, label: 'Business' },
+    { number: 3, label: 'Address' },
+    { number: 4, label: 'Preferences' },
+    { number: 5, label: 'Team' },
   ];
-
-  if (role === 'company') {
-    steps.push({ number: 6, label: 'Team' });
-  }
 
   const getStepState = (stepNumber) => {
     if (stepNumber < currentStep) return 'completed';
