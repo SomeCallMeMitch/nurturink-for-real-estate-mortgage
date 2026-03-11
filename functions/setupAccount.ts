@@ -102,11 +102,8 @@ Deno.serve(async (req) => {
     const capLast = capitalize(details?.lastName || '');
     const computedFullName = [capFirst, capLast].filter(Boolean).join(' ');
     console.log("NAME DEBUG — capFirst:", capFirst, "| capLast:", capLast, "| computedFullName:", computedFullName);
-    // Map appRole to Base44's built-in role field
-    const base44BuiltInRole = (appRole === 'organization_owner' || appRole === 'whitelabel_partner' || appRole === 'super_admin') ? 'admin' : 'user';
     const userUpdatePayload = {
       orgId,
-      role: base44BuiltInRole,
       appRole,
       accountTier,
       onboardingComplete: true,
