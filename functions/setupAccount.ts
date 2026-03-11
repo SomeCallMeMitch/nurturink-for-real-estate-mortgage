@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
     const capitalize = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
     const capFirst = capitalize(details?.firstName || '');
     const capLast = capitalize(details?.lastName || '');
-    const computedFullName = [capFirst, capLast].filter(Boolean).join(' ') || user.full_name;
+    const computedFullName = [capFirst, capLast].filter(Boolean).join(' ');
     const userUpdatePayload = {
       orgId,
       appRole,
