@@ -19,76 +19,48 @@ Deno.serve(async (req) => {
     const { role, companyName, details, teamInvites } = await req.json();
     console.log("Received payload:", { role, companyName, details, teamInvites });
 
-    if (!['sales_rep', 'company', 'whitelabel_partner'].includes(role)) {
+    if (!['company', 'whitelabel_partner'].includes(role)) {
       console.error(`Invalid role: ${role}`);
       return Response.json({ error: 'Invalid role selected' }, { status: 400 });
     }
 
     let orgId = null;
-    let appRole = 'sales_rep';
-    let accountTier = 'individual';
+    let appRole = 'organization_owner';
+    let accountTier = 'company';
 
-    // 1. Create Organization based on Role
-    if (role === 'sales_rep') {
-      const org = await base44.asServiceRole.entities.Organization.create({
-        name: `${details?.firstName || user.full_name}'s Workspace`,
-        accountType: 'company',
-        website: details?.website,
-        industry: details?.industry,
-        activeTeamMembers: 1,
-        creditBalance: 0,
-        // Sales rep uses their personal address as both the flat fields and companyReturnAddress
-        // so SettingsAddresses can read it from org.companyReturnAddress
-        street: details?.personalStreet,
-        city: details?.personalCity,
-        state: details?.personalState,
-        zipCode: details?.personalZipCode,
-        companyReturnAddress: {
-          companyName: details?.firstName ? `${details.firstName} ${details.lastName || ''}`.trim() : (user.full_name || ''),
-          street: details?.personalStreet || '',
-          address2: null,
-          city: details?.personalCity || '',
-          state: details?.personalState || '',
-          zip: details?.personalZipCode || '',
-        },
-      });
-      orgId = org.id;
-      console.log(`Created personal organization ${orgId} for sales_rep.`);
-    } else if (role === 'company' || role === 'whitelabel_partner') {
-      const isWhitelabel = role === 'whitelabel_partner';
-      const org = await base44.asServiceRole.entities.Organization.create({
-        name: companyName || `${details?.firstName || user.full_name}'s Company`,
-        accountType: isWhitelabel ? 'whitelabel_partner' : 'company',
-        website: details?.website,
-        phone: details?.phone,
-        industry: details?.industry,
-        email: details?.organizationEmail, // Save organization email
-        // Persist company address as the structured companyReturnAddress object
-        companyReturnAddress: {
-          companyName: companyName || '',
-          street: details?.companyStreet || '',
-          address2: null,
-          city: details?.companyCity || '',
-          state: details?.companyState || '',
-          zip: details?.companyZipCode || '',
-        },
-        activeTeamMembers: 1,
-        creditBalance: 0
-      });
-      orgId = org.id;
-      appRole = isWhitelabel ? 'whitelabel_partner' : 'organization_owner';
-      accountTier = isWhitelabel ? 'whitelabel_partner' : 'company';
-      console.log(`Created ${accountTier} organization ${orgId}.`);
+    // 1. Create Organization
+    const isWhitelabel = role === 'whitelabel_partner';
+    const org = await base44.asServiceRole.entities.Organization.create({
+      name: companyName || `${details?.firstName || user.full_name}'s Company`,
+      accountType: isWhitelabel ? 'whitelabel_partner' : 'company',
+      website: details?.website,
+      phone: details?.phone,
+      industry: details?.industry,
+      email: details?.organizationEmail,
+      companyReturnAddress: {
+        companyName: companyName || '',
+        street: details?.companyStreet || '',
+        address2: null,
+        city: details?.companyCity || '',
+        state: details?.companyState || '',
+        zip: details?.companyZipCode || '',
+      },
+      activeTeamMembers: 1,
+      creditBalance: 0
+    });
+    orgId = org.id;
+    appRole = isWhitelabel ? 'whitelabel_partner' : 'organization_owner';
+    accountTier = isWhitelabel ? 'whitelabel_partner' : 'company';
+    console.log(`Created ${accountTier} organization ${orgId}.`);
 
-      if (isWhitelabel) {
-        await base44.asServiceRole.entities.WhitelabelPartner.create({
-          organizationId: org.id,
-          partnerName: org.name,
-          wholesalePricePerCredit: 200,
-          resalePricePerCredit: 300,
-        });
-        console.log(`Created WhitelabelPartner entity for org ${orgId}.`);
-      }
+    if (isWhitelabel) {
+      await base44.asServiceRole.entities.WhitelabelPartner.create({
+        organizationId: org.id,
+        partnerName: org.name,
+        wholesalePricePerCredit: 200,
+        resalePricePerCredit: 300,
+      });
+      console.log(`Created WhitelabelPartner entity for org ${orgId}.`);
     }
 
     // 2. Create UserPhone and UserUrl entities
@@ -124,8 +96,6 @@ Deno.serve(async (req) => {
     }
 
     // 4. Prepare the final user update payload
-    // Capitalize first letter of each name part, then join with a space.
-    // Only capitalize the first letter; leave the rest as-is (handles names like McDonald, O'Brien, etc.)
     const capitalize = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
     const capFirst = capitalize(details?.firstName || '');
     const capLast = capitalize(details?.lastName || '');
@@ -135,7 +105,7 @@ Deno.serve(async (req) => {
       appRole,
       accountTier,
       onboardingComplete: true,
-      full_name: computedFullName, // Built-in User field
+      full_name: computedFullName,
       title: details?.jobTitle,
       phone: details?.phone,
       firstName: capFirst,
@@ -152,21 +122,18 @@ Deno.serve(async (req) => {
       ...(favoriteNoteStyleProfileIds.length > 0 && { favoriteNoteStyleProfileIds })
     };
 
-   
     console.log("Final user update payload:", userUpdatePayload);
     await base44.auth.updateMe(userUpdatePayload);
     console.log(`Successfully updated user ${user.id}.`);
 
     // 5. Invite Team Members (if any)
-    // This part is a placeholder for future implementation of an inviteTeamMembers function
     if (teamInvites && teamInvites.length > 0) {
         console.log(`Team invites to be sent:`, teamInvites);
         // await base44.functions.invoke('inviteTeamMembers', { invites: teamInvites, orgId });
     }
 
-    // 6. Fire-and-forget the seeder — do NOT await it.
-    // The seeder can take 5-15 seconds for larger industry datasets (e.g. mortgage has 28 templates).
-    // Awaiting it causes setupAccount to hit the Base44 function timeout and return a 502.
+    // 6. Fire-and-forget the seeder. Do NOT await it.
+    // The seeder can take 5-15 seconds for larger industry datasets.
     // We return success immediately and let the seeder run in the background.
     const seedIndustry = details?.industry || 'universal';
     console.log(`Firing seedInitialContent (background) for orgId: ${orgId}, industry: ${seedIndustry}`);
@@ -181,7 +148,7 @@ Deno.serve(async (req) => {
     console.log("--- setupAccount function completed successfully ---");
     return Response.json({ success: true, orgId, appRole });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("Setup account error:", error);
     return Response.json({ error: error.message }, { status: 500 });
   }
