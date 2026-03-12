@@ -119,6 +119,11 @@
      Aliased to existing theme tokens for safe defaults
      ========================================================== */
 
+  /* Onboarding Theme Colors */
+  --onboarding-bg: #FFF8F3;
+  --onboarding-border: #F5C9A0;
+  --onboarding-primary: #e07b39;
+
   /* Brand / CTA */
   --brand-accent: var(--primary);
   --brand-accent-foreground: var(--primary-foreground);
@@ -459,21 +464,6 @@ button.selection-active {
   font-weight: 600 !important;
   padding-left: 8px !important;
 }
-
-/* =========================
-   ONBOARDING THEME COLORS
-   ========================= */
-.bg-onboarding-bg { background-color: #FFF8F3; }
-.border-onboarding-border { border-color: #F5C9A0; }
-.bg-onboarding-primary { background-color: #e07b39; }
-.text-onboarding-primary { color: #e07b39; }
-.bg-onboarding-primary\/10 { background-color: rgba(224, 123, 57, 0.1); }
-.text-onboarding-primary\/70 { color: rgba(224, 123, 57, 0.7); }
-.hover\:bg-onboarding-primary\/90:hover { background-color: rgba(224, 123, 57, 0.9); }
-.hover\:bg-onboarding-primary:hover { background-color: #e07b39; }
-.ring-onboarding-primary { --tw-ring-color: #e07b39; }
-.focus\:ring-onboarding-primary:focus { --tw-ring-color: #e07b39; }
-.border-onboarding-primary { border-color: #e07b39; }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
