@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Home, Shield, TrendingUp, Sun, Sailboat, House, Building, Car, Briefcase, Check } from 'lucide-react';
+import { Home, Shield, TrendingUp, Sun, Sailboat, House, Building, Car, Briefcase, Check, Sparkles } from 'lucide-react';
+import ContextPanel from './ContextPanel';
 
 const industries = [
   { key: 'real_estate', name: 'Real Estate', icon: Home },
@@ -20,28 +21,44 @@ export default function IndustrySelectionStep({ onSelect }) {
   const [selected, setSelected] = useState(null);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-      <h1 className="text-3xl font-bold text-gray-900">What industry are you in?</h1>
-      <p className="text-gray-600 mt-2">This helps us tailor templates and tags for you.</p>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto mt-8">
-        {industries.map((industry) => (
-          <IndustryCard
-            key={industry.key}
-            {...industry}
-            isSelected={selected === industry.key}
-            onClick={() => setSelected(industry.key)}
-          />
-        ))}
-      </div>
-      <div className="mt-8">
-        <Button size="lg" onClick={() => onSelect(selected)} disabled={!selected}>
-          Continue
-        </Button>
-      </div>
-    </motion.div>
+    /* Phase 2: Two-column layout with ContextPanel */
+    <div className="flex gap-8 items-start">
+      <ContextPanel
+        icon={Sparkles}
+        heading="Why we ask"
+        bullets={[
+          'Pre-loaded templates for your industry',
+          'Smart tags & categories tailored to you',
+          'Relevant card designs shown first',
+        ]}
+        note="You can always change your industry later in Settings."
+      />
+
+      {/* Step form — takes remaining width */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 text-center">
+        <h1 className="text-3xl font-bold text-gray-900">What industry are you in?</h1>
+        <p className="text-gray-600 mt-2">This helps us tailor templates and tags for you.</p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto mt-8">
+          {industries.map((industry) => (
+            <IndustryCard
+              key={industry.key}
+              {...industry}
+              isSelected={selected === industry.key}
+              onClick={() => setSelected(industry.key)}
+            />
+          ))}
+        </div>
+        <div className="mt-8">
+          <Button size="lg" onClick={() => onSelect(selected)} disabled={!selected}>
+            Continue
+          </Button>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
+/* Phase 2: IndustryCard unchanged — kept as-is */
 function IndustryCard({ icon: Icon, name, isSelected, onClick }) {
   return (
     <Card

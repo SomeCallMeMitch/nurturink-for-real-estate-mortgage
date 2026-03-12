@@ -130,9 +130,9 @@ export default function Onboarding() {
         <div className="w-full max-w-5xl mx-auto">
           {/* Phase 1: Removed onBack from stepper — back button now lives in each step's footer */}
           <OnboardingProgress currentStep={step} totalSteps={TOTAL_STEPS} />
+          {/* Phase 2: Two-column layout — ContextPanel (inside each step) + step form */}
           <main className="mt-8">
             {step === 1 && <IndustrySelectionStep onSelect={(industry) => { updateData({ industry }); handleNext(); }} />}
-            {/* Phase 1: Added onBack prop to steps 2-5 for in-step footer navigation */}
             {step === 2 && <BusinessInfoStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} onBack={handleBack} />}
             {step === 3 && <AddressStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} onBack={handleBack} />}
             {step === 4 && (
