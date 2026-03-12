@@ -128,9 +128,11 @@ export default function Onboarding() {
       {isCompleting && <OnboardingLoader />}
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start p-4">
         <div className="w-full max-w-5xl mx-auto">
+          {/* Phase 1: Removed onBack from stepper — back button now lives in each step's footer */}
           <OnboardingProgress currentStep={step} totalSteps={TOTAL_STEPS} />
           <main className="mt-8">
             {step === 1 && <IndustrySelectionStep onSelect={(industry) => { updateData({ industry }); handleNext(); }} />}
+            {/* Phase 1: Added onBack prop to steps 2-5 for in-step footer navigation */}
             {step === 2 && <BusinessInfoStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} onBack={handleBack} />}
             {step === 3 && <AddressStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} onBack={handleBack} />}
             {step === 4 && (

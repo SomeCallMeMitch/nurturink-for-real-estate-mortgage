@@ -3,8 +3,8 @@ import { Check } from 'lucide-react';
 
 /**
  * OnboardingProgress — Horizontal stepper bar for the 5-step onboarding flow.
- * Redesigned: sticky top bar, orange active state, responsive labels.
- * Props: currentStep, totalSteps (both unused in stepper but kept for API compat)
+ * Redesigned: sticky white top bar, orange active state, responsive labels.
+ * Back button removed from stepper — now lives in each step's footer.
  */
 export default function OnboardingProgress({ currentStep, totalSteps }) {
   const steps = [
