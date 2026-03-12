@@ -73,7 +73,7 @@ export default function SettingsAddresses() {
       
       // Initialize personal address from user
       setPersonalAddress({
-        returnAddressName: currentUser.returnAddressName || currentUser.full_name || '',
+        returnAddressName: currentUser.returnAddressName || currentUser.fullName || currentUser.full_name || '',
         street: currentUser.street || '',
         address2: currentUser.address2 || '',
         city: currentUser.city || '',
