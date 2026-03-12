@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, PenLine } from 'lucide-react';
+import { ArrowLeft, ArrowRight, PenLine } from 'lucide-react';
 import ContextPanel from './ContextPanel';
 
 const styles = [
@@ -23,11 +23,14 @@ const stylePreviews = {
   Direct: { greeting: '[Client Name],', signature: 'Regards,\n[Your Name]' },
 };
 
+/**
+ * Phase 3: Added animated style preview transition on switch,
+ * orange accent CTA, and visual polish.
+ */
 export default function PreferencesStep({ onSelect, onSkip, onBack }) {
   const [selectedStyle, setSelectedStyle] = useState('Friendly');
 
   return (
-    /* Phase 2: Two-column layout with ContextPanel + Back button in footer */
     <div className="flex gap-8 items-start">
       <ContextPanel
         icon={PenLine}
@@ -40,10 +43,14 @@ export default function PreferencesStep({ onSelect, onSkip, onBack }) {
         note="Most users start with Friendly and adjust over time."
       />
 
-      {/* Step form */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex-1 max-w-lg mx-auto">
-        <Card>
-          <CardHeader className="text-center">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="flex-1 max-w-lg mx-auto"
+      >
+        <Card className="shadow-sm">
+          <CardHeader className="text-center pb-2">
             <CardTitle className="text-3xl">Set Your Writing Style</CardTitle>
             <CardDescription>Choose a default style for your notes. You can change this and create your own later.</CardDescription>
           </CardHeader>
@@ -67,26 +74,50 @@ export default function PreferencesStep({ onSelect, onSkip, onBack }) {
               </Select>
             </div>
 
+            {/* Phase 3: Animated style preview with cross-fade on switch */}
             <div className="space-y-2">
               <Label>Style Preview</Label>
-              <div className="p-4 border rounded-md bg-gray-50 text-sm text-gray-700 whitespace-pre-wrap font-serif">
-                {stylePreviews[selectedStyle].greeting}
-                <br /><br />
-                ...your message will go here...
-                <br /><br />
-                {stylePreviews[selectedStyle].signature}
+              <div
+                className="p-4 border rounded-lg text-sm text-gray-700 whitespace-pre-wrap font-serif min-h-[140px] relative overflow-hidden"
+                style={{ backgroundColor: 'var(--onboarding-bg)', borderColor: 'var(--onboarding-border)' }}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={selectedStyle}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <span style={{ color: 'var(--onboarding-primary)' }}>
+                      {stylePreviews[selectedStyle].greeting}
+                    </span>
+                    <br /><br />
+                    <span className="text-gray-400 italic">...your message will go here...</span>
+                    <br /><br />
+                    <span style={{ color: 'var(--onboarding-primary)' }}>
+                      {stylePreviews[selectedStyle].signature}
+                    </span>
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
 
-            {/* Phase 2: Footer with Back + Skip + Continue */}
-            <div className="flex items-center gap-4 pt-4">
+            {/* Phase 3: Orange accent footer */}
+            <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
               {onBack && (
                 <Button variant="outline" onClick={onBack} className="gap-1.5">
                   <ArrowLeft className="w-4 h-4" /> Back
                 </Button>
               )}
               <Button variant="outline" className="flex-1" onClick={onSkip}>Skip for Now</Button>
-              <Button className="flex-1" onClick={() => onSelect(selectedStyle)}>Continue</Button>
+              <Button
+                className="flex-1 gap-2"
+                onClick={() => onSelect(selectedStyle)}
+                style={{ backgroundColor: 'var(--onboarding-primary)', color: '#fff' }}
+              >
+                Continue <ArrowRight className="w-4 h-4" />
+              </Button>
             </div>
           </CardContent>
         </Card>
