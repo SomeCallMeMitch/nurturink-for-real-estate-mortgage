@@ -49,7 +49,7 @@ const STYLES = [
 
 function PageShell({ children }) {
   return (
-    <div className="flex gap-7 items-start max-w-5xl mx-auto px-8 py-8">
+    <div className="flex gap-7 items-start max-w-7xl mx-auto px-8 py-8">
       {children}
     </div>
   );
