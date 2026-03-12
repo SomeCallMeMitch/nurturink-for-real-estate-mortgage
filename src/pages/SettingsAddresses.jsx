@@ -52,22 +52,16 @@ export default function SettingsAddresses() {
           setOrganization(orgs[0]);
           
           // Initialize company address from organization
-          if (orgs[0].companyReturnAddress) {
-            setCompanyAddress({
-              companyName: orgs[0].companyReturnAddress.companyName || orgs[0].name || '',
-              street: orgs[0].companyReturnAddress.street || '',
-              address2: orgs[0].companyReturnAddress.address2 || '',
-              city: orgs[0].companyReturnAddress.city || '',
-              state: orgs[0].companyReturnAddress.state || '',
-              zip: orgs[0].companyReturnAddress.zip || ''
-            });
-          } else {
-            // Default to org name if no address set
-            setCompanyAddress(prev => ({
-              ...prev,
-              companyName: orgs[0].name || ''
-            }));
-          }
+          // FIX: Remove conditional to handle null/undefined/empty companyReturnAddress gracefully
+          const cra = orgs[0].companyReturnAddress || {};
+          setCompanyAddress({
+            companyName: cra.companyName || orgs[0].name || '',
+            street: cra.street || '',
+            address2: cra.address2 || '',
+            city: cra.city || '',
+            state: cra.state || '',
+            zip: cra.zip || ''
+          });
         }
       }
       
