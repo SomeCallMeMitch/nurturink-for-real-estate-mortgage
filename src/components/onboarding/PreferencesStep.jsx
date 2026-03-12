@@ -57,7 +57,7 @@ function PageShell({ children }) {
 
 function ContextPanel({ icon, heading, bullets, note }) {
   return (
-    <div className="w-72 flex-shrink-0 bg-[#fff8f3] border-2 border-[#f5c9a0] rounded-2xl p-7 sticky top-16 self-start">
+    <div className="w-[400px] flex-shrink-0 bg-[#fff8f3] border-2 border-[#f5c9a0] rounded-2xl p-7 sticky top-16 self-start">
       <div className="w-11 h-11 bg-[#e07b39] rounded-full flex items-center justify-center text-xl mb-4">
         {icon}
       </div>
