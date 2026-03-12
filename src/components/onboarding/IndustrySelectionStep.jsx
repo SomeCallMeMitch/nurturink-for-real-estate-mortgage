@@ -67,13 +67,8 @@ export default function IndustrySelectionStep({ onSelect }) {
           ))}
         </motion.div>
 
-        {/* Phase 3: Orange accent CTA */}
-        <motion.div
-          className="mt-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
+        {/* Continue CTA — always visible, no delay animation */}
+        <div className="mt-8">
           <Button
             size="lg"
             onClick={() => onSelect(selected)}
@@ -86,7 +81,7 @@ export default function IndustrySelectionStep({ onSelect }) {
           >
             Continue <ArrowRight className="w-4 h-4" />
           </Button>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
