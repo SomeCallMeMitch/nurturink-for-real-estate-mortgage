@@ -119,11 +119,6 @@
      Aliased to existing theme tokens for safe defaults
      ========================================================== */
 
-  /* Onboarding Theme Colors */
-  --onboarding-bg: #FFF8F3;
-  --onboarding-border: #F5C9A0;
-  --onboarding-primary: #e07b39;
-
   /* Brand / CTA */
   --brand-accent: var(--primary);
   --brand-accent-foreground: var(--primary-foreground);

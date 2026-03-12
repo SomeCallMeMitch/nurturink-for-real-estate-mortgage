@@ -6,7 +6,6 @@ import { Loader2 } from 'lucide-react';
 
 // Import Step Components
 import OnboardingProgress from '@/components/onboarding/OnboardingProgress';
-import OnboardingStepWrapper from '@/components/onboarding/OnboardingStepWrapper';
 import IndustrySelectionStep from '@/components/onboarding/IndustrySelectionStep';
 import BusinessInfoStep from '@/components/onboarding/BusinessInfoStep';
 import AddressStep from '@/components/onboarding/AddressStep';
@@ -129,23 +128,18 @@ export default function Onboarding() {
       {isCompleting && <OnboardingLoader />}
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start p-4">
         <div className="w-full max-w-5xl mx-auto">
-          {/* Phase 1: Removed onBack from stepper — back button now lives in each step's footer */}
-          <OnboardingProgress currentStep={step} totalSteps={TOTAL_STEPS} />
-          {/* Phase 3: Step wrapper with cross-fade transition between steps */}
+          <OnboardingProgress currentStep={step} totalSteps={TOTAL_STEPS} onBack={step > 1 ? handleBack : null} />
           <main className="mt-8">
-            <OnboardingStepWrapper stepKey={step}>
-              {step === 1 && <IndustrySelectionStep onSelect={(industry) => { updateData({ industry }); handleNext(); }} />}
-              {step === 2 && <BusinessInfoStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} onBack={handleBack} />}
-              {step === 3 && <AddressStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} onBack={handleBack} />}
-              {step === 4 && (
-                <PreferencesStep
-                  onSelect={(style) => { updateData({ writingStyle: style }); handleNext(); }}
-                  onSkip={handleNext}
-                  onBack={handleBack}
-                />
-              )}
-              {step === 5 && <TeamInviteStep onComplete={handleComplete} onSkip={() => handleComplete([])} onBack={handleBack} />}
-            </OnboardingStepWrapper>
+            {step === 1 && <IndustrySelectionStep onSelect={(industry) => { updateData({ industry }); handleNext(); }} />}
+            {step === 2 && <BusinessInfoStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} />}
+            {step === 3 && <AddressStep data={onboardingData} onUpdate={updateData} onComplete={handleNext} />}
+            {step === 4 && (
+              <PreferencesStep
+                onSelect={(style) => { updateData({ writingStyle: style }); handleNext(); }}
+                onSkip={handleNext}
+              />
+            )}
+            {step === 5 && <TeamInviteStep onComplete={handleComplete} onSkip={() => handleComplete([])} />}
           </main>
         </div>
       </div>
