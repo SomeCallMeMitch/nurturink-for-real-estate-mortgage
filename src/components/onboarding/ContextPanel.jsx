@@ -3,6 +3,8 @@ import React from 'react';
 /**
  * ContextPanel — Reusable left-column panel for onboarding steps.
  * Displays an icon, heading, bullet points, and an optional note.
+ * Uses --onboarding-* CSS variables defined in globals.css.
+ *
  * Props:
  *   icon       – Lucide React icon component
  *   heading    – Panel heading text
@@ -12,16 +14,28 @@ import React from 'react';
 export default function ContextPanel({ icon: Icon, heading, bullets = [], note }) {
   return (
     <aside className="hidden lg:block w-80 flex-shrink-0">
-      <div className="bg-onboarding-bg border-2 border-onboarding-border rounded-2xl p-6 sticky top-20">
+      <div
+        className="rounded-2xl p-6 sticky top-20 border-2"
+        style={{
+          backgroundColor: 'var(--onboarding-bg)',
+          borderColor: 'var(--onboarding-border)',
+        }}
+      >
         {/* Icon */}
         {Icon && (
-          <div className="w-10 h-10 rounded-full bg-onboarding-primary/10 flex items-center justify-center mb-4">
-            <Icon className="w-5 h-5 text-onboarding-primary" />
+          <div
+            className="w-10 h-10 rounded-full flex items-center justify-center mb-4"
+            style={{ backgroundColor: 'rgba(224, 123, 57, 0.1)' }}
+          >
+            <Icon className="w-5 h-5" style={{ color: 'var(--onboarding-primary)' }} />
           </div>
         )}
 
         {/* Heading */}
-        <h3 className="text-base font-semibold text-onboarding-primary mb-4">
+        <h3
+          className="text-base font-semibold mb-4"
+          style={{ color: 'var(--onboarding-primary)' }}
+        >
           {heading}
         </h3>
 
@@ -30,7 +44,12 @@ export default function ContextPanel({ icon: Icon, heading, bullets = [], note }
           <ul className="space-y-3">
             {bullets.map((bullet, idx) => (
               <li key={idx} className="flex items-start gap-2 text-sm text-gray-700 leading-relaxed">
-                <span className="text-onboarding-primary mt-0.5 flex-shrink-0">&#10003;</span>
+                <span
+                  className="mt-0.5 flex-shrink-0 font-bold"
+                  style={{ color: 'var(--onboarding-primary)' }}
+                >
+                  &#10003;
+                </span>
                 <span>{bullet}</span>
               </li>
             ))}
@@ -39,7 +58,10 @@ export default function ContextPanel({ icon: Icon, heading, bullets = [], note }
 
         {/* Optional note */}
         {note && (
-          <p className="mt-5 text-xs text-onboarding-primary/70 italic leading-relaxed">
+          <p
+            className="mt-5 text-xs italic leading-relaxed"
+            style={{ color: 'var(--onboarding-primary)', opacity: 0.7 }}
+          >
             {note}
           </p>
         )}
