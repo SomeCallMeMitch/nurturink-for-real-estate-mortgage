@@ -49,27 +49,6 @@ function FormCard({ children }) {
   );
 }
 
-function FormNav({ onBack, stepLabel, onContinue }) {
-  return (
-    <div className="flex items-center justify-between mt-7 pt-5 border-t border-gray-200">
-      <button
-        onClick={onBack}
-        className="px-5 py-2.5 rounded-lg bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center gap-1"
-        style={{ border: '1.5px solid #d1d5db' }}
-      >
-        ← Back
-      </button>
-      <span className="text-xs text-gray-500">{stepLabel}</span>
-      <button
-        onClick={onContinue}
-        className="px-8 py-2.5 bg-[#e07b39] text-white rounded-lg text-sm font-bold hover:bg-[#c96a2a] transition-colors shadow-sm"
-      >
-        Continue →
-      </button>
-    </div>
-  );
-}
-
 function FieldLabel({ children }) {
   return (
     <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-1.5">
@@ -135,7 +114,20 @@ function AddressFields({ streetId, cityId, stateId, zipId, data, onUpdate, stree
 // ─── Step component ───────────────────────────────────────────────────────────
 
 export default function AddressStep({ data, onUpdate, onComplete, onBack }) {
-  const [activeTab, setActiveTab] = useState('personal');
+  // Default to company tab so users see and fill it first
+  const [activeTab, setActiveTab] = useState('company');
+
+  // Track which tabs have been visited so we can show the gray dot on unvisited ones
+  const [visitedTabs, setVisitedTabs] = useState({ company: true, personal: false });
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    setVisitedTabs((prev) => ({ ...prev, [tab]: true }));
+  };
+
+  // True if the tab has at least one field filled in
+  const companyFilled = !!(data.companyStreet || data.companyCity || data.companyZipCode);
+  const personalFilled = !!(data.personalStreet || data.personalCity || data.personalZipCode);
 
   return (
     <PageShell>
@@ -159,44 +151,45 @@ export default function AddressStep({ data, onUpdate, onComplete, onBack }) {
           </p>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs — Company is listed first and active by default */}
         <div className="flex border-b-2 border-gray-200 mb-6">
+
           <button
-            onClick={() => setActiveTab('personal')}
-            className={`px-4 py-2.5 text-sm font-semibold transition-all rounded-t-md -mb-0.5 ${
-              activeTab === 'personal'
-                ? 'text-[#e07b39] border-b-2 border-[#e07b39]'
-                : 'text-gray-500 hover:bg-gray-50'
-            }`}
-          >
-            Personal Address
-          </button>
-          <button
-            onClick={() => setActiveTab('company')}
-            className={`px-4 py-2.5 text-sm font-semibold transition-all rounded-t-md -mb-0.5 ${
+            onClick={() => handleTabClick('company')}
+            className={`px-4 py-2.5 text-sm font-semibold transition-all rounded-t-md -mb-0.5 flex items-center gap-2 ${
               activeTab === 'company'
                 ? 'text-[#e07b39] border-b-2 border-[#e07b39]'
                 : 'text-gray-500 hover:bg-gray-50'
             }`}
           >
             Company Address
+            {/* Orange dot = data entered. Gray dot = not yet visited. Nothing = visited but empty (user chose to skip). */}
+            {companyFilled
+              ? <span className="w-2 h-2 rounded-full bg-[#e07b39] flex-shrink-0" title="Address entered" />
+              : !visitedTabs.company
+              ? <span className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0" title="Not yet visited" />
+              : null}
           </button>
+
+          <button
+            onClick={() => handleTabClick('personal')}
+            className={`px-4 py-2.5 text-sm font-semibold transition-all rounded-t-md -mb-0.5 flex items-center gap-2 ${
+              activeTab === 'personal'
+                ? 'text-[#e07b39] border-b-2 border-[#e07b39]'
+                : 'text-gray-500 hover:bg-gray-50'
+            }`}
+          >
+            Personal Address
+            {personalFilled
+              ? <span className="w-2 h-2 rounded-full bg-[#e07b39] flex-shrink-0" title="Address entered" />
+              : !visitedTabs.personal
+              ? <span className="w-2 h-2 rounded-full bg-gray-300 flex-shrink-0" title="Not yet visited" />
+              : null}
+          </button>
+
         </div>
 
-        {/* Personal tab */}
-        {activeTab === 'personal' && (
-          <AddressFields
-            streetId="personalStreet"
-            cityId="personalCity"
-            stateId="personalState"
-            zipId="personalZipCode"
-            data={data}
-            onUpdate={onUpdate}
-            streetPlaceholder="123 Main St (add Suite or Apt number at the end if needed)"
-          />
-        )}
-
-        {/* Company tab */}
+        {/* Company tab content */}
         {activeTab === 'company' && (
           <AddressFields
             streetId="companyStreet"
@@ -209,11 +202,57 @@ export default function AddressStep({ data, onUpdate, onComplete, onBack }) {
           />
         )}
 
-        <FormNav
-          onBack={onBack}
-          stepLabel="Step 3 of 5"
-          onContinue={onComplete}
-        />
+        {/* Personal tab content */}
+        {activeTab === 'personal' && (
+          <AddressFields
+            streetId="personalStreet"
+            cityId="personalCity"
+            stateId="personalState"
+            zipId="personalZipCode"
+            data={data}
+            onUpdate={onUpdate}
+            streetPlaceholder="123 Main St (add Suite or Apt number at the end if needed)"
+          />
+        )}
+
+        {/* Nudge shown when company address is still empty — disappears once they fill it in */}
+        {!companyFilled && (
+          <div className="mt-5 flex items-start gap-2 bg-[#fff8f3] border border-[#f5c9a0] rounded-lg px-4 py-3">
+            <span className="text-base leading-none mt-0.5">💡</span>
+            <p className="text-sm text-[#92400e]">
+              You haven't entered a Company Address yet. Most users want one for business cards.{' '}
+              {activeTab !== 'company' && (
+                <button
+                  onClick={() => handleTabClick('company')}
+                  className="font-semibold underline hover:no-underline"
+                >
+                  Add it now
+                </button>
+              )}
+              {activeTab !== 'company' && ', or '}
+              {activeTab === 'company' ? 'Fill it in above, or ' : ''}
+              click Continue to skip.
+            </p>
+          </div>
+        )}
+
+        {/* Nav */}
+        <div className="flex items-center justify-between mt-5 pt-5 border-t border-gray-200">
+          <button
+            onClick={onBack}
+            className="px-5 py-2.5 rounded-lg bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center gap-1"
+            style={{ border: '1.5px solid #d1d5db' }}
+          >
+            ← Back
+          </button>
+          <span className="text-xs text-gray-500">Step 3 of 5</span>
+          <button
+            onClick={onComplete}
+            className="px-8 py-2.5 bg-[#e07b39] text-white rounded-lg text-sm font-bold hover:bg-[#c96a2a] transition-colors shadow-sm"
+          >
+            Continue →
+          </button>
+        </div>
       </FormCard>
     </PageShell>
   );
