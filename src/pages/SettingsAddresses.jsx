@@ -43,37 +43,48 @@ export default function SettingsAddresses() {
     try {
       setLoading(true);
       const currentUser = await base44.auth.me();
+      console.log('DEBUG loadData: currentUser =', JSON.stringify(currentUser));
       setUser(currentUser);
       
       // Load organization if user has one
+      console.log('DEBUG loadData: currentUser.orgId =', currentUser.orgId);
       if (currentUser.orgId) {
         const orgs = await base44.entities.Organization.filter({ id: currentUser.orgId });
+        console.log('DEBUG loadData: orgs count =', orgs.length);
         if (orgs.length > 0) {
+          console.log('DEBUG loadData: org[0] full object =', JSON.stringify(orgs[0]));
+          console.log('DEBUG loadData: org[0].companyReturnAddress =', JSON.stringify(orgs[0].companyReturnAddress));
           setOrganization(orgs[0]);
           
           // Initialize company address from organization
-          // FIX: Remove conditional to handle null/undefined/empty companyReturnAddress gracefully
           const cra = orgs[0].companyReturnAddress || {};
-          setCompanyAddress({
+          console.log('DEBUG loadData: cra after fallback =', JSON.stringify(cra));
+          const newCompanyAddress = {
             companyName: cra.companyName || orgs[0].name || '',
             street: cra.street || '',
             address2: cra.address2 || '',
             city: cra.city || '',
             state: cra.state || '',
             zip: cra.zip || ''
-          });
+          };
+          console.log('DEBUG loadData: setting companyAddress to =', JSON.stringify(newCompanyAddress));
+          setCompanyAddress(newCompanyAddress);
         }
+      } else {
+        console.log('DEBUG loadData: NO orgId on user, skipping org load');
       }
       
       // Initialize personal address from user
-      setPersonalAddress({
+      const newPersonalAddress = {
         returnAddressName: currentUser.returnAddressName || currentUser.fullName || currentUser.full_name || '',
         street: currentUser.street || '',
         address2: currentUser.address2 || '',
         city: currentUser.city || '',
         state: currentUser.state || '',
         zipCode: currentUser.zipCode || ''
-      });
+      };
+      console.log('DEBUG loadData: setting personalAddress to =', JSON.stringify(newPersonalAddress));
+      setPersonalAddress(newPersonalAddress);
       
       setReturnAddressPreference(currentUser.returnAddressPreference || 'company');
       
