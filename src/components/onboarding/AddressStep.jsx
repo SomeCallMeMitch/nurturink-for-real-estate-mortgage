@@ -14,7 +14,7 @@ const US_STATES = [
 
 function PageShell({ children }) {
   return (
-    <div className="flex gap-7 items-start max-w-5xl mx-auto px-8 py-8">
+    <div className="flex gap-7 items-start max-w-6xl mx-auto px-8 py-8">
       {children}
     </div>
   );
