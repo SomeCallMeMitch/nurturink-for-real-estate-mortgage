@@ -47,9 +47,12 @@ Deno.serve(async (req) => {
 
     if (campaignIds.length > 0) {
       try {
-        // Fetch all active enrollments for this org's campaigns in one query
-        allEnrollments = await base44.entities.CampaignEnrollment.filter({ orgId });
-        console.log('[listCampaigns] Fetched enrollments with orgId filter:', { orgId, totalEnrollments: allEnrollments.length });
+        // Fetch all active enrollments for these campaigns (not by orgId, which may not be set)
+        // Query by campaignId to get enrollments regardless of orgId field
+        allEnrollments = await base44.entities.CampaignEnrollment.filter({
+          campaignId: { $in: campaignIds }
+        });
+        console.log('[listCampaigns] Fetched enrollments by campaignId:', { campaignCount: campaignIds.length, totalEnrollments: allEnrollments.length });
         if (allEnrollments.length > 0) {
           console.log('[listCampaigns] First enrollment record:', JSON.stringify(allEnrollments[0]));
         }
