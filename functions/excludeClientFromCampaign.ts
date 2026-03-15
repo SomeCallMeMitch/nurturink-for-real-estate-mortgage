@@ -84,6 +84,24 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Remove campaign tag from client
+    try {
+      const clients = await base44.entities.Client.filter({ id: clientId });
+      if (clients && clients.length > 0) {
+        const client = clients[0];
+        const campaignTag = `${campaign.type.charAt(0).toUpperCase() + campaign.type.slice(1)} Campaign`;
+        const existingTags = client.tags && Array.isArray(client.tags) ? client.tags : [];
+        const updatedTags = existingTags.filter(tag => tag !== campaignTag);
+        
+        if (updatedTags.length !== existingTags.length) {
+          await base44.entities.Client.update(clientId, { tags: updatedTags });
+        }
+      }
+    } catch (tagError) {
+      console.error('Error removing campaign tag:', tagError);
+      // Don't fail the exclusion if tag removal fails
+    }
+
     // Cancel any pending scheduled sends for this client + campaign
     try {
       const pendingSends = await base44.entities.ScheduledSend.filter({ 

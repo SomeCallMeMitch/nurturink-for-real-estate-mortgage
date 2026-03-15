@@ -127,6 +127,16 @@ Deno.serve(async (req) => {
           }));
 
           await base44.entities.CampaignEnrollment.bulkCreate(enrollmentRecords);
+
+          // Auto-tag enrolled clients with campaign type tag
+          const campaignTag = `${campaign.type.charAt(0).toUpperCase() + campaign.type.slice(1)} Campaign`;
+          for (const client of eligibleClients) {
+            const existingTags = client.tags && Array.isArray(client.tags) ? client.tags : [];
+            if (!existingTags.includes(campaignTag)) {
+              existingTags.push(campaignTag);
+              await base44.entities.Client.update(client.id, { tags: existingTags });
+            }
+          }
         }
       } catch (enrollmentError) {
         console.error('Error during auto-enrollment on campaign activation:', enrollmentError);
