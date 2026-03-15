@@ -92,6 +92,48 @@ Deno.serve(async (req) => {
       await base44.entities.Campaign.update(campaignId, campaignUpdates);
     }
 
+    // Handle auto-enrollment when status changes to 'active' (for opt_out campaigns)
+    const isBecomingActive = campaignUpdates.status === 'active' && campaign.status !== 'active';
+    if (isBecomingActive && campaign.enrollmentMode === 'opt_out') {
+      try {
+        // Get the trigger field for this campaign type
+        const triggerFieldMap = {
+          'birthday': 'birthday',
+          'welcome': 'policy_start_date',
+          'renewal': 'policy_renewal_date'
+        };
+        const triggerField = triggerFieldMap[campaign.type];
+
+        // Fetch only the rep's own clients (not all org clients)
+        const allClients = await base44.entities.Client.filter({ 
+          orgId,
+          ownerId: user.id
+        });
+
+        // Filter eligible clients (have trigger field value and automation enabled)
+        const eligibleClients = allClients.filter(client => {
+          const hasFieldValue = client[triggerField] && client[triggerField] !== '';
+          const automationEnabled = client.automationEnabled !== false;
+          return hasFieldValue && automationEnabled;
+        });
+
+        // Create enrollment records for each eligible client
+        if (eligibleClients.length > 0) {
+          const enrollmentRecords = eligibleClients.map(client => ({
+            campaignId: campaignId,
+            clientId: client.id,
+            status: 'active',
+            enrolledAt: new Date().toISOString()
+          }));
+
+          await base44.entities.CampaignEnrollment.bulkCreate(enrollmentRecords);
+        }
+      } catch (enrollmentError) {
+        console.error('Error during auto-enrollment on campaign activation:', enrollmentError);
+        // Don't fail the campaign update if enrollment fails
+      }
+    }
+
     // Handle steps replacement if provided
     if (updates.steps && Array.isArray(updates.steps)) {
       // Delete all existing CampaignStep records for this campaign

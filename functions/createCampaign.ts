@@ -162,7 +162,7 @@ Deno.serve(async (req) => {
           const enrollmentRecords = eligibleClients.map(client => ({
             campaignId: campaign.id,
             clientId: client.id,
-            status: 'enrolled',
+            status: 'active',
             enrolledAt: new Date().toISOString()
           }));
 
