@@ -13,7 +13,7 @@ const CAMPAIGN_TYPES = [
   {
     id: 'birthday',
     title: 'Birthday',
-    description: 'Send cards automatically before each client\'s birthday',
+    description: 'Automatically send a card before each client\'s birthday. Great for staying top-of-mind and showing you care.',
     icon: Cake,
     color: 'bg-pink-100 text-pink-700 border-pink-200',
     selectedColor: 'bg-pink-50 border-pink-500 ring-2 ring-pink-500'
@@ -21,7 +21,7 @@ const CAMPAIGN_TYPES = [
   {
     id: 'welcome',
     title: 'Welcome',
-    description: 'Send a welcome sequence when clients join (1-2 cards)',
+    description: 'Send 1–2 cards when a new client joins. A warm welcome builds loyalty from day one.',
     icon: Gift,
     color: 'bg-blue-100 text-blue-700 border-blue-200',
     selectedColor: 'bg-blue-50 border-blue-500 ring-2 ring-blue-500'
@@ -29,7 +29,7 @@ const CAMPAIGN_TYPES = [
   {
     id: 'renewal',
     title: 'Renewal',
-    description: 'Send reminders before policy renewal dates',
+    description: 'Send a card before a client\'s policy renews. Reduce churn by reminding them you\'re in their corner.',
     icon: RefreshCw,
     color: 'bg-green-100 text-green-700 border-green-200',
     selectedColor: 'bg-green-50 border-green-500 ring-2 ring-green-500'

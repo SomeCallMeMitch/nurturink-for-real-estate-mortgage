@@ -5,13 +5,6 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    // === DIAGNOSTIC LOGGING START ===
-    console.log('[createCampaign] === DIAGNOSTIC INFO ===');
-    console.log('[createCampaign] user.id:', user?.id);
-    console.log('[createCampaign] user.email:', user?.email);
-    console.log('[createCampaign] user.role:', user?.role);
-    console.log('[createCampaign] user object:', JSON.stringify(user, null, 2));
-    // === DIAGNOSTIC LOGGING END ===
 
     if (!user) {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
@@ -55,10 +48,7 @@ Deno.serve(async (req) => {
     let orgId = user.orgId || null;
     let userProfile = null;
 
-    console.log('[createCampaign] Initial orgId from user object:', orgId);
-    
     // Always fetch UserProfile as it's needed for permission checking later
-    console.log('[createCampaign] Fetching UserProfile for userId:', user.id);
     const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
     
     if (userProfiles && userProfiles.length > 0) {
@@ -66,7 +56,6 @@ Deno.serve(async (req) => {
       // If orgId wasn't on user object, try getting it from profile
       if (!orgId && userProfile.orgId) {
         orgId = userProfile.orgId;
-        console.log('[createCampaign] Using orgId from UserProfile:', orgId);
       }
     }
 
@@ -79,11 +68,7 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
     
-    console.log('[createCampaign] Final orgId to be used:', orgId);
-
-    // PHASE 1: Removed role restriction - ALL users (reps) can now create campaigns
-    // Campaign ownership is tracked by ownerId field
-    console.log('[createCampaign] User role:', user.role, 'OrgRole:', userProfile?.orgRole);
+    // All users (reps) can create campaigns; ownership tracked by ownerId
 
     // Determine triggerField based on type
     const triggerFieldMap = {
@@ -113,10 +98,7 @@ Deno.serve(async (req) => {
       description: description || null
     };
 
-    console.log('[createCampaign] Creating campaign with data:', JSON.stringify(campaignData, null, 2));
-
     const campaign = await base44.entities.Campaign.create(campaignData);
-    console.log('[createCampaign] Campaign created successfully, id:', campaign.id);
 
     // Create CampaignStep records if provided
     if (steps && Array.isArray(steps) && steps.length > 0) {
@@ -144,6 +126,13 @@ Deno.serve(async (req) => {
           return Response.json({ 
             success: false, 
             error: `Step ${i + 1} is missing required timingDays` 
+          }, { status: 400 });
+        }
+        // FIX08: Require message content for non-draft campaigns
+        if (campaignStatus !== 'draft' && !step.templateId && !step.messageText) {
+          return Response.json({ 
+            success: false, 
+            error: `Step ${i + 1} requires either a template or a custom message` 
           }, { status: 400 });
         }
       }

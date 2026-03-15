@@ -39,11 +39,45 @@ Deno.serve(async (req) => {
     // Get campaigns based on the filter
     const campaigns = await base44.entities.Campaign.filter(campaignFilter);
 
-    // Return plain campaigns first to avoid 502s from heavy processing
-    // We can add stats back later if needed, or fetch them in a separate call
-    // For now, let's just return basic counts if possible, or 0s
-    // The previous implementation was likely timing out due to fetching ALL enrollments/sends
-    
+    // FIX05: Fetch real enrollment and upcoming send counts.
+    // Use a single batch query per entity type (not one per campaign) to avoid timeouts.
+    const campaignIds = campaigns.map(c => c.id);
+    let allEnrollments = [];
+    let allUpcomingSends = [];
+
+    if (campaignIds.length > 0) {
+      try {
+        // Fetch all active enrollments for this org's campaigns in one query
+        allEnrollments = await base44.entities.CampaignEnrollment.filter({ orgId });
+        // Fetch upcoming pending sends (next 30 days) for this org
+        const today = new Date();
+        const in30Days = new Date(today);
+        in30Days.setDate(in30Days.getDate() + 30);
+        allUpcomingSends = await base44.entities.ScheduledSend.filter({ orgId, status: 'pending' });
+      } catch (statsError) {
+        console.error('[listCampaigns] Failed to fetch stats, using 0s:', statsError.message);
+        // Non-fatal: fall back to 0s rather than failing the whole request
+      }
+    }
+
+    // Build lookup maps for O(1) access
+    const enrollmentCountMap = {};
+    for (const e of allEnrollments) {
+      if (e.status === 'enrolled' && e.campaignId) {
+        enrollmentCountMap[e.campaignId] = (enrollmentCountMap[e.campaignId] || 0) + 1;
+      }
+    }
+    const upcomingCountMap = {};
+    const nextSendDateMap = {};
+    for (const s of allUpcomingSends) {
+      if (s.campaignId) {
+        upcomingCountMap[s.campaignId] = (upcomingCountMap[s.campaignId] || 0) + 1;
+        if (!nextSendDateMap[s.campaignId] || s.scheduledDate < nextSendDateMap[s.campaignId]) {
+          nextSendDateMap[s.campaignId] = s.scheduledDate;
+        }
+      }
+    }
+
     const campaignsWithStats = campaigns.map(campaign => ({
       id: campaign.id,
       name: campaign.name,
@@ -53,9 +87,9 @@ Deno.serve(async (req) => {
       requiresApproval: campaign.requiresApproval || false,
       returnAddressMode: campaign.returnAddressMode || 'company',
       description: campaign.description,
-      enrolledCount: 0, // Placeholder to prevent 502
-      upcomingCount: 0, // Placeholder to prevent 502
-      nextSendDate: null,
+      enrolledCount: enrollmentCountMap[campaign.id] || 0,
+      upcomingCount: upcomingCountMap[campaign.id] || 0,
+      nextSendDate: nextSendDateMap[campaign.id] || null,
       created_date: campaign.created_date
     }));
 

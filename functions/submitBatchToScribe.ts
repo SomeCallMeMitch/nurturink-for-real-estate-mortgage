@@ -436,37 +436,56 @@ async function createCampaignWithDetails(message, textType, zipBuffer, returnAdd
 }
 
 /**
- * Add contacts to a campaign (rate limited)
+ * Add contacts to a campaign in chunks of 50 (rate limited)
+ * FIX09: Scribe's bulk endpoint has an undocumented limit; chunking prevents silent failures
+ * on large batches and makes retries granular.
  */
+const SCRIBE_CONTACTS_CHUNK_SIZE = 50;
+
 async function addScribeContacts(campaignId, contacts) {
-  return apiQueue.enqueue(async () => {
-    const url = `${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`;
-    
-    console.log('[Scribe] Adding', contacts.length, 'contacts to campaign', campaignId);
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ campaign_id: campaignId, contacts })
+  if (!contacts || contacts.length === 0) return { success: true, added: 0 };
+
+  // Split into chunks
+  const chunks = [];
+  for (let i = 0; i < contacts.length; i += SCRIBE_CONTACTS_CHUNK_SIZE) {
+    chunks.push(contacts.slice(i, i + SCRIBE_CONTACTS_CHUNK_SIZE));
+  }
+
+  console.log(`[Scribe] Adding ${contacts.length} contacts to campaign ${campaignId} in ${chunks.length} chunk(s)`);
+
+  let totalAdded = 0;
+  for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+    const chunk = chunks[chunkIndex];
+    await apiQueue.enqueue(async () => {
+      const url = `${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`;
+      console.log(`[Scribe] Chunk ${chunkIndex + 1}/${chunks.length}: sending ${chunk.length} contacts`);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ campaign_id: campaignId, contacts: chunk })
+      });
+
+      const responseText = await response.text();
+      console.log(`[Scribe] Chunk ${chunkIndex + 1} response:`, response.status, responseText.substring(0, 200));
+
+      if (!response.ok) {
+        throw new Error(`Scribe add contacts chunk ${chunkIndex + 1} failed: ${response.status} - ${responseText}`);
+      }
+
+      const result = JSON.parse(responseText);
+      if (!result.success) {
+        throw new Error(`Scribe add contacts chunk ${chunkIndex + 1} unsuccessful: ${JSON.stringify(result)}`);
+      }
+
+      totalAdded += chunk.length;
     });
-    
-    const responseText = await response.text();
-    console.log('[Scribe] Add contacts response:', response.status, responseText.substring(0, 300));
-    
-    if (!response.ok) {
-      throw new Error(`Scribe add contacts failed: ${response.status} - ${responseText}`);
-    }
-    
-    const result = JSON.parse(responseText);
-    if (!result.success) {
-      throw new Error(`Scribe add contacts unsuccessful: ${JSON.stringify(result)}`);
-    }
-    
-    return result;
-  });
+  }
+
+  return { success: true, added: totalAdded };
 }
 
 /**

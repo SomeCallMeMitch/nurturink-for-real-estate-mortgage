@@ -37,16 +37,7 @@ Deno.serve(async (req) => {
     const userProfile = userProfiles[0];
     const orgId = userProfile.orgId;
 
-    // Validate user has permission (owner or manager)
-    const allowedRoles = ['owner', 'manager'];
-    if (!allowedRoles.includes(userProfile.orgRole)) {
-      return Response.json({ 
-        success: false, 
-        error: 'Permission denied. Only organization owners and managers can update campaigns.' 
-      }, { status: 403 });
-    }
-
-    // Load Campaign record
+    // Load Campaign record first — needed for ownership check
     const campaigns = await base44.entities.Campaign.filter({ id: campaignId });
     if (!campaigns || campaigns.length === 0) {
       return Response.json({ 
@@ -62,6 +53,17 @@ Deno.serve(async (req) => {
       return Response.json({ 
         success: false, 
         error: 'Permission denied. Campaign belongs to a different organization.' 
+      }, { status: 403 });
+    }
+
+    // FIX06: Allow owners, managers, OR the user who created the campaign to update it.
+    // Previously only owners/managers could update, which meant reps could create but not edit.
+    const isOwnerOrManager = ['owner', 'manager'].includes(userProfile.orgRole);
+    const isCampaignCreator = campaign.ownerId === user.id;
+    if (!isOwnerOrManager && !isCampaignCreator) {
+      return Response.json({ 
+        success: false, 
+        error: 'Permission denied. You can only update campaigns you created.' 
       }, { status: 403 });
     }
 
@@ -126,6 +128,15 @@ Deno.serve(async (req) => {
         }));
 
         // Validate steps have required fields
+        // FIX08: Block activating a campaign with no steps
+        const targetStatus = campaignUpdates.status || campaign.status;
+        if (targetStatus === 'active' && updates.steps.length === 0) {
+          return Response.json({ 
+            success: false, 
+            error: 'Cannot activate a campaign with no steps. Add at least one card step first.' 
+          }, { status: 400 });
+        }
+
         for (let i = 0; i < stepRecords.length; i++) {
           const step = stepRecords[i];
           if (!step.cardDesignId) {
@@ -138,6 +149,13 @@ Deno.serve(async (req) => {
             return Response.json({ 
               success: false, 
               error: `Step ${i + 1} is missing required timingDays` 
+            }, { status: 400 });
+          }
+          // FIX08: Require message content when activating
+          if (targetStatus === 'active' && !step.templateId && !step.messageText) {
+            return Response.json({ 
+              success: false, 
+              error: `Step ${i + 1} requires either a template or a custom message before activating` 
             }, { status: 400 });
           }
         }

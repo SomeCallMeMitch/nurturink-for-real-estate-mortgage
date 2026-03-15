@@ -50,12 +50,32 @@ Deno.serve(async (req) => {
     });
 
     if (runningJobs && runningJobs.length > 0) {
-      console.log(`[processPendingSends] GUARD: Found ${runningJobs.length} already-running job(s). Exiting to prevent overlap.`);
-      return Response.json({
-        success: false,
-        error: 'Another processPendingSends job is already running',
-        runningJobIds: runningJobs.map(j => j.id)
-      }, { status: 409 });
+      // Separate stale jobs (running > 30 min) from genuinely active ones
+      const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+      const staleJobs = runningJobs.filter(j => j.startedAt && j.startedAt < thirtyMinutesAgo);
+      const activeJobs = runningJobs.filter(j => !j.startedAt || j.startedAt >= thirtyMinutesAgo);
+
+      // Mark stale jobs as failed so they no longer block future runs
+      for (const staleJob of staleJobs) {
+        console.log(`[processPendingSends] GUARD: Marking stale job ${staleJob.id} (started ${staleJob.startedAt}) as failed`);
+        await base44.asServiceRole.entities.AutomationHistory.update(staleJob.id, {
+          status: 'failed',
+          completedAt: new Date().toISOString(),
+          errorDetails: 'Marked failed by stale-lock cleanup — job ran for more than 30 minutes'
+        });
+      }
+
+      // If there are still genuinely active jobs, block as before
+      if (activeJobs.length > 0) {
+        console.log(`[processPendingSends] GUARD: Found ${activeJobs.length} active running job(s). Exiting to prevent overlap.`);
+        return Response.json({
+          success: false,
+          error: 'Another processPendingSends job is already running',
+          runningJobIds: activeJobs.map(j => j.id)
+        }, { status: 409 });
+      }
+
+      console.log(`[processPendingSends] GUARD: All running jobs were stale and have been cleared. Proceeding.`);
     }
 
     // ============================================================

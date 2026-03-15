@@ -32,19 +32,23 @@ export default function CardStepConfigurator({
   selectedDesign,
   selectedTemplate
 }) {
-  const [messageMode, setMessageMode] = useState(step.templateId ? 'template' : 'custom');
+  // FIX17: Derive messageMode from the step prop directly so it persists when the
+  // user navigates back and forward through the wizard. useState only runs once on
+  // mount, so if the user selects a template, goes back, and returns, the radio
+  // would reset to 'custom'. Deriving from props keeps it in sync.
+  const messageMode = step.templateId ? 'template' : 'custom';
 
-  // Determine timing label based on campaign type and step order
+  // FIX12: Clearer timing labels with direction context
   const getTimingLabel = () => {
     if (campaignType === 'birthday') {
-      return 'days before their birthday';
+      return 'days before their birthday (e.g. 10 = card arrives ~10 days early)';
     } else if (campaignType === 'renewal') {
       return 'days before their renewal date';
     } else if (campaignType === 'welcome') {
       if (isFirstStep) {
-        return 'days after policy start date';
+        return 'days after their policy start date (0 = same day)';
       } else {
-        return 'days after the previous card';
+        return 'days after the first card is sent';
       }
     }
     return 'days';
@@ -67,9 +71,8 @@ export default function CardStepConfigurator({
     return Math.abs(step.timingDays || 0);
   };
 
-  // Handle message mode change
+  // Handle message mode change — update the step data (which drives messageMode above)
   const handleMessageModeChange = (mode) => {
-    setMessageMode(mode);
     if (mode === 'template') {
       onUpdate({ messageText: '' });
     } else {

@@ -60,8 +60,9 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 function AvatarCircle({ user }) {
-  const initials = user?.full_name 
-    ? user.full_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+  const displayName = user?.fullName || user?.full_name;
+  const initials = displayName
+    ? displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     : 'U';
 
   return (
@@ -124,7 +125,7 @@ function CollapsibleMenu({ item, location }) {
 }
 
 export function AppSidebar({ whitelabelSettings, user }) {
-  console.log('AppSidebar: Rendering. User prop:', user);
+  // console.log('AppSidebar: Rendering. User prop:', user);
   const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
@@ -136,7 +137,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
   const hasRole = (allowedRoles) => {
     const userRole = user?.appRole || user?.role;
     const result = !allowedRoles || (user && allowedRoles.includes(userRole));
-    console.log(`AppSidebar: Checking role for [${allowedRoles}] -> ${result} (User role: '${userRole}', appRole: '${user?.appRole}', role: '${user?.role}')`);
+    // console.log(`AppSidebar: Checking role for [${allowedRoles}] -> ${result} (User role: '${userRole}', appRole: '${user?.appRole}', role: '${user?.role}'`);
     return result;
   };
 
@@ -161,7 +162,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
   ];
 
   // DEBUG: log user role so we can confirm what role is being received
-  console.log('AppSidebar adminItems: user.role=', user?.role, '| user.appRole=', user?.appRole);
+  // console.log('AppSidebar adminItems: user.role=', user?.role, '| user.appRole=', user?.appRole);
 
   const adminItems = [
     { title: "Dashboard", url: "SuperAdminDashboard", icon: LayoutDashboard },
@@ -294,7 +295,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
                 >
                   <AvatarCircle user={user} />
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{user?.full_name || 'User'}</span>
+                    <span className="truncate font-semibold">{user?.fullName || user?.full_name || 'User'}</span>
                     <span className="truncate text-xs">{user?.email || ''}</span>
                   </div>
                   <ChevronUp className="ml-auto size-4" />

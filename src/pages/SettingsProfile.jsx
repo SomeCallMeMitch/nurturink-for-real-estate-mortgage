@@ -70,6 +70,7 @@ export default function SettingsProfile() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         full_name: formData.full_name,
+        fullName: formData.full_name,  // custom field that actually persists in sidebar
         title: formData.title,
         phone: formData.phone,
         companyName: formData.companyName,
@@ -77,15 +78,12 @@ export default function SettingsProfile() {
         orgId: formData.orgId
       });
 
-      setSuccessMessage('Profile updated successfully!');
-      
-      // Reload user data
-      await loadUser();
+      setSuccessMessage('Profile updated! Refreshing...');
 
-      // Clear success message after 3 seconds
+      // Reload the page so MainLayout re-fetches the user and the sidebar updates
       setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
+        window.location.reload();
+      }, 800);
     } catch (error) {
       console.error('Failed to update profile:', error);
       alert('Failed to update profile. Please try again.');

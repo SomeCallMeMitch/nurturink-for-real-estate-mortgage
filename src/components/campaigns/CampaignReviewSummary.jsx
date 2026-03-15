@@ -230,24 +230,44 @@ export default function CampaignReviewSummary({
         </div>
       </div>
 
-      {/* Estimated Credits */}
+      {/* Estimated Credits - FIX15+16: Show monthly AND annual, always visible */}
       <div className="bg-muted/50 rounded-xl p-5 border border-border">
-        <h3 className="text-base font-semibold text-foreground mb-2">Estimated Usage</h3>
-        <p className="text-2xl font-bold text-primary">
-          ~{estimatedMonthlyCredits} <span className="text-base font-normal text-muted-foreground">credits/month</span>
+        <h3 className="text-base font-semibold text-foreground mb-3">Estimated Credit Usage</h3>
+        <div className="flex items-end gap-6">
+          <div>
+            <p className="text-2xl font-bold text-primary">
+              ~{estimatedMonthlyCredits}
+            </p>
+            <p className="text-sm text-muted-foreground">credits / month</p>
+          </div>
+          {campaignData.type !== 'welcome' && (
+            <div>
+              <p className="text-2xl font-bold text-foreground">
+                ~{estimatedMonthlyCredits * 12}
+              </p>
+              <p className="text-sm text-muted-foreground">credits / year</p>
+            </div>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Based on {eligibleClientCount} enrolled client{eligibleClientCount !== 1 ? 's' : ''} &times; {campaignData.steps?.length || 1} card{(campaignData.steps?.length || 1) > 1 ? 's' : ''} per sequence.
+          {campaignData.enrollmentMode === 'opt_in' ? ' Actual usage depends on manual enrollments.' : ''}
         </p>
-        <p className="text-sm text-muted-foreground mt-1">
-          Based on {eligibleClientCount} enrolled clients and {campaignData.steps?.length || 1} card{(campaignData.steps?.length || 1) > 1 ? 's' : ''} per sequence
-        </p>
+        {currentCredits !== undefined && (
+          <p className="text-xs mt-1 font-medium" style={{ color: isLowCredits ? 'var(--destructive)' : 'var(--muted-foreground)' }}>
+            Your current balance: {currentCredits} credit{currentCredits !== 1 ? 's' : ''}
+            {isLowCredits ? ' — this may not cover the first month.' : ''}
+          </p>
+        )}
       </div>
 
-      {/* Low Credits Warning */}
+      {/* Low Credits Warning - FIX15: Only show when credits are actually low */}
       {isLowCredits && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Your current credit balance ({currentCredits}) may not be enough for this campaign's estimated monthly usage. 
-            Consider purchasing more credits before activating.
+            Your current credit balance ({currentCredits}) is below the estimated monthly usage of ~{estimatedMonthlyCredits} credits.
+            Cards will be queued as &quot;insufficient credits&quot; until you top up.
           </AlertDescription>
         </Alert>
       )}

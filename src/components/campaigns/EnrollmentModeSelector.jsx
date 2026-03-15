@@ -35,6 +35,7 @@ export default function EnrollmentModeSelector({
   enrollmentMode, 
   requiresApproval, 
   eligibleClientCount,
+  isLoadingCount,
   onModeChange, 
   onApprovalChange 
 }) {
@@ -95,11 +96,15 @@ export default function EnrollmentModeSelector({
                 {mode.description}
               </p>
 
-              {/* Client Count (only for opt_out) */}
+              {/* Client Count (only for opt_out) - FIX14: show loading state */}
               {mode.id === 'opt_out' && isSelected && (
                 <div className="mt-4 pt-4 border-t border-border">
                   <p className="text-sm font-medium text-foreground">
-                    <span className="text-primary">{eligibleClientCount}</span> clients will be enrolled
+                    {isLoadingCount ? (
+                      <span className="text-muted-foreground italic">Counting eligible clients…</span>
+                    ) : (
+                      <><span className="text-primary">{eligibleClientCount}</span> client{eligibleClientCount !== 1 ? 's' : ''} will be enrolled</>
+                    )}
                   </p>
                 </div>
               )}

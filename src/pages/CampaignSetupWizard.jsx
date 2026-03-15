@@ -123,12 +123,6 @@ export default function CampaignSetupWizard() {
   // Check user object directly first, then fall back to UserProfile
   const orgId = user?.orgId || userProfile?.orgId;
 
-  // === DIAGNOSTIC LOGGING - Return Address Issue ===
-  console.log('[CampaignSetupWizard] user object:', user);
-  console.log('[CampaignSetupWizard] user.orgId:', user?.orgId);
-  console.log('[CampaignSetupWizard] userProfile:', userProfile);
-  console.log('[CampaignSetupWizard] Final orgId:', orgId);
-  // === END DIAGNOSTIC LOGGING ===
 
   // Fetch organization for company address
   const { data: organizations = [] } = useQuery({
@@ -140,10 +134,6 @@ export default function CampaignSetupWizard() {
   const organization = organizations[0];
   const companyAddress = organization?.companyReturnAddress;
 
-  // === DIAGNOSTIC LOGGING - Company Address ===
-  console.log('[CampaignSetupWizard] organization:', organization);
-  console.log('[CampaignSetupWizard] companyAddress:', companyAddress);
-  // === END DIAGNOSTIC LOGGING ===
 
   // Rep address would come from the user's profile or a related entity
   // Check for nested returnAddress object OR flat fields on user (how SettingsAddresses saves it)
@@ -156,11 +146,6 @@ export default function CampaignSetupWizard() {
     zip: user.zipCode || user.zip
   } : null);
   
-  // === DIAGNOSTIC LOGGING - Rep Address ===
-  console.log('[CampaignSetupWizard] userProfile.returnAddress:', userProfile?.returnAddress);
-  console.log('[CampaignSetupWizard] user.returnAddress:', user?.returnAddress);
-  console.log('[CampaignSetupWizard] Final repAddress:', repAddress);
-  // === END DIAGNOSTIC LOGGING ===
 
   // Fetch eligible client count when type changes
   useEffect(() => {
@@ -192,17 +177,6 @@ export default function CampaignSetupWizard() {
   // Create Campaign Mutation
   const createCampaignMutation = useMutation({
     mutationFn: async ({ status }) => {
-      // === DIAGNOSTIC LOGGING START ===
-      console.log('[CampaignSetupWizard] Submitting campaign with data:');
-      console.log('[CampaignSetupWizard] name:', campaignData.name);
-      console.log('[CampaignSetupWizard] type:', campaignData.type);
-      console.log('[CampaignSetupWizard] enrollmentMode:', campaignData.enrollmentMode);
-      console.log('[CampaignSetupWizard] requiresApproval:', campaignData.requiresApproval);
-      console.log('[CampaignSetupWizard] returnAddressMode:', campaignData.returnAddressMode);
-      console.log('[CampaignSetupWizard] status:', status);
-      console.log('[CampaignSetupWizard] steps:', JSON.stringify(campaignData.steps, null, 2));
-      // === DIAGNOSTIC LOGGING END ===
-
       const response = await base44.functions.invoke('createCampaign', {
         name: campaignData.name,
         type: campaignData.type,
@@ -212,8 +186,6 @@ export default function CampaignSetupWizard() {
         status,
         steps: campaignData.steps
       });
-      
-      console.log('[CampaignSetupWizard] Response:', response.data);
       
       if (!response.data.success) {
         throw new Error(response.data.error || 'Failed to create campaign');
@@ -350,8 +322,12 @@ export default function CampaignSetupWizard() {
         return campaignData.steps.every(s => 
           s.cardDesignId && (s.templateId || s.messageText?.trim())
         );
-      case 4:
-        return true; // Return address mode is pre-selected
+      case 4: {
+        // FIX10: Block proceeding if the selected address mode has no address configured
+        if (campaignData.returnAddressMode === 'company' && !companyAddress?.street) return false;
+        if (campaignData.returnAddressMode === 'rep' && !repAddress?.street) return false;
+        return true;
+      }
       case 5:
         return campaignData.name?.trim().length > 0;
       default:
@@ -420,7 +396,8 @@ export default function CampaignSetupWizard() {
           <EnrollmentModeSelector
             enrollmentMode={campaignData.enrollmentMode}
             requiresApproval={campaignData.requiresApproval}
-            eligibleClientCount={isLoadingCount ? 0 : eligibleClientCount}
+            eligibleClientCount={eligibleClientCount}
+            isLoadingCount={isLoadingCount}
             onModeChange={handleModeChange}
             onApprovalChange={handleApprovalChange}
           />
@@ -493,6 +470,7 @@ export default function CampaignSetupWizard() {
             eligibleClientCount={eligibleClientCount}
             designs={designs}
             templates={templates}
+            currentCredits={user?.credits ?? user?.creditBalance ?? undefined}
           />
         )}
         </div>

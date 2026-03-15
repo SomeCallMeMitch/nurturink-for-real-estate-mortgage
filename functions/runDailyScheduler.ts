@@ -38,8 +38,15 @@ function getNextOccurrence(dateStr, campaignType) {
   today.setHours(0, 0, 0, 0);
   
   if (campaignType === 'welcome') {
-    // Welcome is one-time, use the actual date
-    return new Date(dateStr);
+    // FIX04: Welcome is one-time. If the policy_start_date is in the past (beyond
+    // the 14-day scheduling window), return null so no send is created for stale clients.
+    // The isWithinDays check downstream will filter it, but returning null here is
+    // an explicit guard that prevents any step-offset calculation on a stale date.
+    const welcomeDate = new Date(dateStr);
+    const cutoff = new Date(today);
+    cutoff.setDate(cutoff.getDate() - 14); // allow up to 14 days in the past
+    if (welcomeDate < cutoff) return null;
+    return welcomeDate;
   }
   
   // For birthday and renewal, find next occurrence
@@ -164,23 +171,34 @@ Deno.serve(async (req) => {
           existingSends.map(s => `${s.enrollmentId}-${s.campaignStepId}-${s.scheduledDate}`)
         );
 
+        // FIX03: Batch-load all clients for this campaign's enrollments in one query
+        // instead of fetching one client per enrollment (N+1 problem)
+        const clientIds = [...new Set(enrollments.map(e => e.clientId))];
+        const allClients = clientIds.length > 0
+          ? await base44.asServiceRole.entities.Client.filter({ orgId: campaign.orgId })
+          : [];
+        const clientMap = new Map(allClients.map(c => [c.id, c]));
+        console.log(`[runDailyScheduler] Batch-loaded ${allClients.length} clients for campaign ${campaign.name}`);
+
+        // FIX03: Check credit availability once per campaign, not once per step per enrollment
+        const creditCheck = await checkOrgCredits(base44, campaign.orgId);
+        console.log(`[runDailyScheduler] Credit check for org ${campaign.orgId}: hasCredits=${creditCheck.hasCredits}`);
+
         // 3b. Process each enrolled client
         for (const enrollment of enrollments) {
           try {
             stats.enrollmentsProcessed++;
 
-            // Get client details
-            const clients = await base44.asServiceRole.entities.Client.filter({ id: enrollment.clientId });
-            if (!clients || clients.length === 0) {
+            // Get client from pre-loaded map (no extra DB call)
+            const client = clientMap.get(enrollment.clientId);
+            if (!client) {
               console.log(`[runDailyScheduler] Client ${enrollment.clientId} not found, skipping`);
               continue;
             }
-            const client = clients[0];
 
-            // PHASE 2: Verify client belongs to the campaign owner
-            // This prevents duplicate sends if a client was somehow enrolled in wrong campaign
+            // Verify client belongs to the campaign owner
             if (campaign.ownerId && client.ownerId !== campaign.ownerId) {
-              console.log(`[runDailyScheduler] Client ${client.id} ownerId (${client.ownerId}) doesn't match campaign ownerId (${campaign.ownerId}), skipping`);
+              console.log(`[runDailyScheduler] Client ${client.id} ownerId mismatch, skipping`);
               continue;
             }
 
@@ -203,14 +221,13 @@ Deno.serve(async (req) => {
 
             // For each campaign step, calculate send date and check if it should be scheduled
             for (const step of steps) {
-              // Calculate send date based on timing
               // timingDays can be negative (before trigger) or positive (after trigger)
               const sendDate = addDays(triggerDate, step.timingDays);
               const sendDateStr = formatDate(sendDate);
 
               // Check if send date is within next 14 days
               if (!isWithinDays(sendDate, 14)) {
-                continue; // Not within scheduling window
+                continue;
               }
 
               // Check for duplicate (idempotency)
@@ -220,10 +237,7 @@ Deno.serve(async (req) => {
                 continue;
               }
 
-              // Check credit availability for the org
-              const creditCheck = await checkOrgCredits(base44, campaign.orgId);
-              
-              // Determine status based on credit availability and approval settings
+              // Use the pre-fetched credit check (not a new DB call per step)
               let status = 'pending';
               if (!creditCheck.hasCredits) {
                 status = 'insufficient_credits';
