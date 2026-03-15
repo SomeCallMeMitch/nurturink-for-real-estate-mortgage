@@ -69,12 +69,23 @@ Deno.serve(async (req) => {
 
     // Build lookup maps for O(1) access
     const enrollmentCountMap = {};
+    console.log('[listCampaigns] Processing enrollments - checking each one:');
     for (const e of allEnrollments) {
-      if (e.status === 'active' && e.campaignId) {
+      console.log('[listCampaigns] Enrollment:', {
+        id: e.id,
+        campaignId: e.campaignId,
+        status: e.status,
+        clientId: e.clientId,
+        enrolledAt: e.enrolledAt,
+        allKeys: Object.keys(e)
+      });
+      
+      if (e.campaignId) {
         enrollmentCountMap[e.campaignId] = (enrollmentCountMap[e.campaignId] || 0) + 1;
       }
     }
     console.log('[listCampaigns] Final enrollment count map:', JSON.stringify(enrollmentCountMap));
+    console.log('[listCampaigns] Total enrollments processed:', allEnrollments.length);
     console.log('[listCampaigns] Campaigns being returned:', campaignIds.length);
     const upcomingCountMap = {};
     const nextSendDateMap = {};
