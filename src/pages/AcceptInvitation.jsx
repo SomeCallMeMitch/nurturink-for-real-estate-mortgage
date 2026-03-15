@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle, Building2, Loader2, LogOut } from "lucide-react";
 
 export default function AcceptInvitation() {
-  const [state, setState] = useState('loading'); // loading | error | invitation | success
+  const [state, setState] = useState('loading'); // loading | error | invitations | success
   const [invitationData, setInvitationData] = useState(null);
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
