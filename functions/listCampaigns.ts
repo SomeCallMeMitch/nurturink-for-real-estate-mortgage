@@ -49,6 +49,10 @@ Deno.serve(async (req) => {
       try {
         // Fetch all active enrollments for this org's campaigns in one query
         allEnrollments = await base44.entities.CampaignEnrollment.filter({ orgId });
+        console.log('[listCampaigns] Fetched enrollments with orgId filter:', { orgId, totalEnrollments: allEnrollments.length });
+        if (allEnrollments.length > 0) {
+          console.log('[listCampaigns] First enrollment record:', JSON.stringify(allEnrollments[0]));
+        }
         // Fetch upcoming pending sends (next 30 days) for this org
         const today = new Date();
         const in30Days = new Date(today);
@@ -63,10 +67,12 @@ Deno.serve(async (req) => {
     // Build lookup maps for O(1) access
     const enrollmentCountMap = {};
     for (const e of allEnrollments) {
-      if (e.status === 'enrolled' && e.campaignId) {
+      if (e.status === 'active' && e.campaignId) {
         enrollmentCountMap[e.campaignId] = (enrollmentCountMap[e.campaignId] || 0) + 1;
       }
     }
+    console.log('[listCampaigns] Final enrollment count map:', JSON.stringify(enrollmentCountMap));
+    console.log('[listCampaigns] Campaigns being returned:', campaignIds.length);
     const upcomingCountMap = {};
     const nextSendDateMap = {};
     for (const s of allUpcomingSends) {
