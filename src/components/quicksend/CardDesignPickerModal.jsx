@@ -216,13 +216,10 @@ export default function CardDesignPickerModal({
                       )}
                     </div>
                     
-                    {/* Card Name and View Status */}
+                    {/* Card Name */}
                     <div className="p-3 border-t border-gray-100">
                       <p className="font-medium text-sm text-gray-900 truncate">
                         {design.name}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {isHovered ? 'Back view' : 'Front view'}
                       </p>
                     </div>
                   </div>
