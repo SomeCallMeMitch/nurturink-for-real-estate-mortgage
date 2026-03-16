@@ -210,9 +210,37 @@ Deno.serve(async (req) => {
 
             for (const step of steps) {
               const sendDate = addDays(triggerDate, step.timingDays);
-              const sendDateStr = formatDate(sendDate);
+              let sendDateStr = formatDate(sendDate);
 
-              if (!isWithinDays(sendDate, 14)) continue;
+              if (!isWithinDays(sendDate, 14)) {
+                // Fix 04 (cont.) — Special case for one-time (welcome) campaigns:
+                // If the trigger date is in the past but this enrollment was created
+                // recently (within 7 days), schedule the send for today instead.
+                if (isOneTime && !enrollment.processedWelcome) {
+                  const sevenDaysAgo = new Date();
+                  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                  sevenDaysAgo.setHours(0, 0, 0, 0);
+                  const enrolledAt = enrollment.enrolledAt ? new Date(enrollment.enrolledAt) : null;
+                  const isRecentEnrollment = enrolledAt && enrolledAt >= sevenDaysAgo;
+
+                  if (!isRecentEnrollment) {
+                    continue; // Old enrollment with past trigger date — skip
+                  }
+
+                  // Recent enrollment with past trigger date — schedule for today
+                  const todayStr = formatDate(new Date());
+                  const sendKey = `${enrollment.id}-${step.id}-${todayStr}`;
+                  if (existingSendKeys.has(sendKey)) {
+                    stats.sendsSkippedDuplicate++;
+                    continue;
+                  }
+
+                  // Override sendDateStr to today for the ScheduledSend creation below
+                  sendDateStr = todayStr;
+                } else {
+                  continue; // Not within window and not a recent one-time enrollment
+                }
+              }
 
               const sendKey = `${enrollment.id}-${step.id}-${sendDateStr}`;
               if (existingSendKeys.has(sendKey)) {
