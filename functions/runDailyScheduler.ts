@@ -151,29 +151,29 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // Get existing ScheduledSends for duplicate checking
+        // Fix 03B — Date-filtered existingSends to avoid loading historical records
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const windowStart = formatDate(addDays(today, -7));
+        const windowEnd = formatDate(addDays(today, 30));
         const existingSends = await base44.asServiceRole.entities.ScheduledSend.filter({
-          campaignId: campaign.id
+          campaignId: campaign.id,
+          scheduledDate: { $gte: windowStart, $lte: windowEnd }
         });
         const existingSendKeys = new Set(
           existingSends.map((s) => `${s.enrollmentId}-${s.campaignStepId}-${s.scheduledDate}`)
         );
 
-        // FIX #5: Load only enrolled clients, not all org clients.
-        // Fetch them concurrently to avoid N sequential API calls.
+        // Fix 03A — Batch-load all enrolled clients in a single query
         const clientIds = [...new Set(enrollments.map((e) => e.clientId))];
         const clientMap = new Map();
 
         if (clientIds.length > 0) {
-          const clientFetches = await Promise.all(
-            clientIds.map((id) =>
-              base44.asServiceRole.entities.Client.filter({ id })
-                .then((results) => results[0] || null)
-                .catch(() => null)
-            )
-          );
-          for (const client of clientFetches) {
-            if (client) clientMap.set(client.id, client);
+          const clientList = await base44.asServiceRole.entities.Client.filter({
+            id: { $in: clientIds }
+          });
+          for (const client of clientList) {
+            clientMap.set(client.id, client);
           }
         }
 
