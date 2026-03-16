@@ -1,147 +1,143 @@
-import React, { useState } from 'react';
-import { Image, FileText, Trash2, Clock } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import PlaceholderModal from '@/components/mailing/PlaceholderModal';
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Image, FileText, Clock, Trash2 } from 'lucide-react';
+import PlaceholderModal from './PlaceholderModal';
 
 /**
- * CardStepConfigurator Component
- * Configure a single card step (design, message, timing)
- * 
+ * CardStepConfigurator Component (Sprint 3 - Data-Driven)
+ *
  * @param {Object} step - Step data: { stepOrder, cardDesignId, templateId, messageText, timingDays, timingReference }
- * @param {string} campaignType - Campaign type: 'birthday' | 'welcome' | 'renewal'
- * @param {boolean} isFirstStep - Whether this is the first step in the sequence
- * @param {Function} onUpdate - Callback to update step: (updates: object) => void
- * @param {Function} onRemove - Callback to remove step (only if not first step)
- * @param {Function} onOpenDesignPicker - Callback to open card design picker modal
- * @param {Function} onOpenTemplatePicker - Callback to open template picker modal
- * @param {Object} selectedDesign - Currently selected card design object (for display)
- * @param {Object} selectedTemplate - Currently selected template object (for display)
+ * @param {Object} triggerType - The TriggerType record: { key, name, dateField, defaultDaysBefore, defaultDaysAfter }
+ * @param {Function} onUpdate - Callback: (updates) => void
+ * @param {Function} onRemove - Callback to remove this step (optional)
+ * @param {Object|null} selectedDesign - Currently selected card design object
+ * @param {Object|null} selectedTemplate - Currently selected template object
+ * @param {Function} onOpenDesignPicker - Opens the card design picker modal
+ * @param {Function} onOpenTemplatePicker - Opens the template picker modal
+ * @param {boolean} canRemove - Whether this step can be removed
+ *
+ * NOTE: This component imports PlaceholderModal from './PlaceholderModal'.
+ * Verify that src/components/campaigns/PlaceholderModal.jsx exists (it should
+ * have been created in Sprint 1 or 2). If missing, this file will fail to load.
  */
 export default function CardStepConfigurator({
   step,
-  campaignType,
-  isFirstStep,
+  triggerType,
   onUpdate,
   onRemove,
+  selectedDesign,
+  selectedTemplate,
   onOpenDesignPicker,
   onOpenTemplatePicker,
-  selectedDesign,
-  selectedTemplate
+  canRemove = false
 }) {
-  // FIX17: Derive messageMode from the step prop directly so it persists when the
-  // user navigates back and forward through the wizard. useState only runs once on
-  // mount, so if the user selects a template, goes back, and returns, the radio
-  // would reset to 'custom'. Deriving from props keeps it in sync.
-  const messageMode = step.templateId ? 'template' : 'custom';
+  // Derive messageMode from step prop on every render
+  const messageMode = step.templateId ? 'template' : (step.messageText ? 'custom' : 'template');
 
-  // FIX12: Clearer timing labels with direction context
-  const getTimingLabel = () => {
-    if (campaignType === 'birthday') {
-      return 'days before their birthday (e.g. 10 = card arrives ~10 days early)';
-    } else if (campaignType === 'renewal') {
-      return 'days before their renewal date';
-    } else if (campaignType === 'welcome') {
-      if (isFirstStep) {
-        return 'days after their policy start date (0 = same day)';
-      } else {
-        return 'days after the first card is sent';
-      }
+  const handleMessageModeChange = (mode) => {
+    if (mode === 'template') {
+      onUpdate({ messageText: '', templateId: step.templateId || null });
+    } else {
+      onUpdate({ templateId: null, messageText: step.messageText || '' });
     }
-    return 'days';
   };
 
-  // Handle timing change - convert to negative for before dates
+  const handleInsertPlaceholder = (placeholder) => {
+    const currentText = step.messageText || '';
+    onUpdate({ messageText: currentText + placeholder });
+  };
+
+  // Data-driven timing label based on TriggerType defaults
+  const getTimingLabel = () => {
+    if (!triggerType) return 'days';
+    const hasBefore = (triggerType.defaultDaysBefore || 0) > 0;
+    const hasAfter = (triggerType.defaultDaysAfter || 0) > 0;
+
+    if (hasBefore && !hasAfter) {
+      return `days before their ${triggerType.name.toLowerCase()} date`;
+    } else if (hasAfter && !hasBefore) {
+      return `days after their ${triggerType.name.toLowerCase()} date`;
+    } else {
+      const direction = (step.timingDays || 0) < 0 ? 'before' : 'after';
+      return `days ${direction} their ${triggerType.name.toLowerCase()} date`;
+    }
+  };
+
+  // Handle timing input — enforces sign convention based on TriggerType direction
   const handleTimingChange = (value) => {
     const days = parseInt(value) || 0;
-    // For birthday/renewal, timing is negative (before the date)
-    // For welcome, timing is positive (after the date)
-    if (campaignType === 'birthday' || campaignType === 'renewal') {
+    const isBefore = (triggerType?.defaultDaysBefore || 0) > 0 && !(triggerType?.defaultDaysAfter > 0);
+    if (isBefore) {
       onUpdate({ timingDays: -Math.abs(days) });
     } else {
       onUpdate({ timingDays: Math.abs(days) });
     }
   };
 
-  // Get display value for timing input (always positive for UI)
   const getTimingDisplayValue = () => {
     return Math.abs(step.timingDays || 0);
   };
 
-  // Handle message mode change — update the step data (which drives messageMode above)
-  const handleMessageModeChange = (mode) => {
-    if (mode === 'template') {
-      onUpdate({ messageText: '' });
-    } else {
-      onUpdate({ templateId: null });
-    }
-  };
-
-  // Handle inserting placeholder into custom message
-  const handleInsertPlaceholder = (placeholder) => {
-    onUpdate({ messageText: (step.messageText || '') + ' ' + placeholder });
-  };
-
   return (
-    <div className="bg-card border border-border rounded-xl p-6 space-y-6">
-      {/* Header */}
+    <div className="space-y-6 p-4 border border-border rounded-lg bg-card">
+      {/* Step Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground">
+        <h3 className="font-medium text-foreground flex items-center gap-2">
+          <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm">
+            {step.stepOrder}
+          </span>
           Card {step.stepOrder}
         </h3>
-        {!isFirstStep && onRemove && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onRemove}
-            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-          >
-            <Trash2 className="w-4 h-4 mr-1" />
-            Remove
+        {canRemove && (
+          <Button variant="ghost" size="sm" onClick={onRemove} className="text-destructive hover:text-destructive">
+            <Trash2 className="w-4 h-4" />
           </Button>
         )}
       </div>
 
       {/* Timing Section */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Label className="flex items-center gap-2 text-sm font-medium">
           <Clock className="w-4 h-4 text-muted-foreground" />
           Timing
         </Label>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-muted-foreground">Send</span>
           <Input
             type="number"
             min="0"
             max="365"
             value={getTimingDisplayValue()}
             onChange={(e) => handleTimingChange(e.target.value)}
-            className="w-20 text-center"
+            className="w-24"
           />
-          <span className="text-sm text-muted-foreground">{getTimingLabel()}</span>
+          <span className="text-sm text-muted-foreground">
+            {getTimingLabel()}
+          </span>
         </div>
       </div>
 
       {/* Card Design Section */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Label className="flex items-center gap-2 text-sm font-medium">
           <Image className="w-4 h-4 text-muted-foreground" />
           Card Design
         </Label>
-        <div className="flex items-center gap-4">
+        <div>
           {selectedDesign ? (
-            <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg border border-border flex-1">
-              <img
-                src={selectedDesign.frontImageUrl || selectedDesign.outsideImageUrl || selectedDesign.imageUrl}
-                alt={selectedDesign.name}
-                className="w-16 h-12 object-cover rounded"
-              />
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
+              {selectedDesign.front_image_url && (
+                <img
+                  src={selectedDesign.front_image_url}
+                  alt={selectedDesign.name}
+                  className="w-16 h-12 object-cover rounded"
+                />
+              )}
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground truncate">{selectedDesign.name}</p>
-                <p className="text-xs text-muted-foreground">Card design selected</p>
               </div>
               <Button variant="outline" size="sm" onClick={onOpenDesignPicker}>
                 Change
@@ -168,8 +164,6 @@ export default function CardStepConfigurator({
           <FileText className="w-4 h-4 text-muted-foreground" />
           Message
         </Label>
-
-        {/* Message Mode Toggle */}
         <RadioGroup
           value={messageMode}
           onValueChange={handleMessageModeChange}
@@ -189,7 +183,6 @@ export default function CardStepConfigurator({
           </div>
         </RadioGroup>
 
-        {/* Template Selection */}
         {messageMode === 'template' && (
           <div className="mt-3">
             {selectedTemplate ? (
@@ -219,7 +212,6 @@ export default function CardStepConfigurator({
           </div>
         )}
 
-        {/* Custom Message Textarea */}
         {messageMode === 'custom' && (
           <div className="mt-3 space-y-2">
             <div className="flex justify-end mb-2">
