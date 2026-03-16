@@ -4,135 +4,107 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-
-
     if (!user) {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name, type, enrollmentMode, requiresApproval, returnAddressMode, description, steps, status } = await req.json();
+    const body = await req.json();
+    const {
+      name,
+      type,             // TriggerType key (e.g., 'birthday')
+      triggerTypeId,    // TriggerType record ID
+      dateField,        // Client field to check (e.g., 'birthday', 'renewal_date')
+      enrollmentMode = 'opt_out',
+      requiresApproval = false,
+      returnAddressMode = 'company',
+      status: campaignStatus = 'draft',
+      steps = []
+    } = body;
 
-    // Validate required fields
-    if (!name || !type || !enrollmentMode) {
-      return Response.json({ 
-        success: false, 
-        error: 'Missing required fields: name, type, enrollmentMode' 
-      }, { status: 400 });
-    }
-
-    // Validate type
-    const validTypes = ['birthday', 'welcome', 'renewal'];
-    if (!validTypes.includes(type)) {
-      return Response.json({ 
-        success: false, 
-        error: `Invalid type. Must be one of: ${validTypes.join(', ')}` 
-      }, { status: 400 });
-    }
-
-    // Validate enrollmentMode
-    const validModes = ['opt_in', 'opt_out'];
-    if (!validModes.includes(enrollmentMode)) {
-      return Response.json({ 
-        success: false, 
-        error: `Invalid enrollmentMode. Must be one of: ${validModes.join(', ')}` 
-      }, { status: 400 });
-    }
-
-    // Validate returnAddressMode if provided
-    const validReturnModes = ['company', 'rep', 'none'];
-    const finalReturnAddressMode = returnAddressMode && validReturnModes.includes(returnAddressMode) 
-      ? returnAddressMode 
-      : 'company';
-
-    // Get user's orgId - prioritize direct assignment, then UserProfile
-    let orgId = user.orgId || null;
-    let userProfile = null;
-
-    // Always fetch UserProfile as it's needed for permission checking later
-    const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
-    
-    if (userProfiles && userProfiles.length > 0) {
-      userProfile = userProfiles[0];
-      // If orgId wasn't on user object, try getting it from profile
-      if (!orgId && userProfile.orgId) {
-        orgId = userProfile.orgId;
+    // Validate type against TriggerType entity instead of hardcoded list
+    let triggerType = null;
+    if (triggerTypeId) {
+      try {
+        triggerType = await base44.entities.TriggerType.get(triggerTypeId);
+      } catch (e) {
+        // TriggerType not found by ID — fall through to key lookup
       }
     }
-
-    // Critical check: Ensure we have an orgId
-    if (!orgId) {
-      console.log('[createCampaign] ERROR: No orgId found for user');
-      return Response.json({ 
-        success: false, 
-        error: 'No organization associated with your account. You must belong to an organization to create a campaign.' 
+    if (!triggerType && type) {
+      const matches = await base44.entities.TriggerType.filter({ key: type, isActive: true });
+      triggerType = matches[0] || null;
+    }
+    if (!triggerType) {
+      return Response.json({
+        success: false,
+        error: 'Invalid campaign type. Please select a valid campaign type.'
       }, { status: 400 });
     }
-    
-    // All users (reps) can create campaigns; ownership tracked by ownerId
 
-    // Determine triggerField based on type
-    const triggerFieldMap = {
-      birthday: 'birthday',
-      welcome: 'policy_start_date',
-      renewal: 'renewal_date'
-    };
-    const triggerField = triggerFieldMap[type];
+    // Resolve the trigger field from the TriggerType record
+    const triggerField = dateField || triggerType.dateField;
+    if (!triggerField) {
+      return Response.json({
+        success: false,
+        error: 'Campaign type is missing a dateField configuration. Contact your administrator.'
+      }, { status: 400 });
+    }
 
-    // Validate status if provided
-    const validStatuses = ['draft', 'active', 'paused'];
-    const campaignStatus = status && validStatuses.includes(status) ? status : 'draft';
+    // Get user's orgId
+    const orgId = user.orgId;
+    if (!orgId) {
+      return Response.json({
+        success: false,
+        error: 'User is not associated with an organization'
+      }, { status: 400 });
+    }
 
-    // Create Campaign record
-    // PHASE 1: Added ownerId field for rep-based campaign ownership
-    const campaignData = {
-      orgId,
-      ownerId: user.id,  // Rep who owns this campaign
-      createdBy: user.id,
-      name,
-      type,
-      status: campaignStatus,
+    // Create the campaign record
+    const campaign = await base44.entities.Campaign.create({
+      name: name || `${triggerType.name} Campaign`,
+      type: triggerType.key,
+      triggerTypeId: triggerType.id,
+      dateField: triggerField,
       enrollmentMode,
-      triggerField,
-      requiresApproval: requiresApproval || false,
-      returnAddressMode: finalReturnAddressMode,
-      description: description || null
-    };
+      requiresApproval,
+      returnAddressMode,
+      status: campaignStatus,
+      orgId,
+      ownerId: user.id,
+      createdAt: new Date().toISOString()
+    });
 
-    const campaign = await base44.entities.Campaign.create(campaignData);
-
-    // Create CampaignStep records if provided
-    if (steps && Array.isArray(steps) && steps.length > 0) {
-      const stepRecords = steps.map((step, index) => ({
+    // Validate and create campaign steps
+    if (steps.length > 0) {
+      const stepRecords = steps.map((step: any, index: number) => ({
         campaignId: campaign.id,
         stepOrder: step.stepOrder || index + 1,
         cardDesignId: step.cardDesignId,
         templateId: step.templateId || null,
-        messageText: step.messageText || null,
+        messageText: step.messageText || '',
         timingDays: step.timingDays,
         timingReference: step.timingReference || 'trigger_date',
         isEnabled: step.isEnabled !== false
       }));
 
-      // Validate steps have required fields
       for (let i = 0; i < stepRecords.length; i++) {
         const step = stepRecords[i];
         if (!step.cardDesignId) {
-          return Response.json({ 
-            success: false, 
-            error: `Step ${i + 1} is missing required cardDesignId` 
+          return Response.json({
+            success: false,
+            error: `Step ${i + 1} is missing required cardDesignId`
           }, { status: 400 });
         }
         if (step.timingDays === undefined || step.timingDays === null) {
-          return Response.json({ 
-            success: false, 
-            error: `Step ${i + 1} is missing required timingDays` 
+          return Response.json({
+            success: false,
+            error: `Step ${i + 1} is missing required timingDays`
           }, { status: 400 });
         }
-        // FIX08: Require message content for non-draft campaigns
         if (campaignStatus !== 'draft' && !step.templateId && !step.messageText) {
-          return Response.json({ 
-            success: false, 
-            error: `Step ${i + 1} requires either a template or a custom message` 
+          return Response.json({
+            success: false,
+            error: `Step ${i + 1} requires either a template or a custom message`
           }, { status: 400 });
         }
       }
@@ -144,60 +116,61 @@ Deno.serve(async (req) => {
     let enrolledCount = 0;
     if (enrollmentMode === 'opt_out' && campaignStatus === 'active') {
       try {
-        // PHASE 2: Fetch only the rep's own clients (not all org clients)
-        const allClients = await base44.entities.Client.filter({ 
+        const allClients = await base44.entities.Client.filter({
           orgId,
-          ownerId: user.id  // Only enroll the rep's own clients
+          ownerId: user.id
         });
 
-        // Filter eligible clients (have trigger field value and automation enabled)
-        const eligibleClients = allClients.filter(client => {
+        const eligibleClients = allClients.filter((client: any) => {
           const hasFieldValue = client[triggerField] && client[triggerField] !== '';
           const automationEnabled = client.automationEnabled !== false;
           return hasFieldValue && automationEnabled;
         });
 
-        // Create enrollment records for each eligible client
         if (eligibleClients.length > 0) {
-          const enrollmentRecords = eligibleClients.map(client => ({
+          const enrollmentRecords = eligibleClients.map((client: any) => ({
             campaignId: campaign.id,
             clientId: client.id,
             status: 'active',
             enrolledAt: new Date().toISOString()
           }));
-
           await base44.entities.CampaignEnrollment.bulkCreate(enrollmentRecords);
           enrolledCount = eligibleClients.length;
 
-          // Auto-tag enrolled clients with campaign type tag
-          const campaignTag = `${campaign.type.charAt(0).toUpperCase() + campaign.type.slice(1)} Campaign`;
-          for (const client of eligibleClients) {
-            const existingTags = client.tags && Array.isArray(client.tags) ? client.tags : [];
-            if (!existingTags.includes(campaignTag)) {
-              existingTags.push(campaignTag);
-              await base44.entities.Client.update(client.id, { tags: existingTags });
-            }
-          }
+          // FIX #10: Tag clients in batches to avoid sequential per-client updates.
+          // Build a map of updated tag arrays first, then fire all updates concurrently.
+          const campaignTag = `${triggerType.name} Campaign`;
+          const tagUpdatePromises = eligibleClients
+            .filter((client: any) => {
+              const existingTags = Array.isArray(client.tags) ? client.tags : [];
+              return !existingTags.includes(campaignTag);
+            })
+            .map((client: any) => {
+              const existingTags = Array.isArray(client.tags) ? client.tags : [];
+              return base44.entities.Client.update(client.id, {
+                tags: [...existingTags, campaignTag]
+              });
+            });
+          await Promise.all(tagUpdatePromises);
         }
-      } catch (enrollmentError) {
+      } catch (enrollmentError: any) {
         console.error('Error during auto-enrollment:', enrollmentError);
-        // Don't fail the campaign creation if enrollment fails
       }
     }
 
-    return Response.json({ 
-      success: true, 
+    return Response.json({
+      success: true,
       campaignId: campaign.id,
       stepsCreated: steps?.length || 0,
       enrolledCount,
       message: 'Campaign created successfully'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('createCampaign error:', error);
-    return Response.json({ 
-      success: false, 
-      error: error.message || 'An error occurred while creating the campaign' 
+    return Response.json({
+      success: false,
+      error: error.message || 'An error occurred while creating the campaign'
     }, { status: 500 });
   }
 });
