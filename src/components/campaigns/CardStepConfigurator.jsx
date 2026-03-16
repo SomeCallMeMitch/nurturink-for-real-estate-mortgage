@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Image, FileText, Clock, Trash2 } from 'lucide-react';
-import PlaceholderModal from './PlaceholderModal';
+import PlaceholderModal from '@/components/mailing/PlaceholderModal';
 
 /**
  * CardStepConfigurator Component (Sprint 3 - Data-Driven)
