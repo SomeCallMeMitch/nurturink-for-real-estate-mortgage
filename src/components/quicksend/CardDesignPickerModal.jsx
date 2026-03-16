@@ -200,13 +200,20 @@ export default function CardDesignPickerModal({
                       </button>
                     )}
                     
-                    {/* Card Image - Front only, back on hover */}
+                    {/* Fix 01 — Card Image with "See Inside" overlay on hover */}
                     <div className="relative aspect-[11/8] bg-gray-50">
                       <img
                         src={displayImageUrl}
                         alt={design.name}
                         className="w-full h-full object-cover"
                       />
+                      {isHovered && !isSelected && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity">
+                          <span className="text-white font-medium text-sm px-3 py-1.5 bg-black/50 rounded-full">
+                            See Inside
+                          </span>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Card Name and View Status */}
