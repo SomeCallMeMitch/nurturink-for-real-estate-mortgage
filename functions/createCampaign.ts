@@ -11,9 +11,9 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const {
       name,
-      type,             // TriggerType key (e.g., 'birthday')
-      triggerTypeId,    // TriggerType record ID
-      dateField,        // Client field to check (e.g., 'birthday', 'renewal_date')
+      type,
+      triggerTypeId,
+      dateField,
       enrollmentMode = 'opt_out',
       requiresApproval = false,
       returnAddressMode = 'company',
@@ -50,7 +50,6 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Get user's orgId
     const orgId = user.orgId;
     if (!orgId) {
       return Response.json({
@@ -76,7 +75,7 @@ Deno.serve(async (req) => {
 
     // Validate and create campaign steps
     if (steps.length > 0) {
-      const stepRecords = steps.map((step: any, index: number) => ({
+      const stepRecords = steps.map((step, index) => ({
         campaignId: campaign.id,
         stepOrder: step.stepOrder || index + 1,
         cardDesignId: step.cardDesignId,
@@ -121,14 +120,14 @@ Deno.serve(async (req) => {
           ownerId: user.id
         });
 
-        const eligibleClients = allClients.filter((client: any) => {
+        const eligibleClients = allClients.filter((client) => {
           const hasFieldValue = client[triggerField] && client[triggerField] !== '';
           const automationEnabled = client.automationEnabled !== false;
           return hasFieldValue && automationEnabled;
         });
 
         if (eligibleClients.length > 0) {
-          const enrollmentRecords = eligibleClients.map((client: any) => ({
+          const enrollmentRecords = eligibleClients.map((client) => ({
             campaignId: campaign.id,
             clientId: client.id,
             status: 'active',
@@ -137,15 +136,14 @@ Deno.serve(async (req) => {
           await base44.entities.CampaignEnrollment.bulkCreate(enrollmentRecords);
           enrolledCount = eligibleClients.length;
 
-          // FIX #10: Tag clients in batches to avoid sequential per-client updates.
-          // Build a map of updated tag arrays first, then fire all updates concurrently.
+          // FIX #10: Concurrent tag updates instead of sequential loop
           const campaignTag = `${triggerType.name} Campaign`;
           const tagUpdatePromises = eligibleClients
-            .filter((client: any) => {
+            .filter((client) => {
               const existingTags = Array.isArray(client.tags) ? client.tags : [];
               return !existingTags.includes(campaignTag);
             })
-            .map((client: any) => {
+            .map((client) => {
               const existingTags = Array.isArray(client.tags) ? client.tags : [];
               return base44.entities.Client.update(client.id, {
                 tags: [...existingTags, campaignTag]
@@ -153,7 +151,7 @@ Deno.serve(async (req) => {
             });
           await Promise.all(tagUpdatePromises);
         }
-      } catch (enrollmentError: any) {
+      } catch (enrollmentError) {
         console.error('Error during auto-enrollment:', enrollmentError);
       }
     }
@@ -166,7 +164,7 @@ Deno.serve(async (req) => {
       message: 'Campaign created successfully'
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('createCampaign error:', error);
     return Response.json({
       success: false,
