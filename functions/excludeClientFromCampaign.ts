@@ -17,10 +17,8 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // FIX #2: Permission check uses appRole (NurturInk's custom role field).
-    // The original code used user.role which is always 'user' in Base44, and
-    // userProfile.orgRole which does not exist in this schema. As written, every
-    // request from a legitimate org owner would have been denied with 403.
+    // FIX #2: Use appRole — original used user.role which is always 'user' in Base44,
+    // causing every permission check to fail and denying all legitimate org owners.
     const userRole = user.appRole;
     const isSuperAdmin = userRole === 'super_admin';
     const isOwnerOrManager = ['organization_owner', 'organization_manager', 'super_admin'].includes(userRole);
@@ -67,25 +65,25 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Remove campaign tag from client — look up TriggerType for the correct tag name
+    // Remove campaign tag from client
     try {
       const clients = await base44.entities.Client.filter({ id: clientId });
       if (clients && clients.length > 0) {
         const client = clients[0];
 
-        // Build the tag name from TriggerType.name for accuracy; fall back to capitalized key
+        // Build tag name from TriggerType.name; fall back to capitalized key
         let campaignTag = `${campaign.type.charAt(0).toUpperCase() + campaign.type.slice(1)} Campaign`;
         try {
           const triggerTypes = await base44.entities.TriggerType.filter({ key: campaign.type });
           if (triggerTypes && triggerTypes.length > 0) {
             campaignTag = `${triggerTypes[0].name} Campaign`;
           }
-        } catch {
-          // Fall back to the capitalized key already set above
+        } catch (e) {
+          // Fall back to capitalized key already set above
         }
 
         const existingTags = Array.isArray(client.tags) ? client.tags : [];
-        const updatedTags = existingTags.filter((tag: string) => tag !== campaignTag);
+        const updatedTags = existingTags.filter((tag) => tag !== campaignTag);
 
         if (updatedTags.length !== existingTags.length) {
           await base44.entities.Client.update(clientId, { tags: updatedTags });
@@ -102,7 +100,7 @@ Deno.serve(async (req) => {
         clientId
       });
 
-      const toCancel = pendingSends.filter((s: any) =>
+      const toCancel = pendingSends.filter((s) =>
         s.status === 'pending' || s.status === 'awaiting_approval'
       );
 
@@ -121,7 +119,7 @@ Deno.serve(async (req) => {
       message: 'Client excluded from campaign'
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('excludeClientFromCampaign error:', error);
     return Response.json({
       success: false,
