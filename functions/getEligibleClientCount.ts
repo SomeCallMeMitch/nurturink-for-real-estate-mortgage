@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     });
 
     // Count clients where the trigger field is set and automation is enabled
-    const eligibleClients = allClients.filter((client: any) => {
+    const eligibleClients = allClients.filter((client) => {
       const hasFieldValue = client[triggerField] && client[triggerField] !== '';
       const automationEnabled = client.automationEnabled !== false;
       return hasFieldValue && automationEnabled;
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       triggerField
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('getEligibleClientCount error:', error);
     return Response.json({
       success: false,
