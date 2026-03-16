@@ -11,6 +11,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 // DATE CALCULATION HELPERS
 // ============================================
 
+/**
+ * Fix 04 — Removed 14-day staleness guard for one-time triggers (welcome).
+ * Past-date welcome clients are now handled via the processedWelcome flag
+ * on CampaignEnrollment, allowing welcome cards for clients with any
+ * policy_start_date (even months in the past).
+ */
 function getNextOccurrence(dateStr, isOneTime) {
   if (!dateStr) return null;
 
@@ -18,12 +24,9 @@ function getNextOccurrence(dateStr, isOneTime) {
   today.setHours(0, 0, 0, 0);
 
   if (isOneTime) {
-    // One-time trigger (e.g., welcome): use the actual date with a 14-day staleness guard
-    const welcomeDate = new Date(dateStr);
-    const cutoff = new Date(today);
-    cutoff.setDate(cutoff.getDate() - 14);
-    if (welcomeDate < cutoff) return null;
-    return welcomeDate;
+    // One-time trigger (e.g., welcome): always return the actual date.
+    // Idempotency is handled by processedWelcome flag, not a date cutoff.
+    return new Date(dateStr);
   }
 
   // Recurring (birthday, renewal, etc.): find next annual occurrence
@@ -182,6 +185,12 @@ Deno.serve(async (req) => {
           try {
             stats.enrollmentsProcessed++;
 
+            // Fix 04 — Skip one-time enrollments already processed (idempotency guard)
+            if (isOneTime && enrollment.processedWelcome) {
+              stats.sendsSkippedDuplicate++;
+              continue;
+            }
+
             const client = clientMap.get(enrollment.clientId);
             if (!client) continue;
 
@@ -236,6 +245,13 @@ Deno.serve(async (req) => {
               stats.sendsCreated++;
               existingSendKeys.add(sendKey);
               console.log(`[runDailyScheduler] Created ScheduledSend ${scheduledSend.id} for client ${client.id}, date ${sendDateStr}, status ${status}`);
+            }
+
+            // Fix 04 — Mark one-time enrollment as processed to prevent duplicate sends
+            if (isOneTime && stats.sendsCreated > 0) {
+              await base44.asServiceRole.entities.CampaignEnrollment.update(enrollment.id, {
+                processedWelcome: true
+              });
             }
           } catch (enrollmentError) {
             console.error(`[runDailyScheduler] Error processing enrollment ${enrollment.id}:`, enrollmentError);
