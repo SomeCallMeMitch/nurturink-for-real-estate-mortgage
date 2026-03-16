@@ -16,6 +16,16 @@ import CampaignWorkflowHeader from '@/components/campaigns/CampaignWorkflowHeade
 import CardDesignPickerModal from '@/components/quicksend/CardDesignPickerModal';
 import TemplatePickerModal from '@/components/quicksend/TemplatePickerModal';
 
+/**
+ * Fix 14 — Maps campaign type slugs to PURPOSE_CONFIG keys for template pre-filtering.
+ * Only 'birthday' has a direct match. Others fall back to 'all' (no pre-filter).
+ */
+const CAMPAIGN_TYPE_TO_PURPOSE = {
+  birthday: 'birthday',
+  welcome: 'all',
+  renewal: 'all'
+};
+
 // Wizard steps configuration (5 steps)
 const WIZARD_STEPS = [
   { number: 1, title: 'Campaign Type' },
@@ -462,6 +472,7 @@ export default function CampaignSetupWizard() {
         selectedId={campaignData.steps[activeStepIndex]?.cardDesignId}
         onSelect={handleDesignSelect}
       />
+      {/* Fix 14 — Pre-filter template picker by campaign type purpose */}
       <TemplatePickerModal
         open={templatePickerOpen}
         onOpenChange={setTemplatePickerOpen}
@@ -469,6 +480,7 @@ export default function CampaignSetupWizard() {
         selectedId={campaignData.steps[activeStepIndex]?.templateId}
         onSelect={handleTemplateSelect}
         user={user}
+        defaultPurpose={CAMPAIGN_TYPE_TO_PURPOSE[campaignData.type] || 'all'}
       />
     </div>
   );
