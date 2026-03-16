@@ -4,49 +4,35 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
-
     if (!user) {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     const { campaignId, clientId, reason } = await req.json();
 
-    // Validate required fields
     if (!campaignId || !clientId) {
-      return Response.json({ 
-        success: false, 
-        error: 'Missing required fields: campaignId and clientId' 
+      return Response.json({
+        success: false,
+        error: 'Missing required fields: campaignId and clientId'
       }, { status: 400 });
     }
 
-    // Get user's orgId from UserProfile
-    let orgId = null;
-    let userProfile = null;
-    
-    const userProfiles = await base44.entities.UserProfile.filter({ userId: user.id });
-    
-    if (userProfiles && userProfiles.length > 0) {
-      userProfile = userProfiles[0];
-      orgId = userProfile.orgId;
-    } else if (user.role === 'admin') {
-      // Super admin - proceed
-    } else {
-      return Response.json({ 
-        success: false, 
-        error: 'User profile not found.' 
-      }, { status: 400 });
+    // FIX #2: Permission check uses appRole (NurturInk's custom role field).
+    // The original code used user.role which is always 'user' in Base44, and
+    // userProfile.orgRole which does not exist in this schema. As written, every
+    // request from a legitimate org owner would have been denied with 403.
+    const userRole = user.appRole;
+    const isSuperAdmin = userRole === 'super_admin';
+    const isOwnerOrManager = ['organization_owner', 'organization_manager', 'super_admin'].includes(userRole);
+
+    if (!isOwnerOrManager) {
+      return Response.json({
+        success: false,
+        error: 'Permission denied. Only organization owners and managers can manage enrollments.'
+      }, { status: 403 });
     }
 
-    // Check permission
-    if (userProfile && user.role !== 'admin') {
-      const allowedRoles = ['owner', 'manager'];
-      if (!allowedRoles.includes(userProfile.orgRole)) {
-        return Response.json({ 
-          success: false, 
-          error: 'Permission denied. Only organization owners and managers can manage enrollments.' 
-        }, { status: 403 });
-      }
-    }
+    const orgId = user.orgId;
 
     // Fetch the campaign
     const campaigns = await base44.entities.Campaign.filter({ id: campaignId });
@@ -55,26 +41,23 @@ Deno.serve(async (req) => {
     }
     const campaign = campaigns[0];
 
-    // Verify org ownership
-    if (orgId && campaign.orgId !== orgId) {
+    // Verify org ownership (super_admin can act across orgs)
+    if (!isSuperAdmin && orgId && campaign.orgId !== orgId) {
       return Response.json({ success: false, error: 'Campaign not found' }, { status: 404 });
     }
 
-    // Check existing enrollment
-    const existingEnrollments = await base44.entities.CampaignEnrollment.filter({ 
-      campaignId, 
-      clientId 
+    // Update or create enrollment record with excluded status
+    const existingEnrollments = await base44.entities.CampaignEnrollment.filter({
+      campaignId,
+      clientId
     });
 
     if (existingEnrollments && existingEnrollments.length > 0) {
-      // Update existing enrollment to excluded
-      const existing = existingEnrollments[0];
-      await base44.entities.CampaignEnrollment.update(existing.id, {
+      await base44.entities.CampaignEnrollment.update(existingEnrollments[0].id, {
         status: 'excluded',
         excludedAt: new Date().toISOString()
       });
     } else {
-      // Create new enrollment with excluded status
       await base44.entities.CampaignEnrollment.create({
         campaignId,
         clientId,
@@ -84,32 +67,42 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Remove campaign tag from client
+    // Remove campaign tag from client — look up TriggerType for the correct tag name
     try {
       const clients = await base44.entities.Client.filter({ id: clientId });
       if (clients && clients.length > 0) {
         const client = clients[0];
-        const campaignTag = `${campaign.type.charAt(0).toUpperCase() + campaign.type.slice(1)} Campaign`;
-        const existingTags = client.tags && Array.isArray(client.tags) ? client.tags : [];
-        const updatedTags = existingTags.filter(tag => tag !== campaignTag);
-        
+
+        // Build the tag name from TriggerType.name for accuracy; fall back to capitalized key
+        let campaignTag = `${campaign.type.charAt(0).toUpperCase() + campaign.type.slice(1)} Campaign`;
+        try {
+          const triggerTypes = await base44.entities.TriggerType.filter({ key: campaign.type });
+          if (triggerTypes && triggerTypes.length > 0) {
+            campaignTag = `${triggerTypes[0].name} Campaign`;
+          }
+        } catch {
+          // Fall back to the capitalized key already set above
+        }
+
+        const existingTags = Array.isArray(client.tags) ? client.tags : [];
+        const updatedTags = existingTags.filter((tag: string) => tag !== campaignTag);
+
         if (updatedTags.length !== existingTags.length) {
           await base44.entities.Client.update(clientId, { tags: updatedTags });
         }
       }
     } catch (tagError) {
       console.error('Error removing campaign tag:', tagError);
-      // Don't fail the exclusion if tag removal fails
     }
 
     // Cancel any pending scheduled sends for this client + campaign
     try {
-      const pendingSends = await base44.entities.ScheduledSend.filter({ 
-        campaignId, 
-        clientId 
+      const pendingSends = await base44.entities.ScheduledSend.filter({
+        campaignId,
+        clientId
       });
-      
-      const toCancel = pendingSends.filter(s => 
+
+      const toCancel = pendingSends.filter((s: any) =>
         s.status === 'pending' || s.status === 'awaiting_approval'
       );
 
@@ -121,19 +114,18 @@ Deno.serve(async (req) => {
       }
     } catch (scheduleError) {
       console.error('Error cancelling scheduled sends:', scheduleError);
-      // Don't fail the exclusion if this fails
     }
 
-    return Response.json({ 
-      success: true, 
+    return Response.json({
+      success: true,
       message: 'Client excluded from campaign'
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('excludeClientFromCampaign error:', error);
-    return Response.json({ 
-      success: false, 
-      error: error.message || 'An error occurred' 
+    return Response.json({
+      success: false,
+      error: error.message || 'An error occurred'
     }, { status: 500 });
   }
 });
