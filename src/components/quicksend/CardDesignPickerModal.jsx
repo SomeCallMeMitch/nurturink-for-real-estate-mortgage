@@ -166,11 +166,8 @@ export default function CardDesignPickerModal({
                 const isSelected = design.id === selectedId;
                 const isFavorite = favoriteIds.includes(design.id);
                 const isHovered = hoveredDesignId === design.id;
-                // Show front by default, back on hover (smaller physical card images)
-                // Use optimized outside image for front view
-                const displayImageUrl = isHovered 
-                  ? (design.backImageUrl || design.insideImageUrl || design.imageUrl)
-                  : (design.frontImageUrl || getBestOutsideUrl(design, 'picker'));
+                // Fix 01 — Always show front image; overlay "See Inside" on hover
+                const displayImageUrl = design.frontImageUrl || getBestOutsideUrl(design, 'picker');
                 
                 return (
                   <div
