@@ -11,7 +11,7 @@ import PlaceholderModal from '@/components/mailing/PlaceholderModal';
  * CardStepConfigurator Component (Sprint 3 - Data-Driven)
  *
  * @param {Object} step - Step data: { stepOrder, cardDesignId, templateId, messageText, timingDays, timingReference }
- * @param {Object} triggerType - The TriggerType record: { key, name, dateField, defaultDaysBefore, defaultDaysAfter }
+ * @param {Object} triggerType - The CampaignType record: { slug, name, triggerField, timingDirection, defaultTimingDays }
  * @param {Function} onUpdate - Callback: (updates) => void
  * @param {Function} onRemove - Callback to remove this step (optional)
  * @param {Object|null} selectedDesign - Currently selected card design object
@@ -51,26 +51,19 @@ export default function CardStepConfigurator({
     onUpdate({ messageText: currentText + placeholder });
   };
 
-  // Data-driven timing label based on TriggerType defaults
+  // Sprint 3: Data-driven timing label based on CampaignType record
   const getTimingLabel = () => {
     if (!triggerType) return 'days';
-    const hasBefore = (triggerType.defaultDaysBefore || 0) > 0;
-    const hasAfter = (triggerType.defaultDaysAfter || 0) > 0;
-
-    if (hasBefore && !hasAfter) {
-      return `days before their ${triggerType.name.toLowerCase()} date`;
-    } else if (hasAfter && !hasBefore) {
-      return `days after their ${triggerType.name.toLowerCase()} date`;
-    } else {
-      const direction = (step.timingDays || 0) < 0 ? 'before' : 'after';
-      return `days ${direction} their ${triggerType.name.toLowerCase()} date`;
-    }
+    const direction = triggerType.timingDirection || ((step.timingDays || 0) < 0 ? 'before' : 'after');
+    // Use timingLabel from CampaignType if set, otherwise auto-generate
+    if (triggerType.timingLabel) return triggerType.timingLabel;
+    return `days ${direction} their ${triggerType.name.toLowerCase()} date`;
   };
 
-  // Handle timing input — enforces sign convention based on TriggerType direction
+  // Sprint 3: Handle timing input — enforces sign convention based on CampaignType.timingDirection
   const handleTimingChange = (value) => {
     const days = parseInt(value) || 0;
-    const isBefore = (triggerType?.defaultDaysBefore || 0) > 0 && !(triggerType?.defaultDaysAfter > 0);
+    const isBefore = triggerType?.timingDirection === 'before';
     if (isBefore) {
       onUpdate({ timingDays: -Math.abs(days) });
     } else {
