@@ -404,6 +404,7 @@ export default function CampaignSetupWizard() {
                     key={step.stepOrder}
                     step={step}
                     triggerType={selectedTriggerType}
+                    campaignTypeRecord={campaignTypes.find(ct => ct.slug === campaignData.type) || null}
                     onUpdate={(updates) => handleStepUpdate(index, updates)}
                     onRemove={() => handleRemoveStep(index)}
                     onOpenDesignPicker={() => openDesignPicker(index)}
@@ -449,6 +450,7 @@ export default function CampaignSetupWizard() {
             designs={designs}
             templates={templates}
             currentCredits={currentCredits}
+            campaignTypeRecord={campaignTypes.find(ct => ct.slug === campaignData.type) || null}
           />
         )}
 

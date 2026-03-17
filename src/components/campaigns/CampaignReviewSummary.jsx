@@ -36,9 +36,15 @@ export default function CampaignReviewSummary({
   eligibleClientCount,
   designs = [],
   templates = [],
-  currentCredits
+  currentCredits,
+  campaignTypeRecord // Sprint 3 Step 08: CampaignType entity record (canonical source)
 }) {
-  const typeConfig = CAMPAIGN_TYPE_CONFIG[campaignData.type] || CAMPAIGN_TYPE_CONFIG.birthday;
+  // Sprint 3 Step 09: Use campaignTypeRecord name if available, fall back to hardcoded config
+  const typeConfig = CAMPAIGN_TYPE_CONFIG[campaignData.type] || {
+    label: campaignTypeRecord?.name || campaignData.type || 'Campaign',
+    icon: Cake,
+    color: 'bg-gray-100 text-gray-700'
+  };
   const TypeIcon = typeConfig.icon;
 
   const returnConfig = RETURN_ADDRESS_CONFIG[campaignData.returnAddressMode] || RETURN_ADDRESS_CONFIG.company;
@@ -56,17 +62,28 @@ export default function CampaignReviewSummary({
       return 0; // Manual enrollment, can't estimate
     }
     const stepsCount = campaignData.steps?.length || 1;
-    // Rough estimate: birthday = 1/12 clients per month, welcome = varies, renewal = 1/12
-    const monthlyFactor = campaignData.type === 'welcome' ? 0.2 : (1 / 12);
+    // Sprint 3 Step 09: Use triggerMode from CampaignType record to determine factor
+    const isRecurring = campaignTypeRecord ? campaignTypeRecord.triggerMode === 'recurring' : (campaignData.type !== 'welcome');
+    const monthlyFactor = isRecurring ? (1 / 12) : 0.2;
     return Math.ceil(eligibleClientCount * stepsCount * monthlyFactor);
   })();
 
   // Check if credits are low
   const isLowCredits = currentCredits !== undefined && estimatedMonthlyCredits > currentCredits;
 
-  // Format timing description
+  // Sprint 3 Step 09: Data-driven timing description from CampaignType record
   const formatTiming = (step, index) => {
     const days = Math.abs(step.timingDays || 0);
+    if (campaignTypeRecord) {
+      const direction = campaignTypeRecord.timingDirection || 'before';
+      if (campaignTypeRecord.timingLabel) {
+        return `${days} ${campaignTypeRecord.timingLabel}`;
+      }
+      const dateName = campaignTypeRecord.name?.toLowerCase() || 'trigger';
+      if (days === 0 && direction === 'after') return 'Immediately';
+      return `${days} days ${direction} ${dateName} date`;
+    }
+    // Legacy fallback for campaigns without a campaignTypeRecord
     if (campaignData.type === 'birthday') {
       return `${days} days before birthday`;
     } else if (campaignData.type === 'renewal') {
@@ -240,7 +257,8 @@ export default function CampaignReviewSummary({
             </p>
             <p className="text-sm text-muted-foreground">credits / month</p>
           </div>
-          {campaignData.type !== 'welcome' && (
+          {/* Sprint 3 Step 09: Show annual estimate for recurring campaign types */}
+        {(campaignTypeRecord ? campaignTypeRecord.triggerMode === 'recurring' : campaignData.type !== 'welcome') && (
             <div>
               <p className="text-2xl font-bold text-foreground">
                 ~{estimatedMonthlyCredits * 12}

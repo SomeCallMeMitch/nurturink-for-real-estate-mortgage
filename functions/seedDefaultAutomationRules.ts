@@ -1,9 +1,10 @@
 /**
- * seedDefaultAutomationRules.ts
- * 
- * Seeds default automation rules for each user based on their trigger types.
+ * DEPRECATED — Legacy System A function.
+ * Replaced by CampaignType + Campaign + CampaignStep architecture in Sprint 3.
+ * Do not invoke. Kept for reference only.
+ *
+ * Original purpose: Seeds default automation rules for each user based on their trigger types.
  * This function is idempotent - it checks for existing rules before creating.
- * 
  * Creates one automation rule per trigger type for the authenticated user.
  * Uses the first available template, card design, and note style profile.
  */

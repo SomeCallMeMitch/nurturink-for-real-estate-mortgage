@@ -27,6 +27,7 @@ import PlaceholderModal from '@/components/mailing/PlaceholderModal';
 export default function CardStepConfigurator({
   step,
   triggerType,
+  campaignTypeRecord, // Sprint 3 Step 08: CampaignType entity record (canonical source)
   onUpdate,
   onRemove,
   selectedDesign,

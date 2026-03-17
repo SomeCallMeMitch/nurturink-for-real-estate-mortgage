@@ -1,9 +1,11 @@
 /**
- * seedDefaultTriggerTypes.ts
- * 
- * Seeds the default trigger types for the insurance industry.
+ * DEPRECATED — Legacy System A function.
+ * Replaced by seedCampaignTypes + CampaignType entity in Sprint 3.
+ * Do not invoke. Kept for reference only.
+ *
+ * Original purpose: Seeds the default trigger types for the insurance industry.
  * This function is idempotent - it checks for existing records before creating.
- * 
+ *
  * Trigger Types:
  * 1. Birthday - Sends card on client's birthday
  * 2. New Client Welcome - Sends card 1 day after client signs
