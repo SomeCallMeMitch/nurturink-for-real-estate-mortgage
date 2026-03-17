@@ -35,24 +35,7 @@ const WIZARD_STEPS = [
   { number: 5, title: 'Review' }
 ];
 
-/**
- * Sprint 3 — Data-driven default steps.
- * Uses the TriggerType record to determine timing defaults.
- */
-const getDefaultSteps = (triggerType) => {
-  if (!triggerType) return [];
-  const daysBefore = triggerType.defaultDaysBefore || 0;
-  const daysAfter = triggerType.defaultDaysAfter || 0;
-  const defaultTiming = daysBefore > 0 ? -daysBefore : daysAfter;
-  return [{
-    stepOrder: 1,
-    cardDesignId: null,
-    templateId: null,
-    messageText: '',
-    timingDays: defaultTiming,
-    timingReference: 'trigger_date'
-  }];
-};
+// getDefaultSteps moved inside the component (needs access to campaignTypes state)
 
 export default function CampaignSetupWizard() {
   const navigate = useNavigate();
@@ -75,6 +58,10 @@ export default function CampaignSetupWizard() {
   const [isLoadingCount, setIsLoadingCount] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Sprint 3: CampaignType records loaded from entity
+  const [campaignTypes, setCampaignTypes] = useState([]);
+  const [isLoadingTypes, setIsLoadingTypes] = useState(true);
+
   // Data fetching state
   const [designs, setDesigns] = useState([]);
   const [designCategories, setDesignCategories] = useState([]);
@@ -88,6 +75,46 @@ export default function CampaignSetupWizard() {
   const [designPickerOpen, setDesignPickerOpen] = useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
+
+  // Sprint 3: Fetch CampaignType records on mount
+  useEffect(() => {
+    const loadCampaignTypes = async () => {
+      setIsLoadingTypes(true);
+      try {
+        const types = await base44.entities.CampaignType.filter({ isActive: true });
+        types.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+        setCampaignTypes(types);
+      } catch (err) {
+        console.error('[CampaignSetupWizard] Failed to load campaign types:', err);
+      } finally {
+        setIsLoadingTypes(false);
+      }
+    };
+    loadCampaignTypes();
+  }, []);
+
+  /**
+   * Sprint 3 — Data-driven default steps.
+   * Uses the CampaignType record to determine timing defaults.
+   */
+  const getDefaultSteps = (slug) => {
+    const typeRecord = campaignTypes.find(ct => ct.slug === slug);
+    if (!typeRecord) return [{ stepOrder: 1, cardDesignId: null, templateId: null, messageText: '', timingDays: -10, timingReference: 'trigger_date', isEnabled: true }];
+
+    const timingDays = typeRecord.timingDirection === 'before'
+      ? -(typeRecord.defaultTimingDays || 10)
+      : (typeRecord.defaultTimingDays || 0);
+
+    return [{
+      stepOrder: 1,
+      cardDesignId: null,
+      templateId: null,
+      messageText: '',
+      timingDays,
+      timingReference: 'trigger_date',
+      isEnabled: true
+    }];
+  };
 
   // Load all data on mount
   useEffect(() => {
@@ -161,15 +188,16 @@ export default function CampaignSetupWizard() {
     fetchEligibleCount();
   }, [campaignData.type, campaignData.dateField]);
 
-  // Handle type selection (Step 1) — receives full TriggerType record
-  const handleTypeSelect = (triggerType) => {
-    setSelectedTriggerType(triggerType);
+  // Sprint 3: Handle type selection (Step 1) — receives slug string, looks up CampaignType record
+  const handleTypeSelect = (slug) => {
+    const typeRecord = campaignTypes.find(ct => ct.slug === slug);
+    setSelectedTriggerType(typeRecord || null);
     setCampaignData(prev => ({
       ...prev,
-      type: triggerType.key,
-      triggerTypeId: triggerType.id,
-      dateField: triggerType.dateField,
-      steps: getDefaultSteps(triggerType),
+      type: slug,
+      triggerTypeId: typeRecord?.id || null,
+      dateField: typeRecord?.triggerField || null,
+      steps: getDefaultSteps(slug),
       name: ''
     }));
   };
@@ -199,17 +227,17 @@ export default function CampaignSetupWizard() {
     }));
   };
 
-  // Handle adding second step — data-driven, no hardcoded type checks
+  // Sprint 3: Handle adding second step — data-driven from CampaignType record
   const handleAddStep = () => {
-    if (!selectedTriggerType || campaignData.steps.length >= 2) return;
-    const daysBefore = selectedTriggerType.defaultDaysBefore || 0;
-    const daysAfter = selectedTriggerType.defaultDaysAfter || 0;
+    if (!selectedTriggerType || campaignData.steps.length >= (selectedTriggerType.maxSteps || 2)) return;
+    const defaultDays = selectedTriggerType.defaultTimingDays || 10;
+    const isBefore = selectedTriggerType.timingDirection === 'before';
     const newStep = {
-      stepOrder: 2,
+      stepOrder: campaignData.steps.length + 1,
       cardDesignId: null,
       templateId: null,
       messageText: '',
-      timingDays: daysBefore > 0 ? -(daysBefore * 2) : (daysAfter > 0 ? daysAfter * 2 : 14),
+      timingDays: isBefore ? -(defaultDays * 2) : (defaultDays * 2),
       timingReference: 'trigger_date'
     };
     setCampaignData(prev => ({
@@ -333,11 +361,13 @@ export default function CampaignSetupWizard() {
         steps={WIZARD_STEPS}
       />
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Step 1: Campaign Type */}
+        {/* Step 1: Campaign Type — Sprint 3: pass CampaignType records as props */}
         {currentStep === 1 && (
           <CampaignTypeSelector
             selectedType={campaignData.type}
             onSelect={handleTypeSelect}
+            campaignTypes={campaignTypes}
+            isLoading={isLoadingTypes}
           />
         )}
 
