@@ -87,12 +87,12 @@ Deno.serve(async (req) => {
     const campaigns = await base44.asServiceRole.entities.Campaign.filter({ status: 'active' });
     console.log(`[runDailyScheduler] Found ${campaigns.length} active campaigns`);
 
-    // Pre-load all TriggerType records into a lookup map (keyed by both id and key)
-    const allTriggerTypes = await base44.asServiceRole.entities.TriggerType.filter({ isActive: true });
-    const triggerTypeMap = new Map();
-    for (const tt of allTriggerTypes) {
-      triggerTypeMap.set(tt.key, tt);
-      triggerTypeMap.set(tt.id, tt);
+    // Sprint 3: Pre-load all CampaignType records into a lookup map (keyed by both id and slug)
+    const allCampaignTypes = await base44.asServiceRole.entities.CampaignType.filter({ isActive: true });
+    const campaignTypeMap = new Map();
+    for (const ct of allCampaignTypes) {
+      campaignTypeMap.set(ct.slug, ct);
+      campaignTypeMap.set(ct.id, ct);
     }
 
     // 3. Process each campaign
@@ -100,18 +100,18 @@ Deno.serve(async (req) => {
       try {
         stats.campaignsProcessed++;
 
-        // Resolve the trigger field from the campaign record or TriggerType entity
+        // Sprint 3: Resolve CampaignType from the new entity
         let triggerField = campaign.dateField;
-        let triggerType = null;
+        let campaignType = null;
 
         if (campaign.triggerTypeId) {
-          triggerType = triggerTypeMap.get(campaign.triggerTypeId);
+          campaignType = campaignTypeMap.get(campaign.triggerTypeId);
         }
-        if (!triggerType && campaign.type) {
-          triggerType = triggerTypeMap.get(campaign.type);
+        if (!campaignType && campaign.type) {
+          campaignType = campaignTypeMap.get(campaign.type);
         }
-        if (!triggerField && triggerType) {
-          triggerField = triggerType.dateField;
+        if (!triggerField && campaignType) {
+          triggerField = campaignType.triggerField;
         }
 
         // Fallback for legacy campaigns created before Sprint 3
@@ -129,10 +129,9 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        // One-time: defaultDaysAfter > 0 and defaultDaysBefore === 0 (e.g., welcome)
-        // Recurring: everything else (birthday, renewal, anniversary)
-        const isOneTime = triggerType
-          ? ((triggerType.defaultDaysAfter || 0) > 0 && (triggerType.defaultDaysBefore || 0) === 0)
+        // Sprint 3: Determine one-time vs recurring from CampaignType record
+        const isOneTime = campaignType
+          ? (campaignType.triggerMode === 'one_time')
           : (campaign.type === 'welcome');
 
         // Get enrollments for this campaign
