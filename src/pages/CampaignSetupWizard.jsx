@@ -413,14 +413,15 @@ export default function CampaignSetupWizard() {
                     canRemove={index > 0}
                   />
                 ))}
-                {campaignData.steps.length < 2 && (
+                {/* Sprint 3: maxSteps driven by CampaignType record */}
+                {campaignData.steps.length < (selectedTriggerType?.maxSteps || 2) && (
                   <Button
                     variant="outline"
                     onClick={handleAddStep}
                     className="w-full py-6 border-dashed"
                   >
                     <Plus className="w-5 h-5 mr-2" />
-                    Add Second Card
+                    Add Another Card
                   </Button>
                 )}
               </>
