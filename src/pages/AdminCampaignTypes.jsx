@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
-  Card, CardContent, CardHeader, CardTitle, CardDescription
+  Card, CardContent
 } from "@/components/ui/card";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
@@ -16,27 +16,38 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from "@/components/ui/table";
 import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from "@/components/ui/select";
+import {
   Plus, Pencil, Trash2, Cake, Gift, RefreshCw, Calendar, Home,
-  Shield, Heart, Star, Clock, AlertCircle, Loader2
+  Shield, Heart, Star, Clock, AlertCircle, Loader2, Settings2
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 // Map of available Lucide icon names to components
 const ICON_MAP = {
-  Cake, Gift, RefreshCw, Calendar, Home, Shield, Heart, Star, Clock, AlertCircle
+  Cake, Gift, RefreshCw, Calendar, Home, Shield, Heart, Star, Clock, AlertCircle, Settings2
 };
 
 const ICON_OPTIONS = Object.keys(ICON_MAP);
 
 const EMPTY_FORM = {
   name: '',
-  key: '',
+  slug: '',
   description: '',
-  dateField: '',
-  defaultDaysBefore: 0,
-  defaultDaysAfter: 0,
+  triggerField: '',
+  triggerMode: 'recurring',
+  timingDirection: 'before',
+  defaultTimingDays: 10,
+  maxSteps: 1,
   icon: 'Calendar',
-  isActive: true
+  color: '',
+  selectedColor: '',
+  isActive: true,
+  scope: 'platform',
+  orgId: null,
+  timingLabel: '',
+  sortOrder: 0
 };
 
 export default function AdminCampaignTypes() {
@@ -48,17 +59,17 @@ export default function AdminCampaignTypes() {
   const [deletingType, setDeletingType] = useState(null);
   const [form, setForm] = useState({ ...EMPTY_FORM });
 
-  // Fetch all TriggerType records
-  const { data: triggerTypes = [], isLoading } = useQuery({
-    queryKey: ['triggerTypes'],
-    queryFn: () => base44.entities.TriggerType.list()
+  // Fetch all CampaignType records
+  const { data: campaignTypes = [], isLoading } = useQuery({
+    queryKey: ['campaignTypes'],
+    queryFn: () => base44.entities.CampaignType.list('sortOrder')
   });
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.TriggerType.create(data),
+    mutationFn: (data) => base44.entities.CampaignType.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['triggerTypes'] });
+      queryClient.invalidateQueries({ queryKey: ['campaignTypes'] });
       toast({ title: 'Campaign type created successfully' });
       closeDialog();
     },
@@ -69,9 +80,9 @@ export default function AdminCampaignTypes() {
 
   // Update mutation
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.TriggerType.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.CampaignType.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['triggerTypes'] });
+      queryClient.invalidateQueries({ queryKey: ['campaignTypes'] });
       toast({ title: 'Campaign type updated successfully' });
       closeDialog();
     },
@@ -82,9 +93,9 @@ export default function AdminCampaignTypes() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.TriggerType.delete(id),
+    mutationFn: (id) => base44.entities.CampaignType.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['triggerTypes'] });
+      queryClient.invalidateQueries({ queryKey: ['campaignTypes'] });
       toast({ title: 'Campaign type deleted' });
       setDeleteDialogOpen(false);
       setDeletingType(null);
@@ -106,34 +117,41 @@ export default function AdminCampaignTypes() {
     setDialogOpen(true);
   };
 
-  const openEdit = (tt) => {
-    setEditingType(tt);
+  const openEdit = (ct) => {
+    setEditingType(ct);
     setForm({
-      name: tt.name || '',
-      key: tt.key || '',
-      description: tt.description || '',
-      dateField: tt.dateField || '',
-      defaultDaysBefore: tt.defaultDaysBefore || 0,
-      defaultDaysAfter: tt.defaultDaysAfter || 0,
-      icon: tt.icon || 'Calendar',
-      isActive: tt.isActive !== false
+      name: ct.name || '',
+      slug: ct.slug || '',
+      description: ct.description || '',
+      triggerField: ct.triggerField || '',
+      triggerMode: ct.triggerMode || 'recurring',
+      timingDirection: ct.timingDirection || 'before',
+      defaultTimingDays: ct.defaultTimingDays || 10,
+      maxSteps: ct.maxSteps || 1,
+      icon: ct.icon || 'Calendar',
+      color: ct.color || '',
+      selectedColor: ct.selectedColor || '',
+      isActive: ct.isActive !== false,
+      scope: ct.scope || 'platform',
+      orgId: ct.orgId || null,
+      timingLabel: ct.timingLabel || '',
+      sortOrder: ct.sortOrder || 0
     });
     setDialogOpen(true);
   };
 
-  const openDelete = (tt) => {
-    setDeletingType(tt);
+  const openDelete = (ct) => {
+    setDeletingType(ct);
     setDeleteDialogOpen(true);
   };
 
   const handleSave = () => {
-    if (!form.name.trim() || !form.key.trim() || !form.dateField.trim()) {
-      toast({ title: 'Missing required fields', description: 'Name, Key, and Date Field are required.', variant: 'destructive' });
+    if (!form.name.trim() || !form.slug.trim() || !form.triggerField.trim()) {
+      toast({ title: 'Missing required fields', description: 'Name, Slug, and Trigger Field are required.', variant: 'destructive' });
       return;
     }
-    // Auto-generate key from name if not manually set
-    const cleanKey = form.key.toLowerCase().replace(/[^a-z0-9_]/g, '_');
-    const payload = { ...form, key: cleanKey };
+    const cleanSlug = form.slug.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+    const payload = { ...form, slug: cleanSlug };
 
     if (editingType) {
       updateMutation.mutate({ id: editingType.id, data: payload });
@@ -143,11 +161,11 @@ export default function AdminCampaignTypes() {
   };
 
   const handleNameChange = (name) => {
-    const autoKey = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    const autoSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
     setForm(prev => ({
       ...prev,
       name,
-      key: editingType ? prev.key : autoKey // Only auto-generate key for new types
+      slug: editingType ? prev.slug : autoSlug
     }));
   };
 
@@ -157,6 +175,15 @@ export default function AdminCampaignTypes() {
   const getIconComponent = (iconName) => {
     const Icon = ICON_MAP[iconName] || Calendar;
     return <Icon className="w-5 h-5" />;
+  };
+
+  // Format timing display
+  const formatTiming = (ct) => {
+    if (ct.timingLabel) return ct.timingLabel;
+    const days = ct.defaultTimingDays || 0;
+    const direction = ct.timingDirection || 'before';
+    if (days === 0 && direction === 'after') return 'Immediately';
+    return `${days} days ${direction}`;
   };
 
   return (
@@ -178,7 +205,7 @@ export default function AdminCampaignTypes() {
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
-      ) : triggerTypes.length === 0 ? (
+      ) : campaignTypes.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <Calendar className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -199,42 +226,48 @@ export default function AdminCampaignTypes() {
               <TableRow>
                 <TableHead className="w-12">Icon</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>Key</TableHead>
-                <TableHead>Client Date Field</TableHead>
+                <TableHead>Slug</TableHead>
+                <TableHead>Trigger Field</TableHead>
+                <TableHead>Mode</TableHead>
                 <TableHead>Default Timing</TableHead>
+                <TableHead>Max Steps</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-24 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {triggerTypes.map(tt => (
-                <TableRow key={tt.id}>
-                  <TableCell>{getIconComponent(tt.icon)}</TableCell>
-                  <TableCell className="font-medium">{tt.name}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-sm">{tt.key}</TableCell>
-                  <TableCell className="font-mono text-sm">{tt.dateField}</TableCell>
+              {campaignTypes.map(ct => (
+                <TableRow key={ct.id}>
+                  <TableCell>{getIconComponent(ct.icon)}</TableCell>
+                  <TableCell className="font-medium">{ct.name}</TableCell>
+                  <TableCell className="text-muted-foreground font-mono text-sm">{ct.slug}</TableCell>
+                  <TableCell className="font-mono text-sm">{ct.triggerField}</TableCell>
                   <TableCell>
-                    {(tt.defaultDaysBefore || 0) > 0
-                      ? `${tt.defaultDaysBefore} days before`
-                      : (tt.defaultDaysAfter || 0) > 0
-                        ? `${tt.defaultDaysAfter} days after`
-                        : 'On the date'}
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      ct.triggerMode === 'recurring'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-purple-100 text-purple-800'
+                    }`}>
+                      {ct.triggerMode === 'recurring' ? 'Recurring' : 'One-time'}
+                    </span>
                   </TableCell>
+                  <TableCell>{formatTiming(ct)}</TableCell>
+                  <TableCell>{ct.maxSteps}</TableCell>
                   <TableCell>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      tt.isActive !== false
+                      ct.isActive !== false
                         ? 'bg-green-100 text-green-800'
                         : 'bg-gray-100 text-gray-600'
                     }`}>
-                      {tt.isActive !== false ? 'Active' : 'Inactive'}
+                      {ct.isActive !== false ? 'Active' : 'Inactive'}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(tt)}>
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(ct)}>
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openDelete(tt)}>
+                      <Button variant="ghost" size="icon" onClick={() => openDelete(ct)}>
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </div>
@@ -248,7 +281,7 @@ export default function AdminCampaignTypes() {
 
       {/* Create / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingType ? 'Edit Campaign Type' : 'Create Campaign Type'}</DialogTitle>
             <DialogDescription>
@@ -259,6 +292,7 @@ export default function AdminCampaignTypes() {
           </DialogHeader>
 
           <div className="space-y-4 py-2">
+            {/* Name */}
             <div>
               <Label>Name *</Label>
               <Input
@@ -268,20 +302,22 @@ export default function AdminCampaignTypes() {
               />
             </div>
 
+            {/* Slug */}
             <div>
-              <Label>Key *</Label>
+              <Label>Slug *</Label>
               <Input
                 placeholder="e.g., birthday, closing_anniversary"
-                value={form.key}
-                onChange={(e) => setForm(prev => ({ ...prev, key: e.target.value }))}
+                value={form.slug}
+                onChange={(e) => setForm(prev => ({ ...prev, slug: e.target.value }))}
                 className="font-mono"
                 disabled={!!editingType}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Unique identifier used internally. Auto-generated from name.
+                Unique identifier used internally. Auto-generated from name. Cannot be changed after creation.
               </p>
             </div>
 
+            {/* Description */}
             <div>
               <Label>Description</Label>
               <Textarea
@@ -292,12 +328,13 @@ export default function AdminCampaignTypes() {
               />
             </div>
 
+            {/* Trigger Field */}
             <div>
-              <Label>Client Date Field *</Label>
+              <Label>Trigger Field *</Label>
               <Input
                 placeholder="e.g., birthday, renewal_date, closing_date"
-                value={form.dateField}
-                onChange={(e) => setForm(prev => ({ ...prev, dateField: e.target.value }))}
+                value={form.triggerField}
+                onChange={(e) => setForm(prev => ({ ...prev, triggerField: e.target.value }))}
                 className="font-mono"
               />
               <p className="text-xs text-muted-foreground mt-1">
@@ -305,29 +342,91 @@ export default function AdminCampaignTypes() {
               </p>
             </div>
 
+            {/* Trigger Mode + Timing Direction */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Days Before</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={form.defaultDaysBefore}
-                  onChange={(e) => setForm(prev => ({ ...prev, defaultDaysBefore: parseInt(e.target.value) || 0 }))}
-                />
-                <p className="text-xs text-muted-foreground mt-1">Send card X days before the date</p>
+                <Label>Trigger Mode</Label>
+                <Select
+                  value={form.triggerMode}
+                  onValueChange={(val) => setForm(prev => ({ ...prev, triggerMode: val }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recurring">Recurring (annual)</SelectItem>
+                    <SelectItem value="one_time">One-time</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div>
-                <Label>Days After</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={form.defaultDaysAfter}
-                  onChange={(e) => setForm(prev => ({ ...prev, defaultDaysAfter: parseInt(e.target.value) || 0 }))}
-                />
-                <p className="text-xs text-muted-foreground mt-1">Send card X days after the date</p>
+                <Label>Timing Direction</Label>
+                <Select
+                  value={form.timingDirection}
+                  onValueChange={(val) => setForm(prev => ({ ...prev, timingDirection: val }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="before">Before the date</SelectItem>
+                    <SelectItem value="after">After the date</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
+            {/* Default Timing Days + Max Steps */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Default Timing Days</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="365"
+                  value={form.defaultTimingDays}
+                  onChange={(e) => setForm(prev => ({ ...prev, defaultTimingDays: parseInt(e.target.value) || 0 }))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Default days shown in the wizard</p>
+              </div>
+              <div>
+                <Label>Max Steps</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="3"
+                  value={form.maxSteps}
+                  onChange={(e) => setForm(prev => ({ ...prev, maxSteps: parseInt(e.target.value) || 1 }))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Max cards in a sequence (1-3)</p>
+              </div>
+            </div>
+
+            {/* Timing Label */}
+            <div>
+              <Label>Timing Label (optional)</Label>
+              <Input
+                placeholder="e.g., days before their birthday"
+                value={form.timingLabel}
+                onChange={(e) => setForm(prev => ({ ...prev, timingLabel: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Override the auto-generated timing label. Leave blank to auto-generate.
+              </p>
+            </div>
+
+            {/* Sort Order */}
+            <div>
+              <Label>Sort Order</Label>
+              <Input
+                type="number"
+                min="0"
+                value={form.sortOrder}
+                onChange={(e) => setForm(prev => ({ ...prev, sortOrder: parseInt(e.target.value) || 0 }))}
+              />
+            </div>
+
+            {/* Icon Picker */}
             <div>
               <Label>Icon</Label>
               <div className="flex flex-wrap gap-2 mt-2">
@@ -352,6 +451,7 @@ export default function AdminCampaignTypes() {
               </div>
             </div>
 
+            {/* Active Toggle */}
             <div className="flex items-center gap-3">
               <Switch
                 checked={form.isActive}

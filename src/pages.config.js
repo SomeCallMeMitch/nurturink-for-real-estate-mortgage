@@ -48,6 +48,7 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import AcceptInvitation from './pages/AcceptInvitation';
+import AdminCampaignTypes from './pages/AdminCampaignTypes';
 import AdminCardDetails from './pages/AdminCardDetails';
 import AdminCardLayout from './pages/AdminCardLayout';
 import AdminClientEdit from './pages/AdminClientEdit';
@@ -127,6 +128,7 @@ import __Layout from './Layout.jsx';
 
 export const PAGES = {
     "AcceptInvitation": AcceptInvitation,
+    "AdminCampaignTypes": AdminCampaignTypes,
     "AdminCardDetails": AdminCardDetails,
     "AdminCardLayout": AdminCardLayout,
     "AdminClientEdit": AdminClientEdit,
