@@ -21,32 +21,32 @@ Deno.serve(async (req) => {
       steps = []
     } = body;
 
-    // Validate type against TriggerType entity instead of hardcoded list
-    let triggerType = null;
+    // Sprint 3: Validate type against CampaignType entity instead of TriggerType
+    let campaignType = null;
     if (triggerTypeId) {
       try {
-        triggerType = await base44.entities.TriggerType.get(triggerTypeId);
+        campaignType = await base44.entities.CampaignType.get(triggerTypeId);
       } catch (e) {
-        // TriggerType not found by ID — fall through to key lookup
+        // CampaignType not found by ID — fall through to slug lookup
       }
     }
-    if (!triggerType && type) {
-      const matches = await base44.entities.TriggerType.filter({ key: type, isActive: true });
-      triggerType = matches[0] || null;
+    if (!campaignType && type) {
+      const matches = await base44.entities.CampaignType.filter({ slug: type, isActive: true });
+      campaignType = matches[0] || null;
     }
-    if (!triggerType) {
+    if (!campaignType) {
       return Response.json({
         success: false,
         error: 'Invalid campaign type. Please select a valid campaign type.'
       }, { status: 400 });
     }
 
-    // Resolve the trigger field from the TriggerType record
-    const triggerField = dateField || triggerType.dateField;
+    // Resolve the trigger field from the CampaignType record
+    const triggerField = dateField || campaignType.triggerField;
     if (!triggerField) {
       return Response.json({
         success: false,
-        error: 'Campaign type is missing a dateField configuration. Contact your administrator.'
+        error: 'Campaign type is missing a triggerField configuration. Contact your administrator.'
       }, { status: 400 });
     }
 
@@ -60,9 +60,9 @@ Deno.serve(async (req) => {
 
     // Create the campaign record
     const campaign = await base44.entities.Campaign.create({
-      name: name || `${triggerType.name} Campaign`,
-      type: triggerType.key,
-      triggerTypeId: triggerType.id,
+      name: name || `${campaignType.name} Campaign`,
+      type: campaignType.slug,
+      triggerTypeId: campaignType.id,
       dateField: triggerField,
       enrollmentMode,
       requiresApproval,
@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
           enrolledCount = eligibleClients.length;
 
           // FIX #10: Concurrent tag updates instead of sequential loop
-          const campaignTag = `${triggerType.name} Campaign`;
+          const campaignTag = `${campaignType.name} Campaign`;
           const tagUpdatePromises = eligibleClients
             .filter((client) => {
               const existingTags = Array.isArray(client.tags) ? client.tags : [];
