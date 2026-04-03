@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -573,7 +572,8 @@ export default function OrderPage() {
                 )}
               </Button>
 
-              {/* Simulate Purchase Button (Testing Only) */}
+              {/* Simulate Purchase Button (Testing Only — super_admin only) */}
+              {user?.appRole === 'super_admin' && (
               <Button
                 onClick={handleSimulatePurchase}
                 disabled={isProcessing || isSimulating}
@@ -596,6 +596,7 @@ export default function OrderPage() {
               <p className="text-xs text-center text-gray-500">
                 ⚠️ Use "Simulate Purchase" for testing the complete flow without real payment
               </p>
+              )}
             </div>
 
             {/* Purchase Info */}
