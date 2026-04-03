@@ -279,6 +279,7 @@ Deno.serve(async (req) => {
       const clientData = {
         ...mappedRow,
         orgId,
+        ownerId: user.id,
         fullName: `${mappedRow.firstName} ${mappedRow.lastName}`.trim(),
         source: 'file_upload',
         uploadedAt,
