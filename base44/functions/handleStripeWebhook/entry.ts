@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.11.0';
 
-const DEV_MODE = false;
+const DEV_MODE = Deno.env.get('STRIPE_DEV_MODE') === 'true';
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY"), {
   apiVersion: '2023-10-16',
@@ -274,7 +274,7 @@ Deno.serve(async (req) => {
     console.error('========================================\n');
 
     return Response.json(
-      { error: error.message || 'Webhook processing failed', details: error.stack },
+      { error: error.message || 'Webhook processing failed' },
       { status: 500 }
     );
   }
