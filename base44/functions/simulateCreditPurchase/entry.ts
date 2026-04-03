@@ -30,6 +30,10 @@ Deno.serve(async (req) => {
       body = {};
     }
     
+    if (user.appRole !== 'super_admin') {
+      return Response.json({ error: 'Forbidden: this function is restricted to super admins' }, { status: 403 });
+    }
+
     const creditAmount = body.creditAmount || 20;
     const purchaseType = body.purchaseType || 'personal'; // 'personal' or 'company'
     
