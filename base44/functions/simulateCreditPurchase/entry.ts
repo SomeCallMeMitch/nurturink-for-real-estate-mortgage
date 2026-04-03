@@ -134,8 +134,7 @@ Deno.serve(async (req) => {
     return Response.json(
       { 
         success: false,
-        error: error.message || 'Failed to simulate credit purchase',
-        details: error.stack
+        error: error.message || 'Failed to simulate credit purchase'
       },
       { status: 500 }
     );
