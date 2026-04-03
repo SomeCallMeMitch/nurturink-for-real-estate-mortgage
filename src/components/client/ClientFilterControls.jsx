@@ -63,7 +63,8 @@ export default function ClientFilterControls({
   onAddClient,
   onImportCSV,
   hasActiveFilters,
-  onClearFilters
+  onClearFilters,
+  sortColumn
 }) {
   
   // Helper to clear tag filters

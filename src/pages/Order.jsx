@@ -574,6 +574,7 @@ export default function OrderPage() {
 
               {/* Simulate Purchase Button (Testing Only — super_admin only) */}
               {user?.appRole === 'super_admin' && (
+              <>
               <Button
                 onClick={handleSimulatePurchase}
                 disabled={isProcessing || isSimulating}
@@ -596,6 +597,7 @@ export default function OrderPage() {
               <p className="text-xs text-center text-gray-500">
                 ⚠️ Use "Simulate Purchase" for testing the complete flow without real payment
               </p>
+              </>
               )}
             </div>
 
