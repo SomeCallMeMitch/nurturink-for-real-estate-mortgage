@@ -183,6 +183,9 @@ Deno.serve(async (req) => {
     
     // ==================== SIMULATE SUCCESS MODE ====================
     if (simulateSuccess) {
+      if (user.appRole !== 'super_admin') {
+        return Response.json({ error: 'Forbidden: simulation mode is restricted to super admins' }, { status: 403 });
+      }
       console.log('🎭 SIMULATION MODE ACTIVATED');
       const fakeSessionId = `sim_${Date.now()}_${user.id.substring(0, 8)}`;
       const credits = tier.creditAmount;
@@ -281,9 +284,12 @@ Deno.serve(async (req) => {
       stripeCustomerId = customer.id;
     }
     
-    // ✅ FIXED: Use nurturink.com as the app base URL for success/cancel redirects
-    // The internal req.url returns a deno.dev URL which is not user-facing
-    const appBaseUrl = 'https://nurturink.com';
+    // Use APP_URL env variable for correct domain on success/cancel redirects
+    const appBaseUrl = Deno.env.get('APP_URL');
+    if (!appBaseUrl) {
+      console.error('APP_URL environment variable is not set');
+      return Response.json({ error: 'Server configuration error: APP_URL not set' }, { status: 500 });
+    }
     
     let productDescription = `${tier.creditAmount} handwritten note${tier.creditAmount === 1 ? '' : 's'}`;
     if (validatedCoupon) productDescription += ` (Coupon: ${validatedCoupon.code})`;
@@ -344,7 +350,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('❌ Error in checkout process:', error);
     return Response.json(
-      { error: error.message || 'Failed to create checkout session', details: error.stack },
+      { error: error.message || 'Failed to create checkout session' },
       { status: 500 }
     );
   }
