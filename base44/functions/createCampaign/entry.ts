@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 Deno.serve(async (req) => {
   try {
@@ -58,7 +58,42 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Create the campaign record
+    // Validate and pre-build step records BEFORE writing anything to the database
+    // This prevents the bug where Campaign is created but steps fail validation,
+    // leaving an orphaned Campaign record and showing a false error to the user.
+    const preValidatedSteps = steps.length > 0 ? steps.map((step, index) => ({
+      stepOrder: step.stepOrder || index + 1,
+      cardDesignId: step.cardDesignId,
+      templateId: step.templateId || null,
+      messageText: step.messageText || '',
+      timingDays: step.timingDays,
+      timingReference: step.timingReference || 'trigger_date',
+      isEnabled: step.isEnabled !== false
+    })) : [];
+
+    for (let i = 0; i < preValidatedSteps.length; i++) {
+      const step = preValidatedSteps[i];
+      if (!step.cardDesignId) {
+        return Response.json({
+          success: false,
+          error: `Step ${i + 1} is missing required cardDesignId`
+        }, { status: 400 });
+      }
+      if (step.timingDays === undefined || step.timingDays === null) {
+        return Response.json({
+          success: false,
+          error: `Step ${i + 1} is missing required timingDays`
+        }, { status: 400 });
+      }
+      if (campaignStatus !== 'draft' && !step.templateId && !step.messageText) {
+        return Response.json({
+          success: false,
+          error: `Step ${i + 1} requires either a template or a custom message`
+        }, { status: 400 });
+      }
+    }
+
+    // All validation passed — now write to the database
     const campaign = await base44.entities.Campaign.create({
       name: name || `${campaignType.name} Campaign`,
       type: campaignType.slug,
@@ -73,41 +108,9 @@ Deno.serve(async (req) => {
       createdAt: new Date().toISOString()
     });
 
-    // Validate and create campaign steps
-    if (steps.length > 0) {
-      const stepRecords = steps.map((step, index) => ({
-        campaignId: campaign.id,
-        stepOrder: step.stepOrder || index + 1,
-        cardDesignId: step.cardDesignId,
-        templateId: step.templateId || null,
-        messageText: step.messageText || '',
-        timingDays: step.timingDays,
-        timingReference: step.timingReference || 'trigger_date',
-        isEnabled: step.isEnabled !== false
-      }));
-
-      for (let i = 0; i < stepRecords.length; i++) {
-        const step = stepRecords[i];
-        if (!step.cardDesignId) {
-          return Response.json({
-            success: false,
-            error: `Step ${i + 1} is missing required cardDesignId`
-          }, { status: 400 });
-        }
-        if (step.timingDays === undefined || step.timingDays === null) {
-          return Response.json({
-            success: false,
-            error: `Step ${i + 1} is missing required timingDays`
-          }, { status: 400 });
-        }
-        if (campaignStatus !== 'draft' && !step.templateId && !step.messageText) {
-          return Response.json({
-            success: false,
-            error: `Step ${i + 1} requires either a template or a custom message`
-          }, { status: 400 });
-        }
-      }
-
+    // Create campaign steps (already validated above)
+    if (preValidatedSteps.length > 0) {
+      const stepRecords = preValidatedSteps.map(step => ({ campaignId: campaign.id, ...step }));
       await base44.entities.CampaignStep.bulkCreate(stepRecords);
     }
 
