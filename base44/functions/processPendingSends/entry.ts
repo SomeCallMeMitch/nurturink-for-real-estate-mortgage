@@ -354,7 +354,8 @@ Deno.serve(async (req) => {
         try {
           const pmbResponse = await base44.asServiceRole.functions.invoke('processMailingBatch', {
               mailingBatchId: mailingBatch.id,
-              serviceRoleBypass: true
+              serviceRoleBypass: true,
+              internalSecret: Deno.env.get('INTERNAL_FUNCTION_SECRET')
             });
           pmbResult = pmbResponse.data || pmbResponse;
           console.log(`[processPendingSends] processMailingBatch result:`, JSON.stringify(pmbResult).substring(0, 300));
@@ -415,7 +416,8 @@ Deno.serve(async (req) => {
           try {
             const scribeResponse = await base44.asServiceRole.functions.invoke('submitBatchToScribe', {
               mailingBatchId: mailingBatch.id,
-              serviceRoleBypass: true
+              serviceRoleBypass: true,
+              internalSecret: Deno.env.get('INTERNAL_FUNCTION_SECRET')
             });
             scribeResult = scribeResponse.data || scribeResponse;
             console.log(`[processPendingSends] submitBatchToScribe result:`, JSON.stringify(scribeResult).substring(0, 300));
@@ -445,7 +447,8 @@ Deno.serve(async (req) => {
           try {
             const scribeResponse = await base44.asServiceRole.functions.invoke('submitBatchToScribe', {
               mailingBatchId: mailingBatch.id,
-              serviceRoleBypass: true
+              serviceRoleBypass: true,
+              internalSecret: Deno.env.get('INTERNAL_FUNCTION_SECRET')
             });
             scribeResult = scribeResponse.data || scribeResponse;
             console.log(`[processPendingSends] submitBatchToScribe result:`, JSON.stringify(scribeResult).substring(0, 300));
