@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
     // downstream logic (credits, Note creation, Transactions) works identically.
     // ============================================================
     
-    const { mailingBatchId, serviceRoleBypass } = await req.json();
+    const { mailingBatchId, serviceRoleBypass, internalSecret } = await req.json();
     
     if (!mailingBatchId) {
       return Response.json({ error: 'mailingBatchId is required' }, { status: 400 });
@@ -221,7 +221,11 @@ Deno.serve(async (req) => {
     let user;
     
     if (serviceRoleBypass === true) {
-      // Automated call from processPendingSends — no interactive user session
+      // Automated call from processPendingSends — verify shared secret before proceeding
+      const expectedSecret = Deno.env.get('INTERNAL_FUNCTION_SECRET');
+      if (!expectedSecret || internalSecret !== expectedSecret) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
       // Load the batch owner directly from the User entity
       console.log(`[PMB] Service role bypass — loading batch owner ${batch.userId}`);
       const ownerList = await base44.asServiceRole.entities.User.filter({ id: batch.userId });
@@ -559,6 +563,6 @@ Deno.serve(async (req) => {
     
   } catch (error) {
     console.error('Error in processMailingBatch:', error);
-    return Response.json({ error: error.message || 'Failed to process mailing batch', details: error.stack }, { status: 500 });
+    return Response.json({ error: error.message || 'Failed to process mailing batch' }, { status: 500 });
   }
 });
