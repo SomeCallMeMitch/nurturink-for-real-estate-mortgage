@@ -571,7 +571,7 @@ Deno.serve(async (req) => {
   
   try {
     const base44 = createClientFromRequest(req);
-    const { mailingBatchId, serviceRoleBypass } = await req.json();
+    const { mailingBatchId, serviceRoleBypass, internalSecret } = await req.json();
     
     if (!mailingBatchId) {
       return Response.json({ success: false, error: 'mailingBatchId is required' }, { status: 400 });
@@ -585,7 +585,11 @@ Deno.serve(async (req) => {
     let adminUser;
     
     if (serviceRoleBypass === true) {
-      // Called from processPendingSends via asServiceRole.functions.invoke
+      // Called from processPendingSends via asServiceRole.functions.invoke — verify shared secret
+      const expectedSecret = Deno.env.get('INTERNAL_FUNCTION_SECRET');
+      if (!expectedSecret || internalSecret !== expectedSecret) {
+        return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      }
       console.log(`[SBtS] Service role bypass — loading batch for Scribe submission`);
       adminUser = null; // No interactive user — that's fine, we only use adminUser for the log line
     } else {
