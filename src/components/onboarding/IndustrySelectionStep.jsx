@@ -2,17 +2,15 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Home, Shield, TrendingUp, Sun, Sailboat, House, Building, Car, Briefcase, Check } from 'lucide-react';
+import { Key, Home, Star, TrendingUp, Users, HardHat, Briefcase, Check } from 'lucide-react';
 
-const industries = [
-  { key: 'real_estate', name: 'Real Estate', icon: Home },
-  { key: 'insurance', name: 'Insurance', icon: Shield },
-  { key: 'mortgage', name: 'Mortgage', icon: TrendingUp },
-  { key: 'solar_home_services', name: 'Solar & Home', icon: Sun },
-  { key: 'auto_yacht_sales', name: 'Auto & Yacht Sales', icon: Sailboat },
-  { key: 'airbnb_hosts', name: 'Air B&B Hosts', icon: House },
-  { key: 'roofing_solar', name: 'Roofing & Solar', icon: Building },
-  { key: 'auto_rv_rental', name: 'Auto & RV Rental', icon: Car },
+const roles = [
+  { key: 'buyers_agent', name: "Buyer's Agent", icon: Key },
+  { key: 'listing_agent', name: 'Listing Agent', icon: Home },
+  { key: 'buyers_and_listing', name: 'Buyer & Listing', icon: Star },
+  { key: 'mortgage', name: 'Mortgage / Lending', icon: TrendingUp },
+  { key: 'team_leader_broker', name: 'Team Leader / Broker', icon: Users },
+  { key: 'contractor', name: 'Contractor', icon: HardHat },
   { key: 'other', name: 'Other / General', icon: Briefcase },
 ];
 
@@ -21,15 +19,15 @@ export default function IndustrySelectionStep({ onSelect }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-      <h1 className="text-3xl font-bold text-gray-900">What industry are you in?</h1>
-      <p className="text-gray-600 mt-2">This helps us tailor templates and tags for you.</p>
+      <h1 className="text-3xl font-bold text-gray-900">What best describes your role?</h1>
+      <p className="text-gray-600 mt-2">We'll tailor your templates and automations to fit how you work.</p>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto mt-8">
-        {industries.map((industry) => (
-          <IndustryCard
-            key={industry.key}
-            {...industry}
-            isSelected={selected === industry.key}
-            onClick={() => setSelected(industry.key)}
+        {roles.map((role) => (
+          <RoleCard
+            key={role.key}
+            {...role}
+            isSelected={selected === role.key}
+            onClick={() => setSelected(role.key)}
           />
         ))}
       </div>
@@ -42,7 +40,7 @@ export default function IndustrySelectionStep({ onSelect }) {
   );
 }
 
-function IndustryCard({ icon: Icon, name, isSelected, onClick }) {
+function RoleCard({ icon: Icon, name, isSelected, onClick }) {
   return (
     <Card
       className={`cursor-pointer transition-all hover:shadow-md hover:-translate-y-1 relative border-2 ${isSelected ? 'border-[var(--brand-accent)] shadow-lg' : 'border-transparent'}`}
