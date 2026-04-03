@@ -41,15 +41,15 @@ Deno.serve(async (req) => {
     if (wasActivated && campaign.enrollmentMode !== 'manual') {
       try {
         const orgId = user.orgId;
-        const triggerTypes = await base44.entities.TriggerType.filter({ key: campaign.type });
-        const triggerType = triggerTypes[0];
+        const campaignTypeMatches = await base44.asServiceRole.entities.CampaignType.filter({ slug: campaign.type, isActive: true });
+        const campaignType = campaignTypeMatches[0];
 
-        if (!triggerType) {
-          console.error(`No TriggerType found for key: ${campaign.type}`);
+        if (!campaignType) {
+          console.error(`No CampaignType found for slug: ${campaign.type}`);
         } else {
-          const triggerField = triggerType.dateField;
+          const triggerField = campaign.dateField || campaignType.triggerField;
 
-          const allClients = await base44.entities.Client.filter({
+          const allClients = await base44.asServiceRole.entities.Client.filter({
             orgId,
             ownerId: user.id
           });
@@ -67,10 +67,9 @@ Deno.serve(async (req) => {
               status: 'active',
               enrolledAt: new Date().toISOString()
             }));
-            await base44.entities.CampaignEnrollment.bulkCreate(enrollmentRecords);
+            await base44.asServiceRole.entities.CampaignEnrollment.bulkCreate(enrollmentRecords);
 
-            // FIX #10: Concurrent tag updates
-            const campaignTag = `${triggerType.name} Campaign`;
+            const campaignTag = `${campaignType.name} Campaign`;
             const tagUpdatePromises = eligibleClients
               .filter((client) => {
                 const existingTags = Array.isArray(client.tags) ? client.tags : [];
@@ -78,7 +77,7 @@ Deno.serve(async (req) => {
               })
               .map((client) => {
                 const existingTags = Array.isArray(client.tags) ? client.tags : [];
-                return base44.entities.Client.update(client.id, {
+                return base44.asServiceRole.entities.Client.update(client.id, {
                   tags: [...existingTags, campaignTag]
                 });
               });
