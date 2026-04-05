@@ -36,12 +36,12 @@ export const getTypeColor = (slug) => TYPE_COLORS[slug] || { hex: '#6b7280', bg:
 // ── Campaign type → TemplateCategory slug mapping ─────────────────────────────
 export const TYPE_TO_CATEGORY_SLUG = {
   birthday:         'birthday',
-  welcome:          'welcome',
+  welcome:          'new-client-welcome',
   renewal:          'just-because',
-  home_anniversary: 'anniversary',
+  home_anniversary: 're-home-anniversary',
   post_close:       'congratulations',
-  loan_anniversary: 'anniversary',
-  soi_quarterly:    'just-because',
+  loan_anniversary: 'mortgage-anniversary',
+  soi_quarterly:    're-soi-touch',
 };
 
 // ── Sample client for live preview ────────────────────────────────────────────
