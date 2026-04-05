@@ -515,22 +515,7 @@ const CardPreviewNew = ({
         </div>
       </div>
 
-      {/* ── Unsupported character warning ── */}
-      {unsupportedChars.length > 0 && (
-        <div className="w-full max-w-md p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
-          <p className="text-yellow-800 font-semibold text-sm">
-            Some characters may not print correctly
-          </p>
-          <p className="text-yellow-700 text-sm mt-1">
-            The handwriting robot can only write standard letters, numbers, and
-            common punctuation. The following character{unsupportedChars.length > 1 ? 's' : ''} may
-            be skipped or produce unexpected results on the physical card:
-          </p>
-          <p className="text-yellow-900 font-mono text-sm mt-2 tracking-widest">
-            {unsupportedChars.join('  ')}
-          </p>
-        </div>
-      )}
+      {/* Unsupported character warning removed — sanitizeMessage strips these before preview */}
 
       {/* ── Overflow warning ── */}
       {exceedsLimit && (
