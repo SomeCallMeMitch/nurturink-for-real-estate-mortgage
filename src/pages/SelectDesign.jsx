@@ -358,7 +358,7 @@ export default function SelectDesign() {
 
   // Handle opening details modal
   const handleOpenCardDetails = (e, design) => {
-    e.stopPropagation(); // Prevent selection when clicking "See Inside"
+    e.stopPropagation(); // Prevent selection when clicking "See Back"
     setSelectedCardDesignForDetails(design);
     setIsCardDetailsModalOpen(true);
   };
@@ -620,7 +620,7 @@ export default function SelectDesign() {
                               />
                             </button>
                             
-                            {/* Single Design Image with "See Inside" Button */}
+                            {/* Single Design Image with "See Back" Button */}
                             <div className="relative rounded-t-lg overflow-hidden bg-muted" style={{ aspectRatio: '412/600' }}>
                               <img
                                 src={getBestOutsideUrl(design, 'preview')}
@@ -628,7 +628,7 @@ export default function SelectDesign() {
                                 className="w-full h-full object-cover"
                               />
                               
-                              {/* "See Inside" Overlay */}
+                              {/* "See Back" Overlay */}
                               <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity duration-200 ${
                               isHovered ? 'opacity-100' : 'opacity-0'
                               }`}>
@@ -636,7 +636,7 @@ export default function SelectDesign() {
                                 onClick={(e) => handleOpenCardDetails(e, design)}
                                 className="shadow-lg bg-orange-600 hover:bg-orange-700 text-white font-bold text-lg px-8 py-6 h-auto"
                               >
-                                See Inside
+                                See Back
                               </Button>
                               </div>
                             </div>
