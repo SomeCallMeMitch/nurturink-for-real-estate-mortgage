@@ -31,7 +31,7 @@ export default function TemplateLibrary({ templates, categories = [], onTemplate
     if (filters.viewMode === 'favorites') {
       filtered = filtered.filter(t => favoriteIds.includes(t.id));
     } else if (filters.viewMode === 'my') {
-      filtered = filtered.filter(t => t.createdByUserId === user?.id);
+      filtered = filtered.filter(t => t.createdByUserId === user?.id && t.type === 'personal');
     } else if (filters.viewMode === 'org') {
       filtered = filtered.filter(t => t.type === 'organization');
     }
