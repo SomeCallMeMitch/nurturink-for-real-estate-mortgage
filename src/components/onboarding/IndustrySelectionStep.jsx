@@ -17,8 +17,8 @@ export default function IndustrySelectionStep({ onSelect }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-      <h1 className="text-3xl font-bold text-gray-900">What best describes your role?</h1>
-      <p className="text-gray-600 mt-2">We'll tailor your templates and automations to fit how you work.</p>
+      <h1 className="text-3xl font-bold text-foreground">What best describes your role?</h1>
+      <p className="text-muted-foreground mt-2">We'll tailor your templates and automations to fit how you work.</p>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto mt-8">
         {roles.map((role) => (
           <RoleCard
@@ -50,10 +50,10 @@ function RoleCard({ icon: Icon, name, description, isSelected, onClick }) {
         </div>
       )}
       <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-        <Icon className="w-10 h-10 md:w-12 md:h-12 text-gray-700 mb-3" />
+        <Icon className="w-10 h-10 md:w-12 md:h-12 text-foreground mb-3" />
         <span className="font-semibold text-sm md:text-base">{name}</span>
         {description && (
-          <span className="text-xs text-gray-500 mt-1 leading-snug">{description}</span>
+          <span className="text-xs text-muted-foreground mt-1 leading-snug">{description}</span>
         )}
       </CardContent>
     </Card>
