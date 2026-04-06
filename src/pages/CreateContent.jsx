@@ -134,6 +134,7 @@ export default function CreateContent() {
   const [mailingBatch, setMailingBatch] = useState(null);
   const [clients, setClients] = useState([]);
   const [templates, setTemplates] = useState([]);
+  const [templateCategories, setTemplateCategories] = useState([]);
   const [noteStyleProfiles, setNoteStyleProfiles] = useState([]);
   const [instanceSettings, setInstanceSettings] = useState(null);
   const [user, setUser] = useState(null);
@@ -266,7 +267,7 @@ export default function CreateContent() {
       setClients(clientList);
       
       console.log('📡 Step 5: Loading templates...');
-      const [personal, organizationTemplates, platform] = await Promise.all([
+      const [personal, organizationTemplates, platform, templateCats] = await Promise.all([
         base44.entities.Template.filter({ 
           createdByUserId: currentUser.id, 
           type: 'personal' 
@@ -279,12 +280,14 @@ export default function CreateContent() {
           orgId: currentUser.orgId,
           type: 'platform',
           status: 'approved' 
-        })
+        }),
+        base44.entities.TemplateCategory.filter({ orgId: currentUser.orgId })
       ]);
       
       const allTemplates = [...personal, ...organizationTemplates, ...platform];
       console.log('✅ Templates loaded:', allTemplates.length);
       setTemplates(allTemplates);
+      setTemplateCategories(templateCats || []);
       
       // PHASE 3: Auto-apply default template if globalMessage is empty
       if (!batchData.globalMessage || batchData.globalMessage.trim() === '') {
@@ -734,6 +737,7 @@ export default function CreateContent() {
 
             <TemplateLibrary
               templates={templates}
+              categories={templateCategories}
               onTemplateSelect={handleTemplateSelect}
               user={user}
             />
@@ -750,7 +754,7 @@ export default function CreateContent() {
                       Saving...
                     </span>
                   ) : lastSaved ? (
-                    <span className="flex items-center gap-2 text-green-600">
+                    <span className="flex items-center gap-2 text-status-success">
                       <Save className="w-3 h-3" />
                       Saved
                     </span>
