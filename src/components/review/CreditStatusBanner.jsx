@@ -11,7 +11,7 @@ import { AlertCircle, Send, Loader2 } from "lucide-react";
  * 
  * PHASE 3: Updated with clearer verbiage for better user understanding
  * 
- * @param {object} creditCheckResult - Result from credit check: { available, creditsNeeded, totalAvailable }
+ * @param {object} creditCheckResult - Result from credit check: { available, requiredCredits, totalAvailable }
  * @param {object} creditSummary - Summary of credits: { sufficient, total, companyCredits, personalCredits, hasCompanyPool }
  * @param {number} clientCount - Number of clients/recipients
  * @param {function} onPurchaseCredits - Callback to navigate to credits page
@@ -31,7 +31,7 @@ export function CreditStatusBanner({
   
   // Calculate shortfall for insufficient credits message
   const shortfall = creditCheckResult 
-    ? creditCheckResult.creditsNeeded - creditCheckResult.totalAvailable 
+    ? creditCheckResult.requiredCredits - creditCheckResult.totalAvailable 
     : 0;
 
   // Show insufficient credits warning
@@ -46,7 +46,7 @@ export function CreditStatusBanner({
                 You need {shortfall} more credit{shortfall !== 1 ? 's' : ''} to send
               </h3>
               <p className="text-sm text-red-800 mb-3">
-                Sending {clientCount} {noteText} requires {creditCheckResult.creditsNeeded} credit{creditCheckResult.creditsNeeded !== 1 ? 's' : ''}.
+                Sending {clientCount} {noteText} requires {creditCheckResult.requiredCredits} credit{creditCheckResult.requiredCredits !== 1 ? 's' : ''}.
                 You currently have {creditCheckResult.totalAvailable} credit{creditCheckResult.totalAvailable !== 1 ? 's' : ''} available.
               </p>
               <div className="flex gap-3">
