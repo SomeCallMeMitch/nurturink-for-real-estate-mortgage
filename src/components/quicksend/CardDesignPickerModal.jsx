@@ -166,7 +166,7 @@ export default function CardDesignPickerModal({
                 const isSelected = design.id === selectedId;
                 const isFavorite = favoriteIds.includes(design.id);
                 const isHovered = hoveredDesignId === design.id;
-                // Fix 01 — Always show front image; overlay "See Inside" on hover
+                // Fix 01 — Always show front image; overlay "See Back" on hover
                 const displayImageUrl = design.frontImageUrl || getBestOutsideUrl(design, 'picker');
                 
                 return (
@@ -200,7 +200,7 @@ export default function CardDesignPickerModal({
                       </button>
                     )}
                     
-                    {/* Fix 01 — Card Image with "See Inside" overlay on hover */}
+                    {/* Fix 01 — Card Image with "See Back" overlay on hover */}
                     <div className="relative aspect-[11/8] bg-gray-50">
                       <img
                         src={displayImageUrl}
@@ -210,7 +210,7 @@ export default function CardDesignPickerModal({
                       {isHovered && !isSelected && (
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity">
                           <span className="text-white font-medium text-sm px-3 py-1.5 bg-black/50 rounded-full">
-                            See Inside
+                            See Back
                           </span>
                         </div>
                       )}
