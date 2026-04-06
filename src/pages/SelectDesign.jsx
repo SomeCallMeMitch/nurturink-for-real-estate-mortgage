@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Star, Search, Loader2, ArrowRight, Check, AlertTriangle, ArrowLeft } from "lucide-react";
 import { Pill } from "@/components/ui/Pill";
 import { debounce } from "lodash";
+import { useToast } from "@/components/ui/use-toast";
 
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import EditModeSelector from "@/components/mailing/EditModeSelector";
@@ -16,12 +17,14 @@ import CardPreview from "@/components/preview/CardPreview";
 import CardDetailsModal from "@/components/card/CardDetailsModal";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 import { getBestOutsideUrl } from "@/components/utils/imageHelpers";
+import { FALLBACK_PREVIEW } from "@/components/campaigns/campaignWizardConfig";
 
 // PHASE 2: Import CreditContext hook for global credit state
 import { useCredits } from "../components/context/CreditContext";
 
 export default function SelectDesign() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   
   // PHASE 2: Use global credit context
   const { totalCredits, refreshCredits } = useCredits();
@@ -172,26 +175,7 @@ export default function SelectDesign() {
       } catch (settingsError) {
         console.error('Failed to load instance settings, using fallback:', settingsError);
         // Use fallback settings
-        setInstanceSettings({
-          cardPreviewSettings: {
-            fontSize: 22,
-            lineHeight: 1,
-            baseTextWidth: 360,
-            baseMarginLeft: 40,
-            shortCardMaxLines: 13,
-            maxPreviewLines: 19,
-            topHalfPaddingTop: 345,
-            longCardTopPadding: 110,
-            gapAboveFold: 14,
-            gapBelowFold: 14,
-            maxIndent: 16,
-            indentAmplitude: 6,
-            indentNoise: 2,
-            indentFrequency: 0.35,
-            frameWidth: 412,
-            frameHeight: 600
-          }
-        });
+        setInstanceSettings({ cardPreviewSettings: { ...FALLBACK_PREVIEW } });
       }
       
       console.log('All data loaded successfully');
@@ -371,7 +355,12 @@ export default function SelectDesign() {
   // Handle continue
   const handleContinue = () => {
     if (!localSelectedDesignId) {
-      alert('Please select a card design before continuing');
+      toast({
+        title: 'No design selected',
+        description: 'Please select a card design before continuing.',
+        variant: 'destructive',
+        duration: 3000
+      });
       return;
     }
     
