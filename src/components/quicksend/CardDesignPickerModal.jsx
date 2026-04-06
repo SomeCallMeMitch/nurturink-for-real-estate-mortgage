@@ -52,8 +52,7 @@ export default function CardDesignPickerModal({
     // Category filter
     if (selectedCategoryId !== 'all') {
       filtered = filtered.filter(d => 
-        d.cardDesignCategoryIds?.includes(selectedCategoryId) || 
-        d.categoryId === selectedCategoryId
+        d.cardDesignCategoryIds?.includes(selectedCategoryId)
       );
     }
     
