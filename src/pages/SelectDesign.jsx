@@ -612,7 +612,7 @@ export default function SelectDesign() {
                             {/* Single Design Image with "See Back" Button */}
                             <div className="relative rounded-t-lg overflow-hidden bg-muted" style={{ aspectRatio: '412/600' }}>
                               <img
-                                src={getBestOutsideUrl(design, 'preview')}
+                                src={design.frontImageUrl || getBestOutsideUrl(design, 'preview')}
                                 alt={design.name}
                                 className="w-full h-full object-cover"
                               />
