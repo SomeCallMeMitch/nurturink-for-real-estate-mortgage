@@ -217,10 +217,11 @@ export default function CreateContent() {
       setUser(enrichedUser);
       
       console.log('📡 Step 2: Loading organization...');
+      let currentOrganization = null;
       if (currentUser.orgId) {
         const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
         if (orgList && orgList.length > 0) {
-          const currentOrganization = orgList[0];
+          currentOrganization = orgList[0];
           console.log('✅ Organization loaded:', currentOrganization.name);
           setOrganization(currentOrganization);
           
@@ -286,8 +287,38 @@ export default function CreateContent() {
       
       const allTemplates = [...personal, ...organizationTemplates, ...platform];
       console.log('✅ Templates loaded:', allTemplates.length);
-      setTemplates(allTemplates);
-      setTemplateCategories(templateCats || []);
+
+      // Filter categories by industry so mortgage users don't see RE-specific
+      // categories and vice versa. Slug prefixes: mort- = mortgage only,
+      // re- = real estate only, anything else = universal (shown to everyone).
+      const RE_INDUSTRIES = ['real_estate', 'both'];
+      const MORT_INDUSTRIES = ['mortgage', 'both'];
+      const orgIndustry = currentOrganization?.industry || '';
+      const filteredCats = (templateCats || []).filter(cat => {
+        const slug = cat.slug || '';
+        if (slug.startsWith('mort-') || slug === 'mortgage-anniversary') {
+          return MORT_INDUSTRIES.includes(orgIndustry);
+        }
+        if (slug.startsWith('re-')) {
+          return RE_INDUSTRIES.includes(orgIndustry);
+        }
+        // Universal: show to everyone
+        return true;
+      });
+      console.log(`✅ Categories filtered: ${filteredCats.length} of ${(templateCats || []).length} for industry '${orgIndustry}'`);
+
+      // Filter templates to only those that belong to at least one visible category.
+      // Personal and org templates (user-created) are always shown regardless.
+      const visibleCategoryIds = new Set(filteredCats.map(c => c.id));
+      const filteredPlatformTemplates = platform.filter(t =>
+        !t.templateCategoryIds?.length ||
+        t.templateCategoryIds.some(id => visibleCategoryIds.has(id))
+      );
+      const finalTemplates = [...personal, ...organizationTemplates, ...filteredPlatformTemplates];
+      console.log(`✅ Templates after industry filter: ${finalTemplates.length}`);
+
+      setTemplates(finalTemplates);
+      setTemplateCategories(filteredCats);
       
       // PHASE 3: Auto-apply default template if globalMessage is empty
       if (!batchData.globalMessage || batchData.globalMessage.trim() === '') {
