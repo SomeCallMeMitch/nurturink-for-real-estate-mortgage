@@ -9,7 +9,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowRight, ArrowLeft, ChevronRight, Save, Loader2, AlertTriangle } from "lucide-react";
 import { Pill } from "@/components/ui/Pill";
-import { debounce } from "lodash";
 
 import EditModeSelector from "@/components/mailing/EditModeSelector";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
@@ -20,6 +19,7 @@ import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 
 // PHASE 2: Import CreditContext hook for global credit state
 import { useCredits } from "../components/context/CreditContext";
+import { useAutosave } from '@/hooks/useAutosave';
 
 // Default fallback settings if API fails
 const FALLBACK_SETTINGS = {
@@ -43,81 +43,7 @@ const FALLBACK_SETTINGS = {
   }
 };
 
-// Inline autosave hook
-function useAutosave(data, saveFn, delay = 500, enabled = true) {
-  const isSavingRef = useRef(false);
-  const lastSavedRef = useRef(null);
-  const errorRef = useRef(null);
-  const initialLoadRef = useRef(true);
-  const [, forceUpdate] = useState({});
 
-  const debouncedSave = useRef(
-    debounce(async (dataToSave) => {
-      if (!enabled) return;
-      
-      try {
-        isSavingRef.current = true;
-        forceUpdate({});
-        errorRef.current = null;
-        
-        await saveFn(dataToSave);
-        
-        lastSavedRef.current = new Date();
-        isSavingRef.current = false;
-        forceUpdate({});
-      } catch (error) {
-        console.error('Autosave error:', error);
-        errorRef.current = error;
-        isSavingRef.current = false;
-        forceUpdate({});
-      }
-    }, delay)
-  ).current;
-
-  useEffect(() => {
-    if (initialLoadRef.current) {
-      initialLoadRef.current = false;
-      return;
-    }
-
-    if (!enabled) return;
-
-    debouncedSave(data);
-
-    return () => {
-      debouncedSave.cancel();
-    };
-  }, [data, enabled, debouncedSave]);
-
-  const saveNow = useCallback(async () => {
-    debouncedSave.cancel();
-    
-    try {
-      isSavingRef.current = true;
-      forceUpdate({});
-      errorRef.current = null;
-      
-      await saveFn(data);
-      
-      lastSavedRef.current = new Date();
-      isSavingRef.current = false;
-      forceUpdate({});
-    } catch (error) {
-      console.error('Manual save error:', error);
-      errorRef.current = error;
-      isSavingRef.current = false;
-      forceUpdate({});
-      throw error;
-    }
-  }, [data, saveFn, debouncedSave]);
-
-  return {
-    isSaving: isSavingRef.current,
-    lastSaved: lastSavedRef.current,
-    error: errorRef.current,
-    saveNow
-  };
-}
 
 export default function CreateContent() {
   const navigate = useNavigate();
@@ -171,8 +97,6 @@ export default function CreateContent() {
 
   // Load all data on mount
   useEffect(() => {
-    console.log('🚀 CreateContent mounted');
-    console.log('📋 mailingBatchId from URL:', mailingBatchId);
     
     if (mailingBatchId) {
       loadData();
@@ -190,9 +114,7 @@ export default function CreateContent() {
       setError(null);
       setErrorDetails(null);
       
-      console.log('📡 Step 1: Loading user...');
       const currentUser = await base44.auth.me();
-      console.log('✅ User loaded:', currentUser.email);
       
       // Enrich user object with additional data for placeholder replacement
       const enrichedUser = { ...currentUser };
@@ -211,18 +133,15 @@ export default function CreateContent() {
           enrichedUser.phone = userPhones[0].phoneNumber;
         }
       } catch (phoneError) {
-        console.log('⚠️ Could not load user phone:', phoneError);
       }
       
       setUser(enrichedUser);
       
-      console.log('📡 Step 2: Loading organization...');
       let currentOrganization = null;
       if (currentUser.orgId) {
         const orgList = await base44.entities.Organization.filter({ id: currentUser.orgId });
         if (orgList && orgList.length > 0) {
           currentOrganization = orgList[0];
-          console.log('✅ Organization loaded:', currentOrganization.name);
           setOrganization(currentOrganization);
           
           // Add organization's name as user's companyName if not already set
@@ -237,7 +156,6 @@ export default function CreateContent() {
         }
       }
       
-      console.log('📡 Step 3: Loading mailing batch...');
       const batch = await base44.entities.MailingBatch.filter({ id: mailingBatchId });
       
       if (!batch || batch.length === 0) {
@@ -245,7 +163,6 @@ export default function CreateContent() {
       }
       
       const batchData = batch[0];
-      console.log('✅ Mailing batch loaded:', batchData.id);
       setMailingBatch(batchData);
       
       setLocalGlobalMessage(batchData.globalMessage || '');
@@ -257,17 +174,14 @@ export default function CreateContent() {
       setLocalSignatureOverrides(batchData.signatureOverrides || {});
       setLocalNoteStyleProfileOverrides(batchData.noteStyleProfileOverrides || {});
       
-      console.log('📡 Step 4: Loading clients...');
       // PHASE 3: Filter clients by selected IDs
       // Note: The selectedClientIds already contain only the rep's clients
       // (filtered in FindClients), so we just need to fetch by ID
       const clientList = await base44.entities.Client.filter({
         id: { $in: batchData.selectedClientIds }
       });
-      console.log('✅ Clients loaded:', clientList.length);
       setClients(clientList);
       
-      console.log('📡 Step 5: Loading templates...');
       const [personal, organizationTemplates, platform, templateCats] = await Promise.all([
         base44.entities.Template.filter({ 
           createdByUserId: currentUser.id, 
@@ -286,7 +200,6 @@ export default function CreateContent() {
       ]);
       
       const allTemplates = [...personal, ...organizationTemplates, ...platform];
-      console.log('✅ Templates loaded:', allTemplates.length);
 
       // Filter categories by industry so mortgage users don't see RE-specific
       // categories and vice versa. Slug prefixes: mort- = mortgage only,
@@ -305,7 +218,6 @@ export default function CreateContent() {
         // Universal: show to everyone
         return true;
       });
-      console.log(`✅ Categories filtered: ${filteredCats.length} of ${(templateCats || []).length} for industry '${orgIndustry}'`);
 
       // Filter templates to only those that belong to at least one visible category.
       // Personal and org templates (user-created) are always shown regardless.
@@ -315,7 +227,6 @@ export default function CreateContent() {
         t.templateCategoryIds.some(id => visibleCategoryIds.has(id))
       );
       const finalTemplates = [...personal, ...organizationTemplates, ...filteredPlatformTemplates];
-      console.log(`✅ Templates after industry filter: ${finalTemplates.length}`);
 
       setTemplates(finalTemplates);
       setTemplateCategories(filteredCats);
@@ -325,22 +236,17 @@ export default function CreateContent() {
         const defaultTemplate = allTemplates.find(t => t.isDefault === true);
         
         if (defaultTemplate) {
-          console.log('🎯 PHASE 3: Auto-applying default template:', defaultTemplate.name);
           setLocalGlobalMessage(defaultTemplate.content);
           
           await base44.entities.MailingBatch.update(mailingBatchId, {
             globalMessage: defaultTemplate.content
           });
           
-          console.log('✅ Default template applied and saved');
         } else {
-          console.log('ℹ️ No default template found to auto-apply');
         }
       } else {
-        console.log('ℹ️ Global message already exists, skipping default template auto-apply');
       }
       
-      console.log('📡 Step 6: Loading note style profiles...');
       const allOrgProfiles = await base44.entities.NoteStyleProfile.filter({
         orgId: currentUser.orgId
       });
@@ -350,21 +256,13 @@ export default function CreateContent() {
         p.userId === currentUser.id || p.isOrgWide === true
       );
       
-      console.log('✅ Note style profiles loaded:', {
-        total: allOrgProfiles.length,
-        relevant: relevantProfiles.length,
-        personal: relevantProfiles.filter(p => p.userId === currentUser.id).length,
-        orgWide: relevantProfiles.filter(p => p.isOrgWide === true).length
-      });
       setNoteStyleProfiles(relevantProfiles);
       
       if (!batchData.selectedNoteStyleProfileId && relevantProfiles.length > 0) {
         const defaultProfile = relevantProfiles.find(p => p.isDefault) || relevantProfiles[0];
         setLocalSelectedNoteStyleProfileId(defaultProfile.id);
-        console.log('✅ Auto-selected default note style profile:', defaultProfile.name);
       }
       
-      console.log('📡 Step 7: Loading instance settings...');
       try {
         const settingsResponse = await base44.functions.invoke('getInstanceSettings');
         setInstanceSettings(settingsResponse.data);
@@ -372,8 +270,7 @@ export default function CreateContent() {
         console.error('⚠️ Failed to load instance settings, using fallback');
         setInstanceSettings(FALLBACK_SETTINGS);
       }
-      
-      console.log('📡 Step 8: Loading column width settings...'); 
+       
       try {
         const layoutResponse = await base44.functions.invoke('getCreateContentLayoutSettings');
         setColumnWidths(layoutResponse.data);
@@ -381,7 +278,6 @@ export default function CreateContent() {
         console.error('⚠️ Failed to load column width settings, using defaults');
       }
       
-      console.log('✅ All data loaded successfully');
       setLoading(false);
     } catch (err) {
       console.error('❌ Failed to load data:', err);
@@ -583,9 +479,7 @@ export default function CreateContent() {
 
   const handleContinue = async () => {
     try {
-      console.log('💾 Saving changes before navigation...');
       await saveNow();
-      console.log('✅ Changes saved successfully');
       navigate(createPageUrl(`SelectDesign?mailingBatchId=${mailingBatchId}`));
     } catch (err) {
       console.error('❌ Failed to save before navigation:', err);
@@ -709,14 +603,6 @@ export default function CreateContent() {
                     
                     // DEBUG: Log selection state
                     if (isEditing) {
-                      console.log('🎯 SELECTED RECIPIENT DEBUG:', {
-                        clientId: client.id,
-                        clientName: client.fullName,
-                        isEditing,
-                        editMode,
-                        selectedRecipientId,
-                        usingInlineStyles: true,
-                      });
                     }
                     
                     const selectedStyles = getSelectionStyles(isEditing);
@@ -729,7 +615,6 @@ export default function CreateContent() {
                     
                     // DEBUG: Log styles being applied
                     if (isEditing) {
-                      console.log('🎨 INLINE STYLES APPLIED:', selectedStyles);
                     }
                     
                     return (
@@ -741,13 +626,6 @@ export default function CreateContent() {
                         ref={isEditing ? (el) => {
                           if (el) {
                             const styles = getComputedStyle(el);
-                            console.log('🔍 COMPUTED STYLES ON SELECTED BUTTON:', {
-                              backgroundColor: styles.backgroundColor,
-                              borderLeft: styles.borderLeft,
-                              paddingLeft: styles.paddingLeft,
-                              color: styles.color,
-                              fontWeight: styles.fontWeight,
-                            });
                           }
                         } : undefined}
                       >
