@@ -2,16 +2,14 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Key, Home, Star, TrendingUp, Users, HardHat, Briefcase, Check } from 'lucide-react';
+import { Home, TrendingUp, LayoutGrid, HardHat, Briefcase, Check } from 'lucide-react';
 
 const roles = [
-  { key: 'buyers_agent', name: "Buyer's Agent", icon: Key },
-  { key: 'listing_agent', name: 'Listing Agent', icon: Home },
-  { key: 'buyers_and_listing', name: 'Buyer & Listing', icon: Star },
-  { key: 'mortgage', name: 'Mortgage / Lending', icon: TrendingUp },
-  { key: 'team_leader_broker', name: 'Team Leader / Broker', icon: Users },
-  { key: 'contractor', name: 'Contractor', icon: HardHat },
-  { key: 'other', name: 'Other / General', icon: Briefcase },
+  { key: 'real_estate', name: 'Real Estate Agent', icon: Home, description: 'Buyers agents, listing agents, and agents who do both' },
+  { key: 'mortgage', name: 'Mortgage / Lending', icon: TrendingUp, description: 'Loan officers, mortgage brokers, and lenders' },
+  { key: 'both', name: 'RE & Mortgage', icon: LayoutGrid, description: 'Brokers and teams working across both sides' },
+  { key: 'contractor', name: 'Contractor', icon: HardHat, description: 'Home services, remodeling, and construction' },
+  { key: 'other', name: 'Other / General', icon: Briefcase, description: 'Other real estate adjacent roles' },
 ];
 
 export default function IndustrySelectionStep({ onSelect }) {
@@ -40,7 +38,7 @@ export default function IndustrySelectionStep({ onSelect }) {
   );
 }
 
-function RoleCard({ icon: Icon, name, isSelected, onClick }) {
+function RoleCard({ icon: Icon, name, description, isSelected, onClick }) {
   return (
     <Card
       className={`cursor-pointer transition-all hover:shadow-md hover:-translate-y-1 relative border-2 ${isSelected ? 'border-[var(--brand-accent)] shadow-lg' : 'border-transparent'}`}
@@ -51,9 +49,12 @@ function RoleCard({ icon: Icon, name, isSelected, onClick }) {
           <Check size={16} />
         </div>
       )}
-      <CardContent className="flex flex-col items-center justify-center p-6">
+      <CardContent className="flex flex-col items-center justify-center p-6 text-center">
         <Icon className="w-10 h-10 md:w-12 md:h-12 text-gray-700 mb-3" />
-        <span className="font-semibold text-center text-sm md:text-base">{name}</span>
+        <span className="font-semibold text-sm md:text-base">{name}</span>
+        {description && (
+          <span className="text-xs text-gray-500 mt-1 leading-snug">{description}</span>
+        )}
       </CardContent>
     </Card>
   );
