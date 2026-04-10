@@ -59,6 +59,10 @@ export default function SeedClone() {
   const [profileSeedResult, setProfileSeedResult] = useState(null);
   const [seedingPoolCredits, setSeedingPoolCredits] = useState(false);
   const [poolCreditsSeedResult, setPoolCreditsSeedResult] = useState(null);
+
+  // [ADDED] Campaign Types seeding state
+  const [seedingCampaignTypes, setSeedingCampaignTypes] = useState(false);
+  const [campaignTypesSeedResult, setCampaignTypesSeedResult] = useState(null);
   
   const [resettingCredits, setResettingCredits] = useState(false);
   const [resetResult, setResetResult] = useState(null);
@@ -359,6 +363,31 @@ export default function SeedClone() {
       });
     } finally {
       setSeedingPoolCredits(false);
+    }
+  };
+
+  // [ADDED] Handler to seed Campaign Types via the seedCampaignTypes backend function
+  const handleSeedCampaignTypes = async () => {
+    setSeedingCampaignTypes(true);
+    setCampaignTypesSeedResult(null);
+    try {
+      const response = await base44.functions.invoke('seedCampaignTypes');
+      setCampaignTypesSeedResult({ success: true, message: JSON.stringify(response.data, null, 2) });
+      toast({
+        title: 'Campaign Types Seeded!',
+        description: 'Campaign types have been successfully created.',
+        className: 'bg-green-50 border-green-200 text-green-900'
+      });
+    } catch (error) {
+      const errMsg = error.response?.data?.error || 'Failed to seed campaign types';
+      setCampaignTypesSeedResult({ success: false, message: errMsg });
+      toast({
+        title: 'Failed to Seed Campaign Types',
+        description: errMsg,
+        variant: 'destructive'
+      });
+    } finally {
+      setSeedingCampaignTypes(false);
     }
   };
 
@@ -882,6 +911,63 @@ export default function SeedClone() {
                             : 'Organization pricing tiers are ready!'}
                         </p>
                       )}
+                    </div>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          </motion.div>
+
+          {/* [ADDED] Seed Campaign Types */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.75 }}
+            whileHover={{ y: -4 }}
+          >
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-teal-100 rounded-lg">
+                      <Database className="w-6 h-6 text-teal-600" />
+                    </div>
+                    <div>
+                      <CardTitle>Campaign Types</CardTitle>
+                      <CardDescription>
+                        Seed default campaign trigger types (Birthday, Welcome, Renewal)
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleSeedCampaignTypes}
+                    variant="outline"
+                    disabled={seedingCampaignTypes}
+                    className="border-teal-600 text-teal-600 hover:bg-teal-50"
+                  >
+                    {seedingCampaignTypes ? 'Seeding...' : 'Seed Campaign Types'}
+                  </Button>
+                </div>
+              </CardHeader>
+
+              {campaignTypesSeedResult && (
+                <CardContent>
+                  <div className={`flex items-start gap-3 p-4 rounded-lg ${
+                    campaignTypesSeedResult.success
+                      ? 'bg-green-50 border border-green-200'
+                      : 'bg-yellow-50 border border-yellow-200'
+                  }`}>
+                    {campaignTypesSeedResult.success ? (
+                      <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                    )}
+                    <div className="flex-1">
+                      <pre className={`text-xs whitespace-pre-wrap font-mono ${
+                        campaignTypesSeedResult.success ? 'text-green-900' : 'text-yellow-900'
+                      }`}>
+                        {campaignTypesSeedResult.message}
+                      </pre>
                     </div>
                   </div>
                 </CardContent>
