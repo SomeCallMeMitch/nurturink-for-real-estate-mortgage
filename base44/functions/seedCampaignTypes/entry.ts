@@ -1,11 +1,11 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 /**
  * seedCampaignTypes
  *
- * Seeds the three default platform CampaignType records (birthday, welcome, renewal).
- * Idempotent — checks for existing records before creating.
- * Run once after creating the CampaignType entity.
+ * Seeds the default CampaignType records for the RE + Mortgage clone.
+ * Idempotent — checks for existing slugs before creating.
+ * Run once from the Base44 dashboard after creating the CampaignType entity.
  */
 
 const PLATFORM_CAMPAIGN_TYPES = [
@@ -28,40 +28,76 @@ const PLATFORM_CAMPAIGN_TYPES = [
     sortOrder: 1
   },
   {
-    name: 'Welcome',
-    slug: 'welcome',
-    triggerField: 'policy_start_date',
-    triggerMode: 'one_time',
-    timingDirection: 'after',
-    defaultTimingDays: 0,
-    maxSteps: 2,
-    icon: 'Gift',
-    color: 'bg-blue-100 text-blue-700 border-blue-200',
-    selectedColor: 'bg-blue-50 border-blue-500 ring-2 ring-blue-500',
-    isActive: true,
-    scope: 'platform',
-    orgId: null,
-    timingLabel: 'days after policy start date',
-    description: 'Send a welcome sequence when clients join (1-2 cards)',
-    sortOrder: 2
-  },
-  {
-    name: 'Renewal',
-    slug: 'renewal',
-    triggerField: 'renewal_date',
+    name: 'Home Anniversary',
+    slug: 'home_anniversary',
+    triggerField: 'home_anniversary_date',
     triggerMode: 'recurring',
     timingDirection: 'before',
-    defaultTimingDays: 30,
-    maxSteps: 2,
-    icon: 'RefreshCw',
+    defaultTimingDays: 7,
+    maxSteps: 1,
+    icon: 'Home',
     color: 'bg-green-100 text-green-700 border-green-200',
     selectedColor: 'bg-green-50 border-green-500 ring-2 ring-green-500',
     isActive: true,
     scope: 'platform',
     orgId: null,
-    timingLabel: 'days before their renewal date',
-    description: 'Send reminders before policy renewal dates',
+    timingLabel: 'days before their home anniversary',
+    description: "Celebrate the anniversary of each client's home purchase",
+    sortOrder: 2
+  },
+  {
+    name: 'Post Close',
+    slug: 'post_close',
+    triggerField: 'close_date',
+    triggerMode: 'one_time',
+    timingDirection: 'after',
+    defaultTimingDays: 3,
+    maxSteps: 2,
+    icon: 'Award',
+    color: 'bg-amber-100 text-amber-700 border-amber-200',
+    selectedColor: 'bg-amber-50 border-amber-500 ring-2 ring-amber-500',
+    isActive: true,
+    scope: 'platform',
+    orgId: null,
+    timingLabel: 'days after close date',
+    description: 'Send a congratulations card shortly after a deal closes',
     sortOrder: 3
+  },
+  {
+    name: 'Loan Anniversary',
+    slug: 'loan_anniversary',
+    triggerField: 'loan_anniversary_date',
+    triggerMode: 'recurring',
+    timingDirection: 'before',
+    defaultTimingDays: 7,
+    maxSteps: 1,
+    icon: 'Key',
+    color: 'bg-teal-100 text-teal-700 border-teal-200',
+    selectedColor: 'bg-teal-50 border-teal-500 ring-2 ring-teal-500',
+    isActive: true,
+    scope: 'platform',
+    orgId: null,
+    timingLabel: 'days before their loan anniversary',
+    description: 'Recognize the anniversary of a mortgage closing',
+    sortOrder: 4
+  },
+  {
+    name: 'SOI Quarterly',
+    slug: 'soi_quarterly',
+    triggerField: null,
+    triggerMode: 'manual',
+    timingDirection: 'after',
+    defaultTimingDays: 0,
+    maxSteps: 1,
+    icon: 'Users',
+    color: 'bg-purple-100 text-purple-700 border-purple-200',
+    selectedColor: 'bg-purple-50 border-purple-500 ring-2 ring-purple-500',
+    isActive: true,
+    scope: 'platform',
+    orgId: null,
+    timingLabel: 'manual send',
+    description: 'Keep your sphere of influence warm with quarterly touchpoints',
+    sortOrder: 5
   }
 ];
 
