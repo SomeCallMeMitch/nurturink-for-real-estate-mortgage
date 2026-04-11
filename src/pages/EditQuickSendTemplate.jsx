@@ -204,8 +204,7 @@ export default function EditQuickSendTemplate() {
     [selectedTemplate]
   );
 
-  const canSetOrgVisibility      = user?.appRole === 'organization_owner' || user?.appRole === 'super_admin';
-  const canSetPlatformVisibility = user?.appRole === 'super_admin';
+  const canSetOrgVisibility = user?.appRole === 'organization_owner' || user?.appRole === 'super_admin';
 
   const purposeLabel = PURPOSE_OPTIONS.find(p => p.value === formData.purpose)?.label || formData.purpose;
 
@@ -299,7 +298,8 @@ export default function EditQuickSendTemplate() {
               size="sm"
               onClick={handleSave}
               disabled={saving}
-              className="gap-2 bg-brand-accent hover:bg-brand-accent/90 text-brand-accent-foreground"
+              className="gap-2"
+              style={{ backgroundColor: '#d15704', color: '#ffffff' }}
             >
               <Save className="w-4 h-4" />
               {isNew || isDuplicate ? 'Create' : 'Update'} QuickSend
@@ -383,9 +383,12 @@ export default function EditQuickSendTemplate() {
                       onClick={() => update({ returnAddressMode: key })}
                       className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
                         formData.returnAddressMode === key
-                          ? 'border-brand-accent bg-brand-accent/5 text-brand-accent'
+                          ? 'border-brand-accent text-brand-accent'
                           : 'border-border text-foreground hover:bg-gray-50'
                       }`}
+                      style={formData.returnAddressMode === key
+                        ? { backgroundColor: 'rgba(209, 87, 4, 0.08)' }
+                        : {}}
                     >
                       {label}
                     </button>
@@ -412,15 +415,11 @@ export default function EditQuickSendTemplate() {
                 {canSetOrgVisibility && (
                   <SelectItem value="organization">Organization — all team members</SelectItem>
                 )}
-                {canSetPlatformVisibility && (
-                  <SelectItem value="platform">Platform — all users</SelectItem>
-                )}
               </SelectContent>
             </Select>
             <p className="text-xs text-gray-500 mb-4">
               {formData.type === 'personal'     && 'Only you can see and use this QuickSend'}
               {formData.type === 'organization' && 'All members of your organization can use this QuickSend'}
-              {formData.type === 'platform'     && 'All users across the platform can use this QuickSend'}
             </p>
 
             {(formData.type === 'organization' || formData.type === 'platform') && (
