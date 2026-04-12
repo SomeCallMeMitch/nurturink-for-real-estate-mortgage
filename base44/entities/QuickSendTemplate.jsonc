@@ -1,0 +1,134 @@
+{
+  "name": "QuickSendTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template name (e.g., 'Thank You - Post Job')"
+    },
+    "purpose": {
+      "type": "string",
+      "enum": [
+        "thank_you",
+        "referral_request",
+        "review_request",
+        "review_and_referral",
+        "birthday",
+        "anniversary",
+        "holiday",
+        "just_because",
+        "custom"
+      ],
+      "description": "Template purpose/category"
+    },
+    "vertical": {
+      "type": "string",
+      "nullable": true,
+      "description": "Industry vertical filter \u2014 values: generic, re, or mortgage"
+    },
+    "templateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "FK to Template - the message content"
+    },
+    "noteStyleProfileId": {
+      "type": "string",
+      "nullable": true,
+      "description": "FK to NoteStyleProfile - handwriting style"
+    },
+    "cardDesignId": {
+      "type": "string",
+      "nullable": true,
+      "description": "FK to CardDesign - card artwork"
+    },
+    "returnAddressMode": {
+      "type": "string",
+      "enum": [
+        "company",
+        "rep",
+        "none"
+      ],
+      "default": "company",
+      "description": "Return address preference"
+    },
+    "includeGreeting": {
+      "type": "boolean",
+      "default": true,
+      "description": "Include greeting in message"
+    },
+    "includeSignature": {
+      "type": "boolean",
+      "default": true,
+      "description": "Include signature in message"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "organization",
+        "platform"
+      ],
+      "default": "personal",
+      "description": "Visibility scope"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "nullable": true,
+      "description": "User who created this template"
+    },
+    "orgId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization this template belongs to"
+    },
+    "isDefault": {
+      "type": "boolean",
+      "default": false,
+      "description": "Default template for this purpose"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Is this template active/visible"
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order"
+    },
+    "icon": {
+      "type": "string",
+      "nullable": true,
+      "description": "Lucide icon name for UI"
+    },
+    "color": {
+      "type": "string",
+      "nullable": true,
+      "description": "Accent color hex code"
+    },
+    "previewSnippet": {
+      "type": "string",
+      "nullable": true,
+      "description": "First ~100 chars of template content for list view"
+    },
+    "usageCount": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of times this template has been used"
+    },
+    "lastUsedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "Last time this template was used"
+    }
+  },
+  "required": [
+    "name",
+    "purpose",
+    "returnAddressMode",
+    "includeGreeting",
+    "includeSignature",
+    "type"
+  ]
+}
