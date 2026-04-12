@@ -134,10 +134,15 @@ export function AppSidebar({ whitelabelSettings, user }) {
     await base44.auth.logout();
   };
 
+  /*
+   * PHASE 2 / BATCH 5 / F-08 / M-08:
+   * Previously: userRole = user?.appRole || user?.role (dual-source, user.role fallback)
+   * Now: userRole = user?.appRole only. user.role is a Base44 platform field and
+   *   must not be used for app-level nav gating.
+   */
   const hasRole = (allowedRoles) => {
-    const userRole = user?.appRole || user?.role;
+    const userRole = user?.appRole;
     const result = !allowedRoles || (user && allowedRoles.includes(userRole));
-    // console.log(`AppSidebar: Checking role for [${allowedRoles}] -> ${result} (User role: '${userRole}', appRole: '${user?.appRole}', role: '${user?.role}'`);
     return result;
   };
 

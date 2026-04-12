@@ -1,25 +1,22 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 /**
- * Allocate credits from organization pool to team members
- * Organization owners AND managers can perform this action
- * Credits are allocated to user.companyAllocatedCredits
- * 
- * When a manager allocates credits, the owner is notified via email
- * 
- * @version 2026-01-26-inlined-with-notification
+ * Allocate credits from organization pool to team members.
+ * Organization owners AND managers can perform this action.
+ *
+ * PERMISSION UPDATES (Phase 2 / Batch 2 / F-16, F-17, F-18 / M-13, M-14):
+ * - F-16: Replaced inlined isOrgAdmin with canonical assertOrgManagerOrOwner (profile-first).
+ * - F-17: Replaced triple-source isManager/isOwner check with profile-resolved orgRole.
+ * - F-18: Owner notification lookup now also queries UserProfile (not just legacy fields).
+ *
+ * Canonical helpers inlined per Base44 constraint (no local imports).
  */
 
 // =============================================================================
-// INLINED ROLE CONSTANTS AND HELPERS
+// INLINED CANONICAL PERMISSION HELPERS
 // =============================================================================
 
-const ORG_ROLES = {
-  OWNER: 'owner',
-  MANAGER: 'manager',
-  MEMBER: 'member',
-};
-
+const ORG_ROLES = { OWNER: 'owner', MANAGER: 'manager', MEMBER: 'member' };
 const APP_ROLES = {
   SUPER_ADMIN: 'super_admin',
   ORGANIZATION_OWNER: 'organization_owner',
@@ -27,48 +24,36 @@ const APP_ROLES = {
   SALES_REP: 'sales_rep',
 };
 
-function mapLegacyAppRoleToOrgRole(appRole, isOrgOwnerFlag) {
-  if (isOrgOwnerFlag || appRole === APP_ROLES.ORGANIZATION_OWNER) {
-    return ORG_ROLES.OWNER;
-  }
-  if (appRole === APP_ROLES.ORGANIZATION_MANAGER) {
-    return ORG_ROLES.MANAGER;
-  }
-  return ORG_ROLES.MEMBER;
-}
-
-async function getUserProfile(base44, userId, orgId) {
+async function getUserOrgProfile(base44, userId, orgId) {
   try {
-    const profiles = await base44.asServiceRole.entities.UserProfile.filter({
-      userId: userId,
-      orgId: orgId
-    });
-    return profiles.length > 0 ? profiles[0] : null;
-  } catch (error) {
-    console.error('Error fetching UserProfile:', error);
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ userId, orgId });
+    if (profiles.length === 0) return null;
+    if (profiles.length > 1) console.warn(`[permissionHelpers] Multiple UserProfiles for userId=${userId} orgId=${orgId}. Using first.`);
+    return profiles[0];
+  } catch (err) {
+    console.error('[permissionHelpers] Error fetching UserProfile:', err);
     return null;
   }
 }
 
-function isOrgAdmin(user) {
-  const orgRole = user.orgProfile?.orgRole;
-  const appRole = user.appRole;
-  const isOrgOwner = user.isOrgOwner === true;
-  
-  // Check new orgRole system first
-  if (orgRole === ORG_ROLES.OWNER || orgRole === ORG_ROLES.MANAGER) {
-    return true;
+function resolveOrgRole(user, profile) {
+  if (profile?.orgRole) return profile.orgRole;
+  if (user.isOrgOwner === true || user.appRole === APP_ROLES.ORGANIZATION_OWNER) return ORG_ROLES.OWNER;
+  if (user.appRole === APP_ROLES.ORGANIZATION_MANAGER) return ORG_ROLES.MANAGER;
+  return ORG_ROLES.MEMBER;
+}
+
+async function assertOrgManagerOrOwner(base44, user, targetOrgId) {
+  if (user.appRole === APP_ROLES.SUPER_ADMIN) return { orgRole: ORG_ROLES.OWNER };
+  if (!user.orgId || user.orgId !== targetOrgId) {
+    throw Response.json({ error: 'Forbidden: You do not belong to this organization' }, { status: 403 });
   }
-  
-  // Fall back to legacy appRole check
-  if (appRole === APP_ROLES.SUPER_ADMIN || 
-      appRole === APP_ROLES.ORGANIZATION_OWNER || 
-      appRole === APP_ROLES.ORGANIZATION_MANAGER ||
-      isOrgOwner) {
-    return true;
+  const profile = await getUserOrgProfile(base44, user.id, targetOrgId);
+  const orgRole = resolveOrgRole(user, profile);
+  if (orgRole !== ORG_ROLES.OWNER && orgRole !== ORG_ROLES.MANAGER) {
+    throw Response.json({ error: 'Only organization owners and managers can allocate credits' }, { status: 403 });
   }
-  
-  return false;
+  return { orgRole };
 }
 
 // =============================================================================
@@ -76,156 +61,84 @@ function isOrgAdmin(user) {
 // =============================================================================
 
 Deno.serve(async (req) => {
-  console.log('=== allocateCredits START (2026-01-26-inlined-with-notification) ===');
-  
+  console.log('=== allocateCredits START (Phase2-Batch2) ===');
+
   try {
     const base44 = createClientFromRequest(req);
-    
-    // Verify user is authenticated
+
+    // H-01: Assert authenticated
     const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    
-    console.log('Current user:', JSON.stringify({
-      id: user.id,
-      email: user.email,
-      appRole: user.appRole,
-      isOrgOwner: user.isOrgOwner,
-      orgId: user.orgId
-    }));
-    
-    // Get user's org profile to check permissions
-    let userOrgRole = null;
-    if (user.orgId) {
-      const userProfile = await getUserProfile(base44, user.id, user.orgId);
-      userOrgRole = userProfile?.orgRole || mapLegacyAppRoleToOrgRole(user.appRole, user.isOrgOwner);
-    }
-    
-    console.log('User orgRole:', userOrgRole);
-    
-    // Verify user is organization owner OR manager (check both new orgRole and legacy appRole)
-    const canAllocate = isOrgAdmin({ ...user, orgProfile: { orgRole: userOrgRole } });
-    
-    if (!canAllocate) {
-      return Response.json(
-        { error: 'Only organization owners and managers can allocate credits' },
-        { status: 403 }
-      );
-    }
-    
-    // Verify user has organization
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    console.log('Current user:', JSON.stringify({ id: user.id, email: user.email, appRole: user.appRole, isOrgOwner: user.isOrgOwner, orgId: user.orgId }));
+
     if (!user.orgId) {
-      return Response.json(
-        { error: 'User does not belong to an organization' },
-        { status: 400 }
-      );
+      return Response.json({ error: 'User does not belong to an organization' }, { status: 400 });
     }
-    
-    // Parse request body
+
+    // H-04: Assert org manager or owner — canonical, profile-first (fixes F-16)
+    const { orgRole: callerOrgRole } = await assertOrgManagerOrOwner(base44, user, user.orgId);
+    console.log('Caller orgRole (from profile):', callerOrgRole);
+
     const body = await req.json();
     const { allocations } = body;
-    
-    // Validate allocations
+
     if (!allocations || typeof allocations !== 'object') {
-      return Response.json(
-        { error: 'allocations must be an object with userId: amount pairs' },
-        { status: 400 }
-      );
+      return Response.json({ error: 'allocations must be an object with userId: amount pairs' }, { status: 400 });
     }
-    
-    // Calculate total credits to allocate
-    const totalToAllocate = Object.values(allocations).reduce((sum, amount) => {
-      return sum + (typeof amount === 'number' ? amount : 0);
-    }, 0);
-    
+
+    const totalToAllocate = Object.values(allocations).reduce((sum, amount) => sum + (typeof amount === 'number' ? amount : 0), 0);
     if (totalToAllocate <= 0) {
-      return Response.json(
-        { error: 'Total allocation must be greater than 0' },
-        { status: 400 }
-      );
+      return Response.json({ error: 'Total allocation must be greater than 0' }, { status: 400 });
     }
-    
+
     // Load organization
-    const orgs = await base44.asServiceRole.entities.Organization.filter({ 
-      id: user.orgId 
-    });
-    
+    const orgs = await base44.asServiceRole.entities.Organization.filter({ id: user.orgId });
     if (!orgs || orgs.length === 0) {
-      return Response.json(
-        { error: 'Organization not found' },
-        { status: 404 }
-      );
+      return Response.json({ error: 'Organization not found' }, { status: 404 });
     }
-    
     const organization = orgs[0];
     const currentOrgBalance = organization.creditBalance || 0;
-    
-    // Verify organization has enough credits
+
     if (currentOrgBalance < totalToAllocate) {
-      return Response.json(
-        { 
-          error: 'Insufficient credits in organization pool',
-          available: currentOrgBalance,
-          requested: totalToAllocate,
-          deficit: totalToAllocate - currentOrgBalance
-        },
-        { status: 400 }
-      );
+      return Response.json({
+        error: 'Insufficient credits in organization pool',
+        available: currentOrgBalance,
+        requested: totalToAllocate,
+        deficit: totalToAllocate - currentOrgBalance
+      }, { status: 400 });
     }
-    
+
     // Process allocations
     const allocationResults = [];
-    
     for (const [userId, amount] of Object.entries(allocations)) {
-      if (typeof amount !== 'number' || amount <= 0) {
-        continue; // Skip invalid allocations
-      }
-      
-      // Load user
-      const users = await base44.asServiceRole.entities.User.filter({ 
-        id: userId 
-      });
-      
+      if (typeof amount !== 'number' || amount <= 0) continue;
+
+      const users = await base44.asServiceRole.entities.User.filter({ id: userId });
       if (!users || users.length === 0) {
-        allocationResults.push({
-          userId: userId,
-          success: false,
-          error: 'User not found'
-        });
+        allocationResults.push({ userId, success: false, error: 'User not found' });
         continue;
       }
-      
+
       const teamMember = users[0];
-      
-      // Verify user belongs to same organization
+
+      // H-05: Assert target is in same org
       if (teamMember.orgId !== user.orgId) {
-        allocationResults.push({
-          userId: userId,
-          success: false,
-          error: 'User does not belong to your organization'
-        });
+        allocationResults.push({ userId, success: false, error: 'User does not belong to your organization' });
         continue;
       }
-      
-      // Update user's company-allocated credit balance
+
       const newCompanyAllocated = (teamMember.companyAllocatedCredits || 0) + amount;
-      
-      await base44.asServiceRole.entities.User.update(userId, {
-        companyAllocatedCredits: newCompanyAllocated
-      });
-      
-      // Create transaction record for user (allocation in)
-      // Credits flow FROM organization pool TO user
+      await base44.asServiceRole.entities.User.update(userId, { companyAllocatedCredits: newCompanyAllocated });
+
       await base44.asServiceRole.entities.Transaction.create({
         orgId: user.orgId,
-        userId: userId,
+        userId,
         type: 'allocation_in',
-        amount: amount,
+        amount,
         balanceAfter: newCompanyAllocated,
         balanceType: 'user',
         description: `Credit allocation from organization pool by ${user.full_name || user.email}`,
-        // Required fields for transaction tracking
         fromAccountId: organization.id,
         fromAccountType: 'company',
         toAccountId: userId,
@@ -236,29 +149,21 @@ Deno.serve(async (req) => {
           creditType: 'companyAllocatedCredits'
         }
       });
-      
+
       allocationResults.push({
-        userId: userId,
+        userId,
         userName: teamMember.full_name || teamMember.email,
         success: true,
-        amount: amount,
+        amount,
         newBalance: newCompanyAllocated,
-        updatedUser: {
-          id: userId,
-          companyAllocatedCredits: newCompanyAllocated
-        }
+        updatedUser: { id: userId, companyAllocatedCredits: newCompanyAllocated }
       });
     }
-    
+
     // Update organization balance
     const newOrgBalance = currentOrgBalance - totalToAllocate;
-    
-    await base44.asServiceRole.entities.Organization.update(organization.id, {
-      creditBalance: newOrgBalance
-    });
-    
-    // Create transaction record for organization (allocation out)
-    // Credits flow FROM organization pool TO team members (represented by allocating user as counterparty)
+    await base44.asServiceRole.entities.Organization.update(organization.id, { creditBalance: newOrgBalance });
+
     await base44.asServiceRole.entities.Transaction.create({
       orgId: user.orgId,
       userId: user.id,
@@ -267,103 +172,76 @@ Deno.serve(async (req) => {
       balanceAfter: newOrgBalance,
       balanceType: 'organization',
       description: `Allocated ${totalToAllocate} credits to team members`,
-      // Required fields for transaction tracking
       fromAccountId: organization.id,
       fromAccountType: 'company',
       toAccountId: user.id,
       toAccountType: 'user',
-      metadata: {
-        allocationCount: allocationResults.filter(r => r.success).length,
-        allocations: allocations
-      }
+      metadata: { allocationCount: allocationResults.filter(r => r.success).length, allocations }
     });
-    
-    // If a manager (not owner) allocated credits, notify the organization owner(s)
-    const isManager = userOrgRole === ORG_ROLES.MANAGER || user.appRole === APP_ROLES.ORGANIZATION_MANAGER;
-    const isOwner = userOrgRole === ORG_ROLES.OWNER || user.appRole === APP_ROLES.ORGANIZATION_OWNER || user.isOrgOwner === true;
-    
-    if (isManager && !isOwner) {
-      console.log('Manager allocated credits - notifying owner(s)...');
-      
+
+    // Notify owners if the caller is a manager (not owner) — F-17/F-18 fix
+    // callerOrgRole is now profile-resolved (fixes F-17)
+    const callerIsManager = callerOrgRole === ORG_ROLES.MANAGER;
+
+    if (callerIsManager) {
+      console.log('Manager allocated credits — notifying owner(s)...');
       try {
-        // Find organization owners
-        const orgOwners = await base44.asServiceRole.entities.User.filter({
-          orgId: user.orgId,
-          isOrgOwner: true
-        });
-        
-        // Also check for organization_owner appRole
-        const orgOwnersByRole = await base44.asServiceRole.entities.User.filter({
-          orgId: user.orgId,
-          appRole: APP_ROLES.ORGANIZATION_OWNER
-        });
-        
-        // Combine and deduplicate owners
+        // F-18 fix: query owners via both legacy fields AND UserProfile (canonical)
+        const [legacyOwnersByFlag, legacyOwnersByRole, profileOwners] = await Promise.all([
+          base44.asServiceRole.entities.User.filter({ orgId: user.orgId, isOrgOwner: true }),
+          base44.asServiceRole.entities.User.filter({ orgId: user.orgId, appRole: APP_ROLES.ORGANIZATION_OWNER }),
+          base44.asServiceRole.entities.UserProfile.filter({ orgId: user.orgId, orgRole: ORG_ROLES.OWNER }),
+        ]);
+
+        // Collect all owner user IDs from profile records
+        const ownerUserIdsFromProfiles = new Set(profileOwners.map(p => p.userId));
+
+        // Load user records for profile-based owners not already in legacy results
+        const allOwnersByLegacy = [...legacyOwnersByFlag, ...legacyOwnersByRole];
+        const legacyOwnerIds = new Set(allOwnersByLegacy.map(u => u.id));
+
+        const additionalOwnerIds = [...ownerUserIdsFromProfiles].filter(id => !legacyOwnerIds.has(id));
+        const additionalOwners = additionalOwnerIds.length > 0
+          ? await base44.asServiceRole.entities.User.filter({ orgId: user.orgId })
+              .then(all => all.filter(u => additionalOwnerIds.includes(u.id)))
+          : [];
+
         const ownerEmails = new Set();
-        [...orgOwners, ...orgOwnersByRole].forEach(owner => {
-          if (owner.email && owner.id !== user.id) {
-            ownerEmails.add(owner.email);
-          }
+        [...allOwnersByLegacy, ...additionalOwners].forEach(owner => {
+          if (owner.email && owner.id !== user.id) ownerEmails.add(owner.email);
         });
-        
-        // Build allocation summary for email
+
         const successfulAllocations = allocationResults.filter(r => r.success);
-        const allocationSummary = successfulAllocations
-          .map(a => `• ${a.userName}: ${a.amount} credits`)
-          .join('\n');
-        
-        // Send notification to each owner
+        const allocationSummary = successfulAllocations.map(a => `• ${a.userName}: ${a.amount} credits`).join('\n');
+
         for (const ownerEmail of ownerEmails) {
           try {
             await base44.integrations.Core.SendEmail({
               to: ownerEmail,
               subject: `Credit Allocation by ${user.full_name || user.email}`,
-              body: `Hello,
-
-A manager in your organization has allocated credits from the company pool.
-
-Allocated by: ${user.full_name || user.email}
-Total credits allocated: ${totalToAllocate}
-New organization pool balance: ${newOrgBalance}
-
-Allocation details:
-${allocationSummary}
-
-This is an automated notification. If you have questions about this allocation, please contact the manager directly.
-
-Best regards,
-NurturInk Team`,
+              body: `Hello,\n\nA manager in your organization has allocated credits from the company pool.\n\nAllocated by: ${user.full_name || user.email}\nTotal credits allocated: ${totalToAllocate}\nNew organization pool balance: ${newOrgBalance}\n\nAllocation details:\n${allocationSummary}\n\nBest regards,\nNurturInk Team`,
               from_name: 'NurturInk'
             });
-            console.log('Owner notification sent to:', ownerEmail);
           } catch (emailError) {
             console.error('Failed to send owner notification to', ownerEmail, ':', emailError);
           }
         }
       } catch (notifyError) {
         console.error('Error sending owner notifications:', notifyError);
-        // Continue - allocation was successful even if notification failed
       }
     }
-    
-    console.log('=== allocateCredits SUCCESS ===');
-    console.log('Total allocated:', totalToAllocate, 'New org balance:', newOrgBalance);
-    
+
+    console.log('=== allocateCredits SUCCESS (Phase2-Batch2) ===', { totalToAllocate, newOrgBalance });
     return Response.json({
       success: true,
       totalAllocated: totalToAllocate,
       organizationBalanceAfter: newOrgBalance,
       allocations: allocationResults
     });
-    
-  } catch (error) {
-    console.error('Error in allocateCredits:', error);
-    return Response.json(
-      { 
-        error: error.message || 'Failed to allocate credits',
-        details: error.stack
-      },
-      { status: 500 }
-    );
+
+  } catch (err) {
+    if (err instanceof Response) return err;
+    console.error('Error in allocateCredits:', err);
+    return Response.json({ error: err.message || 'Failed to allocate credits' }, { status: 500 });
   }
 });

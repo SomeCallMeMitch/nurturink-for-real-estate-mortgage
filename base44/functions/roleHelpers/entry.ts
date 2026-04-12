@@ -29,15 +29,20 @@ export const APP_ROLES = {
 // =============================================================================
 
 /**
- * Check if user is a super admin
+ * Check if user is a super admin.
+ * PHASE 2 / BATCH 4 / F-02: Removed user.role === 'admin' fallback.
+ * Canonical source: user.appRole === 'super_admin' only.
  */
 export function isSuperAdmin(user: any): boolean {
   if (!user) return false;
-  return user.appRole === APP_ROLES.SUPER_ADMIN || user.role === 'admin';
+  return user.appRole === APP_ROLES.SUPER_ADMIN;
 }
 
 /**
- * Check if user is an organization owner
+ * Check if user is an organization owner.
+ * PHASE 2 / BATCH 4 / F-03: This function uses legacy fields (isOrgOwner, appRole) only.
+ * It is now DEPRECATED for backend security use — use assertOrgOwner() from permissionHelpers design.
+ * Kept for backward compatibility in non-critical paths only.
  */
 export function isOrgOwner(user: any): boolean {
   if (!user) return false;
@@ -45,7 +50,9 @@ export function isOrgOwner(user: any): boolean {
 }
 
 /**
- * Check if user is an organization manager
+ * Check if user is an organization manager.
+ * PHASE 2 / BATCH 4 / F-04: This function uses legacy appRole only.
+ * DEPRECATED for backend security use — use assertOrgManagerOrOwner() from permissionHelpers design.
  */
 export function isOrgManager(user: any): boolean {
   if (!user) return false;
@@ -53,7 +60,9 @@ export function isOrgManager(user: any): boolean {
 }
 
 /**
- * Check if user has organization admin privileges (owner OR manager)
+ * Check if user has organization admin privileges (owner OR manager).
+ * PHASE 2 / BATCH 4: DEPRECATED for backend security use.
+ * Uses legacy fields only. Use assertOrgManagerOrOwner() for backend enforcement.
  */
 export function isOrgAdmin(user: any): boolean {
   if (!user) return false;
@@ -211,3 +220,18 @@ export async function checkUserPermission(
   
   return requiredRoles.includes(orgRole);
 }
+
+// =============================================================================
+// DEPLOYMENT STUB
+// This file is a shared library. It cannot be imported by other functions
+// (Base44 constraint). All helpers must be copy-inlined into consuming functions.
+// This Deno.serve stub exists only to satisfy the deployment requirement.
+// Phase 2 / Batch 4: Stub added to fix pre-existing deployment failure.
+// =============================================================================
+Deno.serve(() =>
+  Response.json({
+    module: 'roleHelpers',
+    status: 'documentation stub — not a callable endpoint',
+    note: 'All helpers are deprecated for backend use. Use inlined canonical helpers from permissionHelpers design.'
+  })
+);

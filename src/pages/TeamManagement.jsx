@@ -136,10 +136,14 @@ export default function TeamManagement() {
       const currentUserData = response.data.currentUser;
       setCurrentUserOrgProfile(currentUserData?.orgProfile || null);
       
-      // Check permissions using orgRole from response
+      // PHASE 2 / BATCH 6 / F-11 / M-10:
+      // Previously: triple-source check (profile.orgRole + user.appRole + user.isOrgOwner).
+      // Now: single source — orgProfile.orgRole from the API response, with super admin bypass.
+      // The backend (getOrganizationTeamData) already enforces the real security boundary.
+      // This frontend check is UX-only (renders an error state for non-admins).
       const userOrgRole = currentUserData?.orgProfile?.orgRole;
-      const isOrgOwner = userOrgRole === ORG_ROLES.OWNER || currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
-      const isOrgManager = userOrgRole === ORG_ROLES.MANAGER || currentUser.appRole === 'organization_manager';
+      const isOrgOwner = userOrgRole === ORG_ROLES.OWNER;
+      const isOrgManager = userOrgRole === ORG_ROLES.MANAGER;
       const isSuperAdmin = currentUser.appRole === 'super_admin';
       
       if (!isOrgOwner && !isOrgManager && !isSuperAdmin) {

@@ -20,15 +20,19 @@ export default function SuperAdminLayout({ children }) {
     fetchUser();
   }, []);
 
-  // Determine which menu items to show based on role
-  const isSuperAdmin = user?.role === 'super_admin';
-  const isOrgOwner = user?.role === 'organization_owner';
+  /*
+   * PHASE 2 / BATCH 5 / F-07 / M-06:
+   * Previously: isSuperAdmin = user?.role === 'super_admin' (wrong field — user.role is Base44 platform field)
+   *             isOrgOwner   = user?.role === 'organization_owner' (wrong field + legacy dead code — R-01 decision)
+   * Now:        isSuperAdmin = user?.appRole === 'super_admin' (correct canonical field)
+   *             isOrgOwner branch REMOVED entirely per R-01 decision:
+   *               "Treat as legacy dead code. SuperAdminLayout is gated for super_admin only."
+   */
+  const isSuperAdmin = user?.appRole === 'super_admin';
 
-  // Build menu items based on role
+  // Build menu only for super admins
   const menuItems = [];
-  
   if (isSuperAdmin) {
-    // Super admin sees all menu items
     menuItems.push(
       { id: 'dashboard', label: 'Dashboard', icon: Home, path: 'SuperAdminDashboard' },
       { id: 'card-management', label: 'Card Designs', icon: LayoutGrid, path: 'SuperAdminCardManagement' },
@@ -40,11 +44,6 @@ export default function SuperAdminLayout({ children }) {
       { id: 'content-layout', label: 'Content Layout', icon: Layout, path: 'AdminCreateContentLayout' },
       { id: 'envelope-layout', label: 'Envelope Layout', icon: Mail, path: 'AdminEnvelopeLayout' },
       { id: 'sample-requests', label: 'Sample Requests', icon: Inbox, path: 'AdminSampleRequests' }
-    );
-  } else if (isOrgOwner) {
-    // Organization owner only sees pricing management
-    menuItems.push(
-      { id: 'pricing', label: 'Pricing Tiers', icon: DollarSign, path: 'AdminPricing' }
     );
   }
 
@@ -59,7 +58,7 @@ export default function SuperAdminLayout({ children }) {
             <div className="flex items-center gap-3">
               <Shield className="w-6 h-6 text-indigo-600" />
               <h1 className="text-xl font-bold text-gray-900">
-                {isSuperAdmin ? 'Super Admin' : 'Admin Settings'}
+                Super Admin
               </h1>
             </div>
             <div className="flex items-center gap-4">

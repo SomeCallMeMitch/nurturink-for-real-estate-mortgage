@@ -266,10 +266,16 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
     return submenuItems.some((item) => isMenuItemActive(item.path));
   };
 
+  /*
+   * PHASE 2 / BATCH 5 / F-09 / M-08, M-09:
+   * Previously: userRole = user?.appRole || user?.role (dual-source, user.role fallback)
+   * Now: userRole = user?.appRole only. user.role is a Base44 platform field.
+   * Nav gating is UX-only; backend enforces real permissions.
+   */
   const visibleMainMenuItems = mainMenuItems.filter((item) => {
     if (!item.roles || item.roles.length === 0) return true;
     if (!user) return false;
-    const userRole = user?.appRole || user?.role;
+    const userRole = user?.appRole;
     if (userRole && item.roles.includes(userRole)) return true;
     if (item.roles.includes("user") && user) return true;
     return false;
@@ -278,7 +284,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
   const visibleSettingsItems = settingsMenuItems.filter((item) => {
     if (!item.roles || item.roles.length === 0) return true;
     if (!user) return false;
-    const userRole = user?.appRole || user?.role;
+    const userRole = user?.appRole;
     if (userRole && item.roles.includes(userRole)) return true;
     if (item.roles.includes("user") && user) return true;
     return false;
@@ -287,7 +293,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
   const visibleAdminItems = adminMenuItems.filter((item) => {
     if (!item.roles || item.roles.length === 0) return true;
     if (!user) return false;
-    const userRole = user?.appRole || user?.role;
+    const userRole = user?.appRole;
     if (userRole && item.roles.includes(userRole)) return true;
     return false;
   });
@@ -295,7 +301,7 @@ export default function LeftSidebar({ whitelabelSettings, user }) {
   const visibleWhitelabelItems = whitelabelMenuItems.filter((item) => {
     if (!item.roles || item.roles.length === 0) return true;
     if (!user) return false;
-    const userRole = user?.appRole || user?.role;
+    const userRole = user?.appRole;
     if (userRole && item.roles.includes(userRole)) return true;
     return false;
   });

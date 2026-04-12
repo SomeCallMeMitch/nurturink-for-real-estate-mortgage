@@ -126,7 +126,10 @@ export default function Credits() {
         }
       }
       
-      // Load company pool stats if user is org owner or manager
+      // PHASE 2 / BATCH 6 / F-14 / M-12:
+      // Per R-02 decision: appRole is sufficient for Credits UI gating in this phase.
+      // Do NOT add profile.orgRole fetch here. Backend enforces real permission.
+      // Legacy isOrgOwner flag kept as fallback for users not yet fully migrated.
       const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
       const isOrgManager = currentUser.appRole === 'organization_manager';
       const canManageCredits = isOrgOwner || isOrgManager;
@@ -198,10 +201,11 @@ export default function Credits() {
     }
   };
 
-  // Determine if this is individual or company view
-  // Owners AND Managers can view/manage company credits
+  // PHASE 2 / BATCH 6 / F-15 / M-12:
+  // Per R-02 decision: appRole is sufficient for Credits isCompanyView gating.
+  // Legacy isOrgOwner flag kept as fallback for users not yet fully migrated.
   const isCompanyView = (
-    user?.appRole === 'organization_owner' || 
+    user?.appRole === 'organization_owner' ||
     user?.appRole === 'organization_manager' ||
     user?.isOrgOwner === true
   ) && organization;
