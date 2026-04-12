@@ -44,7 +44,7 @@ export default function QuickSendTemplateCard({
         </div>
 
         <div className="flex gap-1 flex-shrink-0">
-          {canEdit && (
+          {canEdit && template.type !== 'platform' && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
@@ -66,9 +66,9 @@ export default function QuickSendTemplateCard({
                 <Copy className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
             </TooltipTrigger>
-            <TooltipContent>Duplicate</TooltipContent>
+            <TooltipContent>{template.type === 'platform' ? 'Copy to My QuickSends' : 'Duplicate'}</TooltipContent>
           </Tooltip>
-          {canEdit && (
+          {canEdit && template.type !== 'platform' && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
@@ -88,7 +88,7 @@ export default function QuickSendTemplateCard({
       <div className="flex gap-3 px-3 pb-3 flex-1">
         <div
           className="flex-shrink-0 rounded-lg overflow-hidden bg-muted border border-border"
-          style={{ width: '72px', height: '52px' }}
+          style={{ width: '56px', aspectRatio: '11/8' }}
         >
           {thumbnailUrl ? (
             <img src={thumbnailUrl} alt="Card design" className="w-full h-full object-cover" />
