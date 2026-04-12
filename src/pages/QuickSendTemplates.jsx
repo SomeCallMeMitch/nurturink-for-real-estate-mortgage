@@ -136,7 +136,7 @@ export default function QuickSendTemplates() {
 
   const getCardDesignThumbnail = (qst) => {
     const design = cardDesignMap[qst.cardDesignId];
-    return design?.outsideImageUrl || design?.imageUrl || null;
+    return design?.frontImageUrl || design?.outsideImageUrl || design?.imageUrl || null;
   };
 
   // ── Action handlers ────────────────────────────────────────────────────────
