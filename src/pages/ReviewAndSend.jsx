@@ -389,6 +389,10 @@ export default function ReviewAndSend() {
 
   // UPDATED: Handle send with credit check
   const handleSend = async () => {
+    // BATCH2: Double-submit guard — if a send is already in flight, drop this click immediately.
+    // The button is also disabled, but this top-of-handler guard closes the race window
+    // that exists between the first React render with disabled=true and rapid successive clicks.
+    if (saving) return;
     try {
       // Check if we have enough credits
       if (!creditCheckResult) {

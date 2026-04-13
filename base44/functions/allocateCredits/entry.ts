@@ -160,24 +160,36 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Update organization balance
-    const newOrgBalance = currentOrgBalance - totalToAllocate;
-    await base44.asServiceRole.entities.Organization.update(organization.id, { creditBalance: newOrgBalance });
+    // BATCH2-FIX: Compute actual allocated total from SUCCESSFUL results only.
+    // Previously used pre-calculated totalToAllocate which caused credit leaks when
+    // individual user allocations failed (user not found, wrong org, etc.).
+    const actualAllocated = allocationResults
+      .filter(r => r.success)
+      .reduce((sum, r) => sum + r.amount, 0);
 
-    await base44.asServiceRole.entities.Transaction.create({
-      orgId: user.orgId,
-      userId: user.id,
-      type: 'allocation_out',
-      amount: -totalToAllocate,
-      balanceAfter: newOrgBalance,
-      balanceType: 'organization',
-      description: `Allocated ${totalToAllocate} credits to team members`,
-      fromAccountId: organization.id,
-      fromAccountType: 'company',
-      toAccountId: user.id,
-      toAccountType: 'user',
-      metadata: { allocationCount: allocationResults.filter(r => r.success).length, allocations }
-    });
+    const newOrgBalance = currentOrgBalance - actualAllocated;
+
+    // Only deduct org balance and create org-level transaction if something was actually allocated
+    if (actualAllocated > 0) {
+      await base44.asServiceRole.entities.Organization.update(organization.id, { creditBalance: newOrgBalance });
+
+      await base44.asServiceRole.entities.Transaction.create({
+        orgId: user.orgId,
+        userId: user.id,
+        type: 'allocation_out',
+        amount: -actualAllocated,
+        balanceAfter: newOrgBalance,
+        balanceType: 'organization',
+        description: `Allocated ${actualAllocated} credits to team members`,
+        fromAccountId: organization.id,
+        fromAccountType: 'company',
+        toAccountId: user.id,
+        toAccountType: 'user',
+        metadata: { allocationCount: allocationResults.filter(r => r.success).length, allocations }
+      });
+    } else {
+      console.warn('[allocateCredits] No credits actually allocated — org balance unchanged');
+    }
 
     // Notify owners if the caller is a manager (not owner) — F-17/F-18 fix
     // callerOrgRole is now profile-resolved (fixes F-17)
@@ -219,7 +231,7 @@ Deno.serve(async (req) => {
             await base44.integrations.Core.SendEmail({
               to: ownerEmail,
               subject: `Credit Allocation by ${user.full_name || user.email}`,
-              body: `Hello,\n\nA manager in your organization has allocated credits from the company pool.\n\nAllocated by: ${user.full_name || user.email}\nTotal credits allocated: ${totalToAllocate}\nNew organization pool balance: ${newOrgBalance}\n\nAllocation details:\n${allocationSummary}\n\nBest regards,\nNurturInk Team`,
+              body: `Hello,\n\nA manager in your organization has allocated credits from the company pool.\n\nAllocated by: ${user.full_name || user.email}\nTotal credits allocated: ${actualAllocated}\nNew organization pool balance: ${newOrgBalance}\n\nAllocation details:\n${allocationSummary}\n\nBest regards,\nNurturInk Team`,
               from_name: 'NurturInk'
             });
           } catch (emailError) {
@@ -231,10 +243,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log('=== allocateCredits SUCCESS (Phase2-Batch2) ===', { totalToAllocate, newOrgBalance });
+    console.log('=== allocateCredits SUCCESS (Phase2-Batch2) ===', { actualAllocated, newOrgBalance });
     return Response.json({
       success: true,
-      totalAllocated: totalToAllocate,
+      totalAllocated: actualAllocated,
       organizationBalanceAfter: newOrgBalance,
       allocations: allocationResults
     });

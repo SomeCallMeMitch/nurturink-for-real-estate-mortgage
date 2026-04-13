@@ -97,6 +97,31 @@ Deno.serve(async (req) => {
       const user = users[0];
       console.log('✅ User loaded:', user.email);
 
+      // BATCH2: Idempotency guard — prevent double-crediting on Stripe retries.
+      // Use payment_intent as the stable dedup key (falls back to session.id for
+      // edge cases where payment_intent may be null, e.g. free/trial sessions).
+      const dedupeId = session.payment_intent || session.id;
+      console.log('🔍 [IDEMPOTENCY] Checking for existing transaction:', dedupeId);
+      try {
+        const existingTx = await base44.asServiceRole.entities.Transaction.filter({
+          stripePaymentId: dedupeId
+        });
+        if (existingTx && existingTx.length > 0) {
+          console.warn(`⚠️ [IDEMPOTENCY] Payment ${dedupeId} already processed — Transaction ID: ${existingTx[0].id}. Returning idempotent success.`);
+          return Response.json({
+            success: true,
+            message: 'Payment already processed (idempotent response)',
+            duplicate: true,
+            existingTransactionId: existingTx[0].id
+          });
+        }
+        console.log('✅ [IDEMPOTENCY] No existing transaction found — safe to proceed');
+      } catch (idempotencyCheckError) {
+        // Log the failure but do NOT block the webhook — a failed check is less risky
+        // than silently dropping a legitimate payment event.
+        console.error('⚠️ [IDEMPOTENCY] Check failed, proceeding with caution:', idempotencyCheckError.message);
+      }
+
       // Load organization if company purchase
       let organization = null;
       if (isCompanyPurchase && orgId) {

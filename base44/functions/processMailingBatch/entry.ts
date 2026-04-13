@@ -217,7 +217,27 @@ Deno.serve(async (req) => {
     }
     
     const batch = batches[0];
-    
+
+    // BATCH2: Idempotency / status guard.
+    // Only allow processing if batch is in a valid starting state.
+    // 'processing' guard prevents duplicate concurrent runs.
+    // 'completed' / 'pending_review' guard prevents reprocessing already-handled batches.
+    const nonProcessableStatuses = ['processing', 'completed', 'pending_review'];
+    if (nonProcessableStatuses.includes(batch.status)) {
+      console.warn(`[PMB] Batch ${mailingBatchId} already in status '${batch.status}' — rejecting duplicate invocation`);
+      return Response.json({
+        success: false,
+        alreadyProcessed: true,
+        status: batch.status,
+        message: `Batch is already in status '${batch.status}' and cannot be reprocessed`
+      }, { status: 409 });
+    }
+
+    // BATCH2: Atomically claim the batch by marking it 'processing' before doing any work.
+    // Any concurrent invocation hitting the status guard above will be blocked.
+    await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, { status: 'processing' });
+    console.log(`[PMB] Batch ${mailingBatchId} marked as 'processing' — beginning work`);
+
     let user;
     
     if (serviceRoleBypass === true) {

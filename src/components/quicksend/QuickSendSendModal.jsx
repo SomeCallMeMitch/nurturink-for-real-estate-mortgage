@@ -62,6 +62,8 @@ export default function QuickSendSendModal({
   }, [clients, search]);
 
   const handleSend = async () => {
+    // BATCH2: Double-submit guard — drop rapid duplicate clicks before React disables the button.
+    if (sending) return;
     if (!selectedClient || !template) return;
     setSending(true);
     try {

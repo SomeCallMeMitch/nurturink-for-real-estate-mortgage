@@ -129,6 +129,8 @@ export default function MobileSend() {
   };
 
   const handleSend = async () => {
+    // BATCH2: Double-submit guard — drop rapid duplicate taps before React disables the button.
+    if (sending) return;
     if (selectedClients.length === 0 || !selectedTemplate) {
       toast({
         title: 'Missing selections',
