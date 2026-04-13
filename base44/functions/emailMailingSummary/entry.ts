@@ -159,14 +159,14 @@ Deno.serve(async (req) => {
         </div>
         
         <p style="color: #9ca3af; font-size: 12px; margin-top: 32px; text-align: center;">
-          This is an automated email from RoofScribe. Please do not reply to this email.
+          This is an automated email from NurturInk. Please do not reply to this email.
         </p>
       </div>
     `;
     
     // Send email using Core.SendEmail integration
     await base44.asServiceRole.integrations.Core.SendEmail({
-      from_name: organization?.name || 'RoofScribe',
+      from_name: organization?.name || 'NurturInk',
       to: user.email,
       subject: `Your ${clients.length} card${clients.length !== 1 ? 's are' : ' is'} on the way! 📬`,
       body: emailBody

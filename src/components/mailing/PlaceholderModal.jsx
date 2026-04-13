@@ -90,7 +90,7 @@ export default function PlaceholderModal({ onPlaceholderSelect }) {
         {
           title: 'ORGANIZATION',
           placeholders: [
-            { code: '{{org.name}}', description: 'Organization name', example: 'RoofScribe Inc' },
+            { code: '{{org.name}}', description: 'Organization name', example: 'NurturInk Inc' },
             { code: '{{org.website}}', description: 'Organization website', example: 'https://www.example.com' },
             { code: '{{org.email}}', description: 'Organization email', example: 'info@example.com' },
             { code: '{{org.phone}}', description: 'Organization phone', example: '(555) 111-2222' }

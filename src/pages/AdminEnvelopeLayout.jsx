@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
@@ -31,7 +30,7 @@ const SAMPLE_USER = {
 };
 
 const SAMPLE_ORG = {
-  name: 'RoofScribe Inc',
+  name: 'NurturInk Inc',
   companyReturnAddress: {
     street: '456 Business Ave',
     city: 'Boulder',

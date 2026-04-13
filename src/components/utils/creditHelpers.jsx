@@ -1,7 +1,7 @@
 /**
  * Credit Helpers Utility Module
  * 
- * Centralized credit calculation and helper functions for the RoofScribe credit system.
+ * Centralized credit calculation and helper functions for the NurturInk credit system.
  * This module ensures consistent credit handling across all pages.
  * 
  * Credit Consumption Priority:

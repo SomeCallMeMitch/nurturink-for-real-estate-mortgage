@@ -200,7 +200,7 @@ export function AppSidebar({ whitelabelSettings, user }) {
                </div>
              )}
              <span className="font-bold text-lg truncate">
-               {whitelabelSettings?.brandName || 'RoofScribe'}
+               {whitelabelSettings?.brandName || 'NurturInk'}
              </span>
            </div>
            

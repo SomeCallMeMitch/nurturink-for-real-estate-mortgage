@@ -70,9 +70,9 @@ export default function HeroSection({ variation = 1 }) {
         <div className="grid lg:grid-cols-5 gap-12 items-center">
           {/* Left Content - 60% (3/5 columns) */}
           <div className="lg:col-span-3 space-y-8">
-            {/* RoofScribe Logo */}
+            {/* NurturInk Logo */}
             <div>
-              <span className="text-3xl font-bold text-orange-500">RoofScribe</span>
+              <span className="text-3xl font-bold text-orange-500">NurturInk</span>
             </div>
             
             {/* Headline */}

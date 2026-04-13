@@ -119,7 +119,7 @@ function resolveAllPlaceholders(text, client, user, organization) {
 }
 
 /**
- * Map RoofScribe client placeholders to Scribe format
+ * Map NurturInk client placeholders to Scribe format
  * Supports both new and legacy syntax
  * {{client.firstName}} OR {{firstName}} -> {FIRST_NAME}
  */

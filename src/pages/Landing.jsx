@@ -14,8 +14,6 @@ import LPNoLayoutWrapper from '../components/landing/LPNoLayoutWrapper';
 
 /**
  * NurturInk Landing Page
- * 
- * Complete rebrand from RoofScribe to NurturInk.
  * Multi-industry handwritten notecard service for sales professionals.
  * 
  * Brand Identity:

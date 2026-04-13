@@ -8,7 +8,7 @@ import { CreditCard, Users, Send, TrendingUp, Zap } from 'lucide-react';
  * MobileHome Component
  * 
  * Dashboard view showing:
- * - RoofScribe logo + welcome message in header
+ * - NurturInk logo + welcome message in header
  * - Credits card (burnt orange) with Personal/Organization breakdown
  * - 3-column stats grid: Clients, Notes Sent, Credits Used
  * - Quick Actions: Send a QuickCard, View Clients
@@ -113,12 +113,12 @@ export default function MobileHome() {
           {whitelabelSettings?.logoUrl ? (
             <img 
               src={whitelabelSettings.logoUrl} 
-              alt="RoofScribe"
+              alt="NurturInk"
               className="h-10 w-auto object-contain"
             />
           ) : (
             <div className="w-10 h-10 bg-[#c87533] rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-sm">RS</span>
+              <span className="text-white font-bold text-sm">NI</span>
             </div>
           )}
           

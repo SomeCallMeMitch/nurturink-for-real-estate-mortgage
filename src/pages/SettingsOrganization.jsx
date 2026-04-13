@@ -196,7 +196,7 @@ export default function SettingsOrganization() {
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="RoofScribe Inc"
+                placeholder="NurturInk Inc"
                 required
               />
               <p className="text-xs text-gray-500 mt-1">

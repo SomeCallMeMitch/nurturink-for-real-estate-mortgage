@@ -128,7 +128,7 @@ Welcome to NurturInk! 🎉
 
 You're all set up and ready to send authentic handwritten notes that build real relationships.
 
-WHY ROOFSCRIBE?
+WHY NURTURINK?
 ✍️ Real handwriting, not printed
 ⚡ Send in 2 minutes or less
 📊 Track delivery and impact

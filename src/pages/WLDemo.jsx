@@ -37,7 +37,7 @@ export default function WLDemo() {
 
   // Form state
   const [settings, setSettings] = useState({
-    brandName: "RoofScribe",
+    brandName: "NurturInk",
     logoUrl: null,
     faviconUrl: null,
     primaryColor: "#4F46E5",

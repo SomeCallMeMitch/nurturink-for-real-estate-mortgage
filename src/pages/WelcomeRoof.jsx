@@ -78,7 +78,7 @@ const Header = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-24 md:h-28">
           <div className="flex-shrink-0">
-             <img src={logoUrl} alt="RoofScribe Logo" className="h-20 md:h-24 w-auto" />
+             <img src={logoUrl} alt="NurturInk Logo" className="h-20 md:h-24 w-auto" />
           </div>
 
           <nav className="hidden md:flex md:items-center md:space-x-8">
@@ -401,7 +401,7 @@ const ROICalculatorSection = () => {
 const SocialProofSection = () => {
   const testimonials = [
     {
-      quote: "These handwritten notes have completely transformed how I follow up with prospects. My close rate has increased by 40% since I started using RoofScribe.",
+      quote: "These handwritten notes have completely transformed how I follow up with prospects. My close rate has increased by 40% since I started using NurturInk.",
       author: "Mike Johnson",
       title: "Sales Rep, Premium Roofing"
     },
@@ -780,7 +780,7 @@ const FAQSection = () => {
             Frequently Asked Questions
           </h2>
           <p className="text-lg text-gray-600">
-            Everything you need to know about RoofScribe
+            Everything you need to know about NurturInk
           </p>
         </div>
 
@@ -824,7 +824,7 @@ const Footer = () => {
           <div className="md:col-span-2">
             <img
               src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/2bfa9a29f_RoofScribeLogo.png"
-              alt="RoofScribe Logo"
+              alt="NurturInk Logo"
               className="h-10 mb-4 filter brightness-0 invert"
             />
             <p className="text-gray-400 mb-4 max-w-md">
@@ -862,7 +862,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-          <p>&copy; 2024 RoofScribe. All rights reserved.</p>
+          <p>&copy; 2024 NurturInk. All rights reserved.</p>
         </div>
       </div>
     </footer>

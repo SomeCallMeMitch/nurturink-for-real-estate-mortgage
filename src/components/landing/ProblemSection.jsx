@@ -11,7 +11,7 @@ const variations = {
       "Then silence.",
       "Most homeowners forget 9 out of 10 roofers within a week.",
       "Not because you did anything wrong — you just blended into the inbox clutter.",
-      "RoofScribe helps you stand out with a real handwritten note that lands in their mailbox and sticks in their memory."
+      "NurturInk helps you stand out with a real handwritten note that lands in their mailbox and sticks in their memory."
     ],
     cta: "See how easy it is to stay remembered",
     icon: Brain,
@@ -25,7 +25,7 @@ const variations = {
     paragraphs: [
       "Homeowners are drowning in digital noise: ads, texts, reminders.",
       "But handwritten envelopes get opened 99% of the time — and remembered for weeks.",
-      "RoofScribe turns your digital follow-ups into personal notes that get read, felt, and acted on."
+      "NurturInk turns your digital follow-ups into personal notes that get read, felt, and acted on."
     ],
     stat: {
       number: "99%",
@@ -44,7 +44,7 @@ const variations = {
     paragraphs: [
       "Mike, a roofing rep from Ohio, had a great estimate call. The homeowner loved the pitch… then hired someone else.",
       "The difference? That roofer sent a handwritten thank-you note the next day.",
-      "RoofScribe makes sure you're the one homeowners remember — with zero extra effort."
+      "NurturInk makes sure you're the one homeowners remember — with zero extra effort."
     ],
     quote: {
       text: "I thought our estimate was solid. Turns out, their thank-you card was better than our follow-up email.",

@@ -185,7 +185,7 @@ export default function AcceptInvitation() {
         <CardHeader className="text-center pb-2">
           <img 
             src="/logo.png"
-            alt="RoofScribe" 
+            alt="NurturInk" 
             className="h-12 mx-auto"
             onError={(e) => {
               // Fallback if logo doesn't load

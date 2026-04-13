@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
       return Response.json({
         success: true,
         settings: {
-          brandName: 'RoofScribe',
+          brandName: 'NurturInk',
           logoUrl: null,
           faviconUrl: null,
           primaryColor: '#4F46E5',
