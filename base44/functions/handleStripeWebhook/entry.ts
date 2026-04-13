@@ -117,9 +117,20 @@ Deno.serve(async (req) => {
         }
         console.log('✅ [IDEMPOTENCY] No existing transaction found — safe to proceed');
       } catch (idempotencyCheckError) {
-        // Log the failure but do NOT block the webhook — a failed check is less risky
-        // than silently dropping a legitimate payment event.
-        console.error('⚠️ [IDEMPOTENCY] Check failed, proceeding with caution:', idempotencyCheckError.message);
+        // BATCH2-REVISED: Fail-CLOSED on dedupe check failure.
+        // Rationale: If the SDK/database call to check for an existing Transaction fails
+        // (e.g., transient error), we cannot safely determine whether this payment has
+        // already been credited. The fail-open approach risked double-crediting on retries.
+        //
+        // Stripe retries webhooks up to ~15 times over 72 hours, so returning a 500 here
+        // guarantees the event will be redelivered once the transient issue resolves.
+        // The customer will receive their credits on the next successful attempt.
+        // Worst-case delay: a few minutes. Worst-case fail-open: real money lost.
+        console.error('[IDEMPOTENCY] Dedupe check FAILED — returning 500 to let Stripe retry:', idempotencyCheckError.message);
+        return Response.json({
+          error: 'Idempotency check failed — will retry',
+          retryable: true
+        }, { status: 500 });
       }
 
       // Load organization if company purchase
