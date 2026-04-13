@@ -464,22 +464,58 @@ Deno.serve(async (req) => {
     // ============================================================
     // DEDUCT CREDITS
     // ============================================================
-    
+
     const successfulSends = processedMailings.length;
     let actualFromCompanyAllocated = 0;
     let actualFromCompanyPool = 0;
     let actualFromPersonalPurchased = 0;
-    
+
     if (successfulSends > 0) {
+      // BATCH3-B: Fresh-read user and org balances immediately before deduction.
+      // The client processing loop above may have taken significant time; balances
+      // may have changed due to concurrent allocations or other sends.
+      const [freshUsers, freshOrgsArr] = await Promise.all([
+        base44.asServiceRole.entities.User.filter({ id: user.id }),
+        organization ? base44.asServiceRole.entities.Organization.filter({ id: organization.id }) : Promise.resolve([])
+      ]);
+
+      const freshUser = freshUsers?.[0] || user;
+      const freshOrg = freshOrgsArr?.[0] || organization;
+
+      const freshCompanyAllocated = freshUser.companyAllocatedCredits || 0;
+      const freshCompanyPool = (canAccessCompanyPool && freshOrg) ? (freshOrg.creditBalance || 0) : 0;
+      const freshPersonalPurchased = freshUser.personalPurchasedCredits || 0;
+      const freshTotal = freshCompanyAllocated + freshCompanyPool + freshPersonalPurchased;
+
+      // Detect and log shortfall between stale plan and fresh reality
+      if (freshTotal < successfulSends) {
+        const shortfall = successfulSends - freshTotal;
+        console.warn(`[BATCH3][processMailingBatch] SHORTFALL: needed=${successfulSends}, freshAvailable=${freshTotal}, shortfall=${shortfall}`);
+        await base44.asServiceRole.entities.CreditReconciliationLog.create({
+          functionName: 'processMailingBatch',
+          batchId: mailingBatchId,
+          userId: user.id,
+          orgId: user.orgId,
+          expectedDeduction: successfulSends,
+          freshBalance: freshTotal,
+          shortfallAmount: shortfall,
+          resolvedAmount: freshTotal,
+          action: 'partial_deduction',
+          notes: `Credit balance changed during client processing loop. Planned to deduct ${successfulSends}, fresh total available ${freshTotal}. Deducting ${freshTotal} (what is available).`,
+          timestamp: new Date().toISOString()
+        }).catch(logErr => console.error('[BATCH3][processMailingBatch] CreditReconciliationLog write failed:', logErr.message));
+      }
+
+      // Recalculate deduction plan from FRESH values
       let remainingToDeduct = successfulSends;
-      
-      if (fromCompanyAllocated > 0) {
-        actualFromCompanyAllocated = Math.min(fromCompanyAllocated, remainingToDeduct);
+
+      if (fromCompanyAllocated > 0 && freshCompanyAllocated > 0) {
+        actualFromCompanyAllocated = Math.min(fromCompanyAllocated, freshCompanyAllocated, remainingToDeduct);
         remainingToDeduct -= actualFromCompanyAllocated;
-        
-        const newBalance = companyAllocatedCredits - actualFromCompanyAllocated;
+
+        const newBalance = freshCompanyAllocated - actualFromCompanyAllocated;
         await base44.asServiceRole.entities.User.update(user.id, { companyAllocatedCredits: newBalance });
-        
+
         await base44.asServiceRole.entities.Transaction.create({
           fromAccountType: 'organization', fromAccountId: user.orgId,
           toAccountId: user.id, toAccountType: 'user',
@@ -487,34 +523,34 @@ Deno.serve(async (req) => {
           type: 'deduction', amount: -actualFromCompanyAllocated,
           balanceAfter: newBalance, balanceType: 'user',
           description: `Sent ${actualFromCompanyAllocated} handwritten note(s) (company-allocated)`,
-          metadata: { mailingBatchId, noteCount: actualFromCompanyAllocated, source: 'company_allocated' }
+          metadata: { mailingBatchId, noteCount: actualFromCompanyAllocated, source: 'company_allocated', freshRead: true }
         });
       }
-      
-      if (remainingToDeduct > 0 && fromCompanyPool > 0 && organization) {
-        actualFromCompanyPool = Math.min(fromCompanyPool, remainingToDeduct);
+
+      if (remainingToDeduct > 0 && fromCompanyPool > 0 && freshCompanyPool > 0 && freshOrg) {
+        actualFromCompanyPool = Math.min(fromCompanyPool, freshCompanyPool, remainingToDeduct);
         remainingToDeduct -= actualFromCompanyPool;
-        
-        const newBalance = companyPoolCredits - actualFromCompanyPool;
-        await base44.asServiceRole.entities.Organization.update(organization.id, { creditBalance: newBalance });
-        
+
+        const newBalance = freshCompanyPool - actualFromCompanyPool;
+        await base44.asServiceRole.entities.Organization.update(freshOrg.id, { creditBalance: newBalance });
+
         await base44.asServiceRole.entities.Transaction.create({
-          fromAccountType: 'organization', fromAccountId: organization.id,
+          fromAccountType: 'organization', fromAccountId: freshOrg.id,
           toAccountId: user.id, toAccountType: 'user',
           orgId: user.orgId, userId: user.id,
           type: 'deduction', amount: -actualFromCompanyPool,
           balanceAfter: newBalance, balanceType: 'organization',
           description: `Sent ${actualFromCompanyPool} handwritten note(s) (company pool)`,
-          metadata: { mailingBatchId, noteCount: actualFromCompanyPool, source: 'company_pool' }
+          metadata: { mailingBatchId, noteCount: actualFromCompanyPool, source: 'company_pool', freshRead: true }
         });
       }
-      
-      if (remainingToDeduct > 0 && fromPersonalPurchased > 0) {
-        actualFromPersonalPurchased = Math.min(fromPersonalPurchased, remainingToDeduct);
-        
-        const newBalance = personalPurchasedCredits - actualFromPersonalPurchased;
+
+      if (remainingToDeduct > 0 && fromPersonalPurchased > 0 && freshPersonalPurchased > 0) {
+        actualFromPersonalPurchased = Math.min(fromPersonalPurchased, freshPersonalPurchased, remainingToDeduct);
+
+        const newBalance = freshPersonalPurchased - actualFromPersonalPurchased;
         await base44.asServiceRole.entities.User.update(user.id, { personalPurchasedCredits: newBalance });
-        
+
         await base44.asServiceRole.entities.Transaction.create({
           fromAccountType: 'user', fromAccountId: user.id,
           toAccountId: user.id, toAccountType: 'user',
@@ -522,11 +558,11 @@ Deno.serve(async (req) => {
           type: 'deduction', amount: -actualFromPersonalPurchased,
           balanceAfter: newBalance, balanceType: 'user',
           description: `Sent ${actualFromPersonalPurchased} handwritten note(s) (personal)`,
-          metadata: { mailingBatchId, noteCount: actualFromPersonalPurchased, source: 'personal_purchased' }
+          metadata: { mailingBatchId, noteCount: actualFromPersonalPurchased, source: 'personal_purchased', freshRead: true }
         });
       }
     }
-    
+
     const creditsUsed = actualFromCompanyAllocated + actualFromCompanyPool + actualFromPersonalPurchased;
     
     // ============================================================

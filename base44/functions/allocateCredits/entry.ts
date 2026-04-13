@@ -167,25 +167,61 @@ Deno.serve(async (req) => {
       .filter(r => r.success)
       .reduce((sum, r) => sum + r.amount, 0);
 
-    const newOrgBalance = currentOrgBalance - actualAllocated;
+    // BATCH3-A: Fresh-read org balance immediately before deduction.
+    // This closes the read-then-write window between the initial balance check and the org update.
+    //
+    // INTENDED FAILURE CONTRACT: Individual user credit updates are already committed above.
+    // If the fresh org balance is less than actualAllocated, we CAP the org deduction at
+    // what is available. Users retain their credited amounts. The discrepancy is written
+    // to CreditReconciliationLog for manual review — it is NOT silently ignored.
+    let resolvedOrgDeduction = actualAllocated;
+    let freshOrgBalance = currentOrgBalance;
 
-    // Only deduct org balance and create org-level transaction if something was actually allocated
     if (actualAllocated > 0) {
+      const freshOrgs = await base44.asServiceRole.entities.Organization.filter({ id: organization.id });
+      freshOrgBalance = freshOrgs?.[0]?.creditBalance ?? currentOrgBalance;
+
+      if (freshOrgBalance < actualAllocated) {
+        const shortfall = actualAllocated - freshOrgBalance;
+        resolvedOrgDeduction = freshOrgBalance; // cap deduction at what is available
+        console.warn(`[BATCH3][allocateCredits] SHORTFALL DETECTED: expected=${actualAllocated}, freshBalance=${freshOrgBalance}, shortfall=${shortfall}, resolvedDeduction=${resolvedOrgDeduction}`);
+
+        // Write shortfall event to CreditReconciliationLog for audit/manual review.
+        // This is the explicit logging required by the Batch 3 contract.
+        await base44.asServiceRole.entities.CreditReconciliationLog.create({
+          functionName: 'allocateCredits',
+          userId: user.id,
+          orgId: user.orgId,
+          expectedDeduction: actualAllocated,
+          freshBalance: freshOrgBalance,
+          shortfallAmount: shortfall,
+          resolvedAmount: resolvedOrgDeduction,
+          action: 'capped_deduction',
+          notes: `Org balance changed between initial check (${currentOrgBalance}) and deduction write. Users credited for ${actualAllocated} credits; org deducted for ${resolvedOrgDeduction}. Shortfall of ${shortfall} credits requires manual review.`,
+          timestamp: new Date().toISOString()
+        }).catch(logErr => console.error('[BATCH3][allocateCredits] CreditReconciliationLog write failed:', logErr.message));
+      }
+    }
+
+    const newOrgBalance = freshOrgBalance - resolvedOrgDeduction;
+
+    // Only deduct org balance and create org-level transaction if something was resolved
+    if (resolvedOrgDeduction > 0) {
       await base44.asServiceRole.entities.Organization.update(organization.id, { creditBalance: newOrgBalance });
 
       await base44.asServiceRole.entities.Transaction.create({
         orgId: user.orgId,
         userId: user.id,
         type: 'allocation_out',
-        amount: -actualAllocated,
+        amount: -resolvedOrgDeduction,
         balanceAfter: newOrgBalance,
         balanceType: 'organization',
-        description: `Allocated ${actualAllocated} credits to team members`,
+        description: `Allocated ${resolvedOrgDeduction} credits to team members`,
         fromAccountId: organization.id,
         fromAccountType: 'company',
         toAccountId: user.id,
         toAccountType: 'user',
-        metadata: { allocationCount: allocationResults.filter(r => r.success).length, allocations }
+        metadata: { allocationCount: allocationResults.filter(r => r.success).length, allocations, resolvedFromFreshRead: true }
       });
     } else {
       console.warn('[allocateCredits] No credits actually allocated — org balance unchanged');

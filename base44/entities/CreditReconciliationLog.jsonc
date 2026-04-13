@@ -1,0 +1,70 @@
+{
+  "name": "CreditReconciliationLog",
+  "type": "object",
+  "description": "BATCH3-D: Audit log for credit shortfall events detected during fresh-read operations. Written whenever a balance changed between the initial check and the actual write. Zero UX impact \u2014 internal safety net only.",
+  "properties": {
+    "functionName": {
+      "type": "string",
+      "description": "Backend function that detected the shortfall (e.g., 'allocateCredits', 'processMailingBatch', 'transferCreditsToPool')"
+    },
+    "batchId": {
+      "type": "string",
+      "nullable": true,
+      "description": "MailingBatch ID if the event originated from processMailingBatch"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User ID associated with the credit operation"
+    },
+    "orgId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization ID associated with the credit operation"
+    },
+    "expectedDeduction": {
+      "type": "number",
+      "description": "Credits planned to be deducted based on the initial (stale) balance read"
+    },
+    "freshBalance": {
+      "type": "number",
+      "description": "Actual balance as of the fresh-read immediately before the write"
+    },
+    "shortfallAmount": {
+      "type": "number",
+      "description": "Difference between expectedDeduction and freshBalance (expectedDeduction - freshBalance). Positive = shortfall."
+    },
+    "resolvedAmount": {
+      "type": "number",
+      "description": "Credits actually deducted after capping at the fresh balance. Zero if the operation was rejected."
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "capped_deduction",
+        "partial_deduction",
+        "rejected_insufficient_fresh"
+      ],
+      "description": "How the shortfall was handled: capped_deduction = deducted less than planned; partial_deduction = deducted what was available; rejected_insufficient_fresh = operation aborted"
+    },
+    "notes": {
+      "type": "string",
+      "nullable": true,
+      "description": "Human-readable description of the shortfall event for manual review"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO timestamp when the shortfall was detected"
+    }
+  },
+  "required": [
+    "functionName",
+    "userId",
+    "expectedDeduction",
+    "freshBalance",
+    "shortfallAmount",
+    "resolvedAmount",
+    "action",
+    "timestamp"
+  ]
+}

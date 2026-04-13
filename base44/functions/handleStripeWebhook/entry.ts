@@ -27,6 +27,17 @@ Deno.serve(async (req) => {
     let event;
 
     if (DEV_MODE) {
+      // BATCH3-E: Production safeguard — hard-fail if STRIPE_DEV_MODE=true in a production environment.
+      // This prevents the signature-bypass path from being active on live payments.
+      // To resolve: set STRIPE_DEV_MODE=false (or remove the env var) in production.
+      const appEnv = (Deno.env.get('APP_ENV') || '').toLowerCase();
+      if (appEnv === 'production') {
+        console.error('[BATCH3-E][STRIPE_WEBHOOK] FATAL: STRIPE_DEV_MODE=true detected with APP_ENV=production. Signature validation bypass is NOT permitted in production. Aborting.');
+        return Response.json({
+          error: 'Dev mode signature bypass is not permitted in a production environment',
+          code: 'DEV_MODE_BLOCKED_IN_PRODUCTION'
+        }, { status: 500 });
+      }
       console.warn('⚠️⚠️⚠️ DEVELOPMENT MODE: SKIPPING SIGNATURE VALIDATION ⚠️⚠️⚠️');
       try {
         event = JSON.parse(body);
