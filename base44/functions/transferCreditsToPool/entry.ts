@@ -155,6 +155,7 @@ Deno.serve(async (req) => {
       console.warn(`[BATCH3][transferCreditsToPool] CONFLICT: stale=${currentPersonalCredits}, fresh=${freshPersonalBalance}, requested=${amount}`);
       await base44.asServiceRole.entities.CreditReconciliationLog.create({
         functionName: 'transferCreditsToPool',
+        mailingBatchId: null, // not applicable for this function
         userId: user.id,
         orgId: user.orgId,
         expectedDeduction: amount,
@@ -163,7 +164,8 @@ Deno.serve(async (req) => {
         resolvedAmount: 0,
         action: 'rejected_insufficient_fresh',
         notes: `Transfer rejected: stale balance check showed ${currentPersonalCredits} available but fresh read shows ${freshPersonalBalance}. Request for ${amount} credits denied to prevent overdraft.`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        resolved: false
       }).catch(logErr => console.error('[BATCH3][transferCreditsToPool] CreditReconciliationLog write failed:', logErr.message));
 
       return Response.json({

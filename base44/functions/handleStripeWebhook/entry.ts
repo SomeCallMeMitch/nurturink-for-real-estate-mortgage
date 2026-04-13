@@ -27,17 +27,31 @@ Deno.serve(async (req) => {
     let event;
 
     if (DEV_MODE) {
-      // BATCH3-E: Production safeguard — hard-fail if STRIPE_DEV_MODE=true in a production environment.
-      // This prevents the signature-bypass path from being active on live payments.
-      // To resolve: set STRIPE_DEV_MODE=false (or remove the env var) in production.
+      // BATCH3-E (REVISED): Two independent production safeguards, both block with HTTP 500.
+      // Safeguard 1: Block if APP_ENV=production (environment-based check).
+      // Safeguard 2: Block if STRIPE_SECRET_KEY starts with sk_live_ (key-based check).
+      // Either condition alone is sufficient to abort — they are evaluated separately
+      // so that a misconfigured environment is caught even if one variable is absent.
       const appEnv = (Deno.env.get('APP_ENV') || '').toLowerCase();
+      const stripeKey = Deno.env.get('STRIPE_SECRET_KEY') || '';
+      const isLiveKey = stripeKey.startsWith('sk_live_');
+
       if (appEnv === 'production') {
-        console.error('[BATCH3-E][STRIPE_WEBHOOK] FATAL: STRIPE_DEV_MODE=true detected with APP_ENV=production. Signature validation bypass is NOT permitted in production. Aborting.');
+        console.error('[BATCH3-E] FATAL: STRIPE_DEV_MODE=true detected with APP_ENV=production. Signature bypass is NOT permitted in production. Set STRIPE_DEV_MODE=false to resolve.');
         return Response.json({
-          error: 'Dev mode signature bypass is not permitted in a production environment',
+          error: 'Development mode signature bypass is not permitted when APP_ENV=production.',
           code: 'DEV_MODE_BLOCKED_IN_PRODUCTION'
         }, { status: 500 });
       }
+
+      if (isLiveKey) {
+        console.error('[BATCH3-E] FATAL: STRIPE_DEV_MODE=true detected with a live Stripe secret key (sk_live_...). Signature bypass is NOT permitted with live credentials. Set STRIPE_DEV_MODE=false to resolve.');
+        return Response.json({
+          error: 'Development mode signature bypass is not permitted when using a live Stripe secret key (sk_live_...).',
+          code: 'DEV_MODE_BLOCKED_WITH_LIVE_KEY'
+        }, { status: 500 });
+      }
+
       console.warn('⚠️⚠️⚠️ DEVELOPMENT MODE: SKIPPING SIGNATURE VALIDATION ⚠️⚠️⚠️');
       try {
         event = JSON.parse(body);

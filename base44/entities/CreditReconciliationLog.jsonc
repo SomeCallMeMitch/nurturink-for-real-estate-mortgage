@@ -1,16 +1,16 @@
 {
   "name": "CreditReconciliationLog",
   "type": "object",
-  "description": "BATCH3-D: Audit log for credit shortfall events detected during fresh-read operations. Written whenever a balance changed between the initial check and the actual write. Zero UX impact \u2014 internal safety net only.",
+  "description": "BATCH3-D: Audit log for credit shortfall events detected during fresh-read operations. Written whenever a balance changed between the initial check and the actual write. Zero UX impact \u2014 internal safety net only. Resolution fields allow admins to mark events as reviewed.",
   "properties": {
     "functionName": {
       "type": "string",
       "description": "Backend function that detected the shortfall (e.g., 'allocateCredits', 'processMailingBatch', 'transferCreditsToPool')"
     },
-    "batchId": {
+    "mailingBatchId": {
       "type": "string",
       "nullable": true,
-      "description": "MailingBatch ID if the event originated from processMailingBatch"
+      "description": "MailingBatch ID if the event originated from processMailingBatch. Null for all other functions."
     },
     "userId": {
       "type": "string",
@@ -31,7 +31,7 @@
     },
     "shortfallAmount": {
       "type": "number",
-      "description": "Difference between expectedDeduction and freshBalance (expectedDeduction - freshBalance). Positive = shortfall."
+      "description": "Difference: expectedDeduction minus freshBalance. Positive = shortfall detected."
     },
     "resolvedAmount": {
       "type": "number",
@@ -44,17 +44,38 @@
         "partial_deduction",
         "rejected_insufficient_fresh"
       ],
-      "description": "How the shortfall was handled: capped_deduction = deducted less than planned; partial_deduction = deducted what was available; rejected_insufficient_fresh = operation aborted"
+      "description": "How the shortfall was handled: capped_deduction = org pool deducted less than planned (allocateCredits); partial_deduction = deducted what was available across sources (processMailingBatch); rejected_insufficient_fresh = operation aborted before any write (transferCreditsToPool)"
     },
     "notes": {
       "type": "string",
       "nullable": true,
-      "description": "Human-readable description of the shortfall event for manual review"
+      "description": "Human-readable description of the shortfall event including both stale and fresh balance values, for manual review"
     },
     "timestamp": {
       "type": "string",
       "format": "date-time",
       "description": "ISO timestamp when the shortfall was detected"
+    },
+    "resolved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this reconciliation event has been reviewed and closed by an administrator"
+    },
+    "resolvedBy": {
+      "type": "string",
+      "nullable": true,
+      "description": "User ID of the administrator who marked this event as resolved"
+    },
+    "resolvedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "ISO timestamp when the event was marked as resolved"
+    },
+    "resolutionNotes": {
+      "type": "string",
+      "nullable": true,
+      "description": "Administrator notes describing how the discrepancy was investigated and what corrective action (if any) was taken"
     }
   },
   "required": [

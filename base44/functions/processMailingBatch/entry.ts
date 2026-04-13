@@ -471,9 +471,11 @@ Deno.serve(async (req) => {
     let actualFromPersonalPurchased = 0;
 
     if (successfulSends > 0) {
-      // BATCH3-B: Fresh-read user and org balances immediately before deduction.
-      // The client processing loop above may have taken significant time; balances
-      // may have changed due to concurrent allocations or other sends.
+      // BATCH3-B (REVISED): Fresh-read user and org balances immediately before deduction.
+      // IMPORTANT: Stale-plan variables (fromCompanyAllocated, fromCompanyPool, fromPersonalPurchased)
+      // are intentionally NOT used as caps here. The waterfall is recalculated PURELY from fresh
+      // balances to prevent incorrect source mix and under-deduction if balances changed during
+      // the client processing loop above.
       const [freshUsers, freshOrgsArr] = await Promise.all([
         base44.asServiceRole.entities.User.filter({ id: user.id }),
         organization ? base44.asServiceRole.entities.Organization.filter({ id: organization.id }) : Promise.resolve([])
@@ -482,6 +484,7 @@ Deno.serve(async (req) => {
       const freshUser = freshUsers?.[0] || user;
       const freshOrg = freshOrgsArr?.[0] || organization;
 
+      // Fresh source balances — no stale plan variables involved
       const freshCompanyAllocated = freshUser.companyAllocatedCredits || 0;
       const freshCompanyPool = (canAccessCompanyPool && freshOrg) ? (freshOrg.creditBalance || 0) : 0;
       const freshPersonalPurchased = freshUser.personalPurchasedCredits || 0;
@@ -493,24 +496,28 @@ Deno.serve(async (req) => {
         console.warn(`[BATCH3][processMailingBatch] SHORTFALL: needed=${successfulSends}, freshAvailable=${freshTotal}, shortfall=${shortfall}`);
         await base44.asServiceRole.entities.CreditReconciliationLog.create({
           functionName: 'processMailingBatch',
-          batchId: mailingBatchId,
+          mailingBatchId: mailingBatchId,
           userId: user.id,
           orgId: user.orgId,
           expectedDeduction: successfulSends,
           freshBalance: freshTotal,
           shortfallAmount: shortfall,
-          resolvedAmount: freshTotal,
+          resolvedAmount: freshTotal, // will deduct only what's available
           action: 'partial_deduction',
-          notes: `Credit balance changed during client processing loop. Planned to deduct ${successfulSends}, fresh total available ${freshTotal}. Deducting ${freshTotal} (what is available).`,
-          timestamp: new Date().toISOString()
+          notes: `Credit balance changed during client processing loop. Planned to deduct ${successfulSends} credits; fresh total available is ${freshTotal} (companyAllocated=${freshCompanyAllocated}, companyPool=${freshCompanyPool}, personal=${freshPersonalPurchased}). Deducting ${freshTotal}.`,
+          timestamp: new Date().toISOString(),
+          resolved: false
         }).catch(logErr => console.error('[BATCH3][processMailingBatch] CreditReconciliationLog write failed:', logErr.message));
       }
 
-      // Recalculate deduction plan from FRESH values
+      // REVISED WATERFALL: Recalculate purely from fresh balances.
+      // Business rule order: company allocated → company pool → personal purchased.
+      // No stale plan variables used as caps from this point forward.
       let remainingToDeduct = successfulSends;
 
-      if (fromCompanyAllocated > 0 && freshCompanyAllocated > 0) {
-        actualFromCompanyAllocated = Math.min(fromCompanyAllocated, freshCompanyAllocated, remainingToDeduct);
+      // 1. Company allocated credits (highest priority)
+      if (remainingToDeduct > 0 && freshCompanyAllocated > 0) {
+        actualFromCompanyAllocated = Math.min(freshCompanyAllocated, remainingToDeduct);
         remainingToDeduct -= actualFromCompanyAllocated;
 
         const newBalance = freshCompanyAllocated - actualFromCompanyAllocated;
@@ -527,8 +534,9 @@ Deno.serve(async (req) => {
         });
       }
 
-      if (remainingToDeduct > 0 && fromCompanyPool > 0 && freshCompanyPool > 0 && freshOrg) {
-        actualFromCompanyPool = Math.min(fromCompanyPool, freshCompanyPool, remainingToDeduct);
+      // 2. Company pool credits (second priority)
+      if (remainingToDeduct > 0 && freshCompanyPool > 0 && freshOrg) {
+        actualFromCompanyPool = Math.min(freshCompanyPool, remainingToDeduct);
         remainingToDeduct -= actualFromCompanyPool;
 
         const newBalance = freshCompanyPool - actualFromCompanyPool;
@@ -545,8 +553,9 @@ Deno.serve(async (req) => {
         });
       }
 
-      if (remainingToDeduct > 0 && fromPersonalPurchased > 0 && freshPersonalPurchased > 0) {
-        actualFromPersonalPurchased = Math.min(fromPersonalPurchased, freshPersonalPurchased, remainingToDeduct);
+      // 3. Personal purchased credits (lowest priority)
+      if (remainingToDeduct > 0 && freshPersonalPurchased > 0) {
+        actualFromPersonalPurchased = Math.min(freshPersonalPurchased, remainingToDeduct);
 
         const newBalance = freshPersonalPurchased - actualFromPersonalPurchased;
         await base44.asServiceRole.entities.User.update(user.id, { personalPurchasedCredits: newBalance });

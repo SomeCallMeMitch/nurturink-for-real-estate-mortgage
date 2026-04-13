@@ -190,6 +190,7 @@ Deno.serve(async (req) => {
         // This is the explicit logging required by the Batch 3 contract.
         await base44.asServiceRole.entities.CreditReconciliationLog.create({
           functionName: 'allocateCredits',
+          mailingBatchId: null, // not applicable for this function
           userId: user.id,
           orgId: user.orgId,
           expectedDeduction: actualAllocated,
@@ -198,7 +199,8 @@ Deno.serve(async (req) => {
           resolvedAmount: resolvedOrgDeduction,
           action: 'capped_deduction',
           notes: `Org balance changed between initial check (${currentOrgBalance}) and deduction write. Users credited for ${actualAllocated} credits; org deducted for ${resolvedOrgDeduction}. Shortfall of ${shortfall} credits requires manual review.`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          resolved: false
         }).catch(logErr => console.error('[BATCH3][allocateCredits] CreditReconciliationLog write failed:', logErr.message));
       }
     }
