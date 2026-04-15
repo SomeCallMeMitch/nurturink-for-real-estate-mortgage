@@ -18,6 +18,15 @@ export default function SuperAdminLayout({ children }) {
    *             isOrgOwner branch REMOVED entirely per R-01 decision:
    *               "Treat as legacy dead code. SuperAdminLayout is gated for super_admin only."
    */
+  // BATCH4-B2 cleanup: explicit loading guard while AuthContext resolves
+  if (isLoadingAuth) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
   const isSuperAdmin = user?.appRole === 'super_admin';
 
   // Build menu only for super admins
