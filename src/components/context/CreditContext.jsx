@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { calculateTotalAvailableCredits, getCreditBreakdown } from '@/components/utils/creditHelpers';
+// BATCH4-B3: AuthContext used for initial hydration only — refreshCredits() still does its own fresh reads
+import { useAuth } from '@/lib/AuthContext';
 
 /**
  * CreditContext
@@ -14,15 +16,42 @@ import { calculateTotalAvailableCredits, getCreditBreakdown } from '@/components
 const CreditContext = createContext(null);
 
 export function CreditProvider({ children }) {
-  // Core state
+  // BATCH4-B3: AuthContext provides initial user/org for hydration.
+  // This avoids a redundant auth.me() call on mount.
+  const { user: authUser, organization: authOrg, isLoadingAuth } = useAuth();
+
+  // Core state — seeded from AuthContext on first render
   const [user, setUser] = useState(null);
   const [organization, setOrganization] = useState(null);
+  // Start loading=true; flip to false once AuthContext has finished its own load
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastRefreshed, setLastRefreshed] = useState(null);
 
   /**
-   * Fetch fresh credit data from the API
+   * BATCH4-B3: Hydrate from AuthContext once it has finished loading.
+   * This replaces the former init() useEffect that called auth.me() directly.
+   * refreshCredits() still does its own fresh reads — see below.
+   */
+  useEffect(() => {
+    if (isLoadingAuth) return; // Wait for AuthContext to finish
+
+    // AuthContext is done — seed our local state from it
+    setUser(authUser ?? null);
+    setOrganization(authOrg ?? null);
+    setLoading(false);
+    if (authUser) {
+      setLastRefreshed(new Date());
+    }
+  }, [isLoadingAuth, authUser, authOrg]);
+
+  /**
+   * refreshCredits — INTENTIONALLY does its own fresh reads via auth.me() +
+   * Organization.filter(). This is the guaranteed-fresh path after any
+   * credit-mutating action (send, purchase, allocation, refund, etc.).
+   * Do NOT replace these calls with AuthContext.refreshUser() — keeping them
+   * separate prevents re-render cascades and ensures CreditContext owns its
+   * own credit freshness after mutations.
    */
   const refreshCredits = useCallback(async () => {
     try {
@@ -48,26 +77,6 @@ export function CreditProvider({ children }) {
       setLoading(false);
     }
   }, []);
-
-  /**
-   * Initialize credit data on mount
-   */
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const isAuth = await base44.auth.isAuthenticated();
-        if (isAuth) {
-          await refreshCredits();
-        } else {
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error('CreditContext: Init failed:', err);
-        setLoading(false);
-      }
-    };
-    init();
-  }, [refreshCredits]);
 
   /**
    * Calculate total available credits using centralized helper

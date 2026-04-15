@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { AppSidebar } from "./AppSidebar";
 import LeftSidebar from "./LeftSidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { base44 } from "@/api/base44Client";
 import { Loader2 } from "lucide-react";
+// BATCH4-B1: user now comes from AuthContext — no direct auth.me() call needed here
+import { useAuth } from "@/lib/AuthContext";
 
 /**
  * Converts a hex color to HSL values string for Tailwind
@@ -410,31 +411,17 @@ function generateWhitelabelCSS(settings) {
 }
 
 export default function MainLayout({ children, whitelabelSettings }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const u = await base44.auth.me();
-        console.log("MainLayout: Fetched user:", u);
-        setUser(u);
-      } catch (e) {
-        console.error("MainLayout: Failed to fetch user:", e);
-        setUser({});
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkUser();
-  }, []);
+  // BATCH4-B1: user and auth loading state now sourced from AuthContext.
+  // whitelabelSettings prop is still received from Layout.jsx and passed down unchanged.
+  const { user, isLoadingAuth } = useAuth();
 
   // ALWAYS generate CSS - use defaults if no settings provided
   const whitelabelStyles = (
     <style>{generateWhitelabelCSS(whitelabelSettings || {})}</style>
   );
 
-  if (loading) {
+  // Guard while AuthContext is still resolving the initial auth check
+  if (isLoadingAuth) {
     return (
       <>
         {whitelabelStyles}
@@ -447,19 +434,7 @@ export default function MainLayout({ children, whitelabelSettings }) {
 
   const isSuperAdmin = user?.appRole === "super_admin";
 
-  console.log(
-    "MainLayout Render: user:",
-    user,
-    "isSuperAdmin:",
-    isSuperAdmin,
-    "role:",
-    user?.appRole,
-    "whitelabelSettings:",
-    whitelabelSettings
-  );
-
   if (isSuperAdmin) {
-    console.log("MainLayout: Rendering AppSidebar (Super Admin)");
     return (
       <>
         {whitelabelStyles}
@@ -476,7 +451,6 @@ export default function MainLayout({ children, whitelabelSettings }) {
   }
 
   // Regular User Layout - Simple Sidebar
-  console.log("MainLayout: Rendering LeftSidebar (Regular User)");
   return (
     <>
       {whitelabelStyles}

@@ -1,24 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import React from "react";
+// BATCH4-B2: user now comes from AuthContext — no direct auth.me() call needed here
+import { useAuth } from "@/lib/AuthContext";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Settings, LayoutGrid, Mail, Shield, Home, Layout, DollarSign, Tag, Send, RefreshCcw, Inbox } from "lucide-react";
 
 export default function SuperAdminLayout({ children }) {
-  const [user, setUser] = useState(null);
+  // BATCH4-B2: user now sourced from AuthContext — local auth.me() call removed
+  const { user, isLoadingAuth } = useAuth();
   const location = useLocation();
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-      }
-    };
-    fetchUser();
-  }, []);
 
   /*
    * PHASE 2 / BATCH 5 / F-07 / M-06:
@@ -62,7 +52,8 @@ export default function SuperAdminLayout({ children }) {
               </h1>
             </div>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">{user?.full_name}</span>
+              {/* BATCH4-B2: fullName is the canonical Base44 field; full_name kept as fallback */}
+              <span className="text-sm text-gray-600">{user?.fullName || user?.full_name}</span>
               <Link
                 to={createPageUrl('Home')}
                 className="text-sm text-indigo-600 hover:text-indigo-700"
