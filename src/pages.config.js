@@ -117,7 +117,6 @@ import TeamManagement from './pages/TeamManagement';
 import TemplatePreview from './pages/TemplatePreview';
 import Templates from './pages/Templates';
 import TestEmail from './pages/TestEmail';
-import UpdateUserRole from './pages/UpdateUserRole';
 import WLDemo from './pages/WLDemo';
 import Welcome from './pages/Welcome';
 import WelcomeRoof from './pages/WelcomeRoof';
@@ -197,7 +196,6 @@ export const PAGES = {
     "TemplatePreview": TemplatePreview,
     "Templates": Templates,
     "TestEmail": TestEmail,
-    "UpdateUserRole": UpdateUserRole,
     "WLDemo": WLDemo,
     "Welcome": Welcome,
     "WelcomeRoof": WelcomeRoof,
