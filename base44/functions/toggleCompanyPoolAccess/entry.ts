@@ -3,7 +3,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 /**
  * Toggle company pool access for a team member
  * 
- * Organization owners can enable/disable whether a team member
+ * Organization owners and managers can enable/disable whether a team member
  * can draw from the organization's credit pool when their
  * allocated and personal credits are exhausted.
  */
@@ -17,13 +17,11 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Verify user is organization owner
+    // Verify user is organization owner or manager
     const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
-    if (!isOrgOwner) {
-      return Response.json(
-        { error: 'Only organization owners can manage company pool access' },
-        { status: 403 }
-      );
+    const isOrgManager = user.appRole === 'organization_manager';
+    if (!isOrgOwner && !isOrgManager) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
     
     // Parse request body
@@ -61,10 +59,7 @@ Deno.serve(async (req) => {
     
     // Verify target user belongs to same organization
     if (targetUser.orgId !== user.orgId) {
-      return Response.json(
-        { error: 'User does not belong to your organization' },
-        { status: 403 }
-      );
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
     
     // Prevent org owner from modifying their own access
