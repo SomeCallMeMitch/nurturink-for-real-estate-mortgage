@@ -85,13 +85,10 @@ Deno.serve(async (req) => {
         : `${targetUser.full_name} can no longer access the company pool`
     });
     
-  } catch (error) {
-    console.error('Error in toggleCompanyPoolAccess:', error);
+  } catch (_error) {
+    console.error('[toggleCompanyPoolAccess] Unexpected error');
     return Response.json(
-      { 
-        error: error.message || 'Failed to toggle company pool access',
-        details: error.stack
-      },
+      { error: 'Failed to toggle company pool access' },
       { status: 500 }
     );
   }
