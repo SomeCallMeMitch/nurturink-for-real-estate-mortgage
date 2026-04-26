@@ -240,10 +240,11 @@ export default function Credits() {
     
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(t => 
-        t.description.toLowerCase().includes(query) ||
-        t.type.toLowerCase().includes(query)
-      );
+      filtered = filtered.filter(t => {
+        const description = (t?.description || '').toLowerCase();
+        const type = (t?.type || '').toLowerCase();
+        return description.includes(query) || type.includes(query);
+      });
     }
     
     if (typeFilter !== 'all') {
