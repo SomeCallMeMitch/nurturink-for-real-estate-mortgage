@@ -22,10 +22,7 @@ Deno.serve(async (req) => {
     const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
 
     if (!isOrgOwner) {
-      return Response.json(
-        { error: 'Only organization owners can transfer credits to the pool' },
-        { status: 403 }
-      );
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     // Verify user has organization
