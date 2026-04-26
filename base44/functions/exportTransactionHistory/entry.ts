@@ -75,12 +75,9 @@ Deno.serve(async (req) => {
     }
     
   } catch (error) {
-    console.error('Error in exportTransactionHistory:', error);
+    console.error('[exportTransactionHistory] Unexpected error');
     return Response.json(
-      { 
-        error: error.message || 'Failed to export transaction history',
-        details: error.stack
-      },
+      { error: 'Failed to export transaction history' },
       { status: 500 }
     );
   }
