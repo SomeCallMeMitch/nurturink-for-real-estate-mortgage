@@ -9,13 +9,22 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    const isOrgOwner = user.appRole === 'organization_owner' || user.isOrgOwner === true;
+    const isOrgManager = user.appRole === 'organization_manager';
+    const canExportOrgTransactions = isOrgOwner || isOrgManager;
     
     // Parse request body
     const body = await req.json();
-    const { format = 'csv', startDate, endDate } = body;
+    const { format = 'csv', startDate, endDate, scope } = body;
     
     // Build query for transactions
-    let query = user.orgId 
+    const requestedOrgScope = scope === 'organization';
+    if (requestedOrgScope && (!user.orgId || !canExportOrgTransactions)) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const query = (requestedOrgScope || (user.orgId && canExportOrgTransactions))
       ? { orgId: user.orgId }
       : { userId: user.id };
     

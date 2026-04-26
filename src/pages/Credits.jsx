@@ -133,6 +133,7 @@ export default function Credits() {
       const isOrgOwner = currentUser.appRole === 'organization_owner' || currentUser.isOrgOwner === true;
       const isOrgManager = currentUser.appRole === 'organization_manager';
       const canManageCredits = isOrgOwner || isOrgManager;
+      const canViewOrgTransactions = isOrgOwner || isOrgManager;
       
       if (canManageCredits && currentUser.orgId) {
         try {
@@ -182,7 +183,7 @@ export default function Credits() {
       }
       
       // Load transaction history
-      const transactionQuery = currentUser.orgId 
+      const transactionQuery = (currentUser.orgId && canViewOrgTransactions)
         ? { orgId: currentUser.orgId }
         : { userId: currentUser.id };
       
@@ -209,6 +210,7 @@ export default function Credits() {
     user?.appRole === 'organization_manager' ||
     user?.isOrgOwner === true
   ) && organization;
+  const transactionScopeLabel = isCompanyView ? 'Organization' : 'Personal';
 
   // Get current balance for display - UPDATED FOR NEW SYSTEM
   const companyAllocatedBalance = user?.companyAllocatedCredits || 0;
@@ -1159,7 +1161,7 @@ export default function Credits() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-gray-600" />
-                <CardTitle>Credit History</CardTitle>
+                <CardTitle>{transactionScopeLabel} Credit History</CardTitle>
                 <span className="text-sm text-gray-500">
                   ({filteredTransactions.length} {filteredTransactions.length === 1 ? 'transaction' : 'transactions'})
                 </span>
@@ -1188,7 +1190,7 @@ export default function Credits() {
                   ) : (
                     <>
                       <Download className="w-4 h-4 mr-2" />
-                      Export CSV
+                      Export {transactionScopeLabel} CSV
                     </>
                   )}
                 </Button>
