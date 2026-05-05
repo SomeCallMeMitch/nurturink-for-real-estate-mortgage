@@ -19,7 +19,20 @@ async function fetchIndustryData(industry: string) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { industry, userId, orgId } = await req.json();
+    const { industry, userId: payloadUserId, orgId: payloadOrgId } = await req.json();
+
+    const hasPassedSeedContext = Boolean(payloadUserId && payloadOrgId);
+    let userId = payloadUserId;
+    let orgId = payloadOrgId;
+
+    if (!hasPassedSeedContext) {
+      const user = await base44.auth.me();
+      if (!user) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      userId = user.id;
+      orgId = user.orgId;
+    }
 
     if (!userId || !orgId || !industry) {
       return Response.json({ error: 'Missing userId, orgId, or industry' }, { status: 400 });
