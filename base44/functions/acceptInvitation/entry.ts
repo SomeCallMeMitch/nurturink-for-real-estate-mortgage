@@ -60,10 +60,18 @@ Deno.serve(async (req) => {
     
     // 5. Check if already accepted
     if (invitation.status === 'accepted') {
-      return Response.json({ 
-        success: false, 
-        error: 'already_accepted', 
-        message: 'This invitation has already been accepted.' 
+      return Response.json({
+        success: false,
+        error: 'already_accepted',
+        message: 'This invitation has already been accepted.'
+      }, { status: 400 });
+    }
+
+    if (invitation.status !== 'pending') {
+      return Response.json({
+        success: false,
+        error: 'invalid_state',
+        message: 'This invitation is no longer valid.'
       }, { status: 400 });
     }
     
