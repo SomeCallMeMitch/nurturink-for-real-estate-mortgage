@@ -108,6 +108,9 @@ Deno.serve(async (req) => {
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    if (user.appRole !== 'super_admin') {
+      return Response.json({ error: 'Super admin access required' }, { status: 403 });
+    }
 
     const created = [];
     const skipped = [];
