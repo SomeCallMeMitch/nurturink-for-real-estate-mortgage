@@ -19,9 +19,20 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { scheduledSendId, orgId, resetDateToToday = true } = await req.json();
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!scheduledSendId && !orgId) {
+    const userOrgId = user.orgId;
+    const isOwnerOrManager = ['organization_owner', 'organization_manager'].includes(user.role) || user.isOrgOwner === true;
+    if (!userOrgId || !isOwnerOrManager) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    const { scheduledSendId, orgId: _ignoredOrgId, resetDateToToday = true } = await req.json();
+
+    if (!scheduledSendId && !_ignoredOrgId) {
       return Response.json({ 
         error: 'Either scheduledSendId or orgId is required' 
       }, { status: 400 });
@@ -42,6 +53,10 @@ Deno.serve(async (req) => {
       }
 
       const send = sends[0];
+
+      if (send.orgId !== userOrgId) {
+        return Response.json({ error: 'ScheduledSend not found' }, { status: 404 });
+      }
       
       // Only allow retry of failed or insufficient_credits sends
       if (!['failed', 'insufficient_credits'].includes(send.status)) {
@@ -64,10 +79,10 @@ Deno.serve(async (req) => {
       retriedCount = 1;
       retriedIds.push(send.id);
 
-    } else if (orgId) {
+    } else if (_ignoredOrgId) {
       // Retry all failed sends for an organization
       const failedSends = await base44.asServiceRole.entities.ScheduledSend.filter({
-        orgId: orgId
+        orgId: userOrgId
       });
 
       // Filter to only failed or insufficient_credits
