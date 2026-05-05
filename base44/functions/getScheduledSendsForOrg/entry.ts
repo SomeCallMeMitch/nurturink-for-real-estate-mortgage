@@ -20,8 +20,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { 
-      orgId, 
       status, 
       campaignId, 
       dateFrom, 
@@ -29,12 +33,15 @@ Deno.serve(async (req) => {
       limit = 100 
     } = await req.json();
 
-    if (!orgId) {
-      return Response.json({ error: 'orgId is required' }, { status: 400 });
+    const userOrgId = user.orgId;
+    if (!userOrgId) {
+      return Response.json({ error: 'User organization not found' }, { status: 403 });
     }
 
+    const isOwnerOrManager = ['organization_owner', 'organization_manager'].includes(user.role) || user.isOrgOwner === true;
+
     // Build filter query
-    const filter = { orgId };
+    const filter = { orgId: userOrgId };
     
     if (campaignId) {
       filter.campaignId = campaignId;
@@ -42,6 +49,13 @@ Deno.serve(async (req) => {
 
     // Get all sends matching base filter
     let sends = await base44.asServiceRole.entities.ScheduledSend.filter(filter);
+
+    if (!isOwnerOrManager) {
+      sends = sends.filter(s => {
+        const ownerId = s.userId || s.createdBy || s.ownerId || s.createdById;
+        return ownerId === user.id;
+      });
+    }
 
     // Apply status filter (can be string or array)
     if (status) {

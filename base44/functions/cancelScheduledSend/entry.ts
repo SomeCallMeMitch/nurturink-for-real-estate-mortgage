@@ -16,6 +16,17 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const userOrgId = user.orgId;
+    const isOwnerOrManager = ['organization_owner', 'organization_manager'].includes(user.role) || user.isOrgOwner === true;
+    if (!userOrgId || !isOwnerOrManager) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const { scheduledSendId, scheduledSendIds } = await req.json();
 
     // Support single or bulk cancellation
@@ -43,6 +54,11 @@ Deno.serve(async (req) => {
       }
 
       const send = sends[0];
+
+      if (send.orgId !== userOrgId) {
+        results.notFound.push(id);
+        continue;
+      }
 
       if (!cancellableStatuses.includes(send.status)) {
         results.notCancellable.push({
