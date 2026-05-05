@@ -10,18 +10,11 @@ export default function AcceptInvitation() {
   const [invitationData, setInvitationData] = useState(null);
   const [error, setError] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [accepting, setAccepting] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
   const token = new URLSearchParams(location.search).get('token');
-
-  // Role display names mapping
-  const roleNames = {
-    sales_rep: 'Sales Rep',
-    organization_owner: 'Organization Admin'
-  };
 
   // Initialize: validate token and check auth status
   useEffect(() => {
@@ -41,53 +34,20 @@ export default function AcceptInvitation() {
         const authStatus = await base44.auth.isAuthenticated();
         setIsAuthenticated(authStatus);
         
-        let user = null;
-        if (authStatus) {
-          user = await base44.auth.me();
-          setCurrentUser(user);
-        }
-
         // Validate the invitation token
         const result = await base44.functions.invoke('processInvitation', { token });
 
         if (result.data?.isValid) {
           setInvitationData(result.data);
           
-          // AUTO-ACCEPT: If user is authenticated and email matches, automatically accept
-          if (authStatus && user && user.email?.toLowerCase() === result.data.invitation?.email?.toLowerCase()) {
-            console.log('Auto-accepting invitation - user authenticated with matching email');
-            setAccepting(true);
-            try {
-              const acceptResult = await base44.functions.invoke('acceptInvitation', { token });
-              
-              if (acceptResult.data?.success) {
-                setInvitationData(prev => ({
-                  ...prev,
-                  organizationName: acceptResult.data.organizationName
-                }));
-                setState('success');
-                // Redirect to SettingsProfile instead of Home
-                setTimeout(() => navigate('/SettingsProfile'), 2000);
-              } else {
-                setError(acceptResult.data);
-                setState('error');
-              }
-            } catch (acceptErr) {
-              console.error('Auto-acceptance error:', acceptErr);
-              setError({ 
-                errorType: 'network', 
-                errorMessage: 'Failed to complete invitation acceptance. Please try again.' 
-              });
-              setState('error');
-            } finally {
-              setAccepting(false);
-            }
-          } else {
-            // User not authenticated or email mismatch - show invitation screen
-            setState('invitation');
-          }
+          // P1-A: processInvitation now returns a minimal public-safe payload.
+          // Keep acceptance as an explicit user action after auth.
+          setState('invitation');
         } else {
-          setError(result.data);
+          setError({
+            errorType: 'invalid',
+            errorMessage: result.data?.errorMessage || 'Invalid or expired invitation link'
+          });
           setState('error');
         }
       } catch (err) {
@@ -109,18 +69,6 @@ export default function AcceptInvitation() {
       // Send to Base44 login, return here after
       // FIXED: Pass nextUrl as string parameter, not object
       await base44.auth.redirectToLogin(`/AcceptInvitation?token=${token}`);
-      return;
-    }
-
-    // Check email match
-    if (currentUser?.email?.toLowerCase() !== invitationData?.invitation?.email?.toLowerCase()) {
-      setError({
-        errorType: 'email_mismatch',
-        errorMessage: `This invitation was sent to ${invitationData.invitation.email}, but you're logged in as ${currentUser.email}.`,
-        expectedEmail: invitationData.invitation.email,
-        currentEmail: currentUser.email
-      });
-      setState('error');
       return;
     }
 
@@ -263,17 +211,14 @@ export default function AcceptInvitation() {
                   <Building2 className="h-6 w-6 text-orange-600" />
                 </div>
                 <p className="mt-3 text-xl font-semibold text-gray-900">
-                  {invitationData.invitation.organizationName}
+                  {invitationData.organizationName}
                 </p>
               </div>
 
-              {/* Inviter Info */}
+              {/* Role Info */}
               <p className="mt-4 text-gray-600">
-                <span className="font-medium text-gray-900">{invitationData.invitation.invitedByName}</span>
-                {' '}invited you as a{' '}
-                <span className="font-medium text-gray-900">
-                  {invitationData.invitation.roleName || roleNames[invitationData.invitation.role] || invitationData.invitation.role}
-                </span>
+                You've been invited as a{' '}
+                <span className="font-medium text-gray-900">{invitationData.roleName}</span>
               </p>
 
               {/* Benefits Box */}
@@ -312,10 +257,6 @@ export default function AcceptInvitation() {
                 )}
               </Button>
 
-              {/* Email Note */}
-              <p className="mt-4 text-xs text-gray-500">
-                Invitation sent to {invitationData.invitation.email}
-              </p>
             </div>
           )}
 
@@ -329,7 +270,7 @@ export default function AcceptInvitation() {
                 You're all set!
               </h2>
               <p className="mt-2 text-gray-600">
-                Welcome to {invitationData?.invitation?.organizationName || invitationData?.organizationName}
+                Welcome to {invitationData?.organizationName}
               </p>
               <p className="mt-4 text-sm text-gray-500">
                 Redirecting to your dashboard...
