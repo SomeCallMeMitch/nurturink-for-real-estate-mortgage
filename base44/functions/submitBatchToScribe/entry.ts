@@ -18,8 +18,32 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 //
 // ============================================================
 
-const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://staging.scribenurture.com';
-const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
+const DEFAULT_SCRIBE_STAGING_URL = 'https://staging.scribenurture.com';
+const DEFAULT_SCRIBE_PRODUCTION_URL = 'https://scribenurture.com';
+
+function normalizeScribeTarget(targetEnvironment) {
+  const normalized = String(targetEnvironment || 'staging').toLowerCase();
+  if (['production', 'prod', 'live'].includes(normalized)) return 'production';
+  return 'staging';
+}
+
+function getScribeConfig(targetEnvironment) {
+  const environment = normalizeScribeTarget(targetEnvironment);
+
+  if (environment === 'production') {
+    return {
+      environment,
+      baseUrl: DEFAULT_SCRIBE_PRODUCTION_URL,
+      token: Deno.env.get('SCRIBE_LIVE_API_TOKEN')
+    };
+  }
+
+  return {
+    environment,
+    baseUrl: Deno.env.get('SCRIBE_API_BASE_URL') || DEFAULT_SCRIBE_STAGING_URL,
+    token: Deno.env.get('SCRIBE_API_TOKEN')
+  };
+}
 
 // ============================================================
 // MESSAGE FORMATTER (INLINED)
@@ -379,9 +403,9 @@ function buildReturnAddress(mode, user, organization) {
  * 
  * IMPORTANT: return_address must use ARRAY NOTATION, not JSON.stringify
  */
-async function createCampaignWithDetails(message, textType, zipBuffer, returnAddress = null) {
+async function createCampaignWithDetails(message, textType, zipBuffer, returnAddress = null, scribeConfig) {
   return apiQueue.enqueue(async () => {
-    const url = `${SCRIBE_API_BASE_URL}/api/add-campaign-v2`;
+    const url = `${scribeConfig.baseUrl}/api/add-campaign-v2`;
     
     console.log('[Scribe] Creating campaign at:', url);
     console.log('[Scribe] Message preview:', message?.substring(0, 100));
@@ -409,7 +433,7 @@ async function createCampaignWithDetails(message, textType, zipBuffer, returnAdd
     
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${SCRIBE_API_TOKEN}` },
+      headers: { 'Authorization': `Bearer ${scribeConfig.token}` },
       body: formData
     });
     
@@ -442,7 +466,7 @@ async function createCampaignWithDetails(message, textType, zipBuffer, returnAdd
  */
 const SCRIBE_CONTACTS_CHUNK_SIZE = 50;
 
-async function addScribeContacts(campaignId, contacts) {
+async function addScribeContacts(campaignId, contacts, scribeConfig) {
   if (!contacts || contacts.length === 0) return { success: true, added: 0 };
 
   // Split into chunks
@@ -457,13 +481,13 @@ async function addScribeContacts(campaignId, contacts) {
   for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
     const chunk = chunks[chunkIndex];
     await apiQueue.enqueue(async () => {
-      const url = `${SCRIBE_API_BASE_URL}/api/add-contacts-bulk`;
+      const url = `${scribeConfig.baseUrl}/api/add-contacts-bulk`;
       console.log(`[Scribe] Chunk ${chunkIndex + 1}/${chunks.length}: sending ${chunk.length} contacts`);
 
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+          'Authorization': `Bearer ${scribeConfig.token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ campaign_id: campaignId, contacts: chunk })
@@ -491,16 +515,16 @@ async function addScribeContacts(campaignId, contacts) {
 /**
  * Submit campaign for processing (rate limited)
  */
-async function submitScribeCampaign(campaignId) {
+async function submitScribeCampaign(campaignId, scribeConfig) {
   return apiQueue.enqueue(async () => {
-    const url = `${SCRIBE_API_BASE_URL}/api/v1/campaign/send`;
+    const url = `${scribeConfig.baseUrl}/api/v1/campaign/send`;
     
     console.log('[Scribe] Submitting campaign', campaignId);
     
     const response = await fetch(url, {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${SCRIBE_API_TOKEN}`,
+        'Authorization': `Bearer ${scribeConfig.token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ campaign_id: campaignId })
@@ -563,22 +587,36 @@ Deno.serve(async (req) => {
   console.log('===========================================');
   console.log('=== SUBMIT BATCH TO SCRIBE (CORRECTED) ===');
   console.log('===========================================');
-  console.log('SCRIBE_API_BASE_URL:', SCRIBE_API_BASE_URL);
-  console.log('SCRIBE_API_TOKEN set:', !!SCRIBE_API_TOKEN);
   
   // Clear ZIP cache at the start of each invocation
   zipCache.clear();
   
   try {
     const base44 = createClientFromRequest(req);
-    const { mailingBatchId, serviceRoleBypass, internalSecret } = await req.json();
+    const {
+      mailingBatchId,
+      serviceRoleBypass,
+      internalSecret,
+      targetEnvironment
+    } = await req.json();
+    const scribeConfig = getScribeConfig(targetEnvironment || (serviceRoleBypass ? 'production' : 'staging'));
+
+    console.log('SCRIBE_TARGET_ENVIRONMENT:', scribeConfig.environment);
+    console.log('SCRIBE_API_BASE_URL:', scribeConfig.baseUrl);
+    console.log('SCRIBE_API_TOKEN set:', !!scribeConfig.token);
     
     if (!mailingBatchId) {
       return Response.json({ success: false, error: 'mailingBatchId is required' }, { status: 400 });
     }
     
-    if (!SCRIBE_API_TOKEN) {
-      return Response.json({ success: false, error: 'SCRIBE_API_TOKEN not configured' }, { status: 500 });
+    if (!scribeConfig.token) {
+      const secretName = scribeConfig.environment === 'production'
+        ? 'SCRIBE_LIVE_API_TOKEN'
+        : 'SCRIBE_API_TOKEN';
+      return Response.json({
+        success: false,
+        error: `${secretName} not configured for ${scribeConfig.environment} Scribe submission`
+      }, { status: 500 });
     }
     
     // Auth: determine caller context
@@ -598,6 +636,9 @@ Deno.serve(async (req) => {
       if (!adminUser) {
         return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
       }
+      if (adminUser.appRole !== 'super_admin') {
+        return Response.json({ success: false, error: 'Forbidden: super admin access required' }, { status: 403 });
+      }
     }
     
     console.log(`${adminUser?.email || 'System (automated)'} approving batch ${mailingBatchId}`);
@@ -615,11 +656,39 @@ Deno.serve(async (req) => {
     const batch = batchList[0];
     console.log('Batch status:', batch.status);
     
-    // Verify batch is ready for submission
-    if (batch.status !== 'pending_review' && batch.status !== 'ready_to_send') {
+    const existingScribeCampaigns = Array.isArray(batch.scribeCampaigns) ? batch.scribeCampaigns : [];
+    const hasSuccessfulStagingSubmission = existingScribeCampaigns.some(c =>
+      c.environment === 'staging' && ['submitted', 'needs_credits'].includes(c.status)
+    );
+    const hasProductionSubmission = existingScribeCampaigns.some(c =>
+      c.environment === 'production' && ['submitted', 'needs_credits'].includes(c.status)
+    );
+
+    // Load notes for this batch before the status guard so we can recover older
+    // batches that were marked completed before Scribe submission existed.
+    const notes = await db.Note.filter({ mailingBatchId });
+    const hasQueuedNotes = notes?.some(n => ['queued_for_sending', 'queued', 'pending_credits'].includes(n.status));
+    if (!notes?.length) {
+      await db.MailingBatch.update(mailingBatchId, { status: 'failed' });
+      return Response.json({ success: false, error: 'No notes found for this batch' }, { status: 400 });
+    }
+
+    // Verify batch is ready for submission. Completed batches are accepted only
+    // as a recovery path when card records are still queued and production has
+    // not already been submitted.
+    const validReadyStatus = batch.status === 'pending_review' || batch.status === 'ready_to_send';
+    const recoverableCompletedBatch = batch.status === 'completed' && hasQueuedNotes && !hasProductionSubmission;
+    if (!validReadyStatus && !recoverableCompletedBatch) {
       return Response.json({ 
         success: false, 
         error: `Batch status is "${batch.status}", expected "pending_review" or "ready_to_send"` 
+      }, { status: 400 });
+    }
+
+    if (scribeConfig.environment === 'production' && !serviceRoleBypass && !hasSuccessfulStagingSubmission) {
+      return Response.json({
+        success: false,
+        error: 'Production submission requires a successful staging submission first'
       }, { status: 400 });
     }
     
@@ -635,13 +704,6 @@ Deno.serve(async (req) => {
     if (batch.organizationId) {
       const orgList = await db.Organization.filter({ id: batch.organizationId });
       if (orgList?.length) organization = orgList[0];
-    }
-    
-    // Load notes for this batch
-    const notes = await db.Note.filter({ mailingBatchId });
-    if (!notes?.length) {
-      await db.MailingBatch.update(mailingBatchId, { status: 'failed' });
-      return Response.json({ success: false, error: 'No notes found for this batch' }, { status: 400 });
     }
     
     console.log(`Processing ${notes.length} notes`);
@@ -794,7 +856,8 @@ Deno.serve(async (req) => {
           group.formattedMessage, // NEW: Use formatted message
           group.textType,
           zipBuffer,
-          returnAddress
+          returnAddress,
+          scribeConfig
         );
         console.log('✅ Campaign created:', scribeCampaignId);
         
@@ -818,29 +881,31 @@ Deno.serve(async (req) => {
         });
         
         // 5. Add contacts
-        await addScribeContacts(scribeCampaignId, contacts);
+        await addScribeContacts(scribeCampaignId, contacts, scribeConfig);
         console.log('✅ Contacts added');
         
         // 6. Submit campaign
-        const submitResult = await submitScribeCampaign(scribeCampaignId);
+        const submitResult = await submitScribeCampaign(scribeCampaignId, scribeConfig);
         console.log('✅ Campaign submitted:', submitResult.status || 'success');
         
         // 7. Update Note and Mailing records
         const scribeStatus = submitResult.status === 'needs_credits' ? 'pending_credits' : 'sent';
         
-        for (const note of notesByGroupKey.get(groupKey)) {
-          await db.Note.update(note.id, { 
-            scribeCampaignId: String(scribeCampaignId), 
-            status: scribeStatus 
-          });
-        }
-        
-        for (const r of group.recipients) {
-          if (r.mailingId) {
-            await db.Mailing.update(r.mailingId, { 
+        if (scribeConfig.environment === 'production') {
+          for (const note of notesByGroupKey.get(groupKey)) {
+            await db.Note.update(note.id, { 
               scribeCampaignId: String(scribeCampaignId), 
               status: scribeStatus 
             });
+          }
+          
+          for (const r of group.recipients) {
+            if (r.mailingId) {
+              await db.Mailing.update(r.mailingId, { 
+                scribeCampaignId: String(scribeCampaignId), 
+                status: scribeStatus 
+              });
+            }
           }
         }
         
@@ -848,6 +913,9 @@ Deno.serve(async (req) => {
           scribeCampaignId: String(scribeCampaignId),
           contactCount: contacts.length,
           status: scribeStatus === 'pending_credits' ? 'needs_credits' : 'submitted',
+          environment: scribeConfig.environment,
+          targetBaseUrl: scribeConfig.baseUrl,
+          cardDesignId: group.cardDesignId,
           returnAddressMode: group.returnAddressMode,
           submittedAt: new Date().toISOString()
         });
@@ -857,15 +925,21 @@ Deno.serve(async (req) => {
       } catch (error) {
         console.error(`FAILED: Campaign error:`, error.message);
         
-        // Mark notes as failed
-        for (const note of notesByGroupKey.get(groupKey) || []) {
-          await db.Note.update(note.id, { status: 'failed' });
+        // Only production failures should mark actual cards as failed. Staging
+        // failures are review/test failures and should leave the card queue intact.
+        if (scribeConfig.environment === 'production') {
+          for (const note of notesByGroupKey.get(groupKey) || []) {
+            await db.Note.update(note.id, { status: 'failed' });
+          }
         }
         
         scribeCampaigns.push({
           scribeCampaignId: scribeCampaignId ? String(scribeCampaignId) : null,
           contactCount: group.recipients.length,
           status: 'failed',
+          environment: scribeConfig.environment,
+          targetBaseUrl: scribeConfig.baseUrl,
+          cardDesignId: group.cardDesignId,
           errorMessage: error.message,
           submittedAt: new Date().toISOString()
         });
@@ -889,19 +963,25 @@ Deno.serve(async (req) => {
     const needsCreditsCount = scribeCampaigns.filter(c => c.status === 'needs_credits').length;
     
     let finalStatus;
-    if (failCount === 0 && needsCreditsCount === 0) {
-      finalStatus = 'completed';
-    } else if (failCount === 0 && needsCreditsCount > 0) {
-      finalStatus = 'pending_credits';
+    if (scribeConfig.environment === 'staging') {
+      finalStatus = 'ready_to_send';
     } else if (successCount > 0) {
-      finalStatus = 'partial';
+      if (failCount === 0 && needsCreditsCount === 0) {
+        finalStatus = 'completed';
+      } else if (failCount === 0 && needsCreditsCount > 0) {
+        finalStatus = 'pending_credits';
+      } else {
+        finalStatus = 'partial';
+      }
     } else {
       finalStatus = 'failed';
     }
+
+    const nextScribeCampaigns = [...existingScribeCampaigns, ...scribeCampaigns];
     
     await db.MailingBatch.update(mailingBatchId, {
       status: finalStatus,
-      scribeCampaigns,
+      scribeCampaigns: nextScribeCampaigns,
       processingErrors: processingErrors.length ? processingErrors : null,
       processedAt: new Date().toISOString()
     });
@@ -912,6 +992,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       status: finalStatus,
+      targetEnvironment: scribeConfig.environment,
       campaignsCreated: successCount,
       campaignsFailed: failCount,
       campaignsNeedCredits: needsCreditsCount,

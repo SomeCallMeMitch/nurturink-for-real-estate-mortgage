@@ -51,6 +51,7 @@ function getStatusPillVariant(status) {
     pending_print: 'warning',
     pending: 'warning',
     pending_review: 'warning',
+    pending_credits: 'warning',
     failed: 'danger',
     cancelled: 'danger',
     partial: 'warning',
@@ -149,11 +150,12 @@ export default function AdminSends() {
         (b.processedAt || b.scribeCampaigns?.length > 0 || b.status === 'pending_review')
       );
       
-      // Sort: pending_review first, then by date descending
+      // Sort: pending review / ready-to-send first, then by date descending
       processedBatches.sort((a, b) => {
-        // pending_review always first
-        if (a.status === 'pending_review' && b.status !== 'pending_review') return -1;
-        if (b.status === 'pending_review' && a.status !== 'pending_review') return 1;
+        const aNeedsAction = ['pending_review', 'ready_to_send'].includes(a.status);
+        const bNeedsAction = ['pending_review', 'ready_to_send'].includes(b.status);
+        if (aNeedsAction && !bNeedsAction) return -1;
+        if (bNeedsAction && !aNeedsAction) return 1;
         
         // Then by date descending
         const dateA = new Date(a.processedAt || a.created_at);
@@ -208,7 +210,7 @@ export default function AdminSends() {
   }, [batches, statusFilter, searchQuery, users]);
 
   // Count pending review
-  const pendingReviewCount = batches.filter(b => b.status === 'pending_review').length;
+  const pendingReviewCount = batches.filter(b => ['pending_review', 'ready_to_send'].includes(b.status)).length;
 
   // Handle row click
   const handleBatchClick = (batchId) => {
@@ -256,16 +258,16 @@ export default function AdminSends() {
                     {pendingReviewCount} Batch{pendingReviewCount > 1 ? 'es' : ''} Awaiting Review
                   </h3>
                   <p className="text-sm text-amber-700">
-                    These batches need approval before sending to Scribe.
+                    These batches need review before sending to Scribe.
                   </p>
                 </div>
               </div>
               <Button 
-                onClick={() => setStatusFilter('pending_review')}
+                onClick={() => setStatusFilter('all')}
                 className="bg-amber-500 hover:bg-amber-600"
               >
                 <Eye className="w-4 h-4 mr-2" />
-                View Pending
+                View Ready
               </Button>
             </div>
           </CardContent>
@@ -298,8 +300,10 @@ export default function AdminSends() {
                 Pending Review
               </span>
             </SelectItem>
+            <SelectItem value="ready_to_send">Ready to Send</SelectItem>
             <SelectItem value="sending">Sending</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="pending_credits">Pending Credits</SelectItem>
             <SelectItem value="partial">Partial</SelectItem>
             <SelectItem value="failed">Failed</SelectItem>
             <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -342,7 +346,7 @@ export default function AdminSends() {
             const sender = users[batch.userId];
             const cardCount = batch.selectedClientIds?.length || 0;
             const campaignCount = batch.scribeCampaigns?.length || 0;
-            const isPendingReview = batch.status === 'pending_review';
+            const isPendingReview = ['pending_review', 'ready_to_send'].includes(batch.status);
             
             return (
               <Card 

@@ -3,8 +3,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const SCRIBE_API_BASE_URL = Deno.env.get('SCRIBE_API_BASE_URL') || 'https://scribenurture.com';
-const SCRIBE_API_TOKEN = Deno.env.get('SCRIBE_API_TOKEN');
 const REQUIRE_ADMIN_APPROVAL = Deno.env.get('REQUIRE_ADMIN_APPROVAL') === 'true';
 
 // ============================================================
@@ -222,7 +220,7 @@ Deno.serve(async (req) => {
     // Only allow processing if batch is in a valid starting state.
     // 'processing' guard prevents duplicate concurrent runs.
     // 'completed' / 'pending_review' guard prevents reprocessing already-handled batches.
-    const nonProcessableStatuses = ['processing', 'completed', 'pending_review'];
+    const nonProcessableStatuses = ['processing', 'completed', 'pending_review', 'ready_to_send'];
     if (nonProcessableStatuses.includes(batch.status)) {
       console.warn(`[PMB] Batch ${mailingBatchId} already in status '${batch.status}' — rejecting duplicate invocation`);
       return Response.json({
@@ -604,9 +602,14 @@ Deno.serve(async (req) => {
       });
     }
     
-    // Direct completion (if REQUIRE_ADMIN_APPROVAL=false)
+    // Direct manual batches still need explicit Scribe submission from the
+    // admin send review page. Mark interactive sends ready instead of completed
+    // so the UI does not imply physical mail has already been submitted.
+    // Service-role scheduled sends keep the legacy completed handoff because
+    // processPendingSends immediately submits them through submitBatchToScribe.
+    const finalPreparedStatus = serviceRoleBypass ? 'completed' : 'ready_to_send';
     await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, {
-      status: 'completed',
+      status: finalPreparedStatus,
       processedAt: currentTimestamp,
       totalCreditsUsed: creditsUsed,
       processingErrors: errors.length ? errors.map(e => ({ clientId: e.clientId, error: e.error, timestamp: currentTimestamp })) : []
@@ -614,7 +617,8 @@ Deno.serve(async (req) => {
     
     return Response.json({
       success: true,
-      status: 'completed',
+      status: finalPreparedStatus,
+      message: 'Batch prepared and ready for admin Scribe submission',
       processedCount: processedMailings.length,
       totalClients: clients.length,
       creditsDeducted: {

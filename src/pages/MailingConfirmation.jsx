@@ -137,6 +137,7 @@ export default function MailingConfirmation() {
   }, []);
   
   const totalAvailableCredits = totalCredits;
+  const isAwaitingScribeSubmission = ['pending_review', 'ready_to_send'].includes(mailingBatch?.status);
 
   // Handle download placeholders - UPDATED
   const handleDownloadCSV = async () => {
@@ -251,15 +252,17 @@ export default function MailingConfirmation() {
                 
                 {/* Title */}
                 <h1 className="text-3xl font-bold text-foreground mb-3">
-                  Your Notes are On The Way!
+                  {isAwaitingScribeSubmission ? 'Your Cards are Ready for Review' : 'Your Notes are On The Way!'}
                 </h1>
                 
                 {/* Details */}
                 <p className="text-lg text-foreground mb-2">
-                  <span className="font-semibold">{clients.length} card{clients.length !== 1 ? 's' : ''}</span> {clients.length !== 1 ? 'have' : 'has'} been sent.
+                  <span className="font-semibold">{clients.length} card{clients.length !== 1 ? 's' : ''}</span> {isAwaitingScribeSubmission ? 'prepared for admin review.' : `${clients.length !== 1 ? 'have' : 'has'} been sent.`}
                 </p>
                 <p className="text-muted-foreground">
-                  Expect them to be delivered in <span className="font-medium">5-10 business days</span>.
+                  {isAwaitingScribeSubmission
+                    ? 'A super admin can test-send to staging and then submit live from All Sends.'
+                    : <>Expect them to be delivered in <span className="font-medium">5-10 business days</span>.</>}
                 </p>
               </CardContent>
             </Card>
@@ -280,15 +283,15 @@ export default function MailingConfirmation() {
                   <ul className="space-y-3 mb-6 text-sm text-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">•</span>
-                      <span>Your cards are being printed with your custom message right now</span>
+                      <span>{isAwaitingScribeSubmission ? 'Your cards are queued for admin review before Scribe submission' : 'Your cards are being printed with your custom message right now'}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">•</span>
-                      <span>Each card will be hand-addressed and handwritten by our team</span>
+                      <span>{isAwaitingScribeSubmission ? 'A staging test send can be submitted first for verification' : 'Each card will be hand-addressed and handwritten by our team'}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">•</span>
-                      <span>Recipients should receive them in 5-10 business days</span>
+                      <span>{isAwaitingScribeSubmission ? 'Live production sending remains separate from the staging test' : 'Recipients should receive them in 5-10 business days'}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">•</span>
