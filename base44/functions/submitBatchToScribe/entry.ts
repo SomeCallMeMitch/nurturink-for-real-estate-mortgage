@@ -27,9 +27,27 @@ function normalizeScribeBaseUrl(baseUrl) {
   return normalized.replace(/\/api$/i, '');
 }
 
-function buildScribeHeaders(token, extraHeaders = {}) {
+function getScribeTokenInfo(rawToken) {
+  const raw = String(rawToken || '');
+  const trimmed = raw.trim();
+  const withoutBearer = trimmed.replace(/^Bearer\s+/i, '');
+  const normalized = withoutBearer.replace(/\s+/g, '');
+
   return {
-    [SCRIBE_AUTH_HEADER_NAME]: `Bearer ${token}`,
+    rawLength: raw.length,
+    trimmedLength: trimmed.length,
+    normalizedLength: normalized.length,
+    hadLeadingOrTrailingWhitespace: raw.length !== trimmed.length,
+    hadBearerPrefix: trimmed !== withoutBearer,
+    hadInternalWhitespace: withoutBearer.length !== normalized.length,
+    normalized
+  };
+}
+
+function buildScribeHeaders(token, extraHeaders = {}) {
+  const tokenInfo = getScribeTokenInfo(token);
+  return {
+    [SCRIBE_AUTH_HEADER_NAME]: `Bearer ${tokenInfo.normalized}`,
     ...extraHeaders
   };
 }
@@ -49,7 +67,7 @@ function createTokenFingerprint(token) {
 }
 
 function createScribeDiagnostics(operation, scribeConfig, method, url, response = null, responseText = '') {
-  const token = String(scribeConfig?.token || '');
+  const tokenInfo = getScribeTokenInfo(scribeConfig?.token);
   return {
     operation,
     method,
@@ -57,9 +75,14 @@ function createScribeDiagnostics(operation, scribeConfig, method, url, response 
     environment: scribeConfig?.environment || 'unknown',
     baseUrl: scribeConfig?.baseUrl || 'unknown',
     authHeaderName: SCRIBE_AUTH_HEADER_NAME,
-    tokenConfigured: token.length > 0,
-    tokenLength: token.length,
-    tokenFingerprint: token ? createTokenFingerprint(token) : 'none',
+    tokenConfigured: tokenInfo.normalizedLength > 0,
+    rawTokenLength: tokenInfo.rawLength,
+    trimmedTokenLength: tokenInfo.trimmedLength,
+    normalizedTokenLength: tokenInfo.normalizedLength,
+    tokenHadLeadingOrTrailingWhitespace: tokenInfo.hadLeadingOrTrailingWhitespace,
+    tokenHadBearerPrefix: tokenInfo.hadBearerPrefix,
+    tokenHadInternalWhitespace: tokenInfo.hadInternalWhitespace,
+    tokenFingerprint: tokenInfo.normalized ? createTokenFingerprint(tokenInfo.normalized) : 'none',
     httpStatus: response?.status || null,
     responseContentType: response?.headers?.get?.('content-type') || null,
     responseBody: truncateForDiagnostics(responseText)
@@ -75,7 +98,12 @@ function formatScribeFailure(operation, diagnostics) {
     `Base URL: ${diagnostics.baseUrl}`,
     `Auth header: ${diagnostics.authHeaderName}`,
     `Token configured: ${diagnostics.tokenConfigured}`,
-    `Token length: ${diagnostics.tokenLength}`,
+    `Raw token length: ${diagnostics.rawTokenLength}`,
+    `Trimmed token length: ${diagnostics.trimmedTokenLength}`,
+    `Normalized token length: ${diagnostics.normalizedTokenLength}`,
+    `Token had leading/trailing whitespace: ${diagnostics.tokenHadLeadingOrTrailingWhitespace}`,
+    `Token had Bearer prefix: ${diagnostics.tokenHadBearerPrefix}`,
+    `Token had internal whitespace: ${diagnostics.tokenHadInternalWhitespace}`,
     `Token fingerprint: ${diagnostics.tokenFingerprint}`,
     `HTTP status: ${diagnostics.httpStatus || 'n/a'}`,
     `Response content-type: ${diagnostics.responseContentType || 'n/a'}`,
