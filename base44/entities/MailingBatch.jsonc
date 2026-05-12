@@ -4,30 +4,26 @@
   "properties": {
     "userId": {
       "type": "string",
-      "nullable": true,
-      "description": "User who created or owns the batch"
+      "description": "User who created this batch"
     },
     "organizationId": {
       "type": "string",
-      "nullable": true,
-      "description": "Organization associated with the batch"
+      "description": "Organization this batch belongs to"
     },
     "status": {
       "type": "string",
       "enum": [
         "draft",
-        "processing",
-        "pending_review",
         "ready_to_send",
+        "pending_review",
         "sending",
         "completed",
-        "pending_credits",
         "partial",
-        "failed",
-        "cancelled"
+        "pending_credits",
+        "failed"
       ],
       "default": "draft",
-      "description": "Batch processing and Scribe submission status"
+      "description": "Current status of the batch workflow. 'pending_review' = awaiting admin approval (REQUIRE_ADMIN_APPROVAL=true). 'pending_credits' = Scribe returned 402."
     },
     "selectedClientIds": {
       "type": "array",
@@ -35,67 +31,62 @@
         "type": "string"
       },
       "default": [],
-      "description": "Client IDs included in the batch"
+      "description": "Array of Client IDs for this batch"
     },
     "quickSendTemplateId": {
       "type": "string",
       "nullable": true,
-      "description": "QuickSend template used to create this batch"
-    },
-    "globalTemplateId": {
-      "type": "string",
-      "nullable": true,
-      "description": "Template used for the global message"
+      "description": "FK to QuickSendTemplate - tracks which template was used for analytics"
     },
     "globalMessage": {
       "type": "string",
       "nullable": true,
-      "description": "Global message used when no per-client override exists"
+      "description": "The default message that applies to all recipients"
     },
     "contentOverrides": {
       "type": "object",
       "nullable": true,
-      "description": "Map of clientId to custom message content"
+      "description": "Per-client message overrides. Key = clientId, Value = custom message"
     },
     "selectedCardDesignId": {
       "type": "string",
       "nullable": true,
-      "description": "Default CardDesign ID for the batch"
+      "description": "Card design ID selected for all recipients (bulk mode)"
     },
     "cardDesignOverrides": {
       "type": "object",
       "nullable": true,
-      "description": "Map of clientId to CardDesign ID"
+      "description": "Per-client card design overrides. Key = clientId, Value = card design ID"
     },
     "selectedNoteStyleProfileId": {
       "type": "string",
       "nullable": true,
-      "description": "Default NoteStyleProfile ID for the batch"
+      "description": "Note style profile ID selected for this batch"
     },
     "noteStyleProfileOverrides": {
       "type": "object",
       "nullable": true,
-      "description": "Map of clientId to NoteStyleProfile ID"
+      "description": "Per-client note style profile overrides. Key = clientId, Value = note style profile ID"
     },
     "includeGreeting": {
       "type": "boolean",
       "default": true,
-      "description": "Whether to prepend the selected note style greeting"
-    },
-    "includeSignature": {
-      "type": "boolean",
-      "default": true,
-      "description": "Whether to append the selected note style signature"
+      "description": "Whether to include greeting in the message"
     },
     "greetingOverrides": {
       "type": "object",
       "nullable": true,
-      "description": "Map of clientId to greeting override"
+      "description": "Per-client greeting inclusion overrides. Key = clientId, Value = boolean"
+    },
+    "includeSignature": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to include signature in the message"
     },
     "signatureOverrides": {
       "type": "object",
       "nullable": true,
-      "description": "Map of clientId to signature override"
+      "description": "Per-client signature inclusion overrides. Key = clientId, Value = boolean"
     },
     "returnAddressModeGlobal": {
       "type": "string",
@@ -105,76 +96,94 @@
         "none"
       ],
       "default": "company",
-      "description": "Default return address mode"
+      "description": "Global return address preference for all recipients"
     },
     "returnAddressModeOverrides": {
       "type": "object",
       "nullable": true,
-      "description": "Map of clientId to return address mode"
+      "description": "Per-client return address overrides. Key = clientId, Value = 'company' | 'rep' | 'none'"
     },
     "scheduledSendId": {
       "type": "string",
       "nullable": true,
-      "description": "Primary ScheduledSend ID when created by automation"
+      "description": "FK to ScheduledSend that triggered this batch (null for manual sends). Used by processPendingSends pipeline."
     },
-    "processedAt": {
+    "scribeCampaignId": {
       "type": "string",
-      "format": "date-time",
       "nullable": true,
-      "description": "When the batch was last processed"
+      "description": "ID of the campaign in the Scribe Nurture system (legacy - use scribeCampaigns array)"
     },
-    "totalCreditsUsed": {
-      "type": "number",
-      "default": 0,
-      "description": "Credits deducted for the batch"
-    },
-    "processingErrors": {
-      "type": "array",
+    "printPackageZipFileUri": {
+      "type": "string",
       "nullable": true,
-      "items": {
-        "type": "object",
-        "properties": {
-          "noteId": {
-            "type": "string",
-            "nullable": true
-          },
-          "clientId": {
-            "type": "string",
-            "nullable": true
-          },
-          "error": {
-            "type": "string"
-          },
-          "timestamp": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          }
-        }
-      },
-      "description": "Per-client or per-note processing errors"
+      "description": "URI of the print package ZIP file in Base44 private storage"
+    },
+    "scribeStatus": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending",
+        "processing",
+        "printing",
+        "printed",
+        "shipped",
+        "delivered",
+        "paused",
+        "on-going",
+        "delete",
+        "cancelled",
+        "expect-48-hour-delay",
+        "queued",
+        "payment-pending"
+      ],
+      "default": "draft",
+      "description": "Current status of the campaign in the Scribe Nurture system"
     },
     "scribeCampaigns": {
       "type": "array",
-      "nullable": true,
       "items": {
         "type": "object",
         "properties": {
           "scribeCampaignId": {
             "type": "string",
-            "nullable": true
+            "description": "Campaign ID from Scribe API"
+          },
+          "campaignGroupKey": {
+            "type": "string",
+            "description": "Hash identifying this message+design+returnAddress combination"
+          },
+          "cardDesignId": {
+            "type": "string",
+            "description": "Card design used for this campaign"
+          },
+          "returnAddressMode": {
+            "type": "string",
+            "enum": [
+              "company",
+              "rep",
+              "none"
+            ]
+          },
+          "clientIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Client IDs included in this campaign"
           },
           "contactCount": {
             "type": "number",
-            "default": 0
+            "description": "Number of contacts submitted to Scribe"
           },
           "status": {
             "type": "string",
             "enum": [
+              "created",
               "submitted",
               "needs_credits",
               "failed"
-            ]
+            ],
+            "description": "Status of this specific campaign submission"
           },
           "environment": {
             "type": "string",
@@ -188,41 +197,61 @@
             "type": "string",
             "description": "Scribe API base URL used for this submission"
           },
-          "cardDesignId": {
+          "scribeStatus": {
             "type": "string",
-            "nullable": true
-          },
-          "returnAddressMode": {
-            "type": "string",
-            "enum": [
-              "company",
-              "rep",
-              "none"
-            ],
-            "nullable": true
-          },
-          "submittedAt": {
-            "type": "string",
-            "format": "date-time"
+            "nullable": true,
+            "description": "Latest status from Scribe API"
           },
           "errorMessage": {
             "type": "string",
+            "nullable": true,
+            "description": "Error message if campaign creation failed"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
-        },
-        "required": [
-          "contactCount",
-          "status",
-          "environment",
-          "targetBaseUrl",
-          "submittedAt"
-        ]
+        }
       },
-      "description": "Scribe campaign submissions created for this batch"
+      "default": [],
+      "description": "Array of Scribe campaigns created for this batch. One per unique message+design+returnAddress combination."
+    },
+    "processedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When the batch was processed/sent to Scribe"
+    },
+    "totalCreditsUsed": {
+      "type": "number",
+      "default": 0,
+      "description": "Total credits deducted for this batch"
+    },
+    "processingErrors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": [],
+      "description": "Errors encountered during processing (per-client errors)"
     }
   },
   "required": [
-    "status",
+    "userId",
+    "organizationId",
     "selectedClientIds"
   ]
 }

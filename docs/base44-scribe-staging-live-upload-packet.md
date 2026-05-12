@@ -115,12 +115,19 @@ The expected `environment` values are:
 
 ## Schema Review Required
 
-`base44/entities/MailingBatch.jsonc` is a merge proposal, not a blind replacement for the deployed entity.
+`base44/entities/MailingBatch.jsonc` has been updated from the live schema provided for review, with only the required Scribe staging/live additions merged in.
 
-Please merge only the required additions into the current live `MailingBatch` schema:
+The live schema already contained:
 
-- Add `ready_to_send` and `pending_credits` to `MailingBatch.status`.
-- Add or extend `scribeCampaigns[]` with the metadata fields listed above.
+- `ready_to_send`
+- `pending_credits`
+- `scribeCampaigns[]`
+- `submitted`, `needs_credits`, and `failed` campaign statuses
+
+The only nested `scribeCampaigns[]` fields added for this workflow are:
+
+- `environment`
+- `targetBaseUrl`
 
 Base44 previously confirmed schemas are strict, so these fields must be explicitly present or the metadata may not persist.
 
