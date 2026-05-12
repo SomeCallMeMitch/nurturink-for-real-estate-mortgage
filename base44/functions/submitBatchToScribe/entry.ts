@@ -176,6 +176,41 @@ function wrapText(text, maxWidth) {
   return lines.length > 0 ? lines : [''];
 }
 
+function getSignatureLineIndexes(lines, rng) {
+  let lastNonBlank = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i] !== '') {
+      lastNonBlank = i;
+      break;
+    }
+  }
+
+  if (lastNonBlank <= 0) return new Map();
+
+  let signatureStart = lastNonBlank;
+  for (let i = lastNonBlank - 1; i >= 0; i--) {
+    if (lines[i] === '') {
+      signatureStart = i + 1;
+      break;
+    }
+    signatureStart = i;
+  }
+
+  const signatureLineCount = lastNonBlank - signatureStart + 1;
+  if (signatureLineCount < 1 || signatureLineCount > 3) return new Map();
+
+  const signoff = lines[signatureStart].toLowerCase().replace(/[^\w\s]/g, '').trim();
+  const isSignatureBlock = /^(thanks|thank you|sincerely|best|best regards|regards|warm regards|kind regards|cheers|respectfully|with gratitude|all the best)$/.test(signoff);
+  if (!isSignatureBlock) return new Map();
+
+  const signatureIndents = new Map();
+  for (let i = signatureStart; i <= lastNonBlank; i++) {
+    signatureIndents.set(i, i === signatureStart ? 0 : Math.floor(rng() * 2));
+  }
+
+  return signatureIndents;
+}
+
 function formatMessageForScribe(message, textType, seed) {
   const MAX_CHARS_PER_LINE = 52;
   const MAX_INDENT_SPACES = 3;
@@ -197,12 +232,26 @@ function formatMessageForScribe(message, textType, seed) {
     processedLines.push(...wrappedLines);
   }
   const indentedLines = [];
+  const signatureIndents = getSignatureLineIndexes(processedLines, rng);
+
   for (let i = 0; i < processedLines.length; i++) {
     const line = processedLines[i];
-    if (i === 0 || i === processedLines.length - 1 || line === '') {
+
+    if (line === '') {
       indentedLines.push(line);
       continue;
     }
+
+    if (signatureIndents.has(i)) {
+      indentedLines.push(' '.repeat(signatureIndents.get(i)) + line);
+      continue;
+    }
+
+    if (i === 0 || i === processedLines.length - 1) {
+      indentedLines.push(line);
+      continue;
+    }
+
     const indentSpaces = Math.floor(rng() * MAX_INDENT_SPACES) + 1;
     const indent = ' '.repeat(indentSpaces);
     indentedLines.push(indent + line);
@@ -350,7 +399,7 @@ function resolveSenderPlaceholders(text, user, organization) {
  * HYBRID PLACEHOLDER STRATEGY
  * 
  * Checks if template has placeholders ONLY in greeting (first line)
- * If yes: use Scribe merge tags {FIRST_NAME}
+ * If yes: use Scribe merge tags such as [[first_name]]
  * If no: fully resolve placeholders per recipient
  */
 function hasPlaceholderOnlyInGreeting(template) {
@@ -405,29 +454,30 @@ function resolveClientPlaceholders(text, client) {
  */
 /**
  * Convert client placeholders to Scribe merge tags.
- * UPDATED: Removed {STREET_ADDRESS} — not a supported Scribe merge tag.
+ * Uses the Campaign Management API's documented [[first_name]] style.
  */
 function convertToScribeMergeTags(template) {
   if (!template) return '';
   
   return template
-    // {{client.*}} format → {PARAM} format
-    .replace(/\{\{client\.firstName\}\}/g, '{FIRST_NAME}')
-    .replace(/\{\{client\.lastName\}\}/g, '{LAST_NAME}')
-    .replace(/\{\{client\.fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
-    .replace(/\{\{client\.email\}\}/g, '{EMAIL}')
-    .replace(/\{\{client\.phone\}\}/g, '{PHONE}')
-    .replace(/\{\{client\.company\}\}/g, '{COMPANY_NAME}')
-    // NOTE: {{client.street}} deliberately excluded — {STREET_ADDRESS} not a supported Scribe merge tag
-    .replace(/\{\{client\.city\}\}/g, '{CITY}')
-    .replace(/\{\{client\.state\}\}/g, '{STATE}')
-    .replace(/\{\{client\.zipCode\}\}/g, '{ZIP}')
+    // {{client.*}} format -> Campaign Management API merge tags.
+    .replace(/\{\{client\.firstName\}\}/g, '[[first_name]]')
+    .replace(/\{\{client\.lastName\}\}/g, '[[last_name]]')
+    .replace(/\{\{client\.fullName\}\}/g, '[[first_name]] [[last_name]]')
+    .replace(/\{\{client\.email\}\}/g, '[[email]]')
+    .replace(/\{\{client\.phone\}\}/g, '[[phone]]')
+    .replace(/\{\{client\.company\}\}/g, '[[company_name]]')
+    // NOTE: {{client.street}} deliberately excluded. The campaign API docs
+    // document address fields for contacts, but not a street merge tag.
+    .replace(/\{\{client\.city\}\}/g, '[[city]]')
+    .replace(/\{\{client\.state\}\}/g, '[[state]]')
+    .replace(/\{\{client\.zipCode\}\}/g, '[[zip]]')
     // Legacy format
-    .replace(/\{\{firstName\}\}/g, '{FIRST_NAME}')
-    .replace(/\{\{lastName\}\}/g, '{LAST_NAME}')
-    .replace(/\{\{fullName\}\}/g, '{FIRST_NAME} {LAST_NAME}')
-    .replace(/\{\{email\}\}/g, '{EMAIL}')
-    .replace(/\{\{phone\}\}/g, '{PHONE}');
+    .replace(/\{\{firstName\}\}/g, '[[first_name]]')
+    .replace(/\{\{lastName\}\}/g, '[[last_name]]')
+    .replace(/\{\{fullName\}\}/g, '[[first_name]] [[last_name]]')
+    .replace(/\{\{email\}\}/g, '[[email]]')
+    .replace(/\{\{phone\}\}/g, '[[phone]]');
 }
 
 /**

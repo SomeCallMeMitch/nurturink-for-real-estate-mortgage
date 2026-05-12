@@ -77,6 +77,41 @@ function wrapText(text, maxWidth) {
   return lines.length > 0 ? lines : [''];
 }
 
+function getSignatureLineIndexes(lines, rng) {
+  let lastNonBlank = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i] !== '') {
+      lastNonBlank = i;
+      break;
+    }
+  }
+
+  if (lastNonBlank <= 0) return new Map();
+
+  let signatureStart = lastNonBlank;
+  for (let i = lastNonBlank - 1; i >= 0; i--) {
+    if (lines[i] === '') {
+      signatureStart = i + 1;
+      break;
+    }
+    signatureStart = i;
+  }
+
+  const signatureLineCount = lastNonBlank - signatureStart + 1;
+  if (signatureLineCount < 1 || signatureLineCount > 3) return new Map();
+
+  const signoff = lines[signatureStart].toLowerCase().replace(/[^\w\s]/g, '').trim();
+  const isSignatureBlock = /^(thanks|thank you|sincerely|best|best regards|regards|warm regards|kind regards|cheers|respectfully|with gratitude|all the best)$/.test(signoff);
+  if (!isSignatureBlock) return new Map();
+
+  const signatureIndents = new Map();
+  for (let i = signatureStart; i <= lastNonBlank; i++) {
+    signatureIndents.set(i, i === signatureStart ? 0 : Math.floor(rng() * 2));
+  }
+
+  return signatureIndents;
+}
+
 /**
  * Formats a message for Scribe API
  * 
@@ -142,12 +177,25 @@ export function formatMessageForScribe(message, textType, seed) {
   // Last line: no indent (signature)
   // Middle lines: 1-3 spaces
   const indentedLines = [];
+  const signatureIndents = getSignatureLineIndexes(processedLines, rng);
 
   for (let i = 0; i < processedLines.length; i++) {
     const line = processedLines[i];
     
-    // Skip indentation for first line, last line, and blank lines
-    if (i === 0 || i === processedLines.length - 1 || line === '') {
+    // Preserve blank lines.
+    if (line === '') {
+      indentedLines.push(line);
+      continue;
+    }
+
+    // Signature block: sign-off stays left; name/details get 0-1 spaces.
+    if (signatureIndents.has(i)) {
+      indentedLines.push(' '.repeat(signatureIndents.get(i)) + line);
+      continue;
+    }
+
+    // Skip indentation for first line and any unrecognized final line.
+    if (i === 0 || i === processedLines.length - 1) {
       indentedLines.push(line);
       continue;
     }
