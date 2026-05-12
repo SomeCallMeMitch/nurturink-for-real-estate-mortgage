@@ -20,6 +20,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 const DEFAULT_SCRIBE_STAGING_URL = 'https://staging.scribenurture.com';
 const DEFAULT_SCRIBE_PRODUCTION_URL = 'https://scribenurture.com';
+const SCRIBE_AUTH_HEADER_NAME = 'X-Authorization';
 
 function normalizeScribeBaseUrl(baseUrl) {
   const normalized = String(baseUrl || '').trim().replace(/\/+$/, '');
@@ -28,9 +29,62 @@ function normalizeScribeBaseUrl(baseUrl) {
 
 function buildScribeHeaders(token, extraHeaders = {}) {
   return {
-    'X-Authorization': `Bearer ${token}`,
+    [SCRIBE_AUTH_HEADER_NAME]: `Bearer ${token}`,
     ...extraHeaders
   };
+}
+
+function truncateForDiagnostics(value, maxLength = 1200) {
+  const text = String(value ?? '');
+  return text.length > maxLength ? `${text.slice(0, maxLength)}... [truncated]` : text;
+}
+
+function createTokenFingerprint(token) {
+  const value = String(token || '');
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = ((hash << 5) - hash + value.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash).toString(16).padStart(8, '0');
+}
+
+function createScribeDiagnostics(operation, scribeConfig, method, url, response = null, responseText = '') {
+  const token = String(scribeConfig?.token || '');
+  return {
+    operation,
+    method,
+    url,
+    environment: scribeConfig?.environment || 'unknown',
+    baseUrl: scribeConfig?.baseUrl || 'unknown',
+    authHeaderName: SCRIBE_AUTH_HEADER_NAME,
+    tokenConfigured: token.length > 0,
+    tokenLength: token.length,
+    tokenFingerprint: token ? createTokenFingerprint(token) : 'none',
+    httpStatus: response?.status || null,
+    responseContentType: response?.headers?.get?.('content-type') || null,
+    responseBody: truncateForDiagnostics(responseText)
+  };
+}
+
+function formatScribeFailure(operation, diagnostics) {
+  return [
+    `${operation} failed.`,
+    `Method: ${diagnostics.method}`,
+    `URL: ${diagnostics.url}`,
+    `Environment: ${diagnostics.environment}`,
+    `Base URL: ${diagnostics.baseUrl}`,
+    `Auth header: ${diagnostics.authHeaderName}`,
+    `Token configured: ${diagnostics.tokenConfigured}`,
+    `Token length: ${diagnostics.tokenLength}`,
+    `Token fingerprint: ${diagnostics.tokenFingerprint}`,
+    `HTTP status: ${diagnostics.httpStatus || 'n/a'}`,
+    `Response content-type: ${diagnostics.responseContentType || 'n/a'}`,
+    `Response body: ${diagnostics.responseBody || 'n/a'}`
+  ].join('\n');
+}
+
+function logScribeDiagnostics(diagnostics) {
+  console.log('[Scribe Diagnostics]', JSON.stringify(diagnostics));
 }
 
 function normalizeScribeTarget(targetEnvironment) {
@@ -453,12 +507,16 @@ async function createCampaignWithDetails(message, textType, zipBuffer, returnAdd
     console.log('[Scribe] Create campaign response:', response.status, responseText.substring(0, 300));
     
     if (!response.ok) {
-      throw new Error(`Scribe create campaign failed: ${response.status} - ${responseText}`);
+      const diagnostics = createScribeDiagnostics('create_campaign', scribeConfig, 'POST', url, response, responseText);
+      logScribeDiagnostics(diagnostics);
+      throw new Error(formatScribeFailure('Scribe create campaign', diagnostics));
     }
     
     const result = JSON.parse(responseText);
     if (!result.success) {
-      throw new Error(`Scribe create campaign unsuccessful: ${JSON.stringify(result)}`);
+      const diagnostics = createScribeDiagnostics('create_campaign', scribeConfig, 'POST', url, response, responseText);
+      logScribeDiagnostics(diagnostics);
+      throw new Error(`${formatScribeFailure('Scribe create campaign unsuccessful', diagnostics)}\nParsed result: ${truncateForDiagnostics(JSON.stringify(result))}`);
     }
     
     const campaignId = result.data?.campaign_id || result.data?.id;
@@ -508,12 +566,16 @@ async function addScribeContacts(campaignId, contacts, scribeConfig) {
       console.log(`[Scribe] Chunk ${chunkIndex + 1} response:`, response.status, responseText.substring(0, 200));
 
       if (!response.ok) {
-        throw new Error(`Scribe add contacts chunk ${chunkIndex + 1} failed: ${response.status} - ${responseText}`);
+        const diagnostics = createScribeDiagnostics(`add_contacts_chunk_${chunkIndex + 1}`, scribeConfig, 'POST', url, response, responseText);
+        logScribeDiagnostics(diagnostics);
+        throw new Error(formatScribeFailure(`Scribe add contacts chunk ${chunkIndex + 1}`, diagnostics));
       }
 
       const result = JSON.parse(responseText);
       if (!result.success) {
-        throw new Error(`Scribe add contacts chunk ${chunkIndex + 1} unsuccessful: ${JSON.stringify(result)}`);
+        const diagnostics = createScribeDiagnostics(`add_contacts_chunk_${chunkIndex + 1}`, scribeConfig, 'POST', url, response, responseText);
+        logScribeDiagnostics(diagnostics);
+        throw new Error(`${formatScribeFailure(`Scribe add contacts chunk ${chunkIndex + 1} unsuccessful`, diagnostics)}\nParsed result: ${truncateForDiagnostics(JSON.stringify(result))}`);
       }
 
       totalAdded += chunk.length;
@@ -550,7 +612,9 @@ async function submitScribeCampaign(campaignId, scribeConfig) {
     }
     
     if (!response.ok) {
-      throw new Error(`Scribe submit failed: ${response.status} - ${responseText}`);
+      const diagnostics = createScribeDiagnostics('submit_campaign', scribeConfig, 'PUT', url, response, responseText);
+      logScribeDiagnostics(diagnostics);
+      throw new Error(formatScribeFailure('Scribe submit', diagnostics));
     }
     
     return JSON.parse(responseText);
