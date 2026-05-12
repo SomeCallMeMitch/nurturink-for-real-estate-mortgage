@@ -429,8 +429,14 @@ export default function ReviewAndSend() {
       
       console.log('✅ Batch processed successfully:', response.data);
       
-      // Check for partial success (some failures)
-      if (response.data.partialSuccess) {
+      // Check for prepared/admin-review status before Scribe submission
+      if (['pending_review', 'ready_to_send'].includes(response.data.status)) {
+        toast({
+          title: 'Cards prepared for review',
+          description: `${response.data.processedCount || response.data.noteCount || clients.length} notes are ready for admin Scribe submission`,
+          duration: 3000
+        });
+      } else if (response.data.partialSuccess) {
         toast({
           title: 'Partially sent',
           description: `${response.data.processedCount} of ${response.data.totalClients} notes sent successfully`,

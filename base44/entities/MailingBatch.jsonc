@@ -1,0 +1,228 @@
+{
+  "name": "MailingBatch",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "nullable": true,
+      "description": "User who created or owns the batch"
+    },
+    "organizationId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization associated with the batch"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "processing",
+        "pending_review",
+        "ready_to_send",
+        "sending",
+        "completed",
+        "pending_credits",
+        "partial",
+        "failed",
+        "cancelled"
+      ],
+      "default": "draft",
+      "description": "Batch processing and Scribe submission status"
+    },
+    "selectedClientIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Client IDs included in the batch"
+    },
+    "quickSendTemplateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "QuickSend template used to create this batch"
+    },
+    "globalTemplateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Template used for the global message"
+    },
+    "globalMessage": {
+      "type": "string",
+      "nullable": true,
+      "description": "Global message used when no per-client override exists"
+    },
+    "contentOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Map of clientId to custom message content"
+    },
+    "selectedCardDesignId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Default CardDesign ID for the batch"
+    },
+    "cardDesignOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Map of clientId to CardDesign ID"
+    },
+    "selectedNoteStyleProfileId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Default NoteStyleProfile ID for the batch"
+    },
+    "noteStyleProfileOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Map of clientId to NoteStyleProfile ID"
+    },
+    "includeGreeting": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to prepend the selected note style greeting"
+    },
+    "includeSignature": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether to append the selected note style signature"
+    },
+    "greetingOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Map of clientId to greeting override"
+    },
+    "signatureOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Map of clientId to signature override"
+    },
+    "returnAddressModeGlobal": {
+      "type": "string",
+      "enum": [
+        "company",
+        "rep",
+        "none"
+      ],
+      "default": "company",
+      "description": "Default return address mode"
+    },
+    "returnAddressModeOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Map of clientId to return address mode"
+    },
+    "scheduledSendId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Primary ScheduledSend ID when created by automation"
+    },
+    "processedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When the batch was last processed"
+    },
+    "totalCreditsUsed": {
+      "type": "number",
+      "default": 0,
+      "description": "Credits deducted for the batch"
+    },
+    "processingErrors": {
+      "type": "array",
+      "nullable": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "noteId": {
+            "type": "string",
+            "nullable": true
+          },
+          "clientId": {
+            "type": "string",
+            "nullable": true
+          },
+          "error": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "description": "Per-client or per-note processing errors"
+    },
+    "scribeCampaigns": {
+      "type": "array",
+      "nullable": true,
+      "items": {
+        "type": "object",
+        "properties": {
+          "scribeCampaignId": {
+            "type": "string",
+            "nullable": true
+          },
+          "contactCount": {
+            "type": "number",
+            "default": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "submitted",
+              "needs_credits",
+              "failed"
+            ]
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "staging",
+              "production"
+            ],
+            "description": "Scribe environment used for this submission"
+          },
+          "targetBaseUrl": {
+            "type": "string",
+            "description": "Scribe API base URL used for this submission"
+          },
+          "cardDesignId": {
+            "type": "string",
+            "nullable": true
+          },
+          "returnAddressMode": {
+            "type": "string",
+            "enum": [
+              "company",
+              "rep",
+              "none"
+            ],
+            "nullable": true
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "contactCount",
+          "status",
+          "environment",
+          "targetBaseUrl",
+          "submittedAt"
+        ]
+      },
+      "description": "Scribe campaign submissions created for this batch"
+    }
+  },
+  "required": [
+    "status",
+    "selectedClientIds"
+  ]
+}

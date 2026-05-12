@@ -143,6 +143,7 @@ export default function AdminCardDetails() {
       case 'pending_print': return 'warning';
       case 'queued_for_sending': return 'warning';
       case 'queued': return 'warning';
+      case 'pending_credits': return 'warning';
       case 'draft': return 'muted';
       case 'failed': return 'danger';
       default: return 'muted';

@@ -1,175 +1,93 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-/**
- * Pill Component
- * 
- * A unified pill/badge component that uses CSS variables for consistent
- * theming across the app. Uses inline styles to avoid Tailwind purging issues.
- * 
- * Usage:
- *   <Pill variant="success">Active</Pill>
- *   <Pill variant="warning">Pending</Pill>
- *   <Pill variant="purpose-thank_you" icon={ThumbsUp}>Thank You</Pill>
- *   <Pill variant="tag">Category Name</Pill>
- */
-
-// Variant style mappings using CSS variables
 const variantStyles = {
-  // Semantic variants
-  success: { backgroundColor: 'var(--pill-success-bg)', color: 'var(--pill-success-fg)' },
-  warning: { backgroundColor: 'var(--pill-warning-bg)', color: 'var(--pill-warning-fg)' },
-  danger: { backgroundColor: 'var(--pill-danger-bg)', color: 'var(--pill-danger-fg)' },
-  muted: { backgroundColor: 'var(--pill-muted-bg)', color: 'var(--pill-muted-fg)' },
-  
-  // Utility color variants
-  color1: { backgroundColor: 'var(--pill-color1-bg)', color: 'var(--pill-color1-fg)' },
-  color2: { backgroundColor: 'var(--pill-color2-bg)', color: 'var(--pill-color2-fg)' },
-  color3: { backgroundColor: 'var(--pill-color3-bg)', color: 'var(--pill-color3-fg)' },
-  
-  // Tag/Category variant
-  tag: { backgroundColor: 'var(--pill-tag-bg)', color: 'var(--pill-tag-fg)' },
-  
-  // Custom indicator
-  custom: { backgroundColor: 'var(--pill-custom-bg)', color: 'var(--pill-custom-fg)' },
-  
-  // Type variants (for templates, quicksend)
-  personal: { backgroundColor: 'var(--pill-personal-bg)', color: 'var(--pill-personal-fg)' },
-  organization: { backgroundColor: 'var(--pill-organization-bg)', color: 'var(--pill-organization-fg)' },
-  platform: { backgroundColor: 'var(--pill-platform-bg)', color: 'var(--pill-platform-fg)' },
-  
-  // Purpose variants (for QuickSend templates)
-  "purpose-thank_you": { backgroundColor: 'var(--pill-purpose-thank-you-bg)', color: 'var(--pill-purpose-thank-you-fg)' },
-  "purpose-referral_request": { backgroundColor: 'var(--pill-purpose-referral-bg)', color: 'var(--pill-purpose-referral-fg)' },
-  "purpose-review_request": { backgroundColor: 'var(--pill-purpose-review-bg)', color: 'var(--pill-purpose-review-fg)' },
-  "purpose-review_and_referral": { backgroundColor: 'var(--pill-purpose-review-referral-bg)', color: 'var(--pill-purpose-review-referral-fg)' },
-  "purpose-birthday": { backgroundColor: 'var(--pill-purpose-birthday-bg)', color: 'var(--pill-purpose-birthday-fg)' },
-  "purpose-anniversary": { backgroundColor: 'var(--pill-purpose-anniversary-bg)', color: 'var(--pill-purpose-anniversary-fg)' },
-  "purpose-holiday": { backgroundColor: 'var(--pill-purpose-holiday-bg)', color: 'var(--pill-purpose-holiday-fg)' },
-  "purpose-just_because": { backgroundColor: 'var(--pill-purpose-just-because-bg)', color: 'var(--pill-purpose-just-because-fg)' },
-  "purpose-custom": { backgroundColor: 'var(--pill-purpose-custom-bg)', color: 'var(--pill-purpose-custom-fg)' },
-  
-  // Status variants (map to semantic)
-  "status-active": { backgroundColor: 'var(--pill-success-bg)', color: 'var(--pill-success-fg)' },
-  "status-pending": { backgroundColor: 'var(--pill-warning-bg)', color: 'var(--pill-warning-fg)' },
-  "status-failed": { backgroundColor: 'var(--pill-danger-bg)', color: 'var(--pill-danger-fg)' },
-  "status-draft": { backgroundColor: 'var(--pill-muted-bg)', color: 'var(--pill-muted-fg)' },
-  "status-sent": { backgroundColor: 'var(--pill-success-bg)', color: 'var(--pill-success-fg)' },
-  "status-processing": { backgroundColor: 'var(--pill-color1-bg)', color: 'var(--pill-color1-fg)' },
-  
-  // Default
-  default: { backgroundColor: 'var(--pill-muted-bg)', color: 'var(--pill-muted-fg)' },
-  
-  // Outline (special case - no background)
-  outline: { backgroundColor: 'transparent', border: '1px solid currentColor' },
+  default: "bg-slate-100 text-slate-700 border-slate-200",
+  outline: "bg-white text-slate-700 border-slate-300",
+  muted: "bg-slate-50 text-slate-500 border-slate-200",
+  success: "bg-green-50 text-green-700 border-green-200",
+  warning: "bg-amber-50 text-amber-700 border-amber-200",
+  danger: "bg-red-50 text-red-700 border-red-200",
+  color1: "bg-[var(--pill-color-1-bg,#eef2ff)] text-[var(--pill-color-1-text,#3730a3)] border-[var(--pill-color-1-border,#c7d2fe)]",
+  color2: "bg-[var(--pill-color-2-bg,#ecfeff)] text-[var(--pill-color-2-text,#155e75)] border-[var(--pill-color-2-border,#a5f3fc)]",
+  color3: "bg-[var(--pill-color-3-bg,#f0fdf4)] text-[var(--pill-color-3-text,#166534)] border-[var(--pill-color-3-border,#bbf7d0)]",
+  tag: "bg-purple-50 text-purple-700 border-purple-200",
+  custom: "bg-pink-50 text-pink-700 border-pink-200",
+  personal: "bg-blue-50 text-blue-700 border-blue-200",
+  organization: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  platform: "bg-teal-50 text-teal-700 border-teal-200",
+  "purpose-prospecting": "bg-blue-50 text-blue-700 border-blue-200",
+  "purpose-follow-up": "bg-emerald-50 text-emerald-700 border-emerald-200",
+  "purpose-nurture": "bg-violet-50 text-violet-700 border-violet-200",
+  "purpose-past-client": "bg-orange-50 text-orange-700 border-orange-200",
+  "purpose-other": "bg-slate-50 text-slate-600 border-slate-200",
+  "status-active": "bg-green-50 text-green-700 border-green-200",
+  "status-inactive": "bg-slate-50 text-slate-500 border-slate-200",
+  "status-draft": "bg-amber-50 text-amber-700 border-amber-200",
+  "status-completed": "bg-green-50 text-green-700 border-green-200",
+  "status-ready": "bg-blue-50 text-blue-700 border-blue-200",
+  "status-failed": "bg-red-50 text-red-700 border-red-200"
 };
 
-// Size style mappings - updated for better readability
 const sizeStyles = {
-  sm: { padding: '2px 6px', fontSize: '12px' }, // Reduced padding from 4px 10px
-  default: { padding: '3px 8px', fontSize: '13px' }, // Reduced padding from 5px 12px
-  lg: { padding: '4px 10px', fontSize: '14px' }, // Reduced padding from 6px 14px
+  sm: "h-6 px-2 text-xs",
+  default: "h-7 px-2.5 text-xs",
+  md: "h-7 px-2.5 text-xs",
+  lg: "h-8 px-3 text-sm"
 };
- 
-const Pill = React.forwardRef(({ 
-  className, 
-  variant = "default", 
-  size = "default",
-  icon: Icon,
-  children, 
-  style,
-  ...props 
-}, ref) => {
-  const variantStyle = variantStyles[variant] || variantStyles.default;
-  const sizeStyle = sizeStyles[size] || sizeStyles.default;
-  
-  const combinedStyle = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '4px',
-    borderRadius: '6px', // Changed from '9999px' to '6px' for slightly more square corners
-    fontWeight: 700, // semibold for better readability
-    transition: 'colors 0.2s',
-    ...variantStyle,
-    ...sizeStyle,
-    ...style,
-  };
 
-  return (
+const iconSizeStyles = {
+  sm: "w-3 h-3",
+  default: "w-3.5 h-3.5",
+  md: "w-3.5 h-3.5",
+  lg: "w-4 h-4"
+};
+
+const Pill = React.forwardRef(
+  ({ className, variant = "default", size = "default", icon: Icon, children, style, ...props }, ref) => (
     <span
       ref={ref}
-      className={cn("whitespace-nowrap", className)}
-      style={combinedStyle}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border font-medium leading-none whitespace-nowrap",
+        variantStyles[variant] || variantStyles.default,
+        sizeStyles[size] || sizeStyles.default,
+        className
+      )}
+      style={style}
       {...props}
     >
-      {Icon && <Icon style={{ width: '12px', height: '12px' }} />}
+      {Icon ? <Icon className={cn("shrink-0", iconSizeStyles[size] || iconSizeStyles.default)} /> : null}
       {children}
     </span>
-  );
-});
-
+  )
+);
 
 Pill.displayName = "Pill";
 
-/**
- * Helper to get pill variant from a purpose string
- * @param {string} purpose - QuickSend purpose key
- * @returns {string} - Pill variant name
- */
-export function getPurposeVariant(purpose) {
-  const purposeMap = {
-    thank_you: "purpose-thank_you",
-    referral_request: "purpose-referral_request",
-    review_request: "purpose-review_request",
-    review_and_referral: "purpose-review_and_referral",
-    birthday: "purpose-birthday",
-    anniversary: "purpose-anniversary",
-    holiday: "purpose-holiday",
-    just_because: "purpose-just_because",
-    custom: "purpose-custom",
-  };
-  return purposeMap[purpose] || "purpose-custom";
+function getPurposeVariant(purpose) {
+  const normalized = String(purpose || "").toLowerCase().replace(/[_\s]+/g, "-");
+  return variantStyles[`purpose-${normalized}`] ? `purpose-${normalized}` : "purpose-other";
 }
 
-/**
- * Helper to get pill variant from a template type
- * @param {string} type - Template type (personal, organization, platform)
- * @returns {string} - Pill variant name
- */
-export function getTypeVariant(type) {
-  const typeMap = {
-    personal: "personal",
-    organization: "organization",
-    platform: "platform",
-  };
-  return typeMap[type] || "muted";
+function getTypeVariant(type) {
+  const normalized = String(type || "").toLowerCase();
+  if (normalized.includes("custom")) return "custom";
+  if (normalized.includes("personal")) return "personal";
+  if (normalized.includes("organization")) return "organization";
+  if (normalized.includes("platform")) return "platform";
+  return "default";
 }
 
-/**
- * Helper to get pill variant from a status
- * @param {string} status - Status string
- * @returns {string} - Pill variant name
- */
-export function getStatusVariant(status) {
-  const statusLower = (status || "").toLowerCase();
-  
-  // Success states
-  if (["active", "sent", "delivered", "complete", "completed", "success", "paid"].includes(statusLower)) {
-    return "success";
-  }
-  
-  // Warning states
-  if (["pending", "processing", "in_progress", "waiting", "scheduled"].includes(statusLower)) {
-    return "warning";
-  }
-  
-  // Danger states
-  if (["failed", "error", "cancelled", "rejected", "expired", "overdue"].includes(statusLower)) {
-    return "danger";
-  }
-  
-  // Default to muted
-  return "muted";
+function getStatusVariant(status) {
+  const normalized = String(status || "").toLowerCase().replace(/[_\s]+/g, "-");
+
+  if (["active", "approved", "sent", "completed"].includes(normalized)) return "success";
+  if (["ready", "ready-to-send", "pending-review", "queued", "queued-for-sending"].includes(normalized)) return "status-ready";
+  if (["pending", "draft", "pending-credits"].includes(normalized)) return "warning";
+  if (["failed", "error", "cancelled", "rejected"].includes(normalized)) return "danger";
+  if (["inactive", "archived"].includes(normalized)) return "muted";
+
+  return variantStyles[`status-${normalized}`] ? `status-${normalized}` : "default";
 }
 
-export { Pill };
+export { Pill, getPurposeVariant, getTypeVariant, getStatusVariant };

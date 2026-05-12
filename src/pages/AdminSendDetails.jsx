@@ -57,6 +57,7 @@ function getStatusPillVariant(status) {
     sending: 'color1', printed: 'color1', printing: 'color1', submitted: 'color1', processing: 'color1',
     ready_to_send: 'warning', queued: 'warning', queued_for_sending: 'warning',
     pending_print: 'warning', pending: 'warning', pending_review: 'warning',
+    pending_credits: 'warning',
     failed: 'danger', cancelled: 'danger',
     partial: 'warning', draft: 'muted', paused: 'muted'
   };
@@ -105,6 +106,7 @@ export default function AdminSendDetails() {
   
   // Approval state
   const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  const [approvalTarget, setApprovalTarget] = useState('staging');
   const [approving, setApproving] = useState(false);
 
   useEffect(() => {
@@ -236,16 +238,18 @@ export default function AdminSendDetails() {
     
     try {
       const response = await base44.functions.invoke('submitBatchToScribe', {
-        mailingBatchId: batchId
+        mailingBatchId: batchId,
+        targetEnvironment: approvalTarget
       });
       
       // Response is an Axios response object - actual data is in response.data
       const result = response.data;
       
       if (result.success) {
+        const targetLabel = approvalTarget === 'production' ? 'Production' : 'Staging';
         toast({
-          title: 'Batch Approved & Sent',
-          description: `${result.campaignsCreated} campaign(s) submitted to Scribe with ${result.totalContacts} total contacts.`,
+          title: `Batch Sent to ${targetLabel}`,
+          description: `${result.campaignsCreated} campaign(s) submitted to ${targetLabel} Scribe with ${result.totalContacts} total contacts.`,
           className: 'bg-green-50 border-green-200 text-green-900'
         });
         
@@ -298,7 +302,21 @@ export default function AdminSendDetails() {
 
   const cardCount = batch?.selectedClientIds?.length || 0;
   const globalDesign = cardDesigns[batch?.selectedCardDesignId];
-  const isPendingReview = batch?.status === 'pending_review';
+  const scribeCampaignHistory = Array.isArray(batch?.scribeCampaigns) ? batch.scribeCampaigns : [];
+  const stagingSubmissions = scribeCampaignHistory.filter(c => c.environment === 'staging');
+  const productionSubmissions = scribeCampaignHistory.filter(c => c.environment === 'production');
+  const hasSuccessfulStagingSubmission = stagingSubmissions.some(c => ['submitted', 'needs_credits'].includes(c.status));
+  const hasSuccessfulProductionSubmission = productionSubmissions.some(c => ['submitted', 'needs_credits'].includes(c.status));
+  const hasQueuedNotes = notes.some(n => ['queued_for_sending', 'queued', 'pending_credits'].includes(n.status));
+  const isReadyForScribe = ['pending_review', 'ready_to_send'].includes(batch?.status) ||
+    (batch?.status === 'completed' && hasQueuedNotes && !hasSuccessfulProductionSubmission);
+  const canSendToStaging = isReadyForScribe && !hasSuccessfulProductionSubmission;
+  const canSendToProduction = isReadyForScribe && hasSuccessfulStagingSubmission && !hasSuccessfulProductionSubmission;
+
+  const openApprovalDialog = (target) => {
+    setApprovalTarget(target);
+    setShowApprovalDialog(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -324,45 +342,77 @@ export default function AdminSendDetails() {
       </div>
 
       {/* ============================================================ */}
-      {/* PENDING REVIEW ALERT WITH APPROVE BUTTON */}
+      {/* SCRIBE SUBMISSION CONTROLS */}
       {/* ============================================================ */}
-      {isPendingReview && (
+      {isReadyForScribe && (
         <Card className="border-2 border-amber-400 bg-amber-50">
           <CardContent className="py-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-amber-100 rounded-full">
                   <Eye className="w-6 h-6 text-amber-600" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-amber-800">
-                    Awaiting Admin Approval
+                    Ready for Scribe Submission
                   </h3>
                   <p className="text-amber-700">
-                    This batch has {cardCount} card{cardCount !== 1 ? 's' : ''} ready to send. 
-                    Review the details below, then approve to submit to Scribe.
+                    Review the {cardCount} card{cardCount !== 1 ? 's' : ''} below. Send to staging first, then send live to production when approved.
                   </p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <Pill variant={hasSuccessfulStagingSubmission ? 'success' : 'warning'} size="sm">
+                      Staging {hasSuccessfulStagingSubmission ? 'Submitted' : 'Not Sent'}
+                    </Pill>
+                    <Pill variant={hasSuccessfulProductionSubmission ? 'success' : 'muted'} size="sm">
+                      Production {hasSuccessfulProductionSubmission ? 'Submitted' : 'Locked'}
+                    </Pill>
+                  </div>
                 </div>
               </div>
-              <Button 
-                size="lg"
-                onClick={() => setShowApprovalDialog(true)}
-                disabled={approving}
-                className="bg-green-600 hover:bg-green-700 text-white gap-2"
-              >
-                {approving ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" />
-                    Approve & Send to Scribe
-                  </>
-                )}
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  size="lg"
+                  onClick={() => openApprovalDialog('staging')}
+                  disabled={approving || !canSendToStaging}
+                  className="bg-blue-600 hover:bg-blue-700 text-white gap-2"
+                >
+                  {approving && approvalTarget === 'staging' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send to Staging
+                    </>
+                  )}
+                </Button>
+                <Button 
+                  size="lg"
+                  onClick={() => openApprovalDialog('production')}
+                  disabled={approving || !canSendToProduction}
+                  className="bg-green-600 hover:bg-green-700 text-white gap-2"
+                >
+                  {approving && approvalTarget === 'production' ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Send Live
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
+            {!hasSuccessfulStagingSubmission && (
+              <p className="text-xs text-amber-700 mt-4">
+                Live production sending is disabled until staging submission succeeds.
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -471,7 +521,11 @@ export default function AdminSendDetails() {
                           </div>
                           <span className="text-sm text-muted-foreground">{campaign.contactCount} contacts</span>
                         </div>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div className="grid grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <p className="text-muted-foreground">Environment</p>
+                            <p className="font-medium capitalize">{campaign.environment || 'Unknown'}</p>
+                          </div>
                           <div>
                             <p className="text-muted-foreground">Design</p>
                             <p className="font-medium">{design?.name || 'Unknown'}</p>
@@ -600,16 +654,18 @@ export default function AdminSendDetails() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
-              <Send className="w-5 h-5 text-green-600" />
-              Approve & Send to Scribe?
+              <Send className={approvalTarget === 'production' ? 'w-5 h-5 text-green-600' : 'w-5 h-5 text-blue-600'} />
+              Send to {approvalTarget === 'production' ? 'Production' : 'Staging'} Scribe?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will submit <strong>{cardCount} card{cardCount !== 1 ? 's' : ''}</strong> to Scribe for printing and mailing.
+              This will submit <strong>{cardCount} card{cardCount !== 1 ? 's' : ''}</strong> to the <strong>{approvalTarget === 'production' ? 'production' : 'staging'}</strong> Scribe environment.
               <br /><br />
               <strong>Sender:</strong> {sender?.full_name || 'Unknown'}<br />
               <strong>Credits used:</strong> {batch?.totalCreditsUsed || cardCount}
               <br /><br />
-              This action cannot be undone. Cards will be printed and mailed to the recipients.
+              {approvalTarget === 'production'
+                ? 'This action cannot be undone. Cards will be printed and mailed to the recipients.'
+                : 'This is the required test submission before live production sending is enabled.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -627,7 +683,7 @@ export default function AdminSendDetails() {
               ) : (
                 <>
                   <Send className="w-4 h-4 mr-2" />
-                  Approve & Send
+                  Send to {approvalTarget === 'production' ? 'Production' : 'Staging'}
                 </>
               )}
             </AlertDialogAction>
