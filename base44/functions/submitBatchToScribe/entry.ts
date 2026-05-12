@@ -21,6 +21,18 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 const DEFAULT_SCRIBE_STAGING_URL = 'https://staging.scribenurture.com';
 const DEFAULT_SCRIBE_PRODUCTION_URL = 'https://scribenurture.com';
 
+function normalizeScribeBaseUrl(baseUrl) {
+  const normalized = String(baseUrl || '').trim().replace(/\/+$/, '');
+  return normalized.replace(/\/api$/i, '');
+}
+
+function buildScribeHeaders(token, extraHeaders = {}) {
+  return {
+    'X-Authorization': `Bearer ${token}`,
+    ...extraHeaders
+  };
+}
+
 function normalizeScribeTarget(targetEnvironment) {
   const normalized = String(targetEnvironment || 'staging').toLowerCase();
   if (['production', 'prod', 'live'].includes(normalized)) return 'production';
@@ -33,14 +45,14 @@ function getScribeConfig(targetEnvironment) {
   if (environment === 'production') {
     return {
       environment,
-      baseUrl: DEFAULT_SCRIBE_PRODUCTION_URL,
+      baseUrl: normalizeScribeBaseUrl(DEFAULT_SCRIBE_PRODUCTION_URL),
       token: Deno.env.get('SCRIBE_LIVE_API_TOKEN')
     };
   }
 
   return {
     environment,
-    baseUrl: Deno.env.get('SCRIBE_API_BASE_URL') || DEFAULT_SCRIBE_STAGING_URL,
+    baseUrl: normalizeScribeBaseUrl(Deno.env.get('SCRIBE_API_BASE_URL') || DEFAULT_SCRIBE_STAGING_URL),
     token: Deno.env.get('SCRIBE_API_TOKEN')
   };
 }
@@ -433,7 +445,7 @@ async function createCampaignWithDetails(message, textType, zipBuffer, returnAdd
     
     const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${scribeConfig.token}` },
+      headers: buildScribeHeaders(scribeConfig.token),
       body: formData
     });
     
@@ -486,10 +498,9 @@ async function addScribeContacts(campaignId, contacts, scribeConfig) {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${scribeConfig.token}`,
+        headers: buildScribeHeaders(scribeConfig.token, {
           'Content-Type': 'application/json'
-        },
+        }),
         body: JSON.stringify({ campaign_id: campaignId, contacts: chunk })
       });
 
@@ -523,10 +534,9 @@ async function submitScribeCampaign(campaignId, scribeConfig) {
     
     const response = await fetch(url, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${scribeConfig.token}`,
+      headers: buildScribeHeaders(scribeConfig.token, {
         'Content-Type': 'application/json'
-      },
+      }),
       body: JSON.stringify({ campaign_id: campaignId })
     });
     

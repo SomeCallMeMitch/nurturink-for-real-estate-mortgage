@@ -52,7 +52,13 @@ Fallback staging base URL is:
 
 - `https://staging.scribenurture.com`
 
-Please confirm these URLs against ScribeNurture API documentation before production testing.
+The Campaign Management API PDF documents authentication as:
+
+- `X-Authorization: Bearer YOUR_JWT_TOKEN`
+
+The code sends that header for campaign creation, bulk contacts, and campaign submission. `SCRIBE_API_BASE_URL` is normalized by stripping a trailing slash and a trailing `/api`, because the code appends endpoint paths such as `/api/add-campaign-v2`.
+
+Please confirm the staging/production hostnames against ScribeNurture API documentation before production testing.
 
 ## Backend Behavior
 
