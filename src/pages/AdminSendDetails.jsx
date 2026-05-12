@@ -540,7 +540,9 @@ export default function AdminSendDetails() {
                           </div>
                         </div>
                         {campaign.errorMessage && (
-                          <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">{campaign.errorMessage}</div>
+                          <pre className="mt-2 p-3 bg-red-50 border border-red-200 rounded text-xs text-red-700 whitespace-pre-wrap break-words font-mono">
+                            {campaign.errorMessage}
+                          </pre>
                         )}
                       </div>
                     );
@@ -577,7 +579,7 @@ export default function AdminSendDetails() {
                         <div className="flex items-start justify-between">
                           <div>
                             <p className="font-medium text-red-800">{client?.fullName || `Client ${err.clientId?.slice(-8)}`}</p>
-                            <p className="text-sm text-red-600">{err.error}</p>
+                            <p className="text-sm text-red-600 whitespace-pre-wrap break-words">{err.error}</p>
                           </div>
                           <span className="text-xs text-red-500">{err.timestamp && format(new Date(err.timestamp), 'h:mm a')}</span>
                         </div>
