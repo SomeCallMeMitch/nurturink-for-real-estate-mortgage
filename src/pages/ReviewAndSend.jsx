@@ -270,11 +270,13 @@ export default function ReviewAndSend() {
   const handleSaveDraft = async () => {
     try {
       setSavingDraft(true);
+      const savedAt = new Date().toISOString();
       await base44.entities.MailingBatch.update(mailingBatchId, {
         returnAddressModeGlobal: localReturnAddressModeGlobal,
         returnAddressModeOverrides: localReturnAddressModeOverrides,
         draftCurrentStep: DRAFT_STEPS.REVIEW_SEND,
-        draftSavedAt: new Date().toISOString()
+        draftSavedAt: savedAt,
+        draftSavedExplicitlyAt: savedAt
       });
       toast({
         title: 'Draft saved',

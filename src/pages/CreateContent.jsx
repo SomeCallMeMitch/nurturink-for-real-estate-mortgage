@@ -505,10 +505,12 @@ export default function CreateContent() {
   const handleSaveDraft = async () => {
     try {
       setSavingDraft(true);
+      const savedAt = new Date().toISOString();
       await saveNow();
       await base44.entities.MailingBatch.update(mailingBatchId, {
         draftCurrentStep: DRAFT_STEPS.CREATE_CONTENT,
-        draftSavedAt: new Date().toISOString()
+        draftSavedAt: savedAt,
+        draftSavedExplicitlyAt: savedAt
       });
       toast({
         title: 'Draft saved',
