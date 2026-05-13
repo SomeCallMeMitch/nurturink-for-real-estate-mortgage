@@ -16,6 +16,8 @@ import PlaceholderModal from "@/components/mailing/PlaceholderModal";
 import TemplateLibrary from "@/components/mailing/TemplateLibrary";
 import CardPreview from "@/components/preview/CardPreview";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
+import { DRAFT_STEPS } from "@/components/mailing/draftHelpers";
+import { useToast } from "@/components/ui/use-toast";
 
 // PHASE 2: Import CreditContext hook for global credit state
 import { useCredits } from "../components/context/CreditContext";
@@ -47,6 +49,7 @@ const FALLBACK_SETTINGS = {
 
 export default function CreateContent() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const textareaRef = useRef(null);
   
   // PHASE 2: Use global credit context
@@ -72,6 +75,7 @@ export default function CreateContent() {
   const [errorDetails, setErrorDetails] = useState(null);
   const [editMode, setEditMode] = useState('bulk');
   const [selectedRecipientId, setSelectedRecipientId] = useState(null);
+  const [savingDraft, setSavingDraft] = useState(false);
 
   // Add state for column widths
   const [columnWidths, setColumnWidths] = useState({ 
@@ -303,7 +307,9 @@ export default function CreateContent() {
     selectedNoteStyleProfileId: localSelectedNoteStyleProfileId,
     greetingOverrides: localGreetingOverrides,
     signatureOverrides: localSignatureOverrides,
-    noteStyleProfileOverrides: localNoteStyleProfileOverrides
+    noteStyleProfileOverrides: localNoteStyleProfileOverrides,
+    draftCurrentStep: DRAFT_STEPS.CREATE_CONTENT,
+    draftSavedAt: new Date().toISOString()
   }), [
     localGlobalMessage, 
     localContentOverrides, 
@@ -480,6 +486,10 @@ export default function CreateContent() {
   const handleContinue = async () => {
     try {
       await saveNow();
+      await base44.entities.MailingBatch.update(mailingBatchId, {
+        draftCurrentStep: DRAFT_STEPS.SELECT_DESIGN,
+        draftSavedAt: new Date().toISOString()
+      });
       navigate(createPageUrl(`SelectDesign?mailingBatchId=${mailingBatchId}`));
     } catch (err) {
       console.error('❌ Failed to save before navigation:', err);
@@ -490,6 +500,30 @@ export default function CreateContent() {
 
   const handleBack = () => {
     navigate(createPageUrl(`FindClients?mailingBatchId=${mailingBatchId}`));
+  };
+
+  const handleSaveDraft = async () => {
+    try {
+      setSavingDraft(true);
+      await saveNow();
+      await base44.entities.MailingBatch.update(mailingBatchId, {
+        draftCurrentStep: DRAFT_STEPS.CREATE_CONTENT,
+        draftSavedAt: new Date().toISOString()
+      });
+      toast({
+        title: 'Draft saved',
+        description: 'You can resume this card send later.'
+      });
+    } catch (err) {
+      console.error('Failed to save draft:', err);
+      toast({
+        title: 'Failed to save draft',
+        description: err.message || 'Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSavingDraft(false);
+    }
   };
 
   if (loading) {
@@ -781,13 +815,34 @@ export default function CreateContent() {
             {clients.length} clients selected
           </div>
           
-          <Button
-            onClick={handleContinue}
-            className="bg-primary hover:bg-primary/90 gap-2"
-          >
-            Continue to Select Design
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={savingDraft || isSaving}
+              className="gap-2"
+            >
+              {savingDraft ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Draft
+                </>
+              )}
+            </Button>
+
+            <Button
+              onClick={handleContinue}
+              className="bg-primary hover:bg-primary/90 gap-2"
+            >
+              Continue to Select Design
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Star, Search, Loader2, ArrowRight, Check, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Star, Search, Loader2, ArrowRight, Check, AlertTriangle, ArrowLeft, Save } from "lucide-react";
 import { Pill } from "@/components/ui/Pill";
 import { debounce } from "lodash";
 import { useToast } from "@/components/ui/use-toast";
@@ -18,6 +18,7 @@ import CardDetailsModal from "@/components/card/CardDetailsModal";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
 import { getBestOutsideUrl } from "@/components/utils/imageHelpers";
 import { FALLBACK_PREVIEW } from "@/components/campaigns/campaignWizardConfig";
+import { DRAFT_STEPS } from "@/components/mailing/draftHelpers";
 
 // PHASE 2: Import CreditContext hook for global credit state
 import { useCredits } from "../components/context/CreditContext";
@@ -53,6 +54,7 @@ export default function SelectDesign() {
   const [selectedRecipientId, setSelectedRecipientId] = useState(null);
   const [favoriteIds, setFavoriteIds] = useState([]);
   const [saving, setSaving] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [hoveredDesignId, setHoveredDesignId] = useState(null);
   
   // Modal state
@@ -194,7 +196,9 @@ export default function SelectDesign() {
         setSaving(true);
         await base44.entities.MailingBatch.update(mailingBatchId, {
           selectedCardDesignId: designId,
-          cardDesignOverrides: overrides
+          cardDesignOverrides: overrides,
+          draftCurrentStep: DRAFT_STEPS.SELECT_DESIGN,
+          draftSavedAt: new Date().toISOString()
         });
         setSaving(false);
       } catch (error) {
@@ -353,7 +357,7 @@ export default function SelectDesign() {
   };
 
   // Handle continue
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!localSelectedDesignId) {
       toast({
         title: 'No design selected',
@@ -363,8 +367,48 @@ export default function SelectDesign() {
       });
       return;
     }
-    
-    navigate(createPageUrl(`ReviewAndSend?mailingBatchId=${mailingBatchId}`));
+
+    try {
+      await base44.entities.MailingBatch.update(mailingBatchId, {
+        selectedCardDesignId: localSelectedDesignId,
+        cardDesignOverrides: localDesignOverrides,
+        draftCurrentStep: DRAFT_STEPS.REVIEW_SEND,
+        draftSavedAt: new Date().toISOString()
+      });
+      navigate(createPageUrl(`ReviewAndSend?mailingBatchId=${mailingBatchId}`));
+    } catch (err) {
+      console.error('Failed to save design before navigation:', err);
+      toast({
+        title: 'Failed to save design',
+        description: err.message || 'Please try again.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    try {
+      setSavingDraft(true);
+      await base44.entities.MailingBatch.update(mailingBatchId, {
+        selectedCardDesignId: localSelectedDesignId,
+        cardDesignOverrides: localDesignOverrides,
+        draftCurrentStep: DRAFT_STEPS.SELECT_DESIGN,
+        draftSavedAt: new Date().toISOString()
+      });
+      toast({
+        title: 'Draft saved',
+        description: 'You can resume this card send later.'
+      });
+    } catch (err) {
+      console.error('Failed to save draft:', err);
+      toast({
+        title: 'Failed to save draft',
+        description: err.message || 'Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSavingDraft(false);
+    }
   };
 
   // Favorite count
@@ -713,14 +757,35 @@ export default function SelectDesign() {
             )}
           </div>
           
-          <Button
-            onClick={handleContinue}
-            disabled={!localSelectedDesignId}
-            className="bg-primary hover:bg-primary/90 gap-2"
-          >
-            Continue to Review
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={savingDraft || saving}
+              className="gap-2"
+            >
+              {savingDraft ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Draft
+                </>
+              )}
+            </Button>
+
+            <Button
+              onClick={handleContinue}
+              disabled={!localSelectedDesignId}
+              className="bg-primary hover:bg-primary/90 gap-2"
+            >
+              Continue to Review
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

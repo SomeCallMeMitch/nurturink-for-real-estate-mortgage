@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertTriangle, Send, AlertCircle } from "lucide-react";
+import { Loader2, AlertTriangle, Send, AlertCircle, Save } from "lucide-react";
 import { debounce } from "lodash";
 import { useToast } from "@/components/ui/use-toast";
 import { Pill } from "@/components/ui/Pill";
@@ -27,6 +27,7 @@ import {
   getAddressPreviewText
 } from "@/components/utils/addressHelpers";
 import { getSelectionStyles } from "@/components/utils/selectionStyles";
+import { DRAFT_STEPS } from "@/components/mailing/draftHelpers";
 
 // PHASE 2: Import CreditContext hook for global credit state
 import { useCredits } from "../components/context/CreditContext";
@@ -56,6 +57,7 @@ export default function ReviewAndSend() {
   const [editMode, setEditMode] = useState('bulk');
   const [selectedRecipientId, setSelectedRecipientId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   
   // Local state for return address configuration
   const [localReturnAddressModeGlobal, setLocalReturnAddressModeGlobal] = useState('company');
@@ -206,7 +208,9 @@ export default function ReviewAndSend() {
         setSaving(true);
         await base44.entities.MailingBatch.update(mailingBatchId, {
           returnAddressModeGlobal: modeGlobal,
-          returnAddressModeOverrides: modeOverrides
+          returnAddressModeOverrides: modeOverrides,
+          draftCurrentStep: DRAFT_STEPS.REVIEW_SEND,
+          draftSavedAt: new Date().toISOString()
         });
         setSaving(false);
       } catch (error) {
@@ -260,6 +264,31 @@ export default function ReviewAndSend() {
       };
       setLocalReturnAddressModeOverrides(newOverrides);
       debouncedSave(localReturnAddressModeGlobal, newOverrides);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    try {
+      setSavingDraft(true);
+      await base44.entities.MailingBatch.update(mailingBatchId, {
+        returnAddressModeGlobal: localReturnAddressModeGlobal,
+        returnAddressModeOverrides: localReturnAddressModeOverrides,
+        draftCurrentStep: DRAFT_STEPS.REVIEW_SEND,
+        draftSavedAt: new Date().toISOString()
+      });
+      toast({
+        title: 'Draft saved',
+        description: 'You can resume this card send later.'
+      });
+    } catch (err) {
+      console.error('Failed to save draft:', err);
+      toast({
+        title: 'Failed to save draft',
+        description: err.message || 'Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSavingDraft(false);
     }
   };
 
@@ -408,6 +437,13 @@ export default function ReviewAndSend() {
       }
       
       setSaving(true);
+
+      await base44.entities.MailingBatch.update(mailingBatchId, {
+        returnAddressModeGlobal: localReturnAddressModeGlobal,
+        returnAddressModeOverrides: localReturnAddressModeOverrides,
+        draftCurrentStep: DRAFT_STEPS.REVIEW_SEND,
+        draftSavedAt: new Date().toISOString()
+      });
       
       // Validate that we have necessary data
       if (!noteStyleProfile) {
@@ -712,23 +748,44 @@ export default function ReviewAndSend() {
             )}
           </div>
           
-          <Button
-            onClick={handleSend}
-            className={`gap-2 text-lg px-8 py-6 ${
-              creditSummary && !creditSummary.sufficient
-                ? 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed'
-                : ''
-            }`}
-            disabled={saving || checkingCredits || (creditCheckResult && !creditCheckResult.available)}
-          >
-            {saving ? (
-              <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Sending...</>
-            ) : checkingCredits ? (
-              <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Checking Credits...</>
-            ) : (
-              <><Send className="w-5 h-5" />Send Notes</>
-            )}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={savingDraft || saving}
+              className="gap-2"
+            >
+              {savingDraft ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4" />
+                  Save Draft
+                </>
+              )}
+            </Button>
+
+            <Button
+              onClick={handleSend}
+              className={`gap-2 text-lg px-8 py-6 ${
+                creditSummary && !creditSummary.sufficient
+                  ? 'bg-gray-400 hover:bg-gray-500 cursor-not-allowed'
+                  : ''
+              }`}
+              disabled={saving || checkingCredits || (creditCheckResult && !creditCheckResult.available)}
+            >
+              {saving ? (
+                <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Sending...</>
+              ) : checkingCredits ? (
+                <><Loader2 className="w-5 h-5 mr-2 animate-spin" />Checking Credits...</>
+              ) : (
+                <><Send className="w-5 h-5" />Send Notes</>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
 

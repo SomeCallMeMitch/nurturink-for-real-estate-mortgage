@@ -14,7 +14,7 @@ Deno.serve(async (req) => {
     
     // Parse request body
     const body = await req.json();
-    const { clientIds, quickSendTemplateId } = body;
+    const { clientIds, quickSendTemplateId, draftCurrentStep = 'create_content' } = body;
     
     console.log('[initializeMailingBatch] Received clientIds:', clientIds?.length, 'quickSendTemplateId:', quickSendTemplateId);
     
@@ -83,6 +83,8 @@ Deno.serve(async (req) => {
       userId: user.id,
       organizationId: user.orgId,
       status: 'draft',
+      draftCurrentStep,
+      draftSavedAt: new Date().toISOString(),
       selectedClientIds: clientIds,
       globalMessage: null,
       contentOverrides: null,
