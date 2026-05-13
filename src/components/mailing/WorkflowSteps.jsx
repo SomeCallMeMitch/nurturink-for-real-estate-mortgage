@@ -11,7 +11,12 @@ import { Button } from '@/components/ui/button';
  * @param {string} pageTitle - Title of the current page (e.g., "Find Clients", "Create Content")
  * @param {function} onBackClick - Callback function for back button click
  */
-export default function WorkflowSteps({ currentStep, creditsLeft = 0, pageTitle = '', onBackClick = null }) {
+export default function WorkflowSteps({
+  currentStep,
+  creditsLeft = 0,
+  pageTitle = '',
+  onBackClick = null
+}) {
   const steps = [
     { number: 1, label: 'Find Clients' },
     { number: 2, label: 'Create Content' },

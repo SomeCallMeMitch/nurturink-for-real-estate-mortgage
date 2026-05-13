@@ -1,0 +1,55 @@
+Save/Resume Send a Card Drafts - Follow-up Notes
+
+These are items intentionally kept out of the first Save/Resume Drafts implementation so the PR stays focused and reviewable.
+
+1. Confirm live MailingBatch schema before Base44 schema deployment
+
+Base44 should confirm whether the live MailingBatch.scribeCampaigns[] schema includes these nested fields:
+
+- environment
+- targetBaseUrl
+
+The repo schema currently includes them, but the pasted live schema snapshot did not. Before submitting a full entity schema update, use the live schema as the base and add only:
+
+- draftCurrentStep
+- draftSavedAt
+
+Do not accidentally drop live fields or introduce repo-only fields without confirmation.
+
+2. Consider a dedicated Drafts view or modal
+
+The first implementation shows all saved manual drafts on FindClients. If users accumulate many drafts, this may become too dense. A later UX pass could add:
+
+- "My Drafts" page
+- "View all drafts" modal
+- search/filter/sort for drafts
+- pagination or collapse behavior
+
+3. Consider a shared draft hook
+
+The first implementation keeps updates close to each page to minimize scope. A later cleanup could introduce a shared hook, for example:
+
+- useMailingBatchDraft
+- saveDraftStep
+- loadManualDrafts
+- discardDraft
+
+This could reduce repetition across FindClients, CreateContent, SelectDesign, and ReviewAndSend.
+
+4. Clarify scheduled-send MailingBatch lifecycle
+
+Scheduled sends also create MailingBatch records with status draft before processing. The first implementation now excludes scheduledSendId batches from the manual draft UI and blocks manual discard. A future audit should verify whether scheduled batches need a distinct status, field, or admin-only display treatment.
+
+5. Separate processMailingBatch status/schema cleanup
+
+processMailingBatch writes status "processing", while the repo MailingBatch status enum does not include "processing". This was pre-existing and is separate from draft saving. It should be handled in its own schema/code cleanup after live schema verification.
+
+6. Existing lint cleanup
+
+Full npm lint currently fails on pre-existing issues unrelated to this feature, including:
+
+- AdminClients.jsx no-case-declarations
+- ScribeTest.jsx no-empty
+- CreateContent.jsx existing no-empty / no-prototype-builtins issues
+
+The draft feature should not broaden scope to fix these unless a separate cleanup PR is opened.

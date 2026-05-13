@@ -25,6 +25,23 @@
       "default": "draft",
       "description": "Current status of the batch workflow. 'pending_review' = awaiting admin approval (REQUIRE_ADMIN_APPROVAL=true). 'pending_credits' = Scribe returned 402."
     },
+    "draftCurrentStep": {
+      "type": "string",
+      "enum": [
+        "find_clients",
+        "create_content",
+        "select_design",
+        "review_send"
+      ],
+      "nullable": true,
+      "description": "Current wizard step for resumable draft batches"
+    },
+    "draftSavedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "Last time the draft was explicitly or automatically saved"
+    },
     "selectedClientIds": {
       "type": "array",
       "items": {
