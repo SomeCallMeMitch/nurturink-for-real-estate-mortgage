@@ -698,8 +698,9 @@ export default function FindClients() {
                     <div className="flex items-center gap-2 mb-2">
                       <FileText className="w-4 h-4 text-amber-700" />
                       <h2 className="text-sm font-semibold text-amber-900">Saved drafts</h2>
+                      <span className="text-xs text-amber-700">({savedDrafts.length})</span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 max-h-44 overflow-y-auto pr-1">
                       {savedDrafts.map(draft => {
                         const isActive = activeMailingBatchId === draft.id;
                         return (
@@ -862,6 +863,25 @@ export default function FindClients() {
                 disabled={loading}
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={handleSaveDraft}
+                disabled={selectedClientIds.length === 0 || savingDraft || initializing}
+                className="gap-2"
+              >
+                {savingDraft ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Draft
+                  </>
+                )}
               </Button>
 
               {/* Add Client Dropdown */}
@@ -1190,24 +1210,6 @@ export default function FindClients() {
             </div>
 
             <div className="flex items-center gap-3 border-l border-muted-foreground/30 pl-6">
-              <Button
-                onClick={handleSaveDraft}
-                disabled={savingDraft || initializing}
-                className="bg-background text-foreground hover:bg-muted rounded-full px-5 gap-2"
-              >
-                {savingDraft ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Save Draft
-                  </>
-                )}
-              </Button>
-
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
