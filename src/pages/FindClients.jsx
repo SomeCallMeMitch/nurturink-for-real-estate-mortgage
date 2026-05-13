@@ -30,7 +30,12 @@ import {
   ChevronDown,
   Check,
   Upload,
-  Plus
+  Plus,
+  FileText,
+  PlayCircle,
+  Trash2,
+  Save,
+  Loader2
 } from "lucide-react";
 import ClientImportModal from "@/components/client/ClientImportModal";
 import ClientCreateModal from "@/components/client/ClientCreateModal";
@@ -57,6 +62,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
+import {
+  DRAFT_STEPS,
+  formatDraftLabel,
+  formatDraftSavedAt,
+  getDraftResumePage,
+  getDraftStepLabel,
+  sortDraftsNewestFirst
+} from "@/components/mailing/draftHelpers";
 import { useToast } from "@/components/ui/use-toast";
 
 // PHASE 2: Import CreditContext hook for global credit state
@@ -65,6 +78,8 @@ import { useCredits } from "../components/context/CreditContext";
 export default function FindClients() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const urlParams = new URLSearchParams(window.location.search);
+  const mailingBatchId = urlParams.get('mailingBatchId') || urlParams.get('mailingbatchid');
   
   // PHASE 2: Use global credit context for user, organization, and credits
   const { user, organization, totalCredits, refreshCredits } = useCredits();
@@ -79,6 +94,10 @@ export default function FindClients() {
   // Selection state
   const [selectedClientIds, setSelectedClientIds] = useState([]);
   const [initializing, setInitializing] = useState(false);
+  const [activeMailingBatchId, setActiveMailingBatchId] = useState(null);
+  const [savedDrafts, setSavedDrafts] = useState([]);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [discardingDraftId, setDiscardingDraftId] = useState(null);
 
   // Filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,6 +149,26 @@ export default function FindClients() {
       console.log('🔍 FindClients: Clients loaded:', clientList.length);
 
       setClients(clientList);
+
+      const draftList = await base44.entities.MailingBatch.filter({
+        userId: currentUser.id,
+        status: 'draft'
+      });
+      const manualDrafts = (draftList || []).filter(draft => !draft.scheduledSendId);
+      const sortedDrafts = sortDraftsNewestFirst(manualDrafts);
+      setSavedDrafts(sortedDrafts);
+
+      const activeDraft = mailingBatchId
+        ? sortedDrafts.find(draft => draft.id === mailingBatchId)
+        : null;
+
+      if (activeDraft) {
+        setActiveMailingBatchId(activeDraft.id);
+        setSelectedClientIds(activeDraft.selectedClientIds || []);
+      } else if (mailingBatchId) {
+        setActiveMailingBatchId(null);
+        setSelectedClientIds([]);
+      }
 
       // Create a Set of favorited client IDs for fast lookup
       const favIds = new Set(favoritesList.map(f => f.clientId));
@@ -393,8 +432,19 @@ export default function FindClients() {
       console.log('Current user:', user);
       console.log('Current organization:', organization);
 
+      if (activeMailingBatchId) {
+        await base44.entities.MailingBatch.update(activeMailingBatchId, {
+          selectedClientIds,
+          draftCurrentStep: DRAFT_STEPS.CREATE_CONTENT,
+          draftSavedAt: new Date().toISOString()
+        });
+        navigate(createPageUrl(`CreateContent?mailingBatchId=${activeMailingBatchId}`));
+        return;
+      }
+
       const response = await base44.functions.invoke('initializeMailingBatch', {
-        clientIds: selectedClientIds
+        clientIds: selectedClientIds,
+        draftCurrentStep: DRAFT_STEPS.CREATE_CONTENT
       });
 
       console.log('initializeMailingBatch response:', response);
@@ -424,7 +474,8 @@ export default function FindClients() {
 
       const response = await base44.functions.invoke('initializeMailingBatch', {
         clientIds: selectedClientIds,
-        quickSendTemplateId: template.id
+        quickSendTemplateId: template.id,
+        draftCurrentStep: DRAFT_STEPS.CREATE_CONTENT
       });
 
       const { mailingBatchId } = response.data;
@@ -435,6 +486,121 @@ export default function FindClients() {
       console.error('Failed to initialize Quick Send batch:', err);
       setError(err.response?.data?.error || 'Failed to start Quick Send. Please try again.');
       setInitializing(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (selectedClientIds.length === 0) {
+      toast({
+        title: 'Select recipients first',
+        description: 'Choose at least one recipient before saving a draft.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      setSavingDraft(true);
+      const savedAt = new Date().toISOString();
+
+      if (activeMailingBatchId) {
+        await base44.entities.MailingBatch.update(activeMailingBatchId, {
+          selectedClientIds,
+          draftCurrentStep: DRAFT_STEPS.FIND_CLIENTS,
+          draftSavedAt: savedAt
+        });
+
+        setSavedDrafts(prev => sortDraftsNewestFirst(prev.map(draft =>
+          draft.id === activeMailingBatchId
+            ? { ...draft, selectedClientIds, draftCurrentStep: DRAFT_STEPS.FIND_CLIENTS, draftSavedAt: savedAt }
+            : draft
+        )));
+      } else {
+        const currentUser = user || await base44.auth.me();
+        const response = await base44.functions.invoke('initializeMailingBatch', {
+          clientIds: selectedClientIds,
+          draftCurrentStep: DRAFT_STEPS.FIND_CLIENTS
+        });
+        const newMailingBatchId = response.data.mailingBatchId;
+
+        setActiveMailingBatchId(newMailingBatchId);
+        setSavedDrafts(prev => sortDraftsNewestFirst([
+          {
+            id: newMailingBatchId,
+            userId: currentUser.id,
+            organizationId: currentUser.orgId,
+            status: 'draft',
+            selectedClientIds,
+            draftCurrentStep: DRAFT_STEPS.FIND_CLIENTS,
+            draftSavedAt: savedAt
+          },
+          ...prev
+        ]));
+        navigate(createPageUrl(`FindClients?mailingBatchId=${newMailingBatchId}`), { replace: true });
+      }
+
+      toast({
+        title: 'Draft saved',
+        description: 'You can resume this card send later.'
+      });
+    } catch (err) {
+      console.error('Failed to save draft:', err);
+      toast({
+        title: 'Failed to save draft',
+        description: err.response?.data?.error || err.message || 'Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const handleResumeDraft = (draft) => {
+    const resumePage = getDraftResumePage(draft);
+    if (resumePage.startsWith('FindClients')) {
+      setActiveMailingBatchId(draft.id);
+      setSelectedClientIds(draft.selectedClientIds || []);
+    }
+    navigate(createPageUrl(resumePage));
+  };
+
+  const handleStartNewDraft = () => {
+    setActiveMailingBatchId(null);
+    setSelectedClientIds([]);
+    navigate(createPageUrl('FindClients'), { replace: true });
+  };
+
+  const handleDiscardDraft = async (draft) => {
+    const shouldDiscard = window.confirm('Discard this saved draft? This cannot be undone.');
+    if (!shouldDiscard) return;
+
+    try {
+      setDiscardingDraftId(draft.id);
+      await base44.functions.invoke('discardMailingDraft', {
+        mailingBatchId: draft.id
+      });
+
+      setSavedDrafts(prev => prev.filter(item => item.id !== draft.id));
+
+      if (activeMailingBatchId === draft.id) {
+        setActiveMailingBatchId(null);
+        setSelectedClientIds([]);
+        navigate(createPageUrl('FindClients'), { replace: true });
+      }
+
+      toast({
+        title: 'Draft discarded',
+        description: 'The saved card draft was removed.'
+      });
+    } catch (err) {
+      console.error('Failed to discard draft:', err);
+      toast({
+        title: 'Failed to discard draft',
+        description: err.response?.data?.error || err.message || 'Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setDiscardingDraftId(null);
     }
   };
 
@@ -522,6 +688,73 @@ export default function FindClients() {
             <div className="mb-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive text-sm">
               {error}
             </div>
+          )}
+
+          {savedDrafts.length > 0 && (
+            <Card className="mb-3 border-amber-200 bg-amber-50/60">
+              <CardContent className="py-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FileText className="w-4 h-4 text-amber-700" />
+                      <h2 className="text-sm font-semibold text-amber-900">Saved drafts</h2>
+                      <span className="text-xs text-amber-700">({savedDrafts.length})</span>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 max-h-44 overflow-y-auto pr-1">
+                      {savedDrafts.map(draft => {
+                        const isActive = activeMailingBatchId === draft.id;
+                        return (
+                          <div
+                            key={draft.id}
+                            className={`flex items-center gap-3 rounded-lg border px-3 py-2 bg-white ${
+                              isActive ? 'border-amber-500' : 'border-amber-200'
+                            }`}
+                          >
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium text-foreground truncate max-w-[320px]">
+                                {formatDraftLabel(draft)}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {getDraftStepLabel(draft)} - {formatDraftSavedAt(draft)}
+                              </div>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleResumeDraft(draft)}
+                              className="gap-1"
+                            >
+                              <PlayCircle className="w-3.5 h-3.5" />
+                              Resume
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDiscardDraft(draft)}
+                              disabled={discardingDraftId === draft.id}
+                              className="text-muted-foreground hover:text-destructive"
+                              aria-label="Discard draft"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {activeMailingBatchId && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleStartNewDraft}
+                      className="shrink-0"
+                    >
+                      Start New Card
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           <Card className="shadow-none border-0">
@@ -630,6 +863,25 @@ export default function FindClients() {
                 disabled={loading}
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={handleSaveDraft}
+                disabled={selectedClientIds.length === 0 || savingDraft || initializing}
+                className="gap-2"
+              >
+                {savingDraft ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Draft
+                  </>
+                )}
               </Button>
 
               {/* Add Client Dropdown */}
