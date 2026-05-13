@@ -389,11 +389,13 @@ export default function SelectDesign() {
   const handleSaveDraft = async () => {
     try {
       setSavingDraft(true);
+      const savedAt = new Date().toISOString();
       await base44.entities.MailingBatch.update(mailingBatchId, {
         selectedCardDesignId: localSelectedDesignId,
         cardDesignOverrides: localDesignOverrides,
         draftCurrentStep: DRAFT_STEPS.SELECT_DESIGN,
-        draftSavedAt: new Date().toISOString()
+        draftSavedAt: savedAt,
+        draftSavedExplicitlyAt: savedAt
       });
       toast({
         title: 'Draft saved',

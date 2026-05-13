@@ -40,7 +40,7 @@ export function getDraftResumePage(batch) {
 }
 
 export function getDraftTimestamp(batch) {
-  return batch?.draftSavedAt || batch?.updated_date || batch?.created_date || batch?.created_at || null;
+  return batch?.draftSavedExplicitlyAt || batch?.draftSavedAt || batch?.updated_date || batch?.created_date || batch?.created_at || null;
 }
 
 export function formatDraftLabel(batch) {

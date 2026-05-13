@@ -42,6 +42,12 @@
       "nullable": true,
       "description": "Last time the draft was explicitly or automatically saved"
     },
+    "draftSavedExplicitlyAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "Timestamp set only when the user explicitly clicks Save Draft"
+    },
     "selectedClientIds": {
       "type": "array",
       "items": {

@@ -153,15 +153,30 @@ export default function FindClients() {
 
       const draftList = await base44.entities.MailingBatch.filter({
         userId: currentUser.id,
-        status: 'draft'
+        status: 'draft',
+        draftSavedExplicitlyAt: { $exists: true, $ne: null }
       });
-      const manualDrafts = (draftList || []).filter(draft => !draft.scheduledSendId);
+      const manualDrafts = (draftList || []).filter(draft =>
+        !draft.scheduledSendId && draft.draftSavedExplicitlyAt
+      );
       const sortedDrafts = sortDraftsNewestFirst(manualDrafts);
       setSavedDrafts(sortedDrafts);
 
-      const activeDraft = mailingBatchId
+      let activeDraft = mailingBatchId
         ? sortedDrafts.find(draft => draft.id === mailingBatchId)
         : null;
+
+      if (mailingBatchId && !activeDraft) {
+        const activeMatches = await base44.entities.MailingBatch.filter({
+          id: mailingBatchId,
+          userId: currentUser.id,
+          status: 'draft'
+        });
+        const activeBatch = activeMatches?.[0];
+        if (activeBatch && !activeBatch.scheduledSendId) {
+          activeDraft = activeBatch;
+        }
+      }
 
       if (activeDraft) {
         setActiveMailingBatchId(activeDraft.id);
@@ -503,21 +518,35 @@ export default function FindClients() {
     try {
       setSavingDraft(true);
       const savedAt = new Date().toISOString();
+      const currentUser = user || await base44.auth.me();
 
       if (activeMailingBatchId) {
+        const savedDraft = {
+          id: activeMailingBatchId,
+          userId: currentUser.id,
+          organizationId: currentUser.orgId,
+          status: 'draft',
+          selectedClientIds,
+          draftCurrentStep: DRAFT_STEPS.FIND_CLIENTS,
+          draftSavedAt: savedAt,
+          draftSavedExplicitlyAt: savedAt
+        };
+
         await base44.entities.MailingBatch.update(activeMailingBatchId, {
           selectedClientIds,
           draftCurrentStep: DRAFT_STEPS.FIND_CLIENTS,
-          draftSavedAt: savedAt
+          draftSavedAt: savedAt,
+          draftSavedExplicitlyAt: savedAt
         });
 
-        setSavedDrafts(prev => sortDraftsNewestFirst(prev.map(draft =>
-          draft.id === activeMailingBatchId
-            ? { ...draft, selectedClientIds, draftCurrentStep: DRAFT_STEPS.FIND_CLIENTS, draftSavedAt: savedAt }
-            : draft
-        )));
+        setSavedDrafts(prev => {
+          const hasExistingDraft = prev.some(draft => draft.id === activeMailingBatchId);
+          return sortDraftsNewestFirst(hasExistingDraft
+            ? prev.map(draft => draft.id === activeMailingBatchId ? { ...draft, ...savedDraft } : draft)
+            : [savedDraft, ...prev]
+          );
+        });
       } else {
-        const currentUser = user || await base44.auth.me();
         const response = await base44.functions.invoke('initializeMailingBatch', {
           clientIds: selectedClientIds,
           draftCurrentStep: DRAFT_STEPS.FIND_CLIENTS
@@ -533,10 +562,15 @@ export default function FindClients() {
             status: 'draft',
             selectedClientIds,
             draftCurrentStep: DRAFT_STEPS.FIND_CLIENTS,
-            draftSavedAt: savedAt
+            draftSavedAt: savedAt,
+            draftSavedExplicitlyAt: savedAt
           },
           ...prev
         ]));
+        await base44.entities.MailingBatch.update(newMailingBatchId, {
+          draftSavedAt: savedAt,
+          draftSavedExplicitlyAt: savedAt
+        });
         navigate(createPageUrl(`FindClients?mailingBatchId=${newMailingBatchId}`), { replace: true });
       }
 
