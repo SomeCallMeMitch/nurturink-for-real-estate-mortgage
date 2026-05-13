@@ -153,8 +153,7 @@ export default function FindClients() {
 
       const draftList = await base44.entities.MailingBatch.filter({
         userId: currentUser.id,
-        status: 'draft',
-        draftSavedExplicitlyAt: { $exists: true, $ne: null }
+        status: 'draft'
       });
       const manualDrafts = (draftList || []).filter(draft =>
         !draft.scheduledSendId && draft.draftSavedExplicitlyAt
