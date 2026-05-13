@@ -62,6 +62,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import WorkflowSteps from "@/components/mailing/WorkflowSteps";
+import DraftDebugModal from "@/components/mailing/DraftDebugModal";
 import {
   DRAFT_STEPS,
   formatDraftLabel,
@@ -80,6 +81,7 @@ export default function FindClients() {
   const { toast } = useToast();
   const urlParams = new URLSearchParams(window.location.search);
   const mailingBatchId = urlParams.get('mailingBatchId') || urlParams.get('mailingbatchid');
+  const draftDebugEnabled = urlParams.get('draftDebug') === '1';
   
   // PHASE 2: Use global credit context for user, organization, and credits
   const { user, organization, totalCredits, refreshCredits } = useCredits();
@@ -98,6 +100,7 @@ export default function FindClients() {
   const [savedDrafts, setSavedDrafts] = useState([]);
   const [showSavedDrafts, setShowSavedDrafts] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
+  const [showDraftDebug, setShowDraftDebug] = useState(false);
   const [discardingDraftId, setDiscardingDraftId] = useState(null);
 
   // Filter state
@@ -925,6 +928,15 @@ export default function FindClients() {
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               </Button>
 
+              {draftDebugEnabled && (
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDraftDebug(true)}
+                >
+                  Draft Debug
+                </Button>
+              )}
+
               <Button
                 variant="outline"
                 onClick={handleSaveDraft}
@@ -1254,6 +1266,15 @@ export default function FindClients() {
         }}
         availableTagsFromParent={availableTags}
       />
+
+      {draftDebugEnabled && (
+        <DraftDebugModal
+          open={showDraftDebug}
+          onOpenChange={setShowDraftDebug}
+          mailingBatchId={mailingBatchId}
+          user={user}
+        />
+      )}
 
       {/* Floating Action Bar */}
       {selectedClientIds.length > 0 && (
