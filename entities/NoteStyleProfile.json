@@ -1,5 +1,6 @@
 {
   "name": "NoteStyleProfile",
+  "type": "object",
   "description": "Note style profiles that define handwriting and formatting for automated cards",
   "properties": {
     "name": {

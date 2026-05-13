@@ -1,5 +1,6 @@
 {
   "name": "AutomationRule",
+  "type": "object",
   "description": "Configuration for automated card sending based on triggers",
   "properties": {
     "triggerTypeId": {

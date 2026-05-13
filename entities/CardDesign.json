@@ -1,5 +1,6 @@
 {
   "name": "CardDesign",
+  "type": "object",
   "description": "Available card designs for automated card sends",
   "properties": {
     "name": {

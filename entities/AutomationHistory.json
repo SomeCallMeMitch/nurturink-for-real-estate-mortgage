@@ -1,5 +1,6 @@
 {
   "name": "AutomationHistory",
+  "type": "object",
   "description": "Tracks all automated cards sent through the automation system",
   "properties": {
     "automationRuleId": {

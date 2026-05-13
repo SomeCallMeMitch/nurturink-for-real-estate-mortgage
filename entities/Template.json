@@ -1,5 +1,6 @@
 {
   "name": "Template",
+  "type": "object",
   "description": "Message templates for automated card sends with placeholder support",
   "properties": {
     "name": {
