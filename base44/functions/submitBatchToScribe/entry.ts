@@ -151,6 +151,15 @@ function createSeededRandom(seed) {
   };
 }
 
+const BODY_BASE_INDENT_SPACES = 3;
+const BODY_RANDOM_INDENT_SPACES = 2;
+const SIGNATURE_BASE_INDENT_SPACES = 5;
+const SIGNATURE_RANDOM_INDENT_SPACES = 1;
+const MAX_INDENT_SPACES = Math.max(
+  BODY_BASE_INDENT_SPACES + BODY_RANDOM_INDENT_SPACES,
+  SIGNATURE_BASE_INDENT_SPACES + SIGNATURE_RANDOM_INDENT_SPACES
+);
+
 function wrapText(text, maxWidth) {
   const words = text.split(/\s+/);
   const lines = [];
@@ -205,7 +214,10 @@ function getSignatureLineIndexes(lines, rng) {
 
   const signatureIndents = new Map();
   for (let i = signatureStart; i <= lastNonBlank; i++) {
-    signatureIndents.set(i, i === signatureStart ? 0 : Math.floor(rng() * 2));
+    signatureIndents.set(
+      i,
+      SIGNATURE_BASE_INDENT_SPACES + Math.floor(rng() * (SIGNATURE_RANDOM_INDENT_SPACES + 1))
+    );
   }
 
   return signatureIndents;
@@ -213,7 +225,6 @@ function getSignatureLineIndexes(lines, rng) {
 
 function formatMessageForScribe(message, textType, seed) {
   const MAX_CHARS_PER_LINE = 52;
-  const MAX_INDENT_SPACES = 3;
   const MAX_LINES_SHORT = 13;
   const MAX_LINES_LONG = 19;
   const maxLines = textType === 'Short Text' ? MAX_LINES_SHORT : MAX_LINES_LONG;
@@ -252,7 +263,7 @@ function formatMessageForScribe(message, textType, seed) {
       continue;
     }
 
-    const indentSpaces = Math.floor(rng() * MAX_INDENT_SPACES) + 1;
+    const indentSpaces = BODY_BASE_INDENT_SPACES + Math.floor(rng() * (BODY_RANDOM_INDENT_SPACES + 1));
     const indent = ' '.repeat(indentSpaces);
     indentedLines.push(indent + line);
   }

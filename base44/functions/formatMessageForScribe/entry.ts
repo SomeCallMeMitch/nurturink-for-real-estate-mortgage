@@ -3,7 +3,8 @@
  * 
  * Formats messages for Scribe API according to their requirements:
  * - Max 52 characters per line (including indentation)
- * - Random 1-3 space indentation on middle lines
+ * - Body lines use a right-shifted base indent with slight random variation
+ * - Signature blocks use a separate right-shifted base indent with lighter variation
  * - Explicit \n line breaks
  * - Max 13 lines for Short Text, 19 lines for Long Text
  * 
@@ -25,6 +26,15 @@ function createSeededRandom(seed) {
     return state / 4294967296;
   };
 }
+
+const BODY_BASE_INDENT_SPACES = 3;
+const BODY_RANDOM_INDENT_SPACES = 2;
+const SIGNATURE_BASE_INDENT_SPACES = 5;
+const SIGNATURE_RANDOM_INDENT_SPACES = 1;
+const MAX_INDENT_SPACES = Math.max(
+  BODY_BASE_INDENT_SPACES + BODY_RANDOM_INDENT_SPACES,
+  SIGNATURE_BASE_INDENT_SPACES + SIGNATURE_RANDOM_INDENT_SPACES
+);
 
 /**
  * Wraps text to fit within a maximum character width
@@ -106,7 +116,10 @@ function getSignatureLineIndexes(lines, rng) {
 
   const signatureIndents = new Map();
   for (let i = signatureStart; i <= lastNonBlank; i++) {
-    signatureIndents.set(i, i === signatureStart ? 0 : Math.floor(rng() * 2));
+    signatureIndents.set(
+      i,
+      SIGNATURE_BASE_INDENT_SPACES + Math.floor(rng() * (SIGNATURE_RANDOM_INDENT_SPACES + 1))
+    );
   }
 
   return signatureIndents;
@@ -138,7 +151,6 @@ function getSignatureLineIndexes(lines, rng) {
 export function formatMessageForScribe(message, textType, seed) {
   // Constants
   const MAX_CHARS_PER_LINE = 52;
-  const MAX_INDENT_SPACES = 3;
   const MAX_LINES_SHORT = 13;
   const MAX_LINES_LONG = 19;
   
@@ -188,7 +200,7 @@ export function formatMessageForScribe(message, textType, seed) {
       continue;
     }
 
-    // Signature block: sign-off stays left; name/details get 0-1 spaces.
+    // Signature block: sign-off and name/details shift right together with light variation.
     if (signatureIndents.has(i)) {
       indentedLines.push(' '.repeat(signatureIndents.get(i)) + line);
       continue;
@@ -200,8 +212,8 @@ export function formatMessageForScribe(message, textType, seed) {
       continue;
     }
 
-    // Apply random 1-3 space indentation
-    const indentSpaces = Math.floor(rng() * MAX_INDENT_SPACES) + 1;
+    // Apply a body paragraph indent with slight random variation.
+    const indentSpaces = BODY_BASE_INDENT_SPACES + Math.floor(rng() * (BODY_RANDOM_INDENT_SPACES + 1));
     const indent = ' '.repeat(indentSpaces);
     const indentedLine = indent + line;
 
