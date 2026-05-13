@@ -1,5 +1,6 @@
 {
   "name": "Client",
+  "type": "object",
   "description": "Client/contact information for automation targeting",
   "properties": {
     "name": {

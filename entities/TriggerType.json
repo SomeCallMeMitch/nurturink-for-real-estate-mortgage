@@ -1,5 +1,6 @@
 {
   "name": "TriggerType",
+  "type": "object",
   "description": "Types of events that can trigger automated card sends",
   "properties": {
     "name": {
