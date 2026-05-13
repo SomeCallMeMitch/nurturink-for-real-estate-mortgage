@@ -96,6 +96,7 @@ export default function FindClients() {
   const [initializing, setInitializing] = useState(false);
   const [activeMailingBatchId, setActiveMailingBatchId] = useState(null);
   const [savedDrafts, setSavedDrafts] = useState([]);
+  const [showSavedDrafts, setShowSavedDrafts] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [discardingDraftId, setDiscardingDraftId] = useState(null);
 
@@ -692,14 +693,52 @@ export default function FindClients() {
 
           {savedDrafts.length > 0 && (
             <Card className="mb-3 border-amber-200 bg-amber-50/60">
-              <CardContent className="py-3">
-                <div className="flex items-start justify-between gap-4">
+              <CardContent className="py-2">
+                <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-amber-700" />
                       <h2 className="text-sm font-semibold text-amber-900">Saved drafts</h2>
+                      <span className="text-xs text-amber-700">({savedDrafts.length})</span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        Latest: {formatDraftSavedAt(savedDrafts[0])}
+                      </span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {activeMailingBatchId && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleStartNewDraft}
+                      >
+                        Start New Card
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowSavedDrafts(prev => !prev)}
+                      className="gap-1"
+                    >
+                      {showSavedDrafts ? (
+                        <>
+                          <ChevronUp className="w-3.5 h-3.5" />
+                          Hide drafts
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-3.5 h-3.5" />
+                          Show drafts
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {showSavedDrafts && (
+                  <div className="mt-2 grid grid-cols-1 lg:grid-cols-2 gap-2 max-h-44 overflow-y-auto pr-1">
                       {savedDrafts.map(draft => {
                         const isActive = activeMailingBatchId === draft.id;
                         return (
@@ -739,19 +778,8 @@ export default function FindClients() {
                           </div>
                         );
                       })}
-                    </div>
                   </div>
-                  {activeMailingBatchId && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleStartNewDraft}
-                      className="shrink-0"
-                    >
-                      Start New Card
-                    </Button>
-                  )}
-                </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -862,6 +890,25 @@ export default function FindClients() {
                 disabled={loading}
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={handleSaveDraft}
+                disabled={selectedClientIds.length === 0 || savingDraft || initializing}
+                className="gap-2"
+              >
+                {savingDraft ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Draft
+                  </>
+                )}
               </Button>
 
               {/* Add Client Dropdown */}
@@ -1190,24 +1237,6 @@ export default function FindClients() {
             </div>
 
             <div className="flex items-center gap-3 border-l border-muted-foreground/30 pl-6">
-              <Button
-                onClick={handleSaveDraft}
-                disabled={savingDraft || initializing}
-                className="bg-background text-foreground hover:bg-muted rounded-full px-5 gap-2"
-              >
-                {savingDraft ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Save Draft
-                  </>
-                )}
-              </Button>
-
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
