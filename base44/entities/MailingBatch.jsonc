@@ -16,6 +16,7 @@
         "draft",
         "ready_to_send",
         "pending_review",
+        "processing",
         "sending",
         "completed",
         "partial",
@@ -23,7 +24,7 @@
         "failed"
       ],
       "default": "draft",
-      "description": "Current status of the batch workflow. 'pending_review' = awaiting admin approval (REQUIRE_ADMIN_APPROVAL=true). 'pending_credits' = Scribe returned 402."
+      "description": "Current status of the batch workflow. 'processing' = backend is creating Notes/Mailings. 'pending_review' = awaiting admin approval (REQUIRE_ADMIN_APPROVAL=true). 'pending_credits' = Scribe returned 402."
     },
     "draftCurrentStep": {
       "type": "string",
