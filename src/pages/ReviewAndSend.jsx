@@ -14,6 +14,7 @@ import WorkflowSteps from "@/components/mailing/WorkflowSteps";
 import EditModeSelector from "@/components/mailing/EditModeSelector";
 import EnvelopePreview from "@/components/preview/EnvelopePreview";
 import NotEnoughCreditsModal from "@/components/modals/NotEnoughCreditsModal";
+import MailingBatchDebugModal from "@/components/mailing/MailingBatchDebugModal";
 
 // Extracted components
 import { AddressEditDialog } from "@/components/review/AddressEditDialog";
@@ -42,6 +43,7 @@ export default function ReviewAndSend() {
   // Get mailingBatchId from URL
   const urlParams = new URLSearchParams(window.location.search);
   const mailingBatchId = urlParams.get('mailingBatchId') || urlParams.get('mailingbatchid');
+  const sendDebugEnabled = urlParams.get('sendDebug') === '1';
   
   // Core data
   const [mailingBatch, setMailingBatch] = useState(null);
@@ -58,6 +60,7 @@ export default function ReviewAndSend() {
   const [selectedRecipientId, setSelectedRecipientId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
+  const [showSendDebug, setShowSendDebug] = useState(false);
   
   // Local state for return address configuration
   const [localReturnAddressModeGlobal, setLocalReturnAddressModeGlobal] = useState('company');
@@ -751,6 +754,16 @@ export default function ReviewAndSend() {
           </div>
           
           <div className="flex items-center gap-3">
+            {sendDebugEnabled && (
+              <Button
+                variant="outline"
+                onClick={() => setShowSendDebug(true)}
+                disabled={loading}
+              >
+                Debug Send
+              </Button>
+            )}
+
             <Button
               variant="outline"
               onClick={handleSaveDraft}
@@ -818,6 +831,17 @@ export default function ReviewAndSend() {
         onClose={() => setShowNotEnoughCreditsModal(false)}
         creditInfo={creditCheckResult}
       />
+
+      {sendDebugEnabled && (
+        <MailingBatchDebugModal
+          open={showSendDebug}
+          onOpenChange={setShowSendDebug}
+          mailingBatchId={mailingBatchId}
+          mailingBatch={mailingBatch}
+          clients={clients}
+          user={user}
+        />
+      )}
     </div>
   );
 }
