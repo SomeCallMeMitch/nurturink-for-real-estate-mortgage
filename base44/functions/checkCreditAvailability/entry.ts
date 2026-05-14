@@ -40,11 +40,24 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Organization context not found' }, { status: 400 });
     }
 
-    // Get organization's credit pool balance
-    const orgs = await base44.asServiceRole.entities.Organization.filter({ id: orgId });
+    // Interactive credit checks have an authenticated user session. Prefer
+    // user-scoped reads so RLS and platform access match the frontend/context
+    // path. In this app, service-role entity reads have returned empty rows for
+    // some protected entities even when user-scoped reads succeed.
+    const orgs = await base44.entities.Organization.filter({ id: orgId });
 
     if (!orgs || orgs.length === 0) {
-      return Response.json({ error: 'Organization not found' }, { status: 404 });
+      console.warn('[CreditCheck] Organization not found with user-scoped read', {
+        userId: user.id,
+        orgId,
+        requestedOrgId,
+        userOrgId
+      });
+      return Response.json({
+        error: 'Organization not found',
+        orgId,
+        lookupMode: 'userScoped'
+      }, { status: 404 });
     }
 
     const org = orgs[0];
@@ -56,9 +69,15 @@ Deno.serve(async (req) => {
     const canAccessCompanyPool = user?.canAccessCompanyPool !== false;
 
     // Get count of pending/awaiting_approval/processing ScheduledSends for this org
-    const pendingSends = await base44.asServiceRole.entities.ScheduledSend.filter({
-      orgId: orgId
-    });
+    let pendingSends = [];
+    try {
+      pendingSends = await base44.entities.ScheduledSend.filter({ orgId });
+    } catch (scheduledSendError) {
+      console.warn('[CreditCheck] ScheduledSend reservation lookup failed', {
+        message: scheduledSendError?.message,
+        orgId
+      });
+    }
 
     // Filter to only count statuses that reserve credits
     const reservedStatuses = ['pending', 'awaiting_approval', 'processing'];
