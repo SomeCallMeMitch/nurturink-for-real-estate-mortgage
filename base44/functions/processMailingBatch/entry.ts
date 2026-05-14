@@ -182,11 +182,14 @@ function resolveReturnAddress(mode, user, organization) {
 // ============================================================
 
 Deno.serve(async (req) => {
+  let base44;
+  let claimedMailingBatchId = null;
+
   console.log('=== PROCESS MAILING BATCH ===');
   console.log('REQUIRE_ADMIN_APPROVAL:', REQUIRE_ADMIN_APPROVAL);
   
   try {
-    const base44 = createClientFromRequest(req);
+    base44 = createClientFromRequest(req);
     
     // ============================================================
     // AUTH: Parse payload and determine caller context
@@ -231,11 +234,6 @@ Deno.serve(async (req) => {
       }, { status: 409 });
     }
 
-    // BATCH2: Atomically claim the batch by marking it 'processing' before doing any work.
-    // Any concurrent invocation hitting the status guard above will be blocked.
-    await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, { status: 'processing' });
-    console.log(`[PMB] Batch ${mailingBatchId} marked as 'processing' — beginning work`);
-
     let user;
     
     if (serviceRoleBypass === true) {
@@ -269,8 +267,13 @@ Deno.serve(async (req) => {
     // "user" is the batch owner regardless of call path.
     // ============================================================
     
-    // Validate batch data
-    if (!batch.selectedClientIds?.length) {
+    // Validate batch data before claiming the batch. These failures should leave
+    // the draft editable instead of trapping it in a processing status.
+    const selectedClientIds = (batch.selectedClientIds || [])
+      .map(id => String(id || '').trim())
+      .filter(Boolean);
+
+    if (!selectedClientIds.length) {
       return Response.json({ error: 'No clients selected in batch' }, { status: 400 });
     }
     
@@ -282,7 +285,7 @@ Deno.serve(async (req) => {
     // CREDIT VALIDATION & CALCULATION
     // ============================================================
     
-    const creditsNeeded = batch.selectedClientIds.length;
+    const creditsNeeded = selectedClientIds.length;
     const companyAllocatedCredits = user.companyAllocatedCredits || 0;
     const personalPurchasedCredits = user.personalPurchasedCredits || 0;
     const canAccessCompanyPool = user.canAccessCompanyPool !== false;
@@ -327,17 +330,66 @@ Deno.serve(async (req) => {
     // LOAD DATA
     // ============================================================
     
-    const [clients, noteStyleProfile] = await Promise.all([
-      base44.asServiceRole.entities.Client.filter({ id: { $in: batch.selectedClientIds } }),
+    const selectedClientIdSet = new Set(selectedClientIds);
+    const orgId = batch.organizationId || user.orgId;
+    if (!orgId) {
+      return Response.json({ error: 'Organization context not found for mailing batch' }, { status: 400 });
+    }
+
+    const [orgClients, noteStyleProfile] = await Promise.all([
+      base44.asServiceRole.entities.Client.filter({ orgId }),
       batch.selectedNoteStyleProfileId 
         ? base44.asServiceRole.entities.NoteStyleProfile.filter({ id: batch.selectedNoteStyleProfileId })
             .then(profiles => profiles?.[0] || null)
         : Promise.resolve(null)
     ]);
+
+    const clients = (orgClients || []).filter(client => selectedClientIdSet.has(client.id));
+    const foundClientIdSet = new Set(clients.map(client => client.id));
+    const missingClientIds = selectedClientIds.filter(clientId => !foundClientIdSet.has(clientId));
     
-    if (clients.length !== batch.selectedClientIds.length) {
-      return Response.json({ error: 'Some clients could not be found' }, { status: 400 });
+    if (missingClientIds.length > 0) {
+      console.warn('[PMB] Missing selected clients', {
+        mailingBatchId,
+        orgId,
+        requestedClientCount: selectedClientIds.length,
+        foundClientCount: clients.length,
+        missingClientIds
+      });
+      return Response.json({
+        error: 'Some clients could not be found',
+        requestedClientCount: selectedClientIds.length,
+        foundClientCount: clients.length,
+        missingClientIds
+      }, { status: 400 });
     }
+
+    const addressErrors = clients
+      .map(client => {
+        const missingFields = ['fullName', 'street', 'city', 'state', 'zipCode']
+          .filter(field => !String(client[field] || '').trim());
+        return missingFields.length
+          ? { clientId: client.id, clientName: client.fullName || client.email || 'Unnamed client', missingFields }
+          : null;
+      })
+      .filter(Boolean);
+
+    if (addressErrors.length > 0) {
+      console.warn('[PMB] Selected clients missing mailing address fields', {
+        mailingBatchId,
+        addressErrors
+      });
+      return Response.json({
+        error: 'Some selected clients are missing required mailing address fields',
+        clientErrors: addressErrors
+      }, { status: 400 });
+    }
+
+    // BATCH2: Claim the batch after preflight validation passes.
+    // Any later invocation hitting the status guard above will be blocked.
+    await base44.asServiceRole.entities.MailingBatch.update(mailingBatchId, { status: 'processing' });
+    claimedMailingBatchId = mailingBatchId;
+    console.log(`[PMB] Batch ${mailingBatchId} marked as 'processing' — beginning work`);
     
     // ============================================================
     // PROCESS EACH CLIENT - CREATE NOTES & MAILINGS
@@ -632,6 +684,19 @@ Deno.serve(async (req) => {
     
   } catch (error) {
     console.error('Error in processMailingBatch:', error);
+    if (base44 && claimedMailingBatchId) {
+      try {
+        await base44.asServiceRole.entities.MailingBatch.update(claimedMailingBatchId, {
+          status: 'failed',
+          processingErrors: [{
+            error: error.message || 'Failed to process mailing batch',
+            timestamp: new Date().toISOString()
+          }]
+        });
+      } catch (statusError) {
+        console.error('Failed to mark mailing batch failed after processing error:', statusError);
+      }
+    }
     return Response.json({ error: error.message || 'Failed to process mailing batch' }, { status: 500 });
   }
 });
