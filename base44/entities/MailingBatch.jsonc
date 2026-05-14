@@ -187,6 +187,18 @@
               "none"
             ]
           },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "staging",
+              "production"
+            ],
+            "description": "Scribe environment used for this submission"
+          },
+          "targetBaseUrl": {
+            "type": "string",
+            "description": "Scribe API base URL used for this submission"
+          },
           "clientIds": {
             "type": "array",
             "items": {
@@ -207,18 +219,6 @@
               "failed"
             ],
             "description": "Status of this specific campaign submission"
-          },
-          "environment": {
-            "type": "string",
-            "enum": [
-              "staging",
-              "production"
-            ],
-            "description": "Scribe environment used for this submission"
-          },
-          "targetBaseUrl": {
-            "type": "string",
-            "description": "Scribe API base URL used for this submission"
           },
           "scribeStatus": {
             "type": "string",
