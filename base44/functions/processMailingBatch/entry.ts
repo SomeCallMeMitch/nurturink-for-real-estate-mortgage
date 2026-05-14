@@ -336,8 +336,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Organization context not found for mailing batch' }, { status: 400 });
     }
 
+    // Client is a PII-protected entity. Diagnostics showed interactive
+    // service-role Client reads can return zero rows while authenticated
+    // user-scoped reads correctly honor Client RLS. Use the caller-scoped
+    // Client SDK for interactive sends and service role only for automated
+    // internal sends that have no user session.
+    const clientEntity = serviceRoleBypass === true
+      ? base44.asServiceRole.entities.Client
+      : base44.entities.Client;
+    const clientLookupMode = serviceRoleBypass === true ? 'serviceRole' : 'userScoped';
+
     const [orgClients, noteStyleProfile] = await Promise.all([
-      base44.asServiceRole.entities.Client.filter({ orgId }),
+      clientEntity.filter({ orgId }),
       batch.selectedNoteStyleProfileId 
         ? base44.asServiceRole.entities.NoteStyleProfile.filter({ id: batch.selectedNoteStyleProfileId })
             .then(profiles => profiles?.[0] || null)
@@ -352,12 +362,14 @@ Deno.serve(async (req) => {
       console.warn('[PMB] Missing selected clients', {
         mailingBatchId,
         orgId,
+        clientLookupMode,
         requestedClientCount: selectedClientIds.length,
         foundClientCount: clients.length,
         missingClientIds
       });
       return Response.json({
         error: 'Some clients could not be found',
+        clientLookupMode,
         requestedClientCount: selectedClientIds.length,
         foundClientCount: clients.length,
         missingClientIds
@@ -490,7 +502,7 @@ Deno.serve(async (req) => {
         });
         
         // Update Client tracking
-        await base44.asServiceRole.entities.Client.update(client.id, {
+        await clientEntity.update(client.id, {
           lastNoteSentDate: currentTimestamp,
           totalNotesSent: (client.totalNotesSent || 0) + 1
         });
