@@ -103,5 +103,6 @@
       "required": false
     }
   },
-  "required": []
+  "required": [],
+  "rls": {}
 }
