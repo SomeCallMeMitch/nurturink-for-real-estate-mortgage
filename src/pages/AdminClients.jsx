@@ -57,6 +57,7 @@ import {
   Upload
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { hasAdminPrivileges } from "@/components/utils/roleHelpers";
 
 export default function AdminClients() {
   const navigate = useNavigate();
@@ -101,11 +102,10 @@ export default function AdminClients() {
       setLoading(true);
       const user = await base44.auth.me();
       
-      // PHASE 3: Build client filter based on user role
-      // Regular users (reps) only see their own clients
-      // Admins and managers see all clients in the org
+      // PHASE 3: Build client filter based on app role.
+      // Base44 user.role is a platform role; app-level access uses appRole/orgRole.
       const clientFilter = { orgId: user.orgId };
-      if (user.role === 'user') {
+      if (!hasAdminPrivileges(user)) {
         clientFilter.ownerId = user.id;  // Only show the rep's own clients
       }
       

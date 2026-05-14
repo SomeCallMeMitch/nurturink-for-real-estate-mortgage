@@ -20,6 +20,7 @@ import ApprovalQueueWidget from '@/components/dashboard/ApprovalQueueWidget';
 import CampaignActivityWidget from '@/components/dashboard/CampaignActivityWidget';
 import UpcomingSendsWidget from '@/components/dashboard/UpcomingSendsWidget';
 import { useCredits } from '@/components/context/CreditContext';
+import { hasAdminPrivileges } from '@/components/utils/roleHelpers';
 import moment from 'moment';
 
 export default function Dashboard() {
@@ -76,11 +77,10 @@ export default function Dashboard() {
       }, {});
       setCardDesignsMap(designsById);
 
-      // PHASE 3: Fetch clients count based on user role
-      // Regular users (reps) only see their own clients
-      // Admins and managers see all clients in the org
+      // PHASE 3: Fetch clients count based on app role.
+      // Base44 user.role is a platform role; app-level access uses appRole/orgRole.
       const clientFilter = { orgId: currentUser.orgId };
-      if (currentUser.role === 'user') {
+      if (!hasAdminPrivileges(currentUser)) {
         clientFilter.ownerId = currentUser.id;  // Only count the rep's own clients
       }
       const clients = await base44.entities.Client.filter(clientFilter);

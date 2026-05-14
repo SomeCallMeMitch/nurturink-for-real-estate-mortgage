@@ -72,6 +72,7 @@ import {
   sortDraftsNewestFirst
 } from "@/components/mailing/draftHelpers";
 import { useToast } from "@/components/ui/use-toast";
+import { hasAdminPrivileges } from "@/components/utils/roleHelpers";
 
 // PHASE 2: Import CreditContext hook for global credit state
 import { useCredits } from "../components/context/CreditContext";
@@ -136,11 +137,10 @@ export default function FindClients() {
       console.log('🔍 FindClients: Current user:', currentUser);
       console.log('🔍 FindClients: User orgId:', currentUser.orgId);
 
-      // PHASE 3: Build client filter based on user role
-      // Regular users (reps) only see their own clients
-      // Admins and managers see all clients in the org
+      // PHASE 3: Build client filter based on app role.
+      // Base44 user.role is a platform role; app-level access uses appRole/orgRole.
       const clientFilter = { orgId: currentUser.orgId };
-      if (currentUser.role === 'user') {
+      if (!hasAdminPrivileges(currentUser)) {
         clientFilter.ownerId = currentUser.id;  // Only show the rep's own clients
       }
       console.log('🔍 FindClients: Client filter:', clientFilter);
