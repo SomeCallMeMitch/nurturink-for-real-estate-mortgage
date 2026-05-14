@@ -3,58 +3,89 @@
   "type": "object",
   "description": "Client/contact information for automation targeting",
   "properties": {
-    "name": {
+    "fullName": {
       "type": "string",
-      "description": "Full name of the client",
-      "required": true
+      "description": "Full name of the client"
+    },
+    "firstName": {
+      "type": "string",
+      "description": "Client's first name"
+    },
+    "lastName": {
+      "type": "string",
+      "description": "Client's last name"
+    },
+    "street": {
+      "type": "string",
+      "description": "Street address for card mailing"
+    },
+    "address2": {
+      "type": "string",
+      "description": "Apartment, suite, unit, or secondary address line"
+    },
+    "zipCode": {
+      "type": "string",
+      "description": "ZIP/postal code for card mailing address"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization this client belongs to"
+    },
+    "ownerId": {
+      "type": "string",
+      "description": "User who owns or manages this client"
     },
     "email": {
       "type": "string",
       "format": "email",
-      "description": "Email address of the client",
-      "required": true
+      "description": "Email address of the client"
     },
     "phone": {
       "type": "string",
-      "description": "Phone number of the client",
-      "required": false
+      "description": "Phone number of the client"
     },
     "company": {
       "type": "string",
-      "description": "Company name associated with the client",
-      "required": false
-    },
-    "street_address": {
-      "type": "string",
-      "description": "Street address for card mailing",
-      "required": false
+      "description": "Company name associated with the client"
     },
     "city": {
       "type": "string",
-      "description": "City for card mailing address",
-      "required": false
+      "description": "City for card mailing address"
     },
     "state": {
       "type": "string",
-      "description": "State/province for card mailing address",
-      "required": false
+      "description": "State/province for card mailing address"
     },
-    "zip_code": {
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for organizing and filtering clients"
+    },
+    "source": {
       "type": "string",
-      "description": "ZIP/postal code for card mailing address",
-      "required": false
+      "description": "Where this client came from"
+    },
+    "lastNoteSentDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Most recent date a note was sent to this client"
+    },
+    "totalNotesSent": {
+      "type": "number",
+      "description": "Total number of notes sent to this client",
+      "default": 0
     },
     "birthday": {
       "type": "string",
       "format": "date",
-      "description": "Client's birthday (YYYY-MM-DD) for birthday automation",
-      "required": false
+      "description": "Client's birthday (YYYY-MM-DD) for birthday automation"
     },
     "renewal_date": {
       "type": "string",
       "format": "date",
-      "description": "Client's renewal date (YYYY-MM-DD) for renewal reminder automation",
-      "required": false
+      "description": "Client's renewal date (YYYY-MM-DD) for renewal reminder automation"
     },
     "referral_status": {
       "type": "string",
@@ -64,7 +95,6 @@
         "completed"
       ],
       "description": "Status of referral request for referral automation",
-      "required": false,
       "default": "none"
     },
     "automation_status": {
@@ -75,32 +105,20 @@
         "opted_out"
       ],
       "description": "Whether automations are active for this client",
-      "required": false,
       "default": "active"
     },
     "last_automation_trigger": {
       "type": "string",
       "format": "date-time",
-      "description": "ISO 8601 timestamp of the last automation trigger for this client",
-      "required": false
+      "description": "ISO 8601 timestamp of the last automation trigger for this client"
     },
     "notes": {
       "type": "string",
-      "description": "Additional notes about the client",
-      "required": false
-    },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Tags for organizing and filtering clients",
-      "required": false
+      "description": "Additional notes about the client"
     },
     "custom_fields": {
       "type": "object",
-      "description": "Custom fields for storing additional client data",
-      "required": false
+      "description": "Custom fields for storing additional client data"
     }
   },
   "required": [],
