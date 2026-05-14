@@ -104,5 +104,16 @@
     }
   },
   "required": [],
-  "rls": {}
+  "rls": {
+    "create": null,
+    "read": {
+      "data.orgId": "{{user.orgId}}"
+    },
+    "update": {
+      "data.orgId": "{{user.orgId}}"
+    },
+    "delete": {
+      "data.orgId": "{{user.orgId}}"
+    }
+  }
 }
