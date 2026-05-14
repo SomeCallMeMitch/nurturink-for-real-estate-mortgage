@@ -125,12 +125,15 @@
   "rls": {
     "create": null,
     "read": {
-      "data.orgId": "{{user.orgId}}"
+      "data.orgId": "{{user.data.orgId}}"
     },
     "update": {
       "data.orgId": "{{user.orgId}}"
     },
     "delete": {
+      "data.orgId": "{{user.orgId}}"
+    },
+    "write": {
       "data.orgId": "{{user.orgId}}"
     }
   }
