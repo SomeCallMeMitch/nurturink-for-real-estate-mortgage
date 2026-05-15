@@ -85,7 +85,9 @@ export default function MobileSend() {
       }
 
       const [clientList, templateList, designList, messageTemplateList, profileList, tagsList] = await Promise.all([
-        base44.entities.Client.filter({}, '-created_date', 100),
+        currentUser?.orgId
+          ? base44.entities.Client.filter({ orgId: currentUser.orgId }, '-created_date', 100)
+          : Promise.resolve([]),
         base44.entities.QuickSendTemplate.filter({}, '-created_date', 50),
         base44.entities.CardDesign.filter({}, '-created_date', 200),
         base44.entities.Template.filter({}, '-created_date', 100),

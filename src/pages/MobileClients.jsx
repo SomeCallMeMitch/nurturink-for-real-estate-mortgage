@@ -48,7 +48,9 @@ export default function MobileClients() {
       }
       
       // Load clients and extract tags
-      const clientList = await base44.entities.Client.filter({}, '-created_date', 100);
+      const clientList = currentUser?.orgId
+        ? await base44.entities.Client.filter({ orgId: currentUser.orgId }, '-created_date', 100)
+        : [];
       setClients(clientList);
       
       // Extract unique tags from all clients
