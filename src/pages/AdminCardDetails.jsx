@@ -62,6 +62,7 @@ export default function AdminCardDetails() {
     try {
       setLoading(true);
       setError(null);
+      const currentUser = await base44.auth.me();
       
       // Fetch the note
       const noteList = await base44.entities.Note.filter({ id: noteId });
@@ -79,7 +80,7 @@ export default function AdminCardDetails() {
       // Client
       if (noteData.clientId) {
         promises.push(
-          base44.entities.Client.filter({ id: noteData.clientId })
+          base44.entities.Client.filter({ id: noteData.clientId, orgId: currentUser.orgId })
             .then(list => list?.[0] && setClient(list[0]))
         );
       }

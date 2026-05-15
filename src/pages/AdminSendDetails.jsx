@@ -118,6 +118,7 @@ export default function AdminSendDetails() {
     try {
       setLoading(true);
       setError(null);
+      const currentUser = await base44.auth.me();
       
       // Fetch batch
       const batchList = await base44.entities.MailingBatch.filter({ id: batchId });
@@ -172,7 +173,10 @@ export default function AdminSendDetails() {
       ])];
       if (clientIds.length) {
         try {
-          const clientList = await base44.entities.Client.filter({ id: { $in: clientIds } });
+          const clientList = await base44.entities.Client.filter({
+            id: { $in: clientIds },
+            orgId: currentUser.orgId
+          });
           const map = {};
           clientList.forEach(c => { map[c.id] = c; });
           setClients(map);

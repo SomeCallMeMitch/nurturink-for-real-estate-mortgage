@@ -110,7 +110,10 @@ export default function Dashboard() {
       if (recentNotes.length > 0) {
         const clientIds = [...new Set(recentNotes.map(note => note.clientId).filter(Boolean))];
         if (clientIds.length > 0) {
-          const recentClients = await base44.entities.Client.filter({ id: { $in: clientIds } });
+          const recentClients = await base44.entities.Client.filter({
+            id: { $in: clientIds },
+            orgId: currentUser.orgId
+          });
           const clientsById = recentClients.reduce((acc, client) => {
             acc[client.id] = client;
             return acc;

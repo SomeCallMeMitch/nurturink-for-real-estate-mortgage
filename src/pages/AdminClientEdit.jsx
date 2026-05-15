@@ -80,7 +80,7 @@ export default function AdminClientEdit() {
         
         // Load client and favorite status in parallel
         const [clients, favoritesList] = await Promise.all([
-          base44.entities.Client.filter({ id: clientId }),
+          base44.entities.Client.filter({ id: clientId, orgId: currentUser.orgId }),
           base44.entities.FavoriteClient.filter({ userId: currentUser.id, clientId: clientId })
         ]);
         
