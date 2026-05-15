@@ -53,7 +53,11 @@ export default function MobileClientEdit() {
         console.error('Failed to load whitelabel settings:', wlError);
       }
       
-      const clients = await base44.entities.Client.filter({ id: clientId });
+      const currentUser = await base44.auth.me();
+      const clients = await base44.entities.Client.filter({
+        id: clientId,
+        orgId: currentUser.orgId
+      });
       if (clients.length > 0) {
         const client = clients[0];
         setFormData({

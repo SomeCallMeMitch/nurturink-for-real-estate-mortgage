@@ -182,7 +182,8 @@ export default function CreateContent() {
       // Note: The selectedClientIds already contain only the rep's clients
       // (filtered in FindClients), so we just need to fetch by ID
       const clientList = await base44.entities.Client.filter({
-        id: { $in: batchData.selectedClientIds }
+        id: { $in: batchData.selectedClientIds || [] },
+        orgId: currentUser.orgId
       });
       setClients(clientList);
       

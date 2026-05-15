@@ -118,7 +118,8 @@ export default function SelectDesign() {
       
       // Load clients
       const clientList = await base44.entities.Client.filter({
-        id: { $in: batchData.selectedClientIds }
+        id: { $in: batchData.selectedClientIds || [] },
+        orgId: currentUser.orgId
       });
       console.log('Clients loaded:', clientList.length);
       setClients(clientList);

@@ -76,7 +76,8 @@ export default function MailingConfirmation() {
       
       // Load clients
       const clientList = await base44.entities.Client.filter({
-        id: { $in: batch.selectedClientIds }
+        id: { $in: batch.selectedClientIds || [] },
+        orgId: currentUser.orgId
       });
       setClients(clientList);
       
