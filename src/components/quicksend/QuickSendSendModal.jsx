@@ -40,7 +40,10 @@ export default function QuickSendSendModal({
     const load = async () => {
       setLoadingClients(true);
       try {
-        const list = await base44.entities.Client.list({}, '-created_date', 500);
+        const currentUser = await base44.auth.me();
+        const list = currentUser?.orgId
+          ? await base44.entities.Client.filter({ orgId: currentUser.orgId }, '-created_date', 500)
+          : [];
         setClients(list || []);
       } catch {
         setClients([]);

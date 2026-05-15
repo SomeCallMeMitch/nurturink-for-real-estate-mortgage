@@ -64,7 +64,9 @@ export default function MobileHome() {
       // Load stats
       try {
         const [clients, notes] = await Promise.all([
-          base44.entities.Client.filter({}),
+          currentUser?.orgId
+            ? base44.entities.Client.filter({ orgId: currentUser.orgId })
+            : Promise.resolve([]),
           base44.entities.Note.filter({ userId: currentUser.id })
         ]);
         
