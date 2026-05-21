@@ -168,9 +168,16 @@ export default function ClientCreateModal({ open, onOpenChange, onClientCreated,
   };
 
   const createClient = async () => {
+    const cleanFormData = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [
+        key,
+        typeof value === 'string' ? value.trim() : value
+      ])
+    );
     const clientData = {
-      ...formData,
-      fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+      ...cleanFormData,
+      state: cleanFormData.state.toUpperCase(),
+      fullName: `${cleanFormData.firstName} ${cleanFormData.lastName}`.trim(),
       orgId: user.orgId,
       ownerId: user.id,
       tags: selectedTags,

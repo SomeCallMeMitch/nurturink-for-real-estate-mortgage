@@ -63,13 +63,28 @@ export function AddressEditDialog({
     setAddress(prev => ({ ...prev, [field]: value }));
   };
 
+  const trimAddress = (value) => String(value || '').trim();
+
   const handleSave = () => {
-    onSave(address);
+    onSave({
+      companyName: trimAddress(address.companyName),
+      returnAddressName: trimAddress(address.returnAddressName),
+      street: trimAddress(address.street),
+      address2: trimAddress(address.address2),
+      city: trimAddress(address.city),
+      state: trimAddress(address.state).toUpperCase(),
+      zipCode: trimAddress(address.zipCode)
+    });
   };
 
-  const isValid = address.street && address.city && address.state && address.zipCode;
-
   const isCompany = type === "company";
+  const isValid = Boolean(
+    trimAddress(address.street) &&
+    trimAddress(address.city) &&
+    trimAddress(address.state) &&
+    trimAddress(address.zipCode) &&
+    (isCompany || trimAddress(address.returnAddressName))
+  );
   const title = isCompany ? "Edit Company Return Address" : "Edit Your Return Address";
   const description = isCompany 
     ? "This address will be used when \"Company\" is selected as the return address"
