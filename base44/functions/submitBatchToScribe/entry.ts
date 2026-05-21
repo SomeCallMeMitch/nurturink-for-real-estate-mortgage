@@ -854,6 +854,13 @@ Deno.serve(async (req) => {
         error: 'Production submission requires a successful staging submission first'
       }, { status: 400 });
     }
+
+    if (scribeConfig.environment === 'production' && hasProductionSubmission) {
+      return Response.json({
+        success: false,
+        error: 'Production submission has already been recorded for this batch'
+      }, { status: 409 });
+    }
     
     // Update status to sending
     await db.MailingBatch.update(mailingBatchId, { status: 'sending' });
