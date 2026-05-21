@@ -103,28 +103,77 @@ export default function SettingsAddresses() {
   const handleSave = async () => {
     try {
       setSaving(true);
+      const canEditCompanyAddress = organization && (
+        user.isOrgOwner ||
+        user.appRole === 'organization_owner' ||
+        user.appRole === 'super_admin'
+      );
+      const requiredAddressFields = ['street', 'city', 'state'];
+      const personalMissing = ['returnAddressName', ...requiredAddressFields, 'zipCode']
+        .filter(field => !String(personalAddress[field] || '').trim());
+      const companyMissing = [...requiredAddressFields, 'zip']
+        .filter(field => !String(companyAddress[field] || '').trim());
+
+      if (returnAddressPreference === 'personal' && personalMissing.length > 0) {
+        toast({
+          title: 'Personal return address incomplete',
+          description: 'Name, street, city, state, and ZIP are required.',
+          variant: 'destructive'
+        });
+        setSaving(false);
+        return;
+      }
+
+      if (returnAddressPreference === 'company' && companyMissing.length > 0) {
+        toast({
+          title: 'Company return address incomplete',
+          description: canEditCompanyAddress
+            ? 'Street, city, state, and ZIP are required.'
+            : 'Ask an organization owner to complete the company return address, or choose another return address option.',
+          variant: 'destructive'
+        });
+        setSaving(false);
+        return;
+      }
+
+      const cleanPersonalAddress = {
+        returnAddressName: personalAddress.returnAddressName.trim(),
+        street: personalAddress.street.trim(),
+        address2: personalAddress.address2.trim(),
+        city: personalAddress.city.trim(),
+        state: personalAddress.state.trim().toUpperCase(),
+        zipCode: personalAddress.zipCode.trim()
+      };
+      const cleanCompanyAddress = {
+        companyName: companyAddress.companyName.trim(),
+        street: companyAddress.street.trim(),
+        address2: companyAddress.address2.trim(),
+        city: companyAddress.city.trim(),
+        state: companyAddress.state.trim().toUpperCase(),
+        zip: companyAddress.zip.trim()
+      };
       
       // Update user's personal address and preference
       await base44.auth.updateMe({
-        returnAddressName: personalAddress.returnAddressName,
-        street: personalAddress.street,
-        address2: personalAddress.address2,
-        city: personalAddress.city,
-        state: personalAddress.state,
-        zipCode: personalAddress.zipCode,
+        returnAddressName: cleanPersonalAddress.returnAddressName,
+        street: cleanPersonalAddress.street,
+        address2: cleanPersonalAddress.address2,
+        city: cleanPersonalAddress.city,
+        state: cleanPersonalAddress.state,
+        zipCode: cleanPersonalAddress.zipCode,
         returnAddressPreference: returnAddressPreference
       });
       
       // Update organization's company address if user has permission
-      if (organization && (user.isOrgOwner || user.appRole === 'organization_owner' || user.appRole === 'super_admin')) {
+      if (canEditCompanyAddress) {
         await base44.entities.Organization.update(organization.id, {
           companyReturnAddress: {
-            companyName: companyAddress.companyName,
-            street: companyAddress.street,
-            address2: companyAddress.address2,
-            city: companyAddress.city,
-            state: companyAddress.state,
-            zip: companyAddress.zip
+            companyName: cleanCompanyAddress.companyName,
+            street: cleanCompanyAddress.street,
+            address2: cleanCompanyAddress.address2,
+            city: cleanCompanyAddress.city,
+            state: cleanCompanyAddress.state,
+            zip: cleanCompanyAddress.zip
           }
         });
       }

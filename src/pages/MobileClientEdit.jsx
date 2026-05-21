@@ -90,8 +90,11 @@ export default function MobileClientEdit() {
   };
 
   const handleSave = async () => {
+    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'state', 'zipCode'];
+    const missingRequiredFields = requiredFields.filter(field => !String(formData[field] || '').trim());
+
     // Validation
-    if (!formData.firstName || !formData.lastName) {
+    if (missingRequiredFields.includes('firstName') || missingRequiredFields.includes('lastName')) {
       toast({
         title: 'Missing information',
         description: 'First and last name are required',
@@ -100,7 +103,7 @@ export default function MobileClientEdit() {
       return;
     }
 
-    if (!formData.street || !formData.city || !formData.state || !formData.zipCode) {
+    if (missingRequiredFields.length > 0) {
       toast({
         title: 'Missing address',
         description: 'Complete address is required',
@@ -111,13 +114,20 @@ export default function MobileClientEdit() {
 
     try {
       setSaving(true);
+      const trimmedFormData = Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => [
+          key,
+          typeof value === 'string' ? value.trim() : value
+        ])
+      );
       
       await base44.entities.Client.update(clientId, {
-        ...formData,
-        birthday: formData.birthday || null,
-        policy_start_date: formData.policy_start_date || null,
-        renewal_date: formData.renewal_date || null,
-        fullName: `${formData.firstName} ${formData.lastName}`
+        ...trimmedFormData,
+        state: trimmedFormData.state.toUpperCase(),
+        birthday: trimmedFormData.birthday || null,
+        policy_start_date: trimmedFormData.policy_start_date || null,
+        renewal_date: trimmedFormData.renewal_date || null,
+        fullName: `${trimmedFormData.firstName} ${trimmedFormData.lastName}`.trim()
       });
 
       toast({

@@ -349,6 +349,18 @@ export default function ReviewAndSend() {
   // Handle saving company address
   const handleSaveCompanyAddress = async (addressData) => {
     try {
+      const missingFields = ['street', 'city', 'state', 'zipCode']
+        .filter(field => !String(addressData[field] || '').trim());
+      if (missingFields.length > 0) {
+        toast({
+          title: 'Company address incomplete',
+          description: 'Street, city, state, and ZIP are required.',
+          variant: 'destructive',
+          duration: 3000
+        });
+        return;
+      }
+
       setSavingAddress(true);
       
       await base44.entities.Organization.update(organization.id, {
@@ -388,6 +400,18 @@ export default function ReviewAndSend() {
   // Handle saving rep address
   const handleSaveRepAddress = async (addressData) => {
     try {
+      const missingFields = ['returnAddressName', 'street', 'city', 'state', 'zipCode']
+        .filter(field => !String(addressData[field] || '').trim());
+      if (missingFields.length > 0) {
+        toast({
+          title: 'Your address is incomplete',
+          description: 'Name, street, city, state, and ZIP are required.',
+          variant: 'destructive',
+          duration: 3000
+        });
+        return;
+      }
+
       setSavingAddress(true);
       
       await base44.auth.updateMe({

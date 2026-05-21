@@ -217,17 +217,24 @@ export default function AdminClientEdit() {
     try {
       setSaving(true);
       setError(null);
+      const cleanFormData = Object.fromEntries(
+        Object.entries(formData).map(([key, value]) => [
+          key,
+          typeof value === 'string' ? value.trim() : value
+        ])
+      );
       
       const clientData = {
-        ...formData,
-        fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+        ...cleanFormData,
+        state: cleanFormData.state.toUpperCase(),
+        fullName: `${cleanFormData.firstName} ${cleanFormData.lastName}`.trim(),
         orgId: user.orgId,
         ownerId: user.id,
         tags: selectedTags,
         // Convert empty strings to null for date fields
-        birthday: formData.birthday || null,
-        policy_start_date: formData.policy_start_date || null,
-        renewal_date: formData.renewal_date || null
+        birthday: cleanFormData.birthday || null,
+        policy_start_date: cleanFormData.policy_start_date || null,
+        renewal_date: cleanFormData.renewal_date || null
       };
       
       if (isNew) {
