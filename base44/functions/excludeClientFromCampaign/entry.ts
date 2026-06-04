@@ -52,11 +52,13 @@ Deno.serve(async (req) => {
 
     if (existingEnrollments && existingEnrollments.length > 0) {
       await base44.entities.CampaignEnrollment.update(existingEnrollments[0].id, {
+        orgId: existingEnrollments[0].orgId || campaign.orgId || orgId,
         status: 'excluded',
         excludedAt: new Date().toISOString()
       });
     } else {
       await base44.entities.CampaignEnrollment.create({
+        orgId: campaign.orgId || orgId,
         campaignId,
         clientId,
         status: 'excluded',

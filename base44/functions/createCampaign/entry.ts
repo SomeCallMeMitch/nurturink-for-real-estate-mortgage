@@ -1,5 +1,12 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+const MANUAL_SCHEDULING_NOT_IMPLEMENTED =
+  'Activation blocked: Campaign Type requires manual scheduling which is not yet implemented.';
+
+function isClientAutomationEligible(client) {
+  return client.automation_status == null || client.automation_status === 'active';
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -13,6 +20,7 @@ Deno.serve(async (req) => {
       name,
       type,
       triggerTypeId,
+      triggerField: requestedTriggerField,
       dateField,
       enrollmentMode = 'opt_out',
       requiresApproval = false,
@@ -41,13 +49,29 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    // Resolve the trigger field from the CampaignType record
-    const triggerField = dateField || campaignType.triggerField;
-    if (!triggerField) {
+    if (campaignStatus === 'active' && campaignType.triggerMode === 'manual') {
       return Response.json({
         success: false,
-        error: 'Campaign type is missing a triggerField configuration. Contact your administrator.'
+        error: MANUAL_SCHEDULING_NOT_IMPLEMENTED
       }, { status: 400 });
+    }
+
+    // Resolve the trigger field from the CampaignType record
+    const triggerField = requestedTriggerField || dateField || campaignType.triggerField || null;
+    if (!triggerField) {
+      if (campaignType.triggerMode === 'manual' && campaignStatus === 'draft') {
+        // Manual/null-trigger campaign drafts are valid; activation is blocked below.
+      } else if (campaignType.triggerMode === 'manual' && campaignStatus === 'active') {
+        return Response.json({
+          success: false,
+          error: MANUAL_SCHEDULING_NOT_IMPLEMENTED
+        }, { status: 400 });
+      } else {
+        return Response.json({
+          success: false,
+          error: 'Campaign type is missing a triggerField configuration. Contact your administrator.'
+        }, { status: 400 });
+      }
     }
 
     const orgId = user.orgId;
@@ -98,6 +122,8 @@ Deno.serve(async (req) => {
       name: name || `${campaignType.name} Campaign`,
       type: campaignType.slug,
       triggerTypeId: campaignType.id,
+      triggerField,
+      // Transitional compatibility: legacy reads may still use dateField.
       dateField: triggerField,
       enrollmentMode,
       requiresApproval,
@@ -105,6 +131,7 @@ Deno.serve(async (req) => {
       status: campaignStatus,
       orgId,
       ownerId: user.id,
+      createdBy: user.id,
       createdAt: new Date().toISOString()
     });
 
@@ -125,23 +152,30 @@ Deno.serve(async (req) => {
 
         const eligibleClients = allClients.filter((client) => {
           const hasFieldValue = client[triggerField] && client[triggerField] !== '';
-          const automationEnabled = client.automationEnabled !== false;
-          return hasFieldValue && automationEnabled;
+          return hasFieldValue && isClientAutomationEligible(client);
         });
 
         if (eligibleClients.length > 0) {
-          const enrollmentRecords = eligibleClients.map((client) => ({
+          const existingEnrollments = await base44.entities.CampaignEnrollment.filter({ campaignId: campaign.id });
+          const existingClientIds = new Set(existingEnrollments.map((enrollment) => enrollment.clientId));
+          const clientsToEnroll = eligibleClients.filter((client) => !existingClientIds.has(client.id));
+
+          const enrollmentRecords = clientsToEnroll.map((client) => ({
             campaignId: campaign.id,
+            orgId,
             clientId: client.id,
-            status: 'active',
+            status: 'enrolled',
             enrolledAt: new Date().toISOString()
           }));
-          await base44.entities.CampaignEnrollment.bulkCreate(enrollmentRecords);
-          enrolledCount = eligibleClients.length;
+
+          if (clientsToEnroll.length > 0) {
+            await base44.entities.CampaignEnrollment.bulkCreate(enrollmentRecords);
+            enrolledCount = clientsToEnroll.length;
+          }
 
           // FIX #10: Concurrent tag updates instead of sequential loop
           const campaignTag = `${campaignType.name} Campaign`;
-          const tagUpdatePromises = eligibleClients
+          const tagUpdatePromises = clientsToEnroll
             .filter((client) => {
               const existingTags = Array.isArray(client.tags) ? client.tags : [];
               return !existingTags.includes(campaignTag);

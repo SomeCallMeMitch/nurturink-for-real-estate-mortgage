@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { campaignId, status = 'enrolled', search, page = 1, limit = 25 } = await req.json();
+    const { campaignId, status, search, page = 1, limit = 25 } = await req.json();
 
     // Validate required fields
     if (!campaignId) {
@@ -54,8 +54,11 @@ Deno.serve(async (req) => {
     // Fetch enrollments
     let enrollments = await base44.entities.CampaignEnrollment.filter({ campaignId });
 
-    // Filter by status
-    if (status !== 'all') {
+    // Filter by status. Default view includes legacy active as enrolled-equivalent
+    // until the CampaignEnrollment status backfill is complete.
+    if (!status) {
+      enrollments = enrollments.filter(e => e.status === 'enrolled' || e.status === 'active');
+    } else if (status !== 'all') {
       enrollments = enrollments.filter(e => e.status === status);
     }
 

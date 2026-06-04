@@ -1,5 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
+function isClientAutomationEligible(client) {
+  return client.automation_status == null || client.automation_status === 'active';
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -9,20 +13,27 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { campaignType, dateField } = body;
+    const { campaignType, triggerField: requestedTriggerField, dateField } = body;
 
-    // Look up TriggerType by key to get the dateField if not provided directly
-    let triggerField = dateField;
+    // Prefer explicit System B triggerField; dateField remains backwards-compatible input.
+    let triggerField = requestedTriggerField || dateField || null;
     if (!triggerField && campaignType) {
-      const triggerTypes = await base44.entities.TriggerType.filter({ key: campaignType, isActive: true });
-      const tt = triggerTypes[0];
-      if (!tt) {
+      const campaignTypes = await base44.entities.CampaignType.filter({ slug: campaignType, isActive: true });
+      const campaignTypeRecord = campaignTypes[0];
+      if (!campaignTypeRecord) {
         return Response.json({
           success: false,
           error: `Unknown campaign type: ${campaignType}`
         }, { status: 400 });
       }
-      triggerField = tt.dateField;
+      triggerField = campaignTypeRecord.triggerField || null;
+
+      if (!triggerField && campaignTypeRecord.triggerMode === 'manual') {
+        return Response.json({
+          success: false,
+          error: 'Campaign Type requires manual scheduling which is not yet implemented.'
+        }, { status: 400 });
+      }
     }
 
     if (!triggerField) {
@@ -47,8 +58,7 @@ Deno.serve(async (req) => {
     // Count clients where the trigger field is set and automation is enabled
     const eligibleClients = allClients.filter((client) => {
       const hasFieldValue = client[triggerField] && client[triggerField] !== '';
-      const automationEnabled = client.automationEnabled !== false;
-      return hasFieldValue && automationEnabled;
+      return hasFieldValue && isClientAutomationEligible(client);
     });
 
     return Response.json({

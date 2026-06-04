@@ -29,7 +29,8 @@ function getNextOccurrence(dateStr, isOneTime) {
     return new Date(dateStr);
   }
 
-  // Recurring (birthday, renewal, etc.): find next annual occurrence
+  // Recurring (birthday, home anniversary, loan anniversary, etc.): find
+  // the next annual month/day occurrence. Step timingDays offsets are applied later.
   const date = new Date(dateStr);
   const thisYear = new Date(today.getFullYear(), date.getMonth(), date.getDate());
   const nextYear = new Date(today.getFullYear() + 1, date.getMonth(), date.getDate());
@@ -53,6 +54,13 @@ function isWithinDays(date, days) {
   futureLimit.setHours(23, 59, 59, 999);
   return date >= today && date <= futureLimit;
 }
+
+function isClientAutomationEligible(client) {
+  return client.automation_status == null || client.automation_status === 'active';
+}
+
+// Transitional compatibility: legacy data may still use status "active".
+const SEND_ELIGIBLE_ENROLLMENT_STATUSES = new Set(['enrolled', 'active']);
 
 // ============================================
 // MAIN SCHEDULER
@@ -101,7 +109,7 @@ Deno.serve(async (req) => {
         stats.campaignsProcessed++;
 
         // Sprint 3: Resolve CampaignType from the new entity
-        let triggerField = campaign.dateField;
+        let triggerField = campaign.triggerField || campaign.dateField;
         let campaignType = null;
 
         if (campaign.triggerTypeId) {
@@ -157,6 +165,7 @@ Deno.serve(async (req) => {
         const windowEnd = formatDate(addDays(today, 30));
         const existingSends = await base44.asServiceRole.entities.ScheduledSend.filter({
           campaignId: campaign.id,
+          orgId: campaign.orgId,
           scheduledDate: { $gte: windowStart, $lte: windowEnd }
         });
         const existingSendKeys = new Set(
@@ -169,6 +178,7 @@ Deno.serve(async (req) => {
 
         if (clientIds.length > 0) {
           const clientList = await base44.asServiceRole.entities.Client.filter({
+            orgId: campaign.orgId,
             id: { $in: clientIds }
           });
           for (const client of clientList) {
@@ -184,6 +194,14 @@ Deno.serve(async (req) => {
           try {
             stats.enrollmentsProcessed++;
 
+            if (!SEND_ELIGIBLE_ENROLLMENT_STATUSES.has(enrollment.status)) {
+              continue;
+            }
+
+            if (enrollment.orgId && enrollment.orgId !== campaign.orgId) {
+              continue;
+            }
+
             // Fix 04 — Skip one-time enrollments already processed (idempotency guard)
             if (isOneTime && enrollment.processedWelcome) {
               stats.sendsSkippedDuplicate++;
@@ -193,6 +211,8 @@ Deno.serve(async (req) => {
             const client = clientMap.get(enrollment.clientId);
             if (!client) continue;
 
+            if (client.orgId !== campaign.orgId) continue;
+            if (!isClientAutomationEligible(client)) continue;
             if (campaign.ownerId && client.ownerId !== campaign.ownerId) continue;
 
             const triggerDateStr = client[triggerField];
