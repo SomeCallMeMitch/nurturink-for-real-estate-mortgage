@@ -147,6 +147,7 @@ Replaced by `Campaign` + `CampaignStep`. See `entities/AutomationRule.json`.
 | `seedCampaignTypes` | Seeds default CampaignType records |
 | `createCampaign` | Creates a new Campaign with steps and optional auto-enrollment |
 | `updateCampaign` | Updates campaign properties, steps, and status |
+| `getCampaignEligibleClients` | Lists eligible opt-in clients using System B `CampaignType.triggerField` resolution and canonical `automation_status` |
 | `runDailyScheduler` | Daily cron — evaluates campaigns and creates ScheduledSend records |
 | `processPendingSends` | Processes pending ScheduledSend records into mailings |
 
