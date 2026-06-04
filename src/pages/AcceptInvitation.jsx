@@ -16,7 +16,7 @@ export default function AcceptInvitation() {
   const location = useLocation();
   const token = new URLSearchParams(location.search).get('token');
 
-  // Initialize: validate token and check auth status
+  // Initialize: validate token and check auth statuses
   useEffect(() => {
     const init = async () => {
       // No token = immediate error
