@@ -28,6 +28,7 @@ Deno.serve(async (req) => {
       status: campaignStatus = 'draft',
       steps = []
     } = body;
+    const safeSteps = Array.isArray(steps) ? steps : [];
 
     // Sprint 3: Validate type against CampaignType entity instead of TriggerType
     let campaignType = null;
@@ -85,7 +86,7 @@ Deno.serve(async (req) => {
     // Validate and pre-build step records BEFORE writing anything to the database
     // This prevents the bug where Campaign is created but steps fail validation,
     // leaving an orphaned Campaign record and showing a false error to the user.
-    const preValidatedSteps = steps.length > 0 ? steps.map((step, index) => ({
+    const preValidatedSteps = safeSteps.length > 0 ? safeSteps.map((step, index) => ({
       stepOrder: step.stepOrder || index + 1,
       cardDesignId: step.cardDesignId,
       templateId: step.templateId || null,
@@ -196,7 +197,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       campaignId: campaign.id,
-      stepsCreated: steps?.length || 0,
+      stepsCreated: safeSteps.length,
       enrolledCount,
       message: 'Campaign created successfully'
     });

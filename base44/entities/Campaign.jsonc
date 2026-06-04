@@ -50,7 +50,7 @@
     "triggerField": {
       "type": "string",
       "nullable": true,
-      "description": "Client date field that triggers this campaign. Nullable for draft manual campaigns until manual scheduling is implemented."
+      "description": "Client date field that triggers this campaign. Nullable for manual campaign drafts until manual scheduling is implemented."
     },
     "dateField": {
       "type": "string",

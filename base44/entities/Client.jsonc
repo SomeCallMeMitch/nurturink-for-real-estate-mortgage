@@ -85,17 +85,17 @@
     "home_anniversary_date": {
       "type": "string",
       "format": "date",
-      "description": "Client's home purchase anniversary date (YYYY-MM-DD) for home anniversary automation"
+      "description": "Client's home purchase anniversary date (YYYY-MM-DD) used by home anniversary campaign automation"
     },
     "close_date": {
       "type": "string",
       "format": "date",
-      "description": "Client's real estate close date (YYYY-MM-DD) for post-close automation"
+      "description": "Client's real estate close date (YYYY-MM-DD) used by post-close campaign automation"
     },
     "loan_anniversary_date": {
       "type": "string",
       "format": "date",
-      "description": "Client's loan or mortgage anniversary date (YYYY-MM-DD) for loan anniversary automation"
+      "description": "Client's loan or mortgage anniversary date (YYYY-MM-DD) used by loan anniversary campaign automation"
     },
     "renewal_date": {
       "type": "string",
