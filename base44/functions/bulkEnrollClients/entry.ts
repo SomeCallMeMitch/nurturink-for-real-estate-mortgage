@@ -90,25 +90,21 @@ Deno.serve(async (req) => {
 
     // Check existing enrollments
     const existingEnrollments = await base44.entities.CampaignEnrollment.filter({ campaignId });
-    const enrolledClientIds = new Set(
-      existingEnrollments
-        .filter(e => e.status === 'enrolled')
-        .map(e => e.clientId)
-    );
+    const existingClientIds = new Set(existingEnrollments.map(e => e.clientId));
 
     // Filter eligible clients
     const eligibleClients = requestedClients.filter(client => {
       // Has required field
       if (!client[requiredField]) return false;
       // Not already enrolled
-      if (enrolledClientIds.has(client.id)) return false;
+      if (existingClientIds.has(client.id)) return false;
       return true;
     });
 
     // Count skipped
-    const alreadyEnrolled = requestedClients.filter(c => enrolledClientIds.has(c.id)).length;
+    const alreadyEnrolled = requestedClients.filter(c => existingClientIds.has(c.id)).length;
     const missingField = requestedClients.filter(c => 
-      !c[requiredField] && !enrolledClientIds.has(c.id)
+      !c[requiredField] && !existingClientIds.has(c.id)
     ).length;
 
     // Create enrollment records
@@ -117,6 +113,7 @@ Deno.serve(async (req) => {
 
     if (eligibleClients.length > 0) {
       const enrollmentRecords = eligibleClients.map(client => ({
+        orgId: campaign.orgId,
         campaignId,
         clientId: client.id,
         status: 'enrolled',

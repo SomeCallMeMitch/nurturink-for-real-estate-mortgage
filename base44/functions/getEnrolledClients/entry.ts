@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { campaignId, status = 'enrolled', search, page = 1, limit = 25 } = await req.json();
+    const { campaignId, status, search, page = 1, limit = 25 } = await req.json();
 
     // Validate required fields
     if (!campaignId) {
@@ -54,9 +54,17 @@ Deno.serve(async (req) => {
     // Fetch enrollments
     let enrollments = await base44.entities.CampaignEnrollment.filter({ campaignId });
 
-    // Filter by status
-    if (status !== 'all') {
-      enrollments = enrollments.filter(e => e.status === status);
+    const canonicalStatuses = new Set(['enrolled', 'excluded', 'completed', 'paused']);
+
+    // Filter by status. Default view includes only canonical enrolled records.
+    if (!status) {
+      enrollments = enrollments.filter(e => e.status === 'enrolled');
+    } else if (status === 'all') {
+      enrollments = enrollments.filter(e => canonicalStatuses.has(e.status));
+    } else {
+      enrollments = canonicalStatuses.has(status)
+        ? enrollments.filter(e => e.status === status)
+        : [];
     }
 
     // Get all client IDs from enrollments

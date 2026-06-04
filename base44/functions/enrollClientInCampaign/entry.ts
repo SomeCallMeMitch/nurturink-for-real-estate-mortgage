@@ -72,6 +72,8 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Client not found' }, { status: 404 });
     }
 
+    const enrollmentOrgId = campaign.orgId || client.orgId || orgId;
+
     // Check if client is already enrolled
     const existingEnrollments = await base44.entities.CampaignEnrollment.filter({ 
       campaignId, 
@@ -81,6 +83,9 @@ Deno.serve(async (req) => {
     if (existingEnrollments && existingEnrollments.length > 0) {
       const existing = existingEnrollments[0];
       if (existing.status === 'enrolled') {
+        if (!existing.orgId && enrollmentOrgId) {
+          await base44.entities.CampaignEnrollment.update(existing.id, { orgId: enrollmentOrgId });
+        }
         return Response.json({ 
           success: false, 
           error: 'Client is already enrolled in this campaign' 
@@ -89,6 +94,7 @@ Deno.serve(async (req) => {
       // If excluded, reactivate
       if (existing.status === 'excluded') {
         await base44.entities.CampaignEnrollment.update(existing.id, {
+          orgId: existing.orgId || enrollmentOrgId,
           status: 'enrolled',
           enrolledAt: new Date().toISOString(),
           excludedAt: null
@@ -99,6 +105,14 @@ Deno.serve(async (req) => {
           message: 'Client re-enrolled in campaign'
         });
       }
+
+      if (!existing.orgId && enrollmentOrgId) {
+        await base44.entities.CampaignEnrollment.update(existing.id, { orgId: enrollmentOrgId });
+      }
+      return Response.json({
+        success: false,
+        error: 'Client already has an enrollment in this campaign'
+      }, { status: 400 });
     }
 
     // Determine required field based on campaign type
@@ -124,6 +138,7 @@ Deno.serve(async (req) => {
 
     // Create enrollment record
     const enrollment = await base44.entities.CampaignEnrollment.create({
+      orgId: enrollmentOrgId,
       campaignId,
       clientId,
       status: 'enrolled',

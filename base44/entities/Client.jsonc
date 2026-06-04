@@ -82,6 +82,21 @@
       "format": "date",
       "description": "Client's birthday (YYYY-MM-DD) for birthday automation"
     },
+    "home_anniversary_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Client's home purchase anniversary date (YYYY-MM-DD) for home anniversary automation"
+    },
+    "close_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Client's real estate close date (YYYY-MM-DD) for post-close automation"
+    },
+    "loan_anniversary_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Client's loan or mortgage anniversary date (YYYY-MM-DD) for loan anniversary automation"
+    },
     "renewal_date": {
       "type": "string",
       "format": "date",

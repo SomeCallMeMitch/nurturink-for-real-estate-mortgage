@@ -1,0 +1,67 @@
+{
+  "name": "CampaignEnrollment",
+  "type": "object",
+  "description": "Tracks which clients are enrolled in which campaigns",
+  "properties": {
+    "orgId": {
+      "type": "string",
+      "description": "Organization that owns this enrollment"
+    },
+    "campaignId": {
+      "type": "string",
+      "description": "Campaign the client is enrolled in"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Enrolled client ID"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "enrolled",
+        "excluded",
+        "completed",
+        "paused"
+      ],
+      "default": "enrolled",
+      "description": "Canonical enrollment status. Previous dev value active should not be used."
+    },
+    "enrolledAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the client was enrolled"
+    },
+    "excludedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When the client was excluded"
+    },
+    "lastSentDate": {
+      "type": "string",
+      "format": "date",
+      "nullable": true,
+      "description": "Last date a card was sent"
+    },
+    "lastSentStep": {
+      "type": "integer",
+      "nullable": true,
+      "description": "Last step number that was sent"
+    },
+    "processedWelcome": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a one-time send has been scheduled"
+    }
+  },
+  "required": [
+    "campaignId",
+    "clientId"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": null,
+    "delete": null
+  }
+}

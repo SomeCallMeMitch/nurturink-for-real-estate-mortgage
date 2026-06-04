@@ -1,5 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const MANUAL_SCHEDULING_NOT_IMPLEMENTED = 'Campaign Type requires manual scheduling which is not yet implemented.';
+
+function isClientAutomationEligible(client) {
+  return client.automation_status == null || client.automation_status === 'active';
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -50,13 +56,27 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: 'Campaign not found' }, { status: 404 });
     }
 
-    // Determine required field
-    const triggerFieldMap = {
-      birthday: 'birthday',
-      welcome: 'policy_start_date',
-      renewal: 'renewal_date'
-    };
-    const requiredField = triggerFieldMap[campaign.type];
+    // Resolve trigger field from System B CampaignType, with dateField as temporary input compatibility.
+    let campaignType = null;
+    if (campaign.type) {
+      const campaignTypes = await base44.entities.CampaignType.filter({ slug: campaign.type });
+      campaignType = campaignTypes?.[0] || null;
+    }
+
+    const requiredField = campaign.triggerField || campaign.dateField || campaignType?.triggerField || null;
+    if (!requiredField) {
+      if (campaignType && (campaignType.triggerMode === 'manual' || !campaignType.triggerField)) {
+        return Response.json({
+          success: false,
+          error: MANUAL_SCHEDULING_NOT_IMPLEMENTED
+        }, { status: 400 });
+      }
+
+      return Response.json({
+        success: false,
+        error: 'Campaign trigger field is not configured'
+      }, { status: 400 });
+    }
 
     // PHASE 2: Fetch only the campaign owner's clients (not all org clients)
     const allClients = await base44.entities.Client.filter({ 
@@ -74,8 +94,8 @@ Deno.serve(async (req) => {
       if (!client[requiredField]) return false;
       // Must not be already enrolled
       if (enrolledClientIds.has(client.id)) return false;
-      // Automation must be enabled
-      if (client.automationEnabled === false) return false;
+      // Automation must be eligible by canonical automation_status.
+      if (!isClientAutomationEligible(client)) return false;
       return true;
     });
 

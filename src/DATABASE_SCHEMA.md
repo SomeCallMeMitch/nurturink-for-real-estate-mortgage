@@ -22,6 +22,20 @@ NurturInk uses **System B** as the canonical campaign architecture.
 
 ## Core Entities
 
+### Client
+Client/contact information used for campaign targeting and card personalization.
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| birthday | string/date | â€” | Client birthday for birthday automation |
+| home_anniversary_date | string/date | â€” | Home purchase anniversary for recurring home anniversary automation |
+| close_date | string/date | â€” | Deal close date for one-time post-close automation |
+| loan_anniversary_date | string/date | â€” | Loan or mortgage anniversary for recurring loan anniversary automation |
+| renewal_date | string/date | â€” | Legacy renewal date if still supported by imported data |
+| automation_status | enum: active, paused, opted_out | â€” | Canonical automation eligibility flag. Missing/null is treated as active for legacy clients. |
+
+`automationEnabled` is legacy only. New backend eligibility checks should use `automation_status`.
+
 ### CampaignType
 Database-driven campaign type definitions. Managed via the Admin Campaign Types page.
 
@@ -29,8 +43,8 @@ Database-driven campaign type definitions. Managed via the Admin Campaign Types 
 |---|---|---|---|
 | name | string | Yes | Display name (e.g., "Birthday") |
 | slug | string | Yes | Lowercase unique key (e.g., "birthday"). Immutable after creation. |
-| triggerField | string | Yes | Client field holding the trigger date (e.g., "birthday", "renewal_date") |
-| triggerMode | enum: recurring, one_time | Yes | Whether the trigger repeats annually or fires once |
+| triggerField | string | No | Client field holding the trigger date (e.g., `birthday`, `home_anniversary_date`, `close_date`, `loan_anniversary_date`). Nullable for manual campaign types. |
+| triggerMode | enum: recurring, one_time, manual | Yes | Whether the trigger repeats annually, fires once, or requires manual scheduling |
 | timingDirection | enum: before, after | Yes | Whether cards send before or after the trigger date |
 | defaultTimingDays | number | Yes | Default days shown in the wizard (e.g., 10) |
 | maxSteps | number | Yes | Maximum cards in a sequence (1–3) |
@@ -56,10 +70,14 @@ User-created campaign configuration. The `type` field stores the CampaignType sl
 | type | string | Yes | CampaignType slug (e.g., "birthday"). No enum restriction — accepts any valid slug. |
 | status | enum: active, paused, draft | — | Campaign status (default: draft) |
 | enrollmentMode | enum: opt_in, opt_out | Yes | How recipients are enrolled |
-| triggerField | enum: birthday, policy_start_date, renewal_date | Yes | Which client date field triggers this campaign |
+| triggerField | string | No | Which client date field triggers this campaign. Supported seeded values include `birthday`, `home_anniversary_date`, `close_date`, and `loan_anniversary_date`; legacy/imported values may include `renewal_date` or `policy_start_date`. Nullable for draft manual campaigns such as `soi_quarterly`. |
 | requiresApproval | boolean | — | If true, sends go to approval queue (default: false) |
 | returnAddressMode | enum: company, rep, none | — | Return address mode (default: company) |
 | description | string | — | Optional description |
+
+Manual/null-trigger campaigns may save as drafts, but activation is blocked until manual scheduling is implemented. Activation attempts return a structured 400 with: `Activation blocked: Campaign Type requires manual scheduling which is not yet implemented.`
+
+`triggerField` is canonical. `dateField` is transitional backwards-compatibility debt and should mirror `triggerField` while legacy reads are removed.
 
 ### CampaignStep
 Individual card steps within a campaign sequence.
@@ -80,6 +98,7 @@ Tracks which clients are enrolled in which campaigns.
 
 | Field | Type | Required | Description |
 |---|---|---|---|
+| orgId | string | â€” | Organization that owns this enrollment |
 | campaignId | string | Yes | Campaign the client is enrolled in |
 | clientId | string | Yes | Enrolled client ID |
 | status | enum: enrolled, excluded, completed, paused | — | Enrollment status (default: enrolled) |
@@ -87,6 +106,10 @@ Tracks which clients are enrolled in which campaigns.
 | lastSentDate | date | — | Last date a card was sent |
 | lastSentStep | integer | — | Last step number that was sent |
 | processedWelcome | boolean | — | Whether a welcome send has been scheduled |
+
+Transition debt: `CampaignEnrollment.orgId` is optional until cleanup/backfill is complete and the schema is ready to require it. New writes should include `orgId`, but old dev/test rows may temporarily be missing it. CampaignEnrollment orgId-based RLS is deferred until cleanup/backfill populates missing `orgId` values. `CampaignEnrollment.status` value `active` was a previous/dev value and should not be used. Existing test/dev campaign data should be cleared or migrated before launch. `runDailyScheduler`, campaign details, and default enrollment lists treat only `enrolled` as send/display eligible and must skip `excluded`, `paused`, `completed`, `active`, and unknown statuses.
+
+Deployment note: Before testing fresh campaign flows, delete or reset old dev/test `Campaign`, `CampaignStep`, `CampaignEnrollment`, and `ScheduledSend` records that may contain pre-hotfix fields or status values.
 
 ### ScheduledSend
 Individual send events generated by the daily scheduler.
@@ -124,6 +147,7 @@ Replaced by `Campaign` + `CampaignStep`. See `entities/AutomationRule.json`.
 | `seedCampaignTypes` | Seeds default CampaignType records |
 | `createCampaign` | Creates a new Campaign with steps and optional auto-enrollment |
 | `updateCampaign` | Updates campaign properties, steps, and status |
+| `getCampaignEligibleClients` | Lists eligible opt-in clients using System B `CampaignType.triggerField` resolution and canonical `automation_status` |
 | `runDailyScheduler` | Daily cron — evaluates campaigns and creates ScheduledSend records |
 | `processPendingSends` | Processes pending ScheduledSend records into mailings |
 
