@@ -1,0 +1,197 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the organization"
+    },
+    "accountType": {
+      "type": "string",
+      "enum": [
+        "company",
+        "whitelabel_partner"
+      ],
+      "default": "company",
+      "description": "Type of organization: regular company or white label partner"
+    },
+    "parentWhitelabelId": {
+      "type": "string",
+      "nullable": true,
+      "description": "ID of white label partner this company belongs to. Null if direct Super Admin customer."
+    },
+    "name": {
+      "type": "string",
+      "description": "Organization name"
+    },
+    "industry": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization's selected industry (e.g., 'Real Estate', 'Roofing')"
+    },
+    "website": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization website URL (e.g., 'https://www.example.com')"
+    },
+    "email": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization primary contact email address"
+    },
+    "phone": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization primary phone number"
+    },
+    "creditBalance": {
+      "type": "number",
+      "default": 0,
+      "description": "Current credit balance for this organization"
+    },
+    "billingEmail": {
+      "type": "string",
+      "nullable": true,
+      "description": "Email address for billing notifications"
+    },
+    "companyReturnAddress": {
+      "type": "object",
+      "properties": {
+        "companyName": {
+          "type": "string",
+          "nullable": true
+        },
+        "street": {
+          "type": "string"
+        },
+        "address2": {
+          "type": "string",
+          "nullable": true
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        }
+      },
+      "nullable": true,
+      "description": "Company return address for mailings"
+    },
+    "stripeCustomerId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Stripe customer ID for billing"
+    },
+    "autoRefillEnabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether auto-refill is enabled when company credit pool runs low"
+    },
+    "autoRefillThreshold": {
+      "type": "number",
+      "nullable": true,
+      "description": "Credit level at which auto-refill triggers (null = use default based on account type)"
+    },
+    "autoRefillPricingTierId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Pricing tier to purchase when auto-refill triggers"
+    },
+    "alertThresholdYellow": {
+      "type": "number",
+      "nullable": true,
+      "description": "Days remaining that triggers yellow alert (null = use tier default: 7 days for company, 14 days for WL)"
+    },
+    "alertThresholdRed": {
+      "type": "number",
+      "nullable": true,
+      "description": "Days remaining that triggers red alert (null = use tier default: 3 days for company, 7 days for WL)"
+    },
+    "alertThresholdBlue": {
+      "type": "number",
+      "nullable": true,
+      "description": "Days remaining that triggers blue notice (WL only, null = 30 days default)"
+    },
+    "lastAlertSentDate": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When the last low-credit alert was sent for this organization"
+    },
+    "lastAlertLevel": {
+      "type": "string",
+      "enum": [
+        "green",
+        "blue",
+        "yellow",
+        "red"
+      ],
+      "nullable": true,
+      "description": "Last calculated alert level for this organization's credit health"
+    },
+    "avgDailyUsage": {
+      "type": "number",
+      "default": 0,
+      "description": "Rolling 30-day average daily credit usage. Updated by daily cron job."
+    },
+    "projectedDepletionDate": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "Estimated date when credits will run out based on current burn rate. Updated by daily cron job."
+    },
+    "daysRemainingEstimate": {
+      "type": "number",
+      "nullable": true,
+      "description": "Estimated days of credit remaining based on average usage. Updated by daily cron job."
+    },
+    "recommendedPurchaseAmount": {
+      "type": "number",
+      "nullable": true,
+      "description": "Recommended credits to purchase based on 30-day usage forecast. Updated by daily cron job."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this organization was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this organization was last updated"
+    },
+    "totalNotesSent": {
+      "type": "number",
+      "default": 0,
+      "description": "Total number of notes sent by this organization (all team members combined). Updated manually when notes are sent."
+    },
+    "activeTeamMembers": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of active users in this organization (excluding deactivated). Updated manually when users are added/removed/deactivated."
+    },
+    "avgOpenRate": {
+      "type": "number",
+      "nullable": true,
+      "description": "Average open/engagement rate for notes sent by this organization (if tracking is available). Null if no data yet. Calculated periodically."
+    },
+    "monthlySpend": {
+      "type": "number",
+      "default": 0,
+      "description": "Total credits spent this calendar month. Reset to 0 at start of each month, incremented when notes are sent."
+    },
+    "lastActivityDate": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "Timestamp of most recent activity (note sent, user added, credit purchased, etc.). Updated manually on key actions."
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "name": "Organization"
+}

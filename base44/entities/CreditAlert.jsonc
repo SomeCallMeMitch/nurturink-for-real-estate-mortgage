@@ -1,0 +1,121 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "accountId": {
+      "type": "string",
+      "description": "User or Organization ID this alert is for"
+    },
+    "accountType": {
+      "type": "string",
+      "enum": [
+        "user",
+        "organization"
+      ],
+      "description": "Whether this alert is for a user or organization"
+    },
+    "alertLevel": {
+      "type": "string",
+      "enum": [
+        "green",
+        "blue",
+        "yellow",
+        "red"
+      ],
+      "description": "Alert severity level: green (healthy), blue (WL 30-day notice), yellow (low), red (critical)"
+    },
+    "creditsRemaining": {
+      "type": "number",
+      "description": "Credits remaining when alert was generated"
+    },
+    "avgDailyUsage": {
+      "type": "number",
+      "description": "Average daily credit usage at time of alert"
+    },
+    "daysRemaining": {
+      "type": "number",
+      "description": "Estimated days until credit depletion"
+    },
+    "projectedDepletionDate": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Estimated date when credits will run out"
+    },
+    "recommendedPurchase": {
+      "type": "number",
+      "description": "Recommended credits to purchase (typically 30 days worth)"
+    },
+    "alertSentVia": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "email",
+          "sms",
+          "in_app",
+          "dashboard"
+        ]
+      },
+      "default": [],
+      "description": "Channels through which this alert was sent"
+    },
+    "emailSentTo": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Email addresses that received this alert"
+    },
+    "smsSentTo": {
+      "type": "string",
+      "nullable": true,
+      "description": "Phone number that received SMS alert (WL partners only)"
+    },
+    "isDismissed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user has dismissed this alert from dashboard"
+    },
+    "isAcknowledged": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user has acknowledged this alert"
+    },
+    "autoRefillTriggered": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this alert triggered an auto-refill purchase"
+    },
+    "autoRefillTransactionId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Transaction ID if auto-refill was triggered"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this alert was generated"
+    },
+    "acknowledgedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When user acknowledged this alert"
+    }
+  },
+  "required": [
+    "accountId",
+    "accountType",
+    "alertLevel",
+    "creditsRemaining",
+    "avgDailyUsage",
+    "daysRemaining",
+    "projectedDepletionDate",
+    "recommendedPurchase"
+  ],
+  "name": "CreditAlert"
+}

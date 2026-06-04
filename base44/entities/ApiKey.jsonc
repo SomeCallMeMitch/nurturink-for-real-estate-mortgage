@@ -1,0 +1,34 @@
+{
+  "name": "ApiKey",
+  "type": "object",
+  "properties": {
+    "userId": {
+      "type": "string",
+      "description": "Reference to User entity (owner of this API key)"
+    },
+    "name": {
+      "type": "string",
+      "description": "User-friendly name for this key (e.g., 'Zapier Integration', 'Salesforce Sync')"
+    },
+    "key": {
+      "type": "string",
+      "description": "HASHED API key (bcrypt hash of the original key). NEVER store raw keys."
+    },
+    "lastUsedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "Timestamp of last successful API call using this key"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this key is currently active"
+    }
+  },
+  "required": [
+    "userId",
+    "name",
+    "key"
+  ]
+}

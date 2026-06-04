@@ -1,0 +1,75 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "orgId": {
+      "type": "string",
+      "nullable": true,
+      "description": "ID of the organization this pricing tier belongs to. Null for platform-wide tiers set by super_admin. Whitelabel owners set their own org-specific tiers."
+    },
+    "name": {
+      "type": "string",
+      "description": "Tier name (e.g., 'Starter Pack', 'Professional', 'Growth Pack')"
+    },
+    "creditAmount": {
+      "type": "number",
+      "description": "Number of credits in this tier (e.g., 5, 20, 50)"
+    },
+    "priceInCents": {
+      "type": "number",
+      "description": "Price in cents (e.g., 1997 for $19.97)"
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order (0, 1, 2, etc.). Lower numbers appear first."
+    },
+    "isMostPopular": {
+      "type": "boolean",
+      "default": false,
+      "description": "Show 'Most Popular' badge on this tier?"
+    },
+    "highlights": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Up to 5 feature highlights displayed as bullet points"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show this tier on Credits page?"
+    },
+    "stripeProductId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Stripe product ID for this tier"
+    },
+    "stripePriceId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Stripe price ID for this tier"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this tier was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this tier was last updated"
+    }
+  },
+  "required": [
+    "name",
+    "creditAmount",
+    "priceInCents"
+  ],
+  "name": "PricingTier"
+}

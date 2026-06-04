@@ -1,0 +1,182 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the mailing"
+    },
+    "noteId": {
+      "type": "string",
+      "description": "ID of the note this mailing is for"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "ID of the organization this mailing belongs to"
+    },
+    "mailingBatchId": {
+      "type": "string",
+      "description": "ID of the MailingBatch this mailing belongs to"
+    },
+    "recipientAddress": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "address2": {
+          "type": "string",
+          "nullable": true
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        }
+      },
+      "description": "Complete recipient address"
+    },
+    "returnAddress": {
+      "type": "object",
+      "nullable": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "nullable": true
+        },
+        "street": {
+          "type": "string"
+        },
+        "address2": {
+          "type": "string",
+          "nullable": true
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "zip": {
+          "type": "string"
+        }
+      },
+      "description": "Return address for this mailing. Null or empty object = no return address on envelope."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "sent",
+        "delivered",
+        "failed"
+      ],
+      "default": "queued",
+      "description": "Current mailing status"
+    },
+    "globalTemplateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Global template ID for all clients"
+    },
+    "templateOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Per-client template overrides"
+    },
+    "globalCardDesignId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Global card design ID for all clients"
+    },
+    "designOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Per-client card design overrides"
+    },
+    "noteStyleProfileOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Per-client note style profile overrides"
+    },
+    "greetingOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Per-client greeting inclusion override"
+    },
+    "signatureOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Per-client signature inclusion override"
+    },
+    "includeSignature": {
+      "type": "boolean",
+      "default": true,
+      "description": "Global toggle for signature inclusion"
+    },
+    "includeGreeting": {
+      "type": "boolean",
+      "default": true,
+      "description": "Global toggle for greeting inclusion"
+    },
+    "returnAddressModeGlobal": {
+      "type": "string",
+      "enum": [
+        "company",
+        "rep",
+        "none"
+      ],
+      "default": "company",
+      "description": "Global return address preference"
+    },
+    "returnAddressModeOverrides": {
+      "type": "object",
+      "nullable": true,
+      "description": "Per-client return address preference overrides"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this mailing was created"
+    },
+    "sentAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When this mailing was sent"
+    },
+    "deliveredAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When this mailing was delivered"
+    },
+    "scribeCampaignId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Scribe campaign this mailing belongs to"
+    },
+    "returnAddressMode": {
+      "type": "string",
+      "enum": [
+        "company",
+        "rep",
+        "none"
+      ],
+      "nullable": true,
+      "description": "Which return address mode was used (for reference)"
+    }
+  },
+  "required": [
+    "noteId",
+    "orgId",
+    "recipientAddress"
+  ],
+  "name": "Mailing"
+}

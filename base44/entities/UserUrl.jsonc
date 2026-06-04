@@ -1,0 +1,47 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User who owns this URL"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization for multi-tenancy"
+    },
+    "label": {
+      "type": "string",
+      "description": "URL label (e.g., 'Website', 'LinkedIn', 'Facebook')"
+    },
+    "url": {
+      "type": "string",
+      "description": "Full URL (e.g., 'https://www.example.com')"
+    },
+    "isDefault": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this the user's default URL?"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this URL was added"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this URL was last updated"
+    }
+  },
+  "required": [
+    "userId",
+    "orgId",
+    "label",
+    "url"
+  ],
+  "name": "UserUrl"
+}

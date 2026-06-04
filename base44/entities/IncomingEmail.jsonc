@@ -1,0 +1,57 @@
+{
+  "name": "IncomingEmail",
+  "type": "object",
+  "properties": {
+    "resendEmailId": {
+      "type": "string",
+      "description": "The unique email ID from Resend"
+    },
+    "from": {
+      "type": "string",
+      "description": "Sender email address"
+    },
+    "to": {
+      "type": "string",
+      "description": "Recipient email address"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Email subject line"
+    },
+    "text": {
+      "type": "string",
+      "description": "Plain text version of email body"
+    },
+    "html": {
+      "type": "string",
+      "description": "HTML version of email body"
+    },
+    "attachments": {
+      "type": "string",
+      "nullable": true,
+      "description": "JSON array of attachment info"
+    },
+    "forwardedTo": {
+      "type": "string",
+      "nullable": true,
+      "description": "Email address it was forwarded to (mitch@lynxecom.com)"
+    },
+    "forwardedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When it was forwarded"
+    },
+    "receivedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When email was received"
+    }
+  },
+  "required": [
+    "resendEmailId",
+    "from",
+    "to",
+    "subject"
+  ]
+}

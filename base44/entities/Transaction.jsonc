@@ -1,0 +1,166 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "fromAccountId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Source account ID (null for platform/super admin as source)"
+    },
+    "fromAccountType": {
+      "type": "string",
+      "enum": [
+        "platform",
+        "whitelabel_partner",
+        "company",
+        "user"
+      ],
+      "description": "Type of source account in the 4-tier hierarchy"
+    },
+    "toAccountId": {
+      "type": "string",
+      "description": "Destination account ID (Organization.id or User.id)"
+    },
+    "toAccountType": {
+      "type": "string",
+      "enum": [
+        "whitelabel_partner",
+        "company",
+        "user"
+      ],
+      "description": "Type of destination account in the 4-tier hierarchy"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization this transaction belongs to (for reporting)"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User who initiated this transaction"
+    },
+    "whitelabelPartnerId": {
+      "type": "string",
+      "nullable": true,
+      "description": "WL partner ID if transaction involves WL partner in the chain"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "purchase_user",
+        "purchase_org",
+        "purchase_wl",
+        "allocation_in",
+        "allocation_out",
+        "deduction",
+        "refund_user",
+        "refund_org",
+        "refund_wl",
+        "voucher",
+        "transfer_down",
+        "transfer_wl_to_client",
+        "auto_refill"
+      ],
+      "description": "Type of transaction"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Transaction amount. Positive for additions, negative for deductions."
+    },
+    "balanceAfter": {
+      "type": "number",
+      "description": "User or Organization credit balance after this transaction. Provides immutable audit trail."
+    },
+    "balanceType": {
+      "type": "string",
+      "enum": [
+        "user",
+        "organization"
+      ],
+      "description": "Whether balanceAfter refers to User credits or Organization.creditBalance"
+    },
+    "pricePerCreditCents": {
+      "type": "number",
+      "nullable": true,
+      "description": "Price per credit in cents for this transaction (wholesale or resale)"
+    },
+    "totalPriceCents": {
+      "type": "number",
+      "nullable": true,
+      "description": "Total price paid in cents for purchase transactions"
+    },
+    "wholesalePriceCents": {
+      "type": "number",
+      "nullable": true,
+      "description": "Wholesale price paid to Super Admin (WL partner purchases only)"
+    },
+    "resalePriceCents": {
+      "type": "number",
+      "nullable": true,
+      "description": "Resale price charged to end customer (WL partner sales only)"
+    },
+    "marginCents": {
+      "type": "number",
+      "nullable": true,
+      "description": "Profit margin for WL partner (resalePriceCents - wholesalePriceCents)"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of transaction"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Flexible JSON for transaction-specific data"
+    },
+    "relatedNoteId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Note ID for deduction transactions"
+    },
+    "relatedPricingTierId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Pricing tier ID for purchase transactions"
+    },
+    "stripePaymentId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Stripe payment ID for purchase transactions"
+    },
+    "couponCode": {
+      "type": "string",
+      "nullable": true,
+      "description": "Coupon code used for this transaction"
+    },
+    "isAutoRefill": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this transaction was triggered by auto-refill"
+    },
+    "parentTransactionId": {
+      "type": "string",
+      "nullable": true,
+      "description": "ID of parent transaction in the credit flow chain (for audit trail)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this transaction was created"
+    }
+  },
+  "required": [
+    "toAccountId",
+    "toAccountType",
+    "fromAccountType",
+    "orgId",
+    "userId",
+    "type",
+    "amount",
+    "balanceAfter",
+    "balanceType",
+    "description"
+  ],
+  "name": "Transaction"
+}

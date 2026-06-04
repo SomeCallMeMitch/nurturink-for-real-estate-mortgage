@@ -1,0 +1,47 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User who owns this phone number"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization for multi-tenancy"
+    },
+    "label": {
+      "type": "string",
+      "description": "Phone number label (e.g., 'Mobile', 'Office', 'Direct Line')"
+    },
+    "phoneNumber": {
+      "type": "string",
+      "description": "Phone number in E.164 format (e.g., '+15551234567')"
+    },
+    "isDefault": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is this the user's default phone number?"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this phone number was added"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this phone number was last updated"
+    }
+  },
+  "required": [
+    "userId",
+    "orgId",
+    "label",
+    "phoneNumber"
+  ],
+  "name": "UserPhone"
+}

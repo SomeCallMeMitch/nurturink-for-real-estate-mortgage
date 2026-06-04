@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "properties": {
+    "leftColumnSpan": {
+      "type": "number",
+      "default": 5,
+      "description": "Grid column span for left column (1-12)"
+    },
+    "centerColumnSpan": {
+      "type": "number",
+      "default": 3,
+      "description": "Grid column span for center column (1-12)"
+    },
+    "rightColumnSpan": {
+      "type": "number",
+      "default": 4,
+      "description": "Grid column span for right column (1-12)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record was last updated"
+    }
+  },
+  "description": "Singleton entity for CreateContent page layout settings",
+  "name": "CreateContentLayoutSettings",
+  "required": []
+}

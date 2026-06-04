@@ -1,0 +1,104 @@
+{
+  "name": "CampaignType",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Display name, e.g. 'Birthday'"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Lowercase unique key, e.g. 'birthday'. Never changes after creation."
+    },
+    "triggerField": {
+      "type": "string",
+      "description": "Client field that holds the trigger date"
+    },
+    "triggerMode": {
+      "type": "string",
+      "enum": [
+        "recurring",
+        "one_time"
+      ],
+      "description": "Either 'recurring' or 'one_time'"
+    },
+    "timingDirection": {
+      "type": "string",
+      "enum": [
+        "before",
+        "after"
+      ],
+      "description": "Either 'before' or 'after'"
+    },
+    "defaultTimingDays": {
+      "type": "number",
+      "default": 10,
+      "description": "Default days shown in the wizard"
+    },
+    "maxSteps": {
+      "type": "number",
+      "default": 1,
+      "description": "Max cards in a sequence (1-3)"
+    },
+    "icon": {
+      "type": "string",
+      "nullable": true,
+      "description": "Lucide icon name, e.g. 'Cake'"
+    },
+    "color": {
+      "type": "string",
+      "nullable": true,
+      "description": "Tailwind classes for icon background"
+    },
+    "selectedColor": {
+      "type": "string",
+      "nullable": true,
+      "description": "Tailwind classes for selected state"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether visible in the campaign wizard"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "platform",
+        "org"
+      ],
+      "default": "platform",
+      "description": "Either 'platform' or 'org'"
+    },
+    "orgId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Only set when scope is 'org'"
+    },
+    "timingLabel": {
+      "type": "string",
+      "nullable": true,
+      "description": "Override timing label. If null, auto-generated."
+    },
+    "description": {
+      "type": "string",
+      "nullable": true,
+      "description": "Short description shown in type selector"
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order in the wizard"
+    }
+  },
+  "required": [
+    "name",
+    "slug",
+    "triggerField",
+    "triggerMode",
+    "timingDirection",
+    "defaultTimingDays",
+    "maxSteps",
+    "isActive",
+    "scope"
+  ]
+}

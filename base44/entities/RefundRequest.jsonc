@@ -1,0 +1,74 @@
+{
+  "name": "RefundRequest",
+  "type": "object",
+  "properties": {
+    "mailingBatchId": {
+      "type": "string",
+      "description": "The batch that was rejected"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User who should receive the refund"
+    },
+    "organizationId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization if applicable"
+    },
+    "creditsRequested": {
+      "type": "number",
+      "description": "Number of credits to refund"
+    },
+    "refundTo": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "organization"
+      ],
+      "default": "personal",
+      "description": "Where credits should be refunded"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "processed"
+      ],
+      "default": "pending",
+      "description": "Current status of the refund request"
+    },
+    "rejectionReason": {
+      "type": "string",
+      "nullable": true,
+      "description": "Reason the original batch was rejected"
+    },
+    "requestedBy": {
+      "type": "string",
+      "description": "Admin who rejected the batch and created this request"
+    },
+    "processedBy": {
+      "type": "string",
+      "nullable": true,
+      "description": "Super admin who approved/rejected the refund"
+    },
+    "processedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When the refund was processed"
+    },
+    "adminNotes": {
+      "type": "string",
+      "nullable": true,
+      "description": "Notes from the admin processing the refund"
+    }
+  },
+  "required": [
+    "mailingBatchId",
+    "userId",
+    "creditsRequested",
+    "requestedBy"
+  ]
+}
