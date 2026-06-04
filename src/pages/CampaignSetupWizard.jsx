@@ -29,6 +29,10 @@ import CampaignPreviewPanel  from '@/components/campaigns/CampaignPreviewPanel';
 import CustomMessageModal    from '@/components/campaigns/CustomMessageModal';
 import CardEnlargeModal      from '@/components/campaigns/CardEnlargeModal';
 
+const isStepEnabled = (step) => step.isEnabled !== false;
+const stepHasMessage = (step) => !!step.templateId || !!step.messageText?.trim();
+const isStepComplete = (step) => !!step.cardDesignId && stepHasMessage(step);
+
 export default function CampaignSetupWizard() {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -302,26 +306,37 @@ export default function CampaignSetupWizard() {
   };
 
   // ── Validation ─────────────────────────────────────────────────────────────
+  const canSaveDraft = useMemo(
+    () => !!campaignName.trim() && !!selectedTypeSlug,
+    [campaignName, selectedTypeSlug]
+  );
+
   const isValid = useMemo(() => {
-    if (!campaignName.trim() || !selectedTypeSlug) return false;
-    return steps.every(s => {
-      const hasDesign = !!s.cardDesignId;
-      const hasMsg = messageMode === 'template' ? !!s.templateId : !!s.messageText?.trim();
-      return hasDesign && hasMsg;
-    });
-  }, [campaignName, selectedTypeSlug, steps, messageMode]);
+    if (!canSaveDraft) return false;
+    return steps.every(s => !isStepEnabled(s) || isStepComplete(s));
+  }, [canSaveDraft, steps]);
+
+  const buildStepsPayload = (status) => {
+    const payloadSteps = status === 'draft'
+      ? steps.filter(isStepComplete)
+      : steps.filter(s => isStepEnabled(s) || isStepComplete(s));
+
+    return payloadSteps.map((s, index) => ({
+      ...s,
+      stepOrder: s.stepOrder || index + 1,
+      templateId: s.templateId || null,
+      messageText: s.messageText?.trim() ? sanitizeMessage(s.messageText) : '',
+      isEnabled: s.isEnabled !== false,
+    }));
+  };
 
   // ── Submit ─────────────────────────────────────────────────────────────────
   const submit = async (status) => {
     if (status === 'active' && !isValid) return;
-    if (!campaignName.trim()) return;
+    if (status === 'draft' && !canSaveDraft) return;
     setSubmitting(true);
     try {
-      const stepsPayload = steps.map(s => ({
-        ...s,
-        templateId:  messageMode === 'template' ? s.templateId : null,
-        messageText: messageMode === 'custom'   ? s.messageText : '',
-      }));
+      const stepsPayload = buildStepsPayload(status);
       const resp = await base44.functions.invoke('createCampaign', {
         name: campaignName.trim(), type: selectedTypeSlug,
         triggerTypeId: selectedType?.id || null,
@@ -377,7 +392,7 @@ export default function CampaignSetupWizard() {
             <Button
               variant="outline" size="sm"
               onClick={() => submit('draft')}
-              disabled={!campaignName.trim() || submitting}
+              disabled={!canSaveDraft || submitting}
               className="gap-2"
             >
               <Save className="w-4 h-4" />
