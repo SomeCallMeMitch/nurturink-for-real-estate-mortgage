@@ -54,12 +54,17 @@ Deno.serve(async (req) => {
     // Fetch enrollments
     let enrollments = await base44.entities.CampaignEnrollment.filter({ campaignId });
 
-    // Filter by status. Default view includes legacy active as enrolled-equivalent
-    // until the CampaignEnrollment status backfill is complete.
+    const canonicalStatuses = new Set(['enrolled', 'excluded', 'completed', 'paused']);
+
+    // Filter by status. Default view includes only canonical enrolled records.
     if (!status) {
-      enrollments = enrollments.filter(e => e.status === 'enrolled' || e.status === 'active');
-    } else if (status !== 'all') {
-      enrollments = enrollments.filter(e => e.status === status);
+      enrollments = enrollments.filter(e => e.status === 'enrolled');
+    } else if (status === 'all') {
+      enrollments = enrollments.filter(e => canonicalStatuses.has(e.status));
+    } else {
+      enrollments = canonicalStatuses.has(status)
+        ? enrollments.filter(e => e.status === status)
+        : [];
     }
 
     // Get all client IDs from enrollments

@@ -59,9 +59,6 @@ function isClientAutomationEligible(client) {
   return client.automation_status == null || client.automation_status === 'active';
 }
 
-// Transitional compatibility: legacy data may still use status "active".
-const SEND_ELIGIBLE_ENROLLMENT_STATUSES = new Set(['enrolled', 'active']);
-
 // ============================================
 // MAIN SCHEDULER
 // ============================================
@@ -194,7 +191,7 @@ Deno.serve(async (req) => {
           try {
             stats.enrollmentsProcessed++;
 
-            if (!SEND_ELIGIBLE_ENROLLMENT_STATUSES.has(enrollment.status)) {
+            if (enrollment.status !== 'enrolled') {
               continue;
             }
 

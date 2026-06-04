@@ -24,7 +24,7 @@
         "paused"
       ],
       "default": "enrolled",
-      "description": "Enrollment status. Legacy records may still contain active during transition."
+      "description": "Canonical enrollment status. Previous dev value active should not be used."
     },
     "enrolledAt": {
       "type": "string",

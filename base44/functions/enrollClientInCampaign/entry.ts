@@ -82,7 +82,7 @@ Deno.serve(async (req) => {
 
     if (existingEnrollments && existingEnrollments.length > 0) {
       const existing = existingEnrollments[0];
-      if (existing.status === 'enrolled' || existing.status === 'active') {
+      if (existing.status === 'enrolled') {
         if (!existing.orgId && enrollmentOrgId) {
           await base44.entities.CampaignEnrollment.update(existing.id, { orgId: enrollmentOrgId });
         }

@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
 
     // Count CampaignEnrollment records
     const allEnrollments = await base44.entities.CampaignEnrollment.filter({ campaignId });
-    const enrolledCount = allEnrollments.filter(e => e.status === 'enrolled' || e.status === 'active').length;
+    const enrolledCount = allEnrollments.filter(e => e.status === 'enrolled').length;
     const excludedCount = allEnrollments.filter(e => e.status === 'excluded').length;
 
     // Load ScheduledSend records
