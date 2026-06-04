@@ -38,6 +38,15 @@ export default function CampaignSetupWizard() {
   const { toast } = useToast();
   const textareaRef = useRef(null);
 
+  // DEBUG ADDED: request-scoped browser logging so runtime logs show the exact save payload and response.
+  const logCampaignSaveDebug = useCallback((event, details = {}) => {
+    console.log('[CampaignSetupWizard]', event, {
+      timestamp: new Date().toISOString(),
+      path: window.location.pathname,
+      ...details,
+    });
+  }, []);
+
   // ── Remote data ────────────────────────────────────────────────────────────
   const [user, setUser]                           = useState(null);
   const [organization, setOrganization]           = useState(null);
@@ -337,12 +346,28 @@ export default function CampaignSetupWizard() {
     setSubmitting(true);
     try {
       const stepsPayload = buildStepsPayload(status);
-      const resp = await base44.functions.invoke('createCampaign', {
+      const payload = {
         name: campaignName.trim(), type: selectedTypeSlug,
         triggerTypeId: selectedType?.id || null,
         dateField: selectedType?.triggerField || null,
         enrollmentMode, requiresApproval, returnAddressMode, status,
         steps: stepsPayload,
+      };
+      // DEBUG ADDED: captures the exact client payload before invoking the backend.
+      logCampaignSaveDebug('submit:createCampaign:start', {
+        status,
+        selectedTypeSlug,
+        selectedTypeId: selectedType?.id || null,
+        triggerField: selectedType?.triggerField || null,
+        stepsCount: stepsPayload.length,
+        rawStepsCount: steps.length,
+        payload,
+      });
+      const resp = await base44.functions.invoke('createCampaign', payload);
+      // DEBUG ADDED: captures backend response details for failed and successful saves.
+      logCampaignSaveDebug('submit:createCampaign:response', {
+        httpStatus: resp.status,
+        data: resp.data,
       });
       if (!resp.data?.success) throw new Error(resp.data?.error || 'Failed to create campaign');
       toast({
@@ -353,7 +378,17 @@ export default function CampaignSetupWizard() {
       });
       navigate(createPageUrl('Campaigns'));
     } catch (err) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      // DEBUG ADDED: Axios errors include response data here; this is what we need for the 500 root cause.
+      logCampaignSaveDebug('submit:createCampaign:error', {
+        message: err.message,
+        responseStatus: err.response?.status || null,
+        responseData: err.response?.data || null,
+      });
+      toast({
+        title: 'Error',
+        description: err.response?.data?.error || err.message,
+        variant: 'destructive'
+      });
     } finally {
       setSubmitting(false);
     }

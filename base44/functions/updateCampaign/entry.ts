@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const MANUAL_SCHEDULING_NOT_IMPLEMENTED =
   'Activation blocked: Campaign Type requires manual scheduling which is not yet implemented.';
@@ -8,6 +8,7 @@ function isClientAutomationEligible(client) {
 }
 
 Deno.serve(async (req) => {
+  const requestId = crypto.randomUUID();
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -17,6 +18,17 @@ Deno.serve(async (req) => {
     }
 
     const { campaignId, updates } = await req.json();
+    // DEBUG ADDED: request-scoped backend logging for campaign update failures.
+    console.error('[updateCampaign][DIAG] request received', {
+      requestId,
+      userId: user.id,
+      orgId: user.orgId || null,
+      campaignId: campaignId || null,
+      updateKeys: updates ? Object.keys(updates) : [],
+      stepsIsArray: Array.isArray(updates?.steps),
+      stepsCount: Array.isArray(updates?.steps) ? updates.steps.length : null,
+      status: updates?.status || null,
+    });
 
     if (!campaignId) {
       return Response.json({ success: false, error: 'Missing campaignId' }, { status: 400 });
@@ -215,13 +227,20 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
+      requestId,
       message: 'Campaign updated successfully'
     });
 
   } catch (error) {
-    console.error('updateCampaign error:', error);
+    console.error('[updateCampaign] unhandled error', {
+      requestId,
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     return Response.json({
       success: false,
+      requestId,
       error: error.message || 'An error occurred while updating the campaign'
     }, { status: 500 });
   }

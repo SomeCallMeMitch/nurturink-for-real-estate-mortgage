@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const MANUAL_SCHEDULING_NOT_IMPLEMENTED =
   'Activation blocked: Campaign Type requires manual scheduling which is not yet implemented.';
@@ -8,6 +8,7 @@ function isClientAutomationEligible(client) {
 }
 
 Deno.serve(async (req) => {
+  const requestId = crypto.randomUUID();
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
@@ -29,6 +30,20 @@ Deno.serve(async (req) => {
       steps = []
     } = body;
     const safeSteps = Array.isArray(steps) ? steps : [];
+    // DEBUG ADDED: request-scoped backend logging without dumping full client records.
+    console.error('[createCampaign][DIAG] request received', {
+      requestId,
+      userId: user.id,
+      orgId: user.orgId || null,
+      type,
+      triggerTypeId: triggerTypeId || null,
+      requestedTriggerField: requestedTriggerField || null,
+      dateField: dateField || null,
+      campaignStatus,
+      stepsIsArray: Array.isArray(steps),
+      stepsCount: safeSteps.length,
+      hasName: !!name,
+    });
 
     // Sprint 3: Validate type against CampaignType entity instead of TriggerType
     let campaignType = null;
@@ -44,11 +59,20 @@ Deno.serve(async (req) => {
       campaignType = matches[0] || null;
     }
     if (!campaignType) {
+      console.error('[createCampaign][DIAG] invalid campaign type', { requestId, type, triggerTypeId: triggerTypeId || null });
       return Response.json({
         success: false,
         error: 'Invalid campaign type. Please select a valid campaign type.'
       }, { status: 400 });
     }
+
+    console.error('[createCampaign][DIAG] campaign type resolved', {
+      requestId,
+      campaignTypeId: campaignType.id,
+      slug: campaignType.slug,
+      triggerField: campaignType.triggerField || null,
+      triggerMode: campaignType.triggerMode || null,
+    });
 
     if (campaignStatus === 'active' && campaignType.triggerMode === 'manual') {
       return Response.json({
@@ -119,6 +143,14 @@ Deno.serve(async (req) => {
     }
 
     // All validation passed — now write to the database
+    console.error('[createCampaign][DIAG] creating campaign record', {
+      requestId,
+      orgId,
+      ownerId: user.id,
+      triggerField,
+      status: campaignStatus,
+      preValidatedStepsCount: preValidatedSteps.length,
+    });
     const campaign = await base44.entities.Campaign.create({
       name: name || `${campaignType.name} Campaign`,
       type: campaignType.slug,
@@ -135,6 +167,8 @@ Deno.serve(async (req) => {
       createdBy: user.id,
       createdAt: new Date().toISOString()
     });
+
+    console.error('[createCampaign][DIAG] campaign record created', { requestId, campaignId: campaign.id });
 
     // Create campaign steps (already validated above)
     if (preValidatedSteps.length > 0) {
@@ -196,6 +230,7 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
+      requestId,
       campaignId: campaign.id,
       stepsCreated: safeSteps.length,
       enrolledCount,
@@ -203,9 +238,15 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('createCampaign error:', error);
+    console.error('[createCampaign] unhandled error', {
+      requestId,
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     return Response.json({
       success: false,
+      requestId,
       error: error.message || 'An error occurred while creating the campaign'
     }, { status: 500 });
   }
