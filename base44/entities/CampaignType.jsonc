@@ -12,15 +12,17 @@
     },
     "triggerField": {
       "type": "string",
-      "description": "Client field that holds the trigger date"
+      "nullable": true,
+      "description": "Client field that holds the trigger date. Nullable for calendar/manual campaign types."
     },
     "triggerMode": {
       "type": "string",
       "enum": [
         "recurring",
-        "one_time"
+        "one_time",
+        "manual"
       ],
-      "description": "Either 'recurring' or 'one_time'"
+      "description": "Either 'recurring', 'one_time', or 'manual'"
     },
     "timingDirection": {
       "type": "string",
@@ -93,7 +95,6 @@
   "required": [
     "name",
     "slug",
-    "triggerField",
     "triggerMode",
     "timingDirection",
     "defaultTimingDays",

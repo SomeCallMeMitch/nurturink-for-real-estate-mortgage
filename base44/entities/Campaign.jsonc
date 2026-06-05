@@ -65,6 +65,48 @@
       "type": "string",
       "nullable": true,
       "description": "Optional description of the campaign"
+    },
+    "scheduleMode": {
+      "type": "string",
+      "enum": [
+        "client_date",
+        "calendar"
+      ],
+      "nullable": true,
+      "description": "Determines whether scheduling uses client trigger dates or calendar-based campaign dates."
+    },
+    "scheduleFrequency": {
+      "type": "string",
+      "enum": [
+        "quarterly"
+      ],
+      "nullable": true,
+      "description": "Calendar campaign frequency."
+    },
+    "scheduleMonths": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "nullable": true,
+      "description": "Array of 1-based calendar month numbers, for example [1, 4, 7, 10] for Jan/Apr/Jul/Oct."
+    },
+    "scheduleDayOfMonth": {
+      "type": "number",
+      "nullable": true,
+      "description": "Day of the month to generate scheduled sends."
+    },
+    "nextRunDate": {
+      "type": "string",
+      "format": "date",
+      "nullable": true,
+      "description": "Next date this calendar campaign should generate sends, stored as YYYY-MM-DD."
+    },
+    "lastRunDate": {
+      "type": "string",
+      "format": "date",
+      "nullable": true,
+      "description": "Last date this calendar campaign generated sends, stored as YYYY-MM-DD."
     }
   },
   "required": [
