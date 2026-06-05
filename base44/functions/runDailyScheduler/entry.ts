@@ -112,6 +112,33 @@ function isClientAutomationEligible(client) {
   return client.automation_status == null || client.automation_status === 'active';
 }
 
+async function loadClientsForEnrollments(base44, campaign, enrollments) {
+  const enrolledClientIds = new Set(enrollments.map((enrollment) => enrollment.clientId).filter(Boolean));
+  const clientMap = new Map();
+
+  if (enrolledClientIds.size === 0) {
+    return { clientMap, matchingClientCount: 0, enrolledClientCount: 0 };
+  }
+
+  const clientQuery = { orgId: campaign.orgId };
+  if (campaign.ownerId) {
+    clientQuery.ownerId = campaign.ownerId;
+  }
+
+  const orgClients = await base44.asServiceRole.entities.Client.filter(clientQuery);
+  const matchingClients = orgClients.filter((client) => enrolledClientIds.has(client.id));
+
+  for (const client of matchingClients) {
+    clientMap.set(client.id, client);
+  }
+
+  return {
+    clientMap,
+    matchingClientCount: matchingClients.length,
+    enrolledClientCount: enrolledClientIds.size
+  };
+}
+
 async function processCalendarCampaign(base44, campaign, stats) {
   const runDateStr = campaign.nextRunDate;
   const scheduleMonths = normalizeScheduleMonths(campaign.scheduleMonths);
@@ -158,6 +185,9 @@ async function processCalendarCampaign(base44, campaign, stats) {
     (!enrollment.orgId || enrollment.orgId === campaign.orgId)
   );
   console.log(`[runDailyScheduler] Found ${enrolled.length} enrolled calendar recipients for campaign ${campaign.name}`);
+  if (enrolled.length === 0) {
+    return;
+  }
 
   const existingSends = await base44.asServiceRole.entities.ScheduledSend.filter({
     campaignId: campaign.id,
@@ -168,19 +198,17 @@ async function processCalendarCampaign(base44, campaign, stats) {
     existingSends.map((s) => `${s.enrollmentId}-${s.campaignStepId}-${s.scheduledDate}`)
   );
 
-  const clientIds = [...new Set(enrolled.map((e) => e.clientId))];
-  const clientMap = new Map();
-  if (clientIds.length > 0) {
-    const clientList = await base44.asServiceRole.entities.Client.filter({
-      orgId: campaign.orgId,
-      id: { $in: clientIds }
-    });
-    for (const client of clientList) {
-      clientMap.set(client.id, client);
-    }
+  const { clientMap, matchingClientCount } = await loadClientsForEnrollments(base44, campaign, enrolled);
+  if (matchingClientCount === 0) {
+    const error = `Calendar campaign ${campaign.id} has enrolled recipients but no matching clients were found`;
+    console.error(`[runDailyScheduler] ${error}`);
+    stats.errors.push({ type: 'campaign', id: campaign.id, error });
+    return;
   }
 
   const creditCheck = await checkOrgCredits(base44, campaign.orgId);
+  const sendsCreatedBefore = stats.sendsCreated;
+  const duplicateSendsBefore = stats.sendsSkippedDuplicate;
 
   for (const enrollment of enrolled) {
     try {
@@ -240,6 +268,13 @@ async function processCalendarCampaign(base44, campaign, stats) {
       id: campaign.id,
       error: 'Unable to calculate next calendar run date'
     });
+    return;
+  }
+
+  const sendsCreatedForCampaign = stats.sendsCreated - sendsCreatedBefore;
+  const duplicatesFoundForCampaign = stats.sendsSkippedDuplicate - duplicateSendsBefore;
+  if (sendsCreatedForCampaign === 0 && duplicatesFoundForCampaign === 0 && existingSends.length === 0) {
+    console.log(`[runDailyScheduler] Calendar campaign ${campaign.id} created no sends and found no duplicates for ${runDateStr}; nextRunDate not advanced`);
     return;
   }
 
@@ -365,18 +400,7 @@ Deno.serve(async (req) => {
         );
 
         // Fix 03A — Batch-load all enrolled clients in a single query
-        const clientIds = [...new Set(enrollments.map((e) => e.clientId))];
-        const clientMap = new Map();
-
-        if (clientIds.length > 0) {
-          const clientList = await base44.asServiceRole.entities.Client.filter({
-            orgId: campaign.orgId,
-            id: { $in: clientIds }
-          });
-          for (const client of clientList) {
-            clientMap.set(client.id, client);
-          }
-        }
+        const { clientMap } = await loadClientsForEnrollments(base44, campaign, enrollments);
 
         // Check credit availability once per campaign
         const creditCheck = await checkOrgCredits(base44, campaign.orgId);
