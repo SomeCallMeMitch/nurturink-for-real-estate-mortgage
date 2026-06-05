@@ -1,0 +1,24 @@
+{
+  "name": "ClientDate",
+  "type": "object",
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "dateKey": {
+      "type": "string",
+      "description": "The date field name (e.g., 'birthday', 'renewal_date', 'sign_date')"
+    },
+    "dateValue": {
+      "type": "string",
+      "format": "date",
+      "description": "The actual date value in YYYY-MM-DD format (UTC)"
+    }
+  },
+  "required": [
+    "clientId",
+    "dateKey",
+    "dateValue"
+  ]
+}

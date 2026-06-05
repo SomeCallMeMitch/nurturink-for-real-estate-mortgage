@@ -1,0 +1,53 @@
+{
+  "name": "CampaignStep",
+  "type": "object",
+  "description": "Individual step in a campaign sequence (each step = one card)",
+  "properties": {
+    "campaignId": {
+      "type": "string",
+      "description": "Parent campaign ID"
+    },
+    "stepOrder": {
+      "type": "integer",
+      "description": "Step sequence number (1, 2, etc.)"
+    },
+    "cardDesignId": {
+      "type": "string",
+      "description": "Card design to use for this step"
+    },
+    "templateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Message template ID to use (optional if messageText provided)"
+    },
+    "messageText": {
+      "type": "string",
+      "nullable": true,
+      "description": "Custom message text (used if no templateId)"
+    },
+    "timingDays": {
+      "type": "integer",
+      "description": "Days before (-) or after (+) the reference date. E.g., -7 means 7 days before."
+    },
+    "timingReference": {
+      "type": "string",
+      "enum": [
+        "trigger_date",
+        "previous_step"
+      ],
+      "default": "trigger_date",
+      "description": "What this step's timing is relative to"
+    },
+    "isEnabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this step is active"
+    }
+  },
+  "required": [
+    "campaignId",
+    "stepOrder",
+    "cardDesignId",
+    "timingDays"
+  ]
+}

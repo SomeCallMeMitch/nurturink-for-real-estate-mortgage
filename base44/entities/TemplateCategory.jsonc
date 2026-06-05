@@ -1,0 +1,77 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Category name (e.g., 'Thank You', 'Follow-Up', 'Holiday')"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly identifier for the category"
+    },
+    "description": {
+      "type": "string",
+      "nullable": true,
+      "description": "Category description"
+    },
+    "subcategory": {
+      "type": "string",
+      "nullable": true,
+      "description": "Subcategory grouping (e.g., 'Business Development', 'Client Care', 'Milestones')"
+    },
+    "orgId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization ID for org-specific categories. Null = platform-wide category."
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "organization",
+        "platform"
+      ],
+      "default": "platform",
+      "description": "Visibility scope. 'personal' = only creator can use. 'organization' = all team members can use. 'platform' = system-wide default categories."
+    },
+    "createdByUserId": {
+      "type": "string",
+      "nullable": true,
+      "description": "User ID who created this category. Null for platform categories."
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order. Lower numbers appear first."
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Is this category active and visible?"
+    },
+    "industry": {
+      "type": "string",
+      "nullable": true,
+      "description": "Industry specific designation, or 'universal' for all industries."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this category was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this category was last updated"
+    }
+  },
+  "required": [
+    "name",
+    "slug"
+  ],
+  "name": "TemplateCategory"
+}

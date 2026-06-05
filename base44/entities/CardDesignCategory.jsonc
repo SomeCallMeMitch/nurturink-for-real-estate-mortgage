@@ -1,0 +1,52 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Category name (e.g., 'Professional', 'Casual', 'Holiday')"
+    },
+    "description": {
+      "type": "string",
+      "nullable": true,
+      "description": "Category description for admin reference"
+    },
+    "sortOrder": {
+      "type": "number",
+      "default": 0,
+      "description": "Display order in category list"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Show this category in card design browser?"
+    },
+    "orgId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization ID for org-specific categories. Null = platform-wide category."
+    },
+    "createdByUserId": {
+      "type": "string",
+      "nullable": true,
+      "description": "User who created this category. Null for platform categories."
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this category was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this category was last updated"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "name": "CardDesignCategory"
+}

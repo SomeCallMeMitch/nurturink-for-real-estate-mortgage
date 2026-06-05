@@ -1,0 +1,172 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the note"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "ID of the organization this note belongs to"
+    },
+    "userId": {
+      "type": "string",
+      "description": "ID of the user who created this note"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "ID of the client who will receive this note"
+    },
+    "mailingId": {
+      "type": "string",
+      "nullable": true,
+      "description": "ID of the associated mailing (created when note is sent)"
+    },
+    "mailingBatchId": {
+      "type": "string",
+      "description": "ID of the MailingBatch that created this Note. Required for batch history queries."
+    },
+    "templateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "ID of the template used (if any)"
+    },
+    "cardDesignId": {
+      "type": "string",
+      "description": "ID of the card design used"
+    },
+    "noteStyleProfileId": {
+      "type": "string",
+      "nullable": true,
+      "description": "ID of the note style profile used"
+    },
+    "message": {
+      "type": "string",
+      "description": "The handwritten message content"
+    },
+    "messageTemplate": {
+      "type": "string",
+      "nullable": true,
+      "description": "The message with Scribe placeholders (e.g., {FIRST_NAME}). Used for debugging/audit."
+    },
+    "signature": {
+      "type": "string",
+      "nullable": true,
+      "description": "Signature text (if included)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "queued_for_sending",
+        "pending_print",
+        "printed",
+        "sent",
+        "delivered",
+        "failed"
+      ],
+      "default": "draft",
+      "description": "Current status of the note"
+    },
+    "sentDate": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When the note was sent"
+    },
+    "deliveryTrackingId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Tracking ID from mail service"
+    },
+    "deliveryStatus": {
+      "type": "string",
+      "nullable": true,
+      "description": "Delivery status from mail service"
+    },
+    "creditCost": {
+      "type": "number",
+      "default": 1,
+      "description": "Number of credits this note cost"
+    },
+    "outcome": {
+      "type": "string",
+      "nullable": true,
+      "enum": [
+        "sale_closed",
+        "referral_generated",
+        "no_response",
+        "other"
+      ],
+      "description": "Outcome of sending this note (if tracked)"
+    },
+    "outcomeRating": {
+      "type": "number",
+      "nullable": true,
+      "description": "User rating of outcome (1-5 stars)"
+    },
+    "outcomeDetails": {
+      "type": "string",
+      "nullable": true,
+      "description": "Freeform notes about the outcome from the sales rep"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this note was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this note was last updated"
+    },
+    "recipientName": {
+      "type": "string",
+      "description": "Full name of the client who received this note. Denormalized from Client.fullName for reporting."
+    },
+    "templateName": {
+      "type": "string",
+      "nullable": true,
+      "description": "Name of the template used (if any). Denormalized from Template.name for reporting. Null if no template used."
+    },
+    "senderUserId": {
+      "type": "string",
+      "description": "User ID of the person who sent this note. Denormalized for reporting and permissions."
+    },
+    "senderName": {
+      "type": "string",
+      "description": "Full name of the user who sent this note. Denormalized from User.fullName for reporting."
+    },
+    "scribeCampaignId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Scribe campaign ID this note belongs to"
+    },
+    "scribeContactId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Contact ID returned by Scribe when contact was added"
+    },
+    "returnAddressMode": {
+      "type": "string",
+      "enum": [
+        "company",
+        "rep",
+        "none"
+      ],
+      "nullable": true,
+      "description": "Which return address mode was used for this note"
+    }
+  },
+  "required": [
+    "orgId",
+    "userId",
+    "clientId",
+    "cardDesignId",
+    "message",
+    "recipientName",
+    "senderUserId",
+    "senderName"
+  ],
+  "name": "Note"
+}

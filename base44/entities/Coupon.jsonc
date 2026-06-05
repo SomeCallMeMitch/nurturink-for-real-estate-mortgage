@@ -1,0 +1,120 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "code": {
+      "type": "string",
+      "description": "Coupon code (e.g., 'SAVE20', 'WELCOME'). Unique, case-insensitive."
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description (e.g., '20% off your first purchase')"
+    },
+    "isActive": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can this coupon be used?"
+    },
+    "maxUsesGlobal": {
+      "type": "number",
+      "nullable": true,
+      "description": "Total redemptions allowed across all users. Null = unlimited."
+    },
+    "maxUsesPerUser": {
+      "type": "number",
+      "nullable": true,
+      "description": "Redemptions allowed per user. Null = unlimited."
+    },
+    "usedCount": {
+      "type": "number",
+      "default": 0,
+      "description": "Total times this coupon has been redeemed (cached)"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "Expiration date/time. Null = no expiration."
+    },
+    "applyMode": {
+      "type": "string",
+      "enum": [
+        "percentage",
+        "fixed_amount",
+        "tier_price_match"
+      ],
+      "description": "How this coupon applies discount"
+    },
+    "discountValue": {
+      "type": "number",
+      "nullable": true,
+      "description": "Discount value: 20 for 20% off, or 1000 for $10.00 off (in cents)"
+    },
+    "targetTierId": {
+      "type": "string",
+      "nullable": true,
+      "description": "PricingTier.id to match price-per-credit from"
+    },
+    "applyNextTierUp": {
+      "type": "boolean",
+      "default": false,
+      "description": "Use next tier up's price instead of target tier"
+    },
+    "eligibleTierIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of PricingTier IDs that can use this coupon. Empty = all tiers eligible."
+    },
+    "capTierId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Minimum tier price cap. Matched price cannot be lower than this tier's price."
+    },
+    "bonusDiscountType": {
+      "type": "string",
+      "enum": [
+        "none",
+        "per_note_discount",
+        "percentage"
+      ],
+      "default": "none",
+      "description": "Type of additional bonus discount"
+    },
+    "bonusDiscountValue": {
+      "type": "number",
+      "nullable": true,
+      "description": "Bonus discount value: cents for per-note, percentage for percentage"
+    },
+    "influencerName": {
+      "type": "string",
+      "nullable": true,
+      "description": "Referral source or influencer name for tracking"
+    },
+    "trackingNotes": {
+      "type": "string",
+      "nullable": true,
+      "description": "Internal notes for tracking/reporting"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this coupon was created"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "Super admin who created this coupon"
+    }
+  },
+  "required": [
+    "code",
+    "description",
+    "applyMode"
+  ],
+  "name": "Coupon"
+}

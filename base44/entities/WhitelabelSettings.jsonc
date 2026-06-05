@@ -1,0 +1,492 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier (singleton - only one record)"
+    },
+    "brandName": {
+      "type": "string",
+      "default": "RoofScribe",
+      "description": "Main brand name displayed throughout the app"
+    },
+    "logoUrl": {
+      "type": "string",
+      "nullable": true,
+      "description": "URL to the main logo image"
+    },
+    "faviconUrl": {
+      "type": "string",
+      "nullable": true,
+      "description": "URL to the favicon image"
+    },
+    "primaryColor": {
+      "type": "string",
+      "default": "#0477d1",
+      "description": "Primary brand color (HEX format)"
+    },
+    "accentColor": {
+      "type": "string",
+      "default": "#c87533",
+      "description": "Accent color for secondary elements (HEX format)"
+    },
+    "backgroundColor": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Default page background color (HEX format)"
+    },
+    "foregroundColor": {
+      "type": "string",
+      "default": "#222222",
+      "description": "Main text color (HEX format)"
+    },
+    "cardBackground": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Card/panel background color (HEX format)"
+    },
+    "cardForeground": {
+      "type": "string",
+      "default": "#222222",
+      "description": "Text color on cards (HEX format)"
+    },
+    "inputBackground": {
+      "type": "string",
+      "default": "#e3e3e3",
+      "description": "Input field background color (HEX format)"
+    },
+    "inputBorder": {
+      "type": "string",
+      "default": "#e3e3e3",
+      "description": "Default border color (HEX format)"
+    },
+    "ringColor": {
+      "type": "string",
+      "default": "#0477d1",
+      "description": "Focus ring color (HEX format)"
+    },
+    "mutedBackground": {
+      "type": "string",
+      "default": "#eeeeee",
+      "description": "Muted background color (HEX format)"
+    },
+    "mutedForeground": {
+      "type": "string",
+      "default": "#787878",
+      "description": "Muted text color (HEX format)"
+    },
+    "accentBackground": {
+      "type": "string",
+      "default": "#e3e3e3",
+      "description": "Accent background color (HEX format)"
+    },
+    "accentForeground": {
+      "type": "string",
+      "default": "#035392",
+      "description": "Accent text color (HEX format)"
+    },
+    "popoverBackground": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Popover/dropdown background (HEX format)"
+    },
+    "popoverForeground": {
+      "type": "string",
+      "default": "#222222",
+      "description": "Popover/dropdown text (HEX format)"
+    },
+    "secondaryBackground": {
+      "type": "string",
+      "default": "#edf6fc",
+      "description": "Secondary button/surface background (HEX format)"
+    },
+    "secondaryForeground": {
+      "type": "string",
+      "default": "#575757",
+      "description": "Secondary button/surface text (HEX format)"
+    },
+    "destructiveBackground": {
+      "type": "string",
+      "default": "#d9363d",
+      "description": "Destructive/danger button background (HEX format)"
+    },
+    "destructiveForeground": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Destructive/danger button text (HEX format)"
+    },
+    "successColor": {
+      "type": "string",
+      "default": "#10b981",
+      "description": "Success status color (HEX format)"
+    },
+    "warningColor": {
+      "type": "string",
+      "default": "#f59e0b",
+      "description": "Warning status color (HEX format)"
+    },
+    "dangerColor": {
+      "type": "string",
+      "default": "#ef4444",
+      "description": "Danger status color (HEX format)"
+    },
+    "successBgColor": {
+      "type": "string",
+      "default": "#F0FDF4",
+      "description": "Success background (for alerts/banners) (HEX format)"
+    },
+    "warningBgColor": {
+      "type": "string",
+      "default": "#FFFBEB",
+      "description": "Warning background (for alerts/banners) (HEX format)"
+    },
+    "dangerBgColor": {
+      "type": "string",
+      "default": "#FEF2F2",
+      "description": "Danger background (for alerts/banners) (HEX format)"
+    },
+    "pillSuccessBg": {
+      "type": "string",
+      "default": "#DCFCE7",
+      "description": "Success pill background (HEX format)"
+    },
+    "pillSuccessFg": {
+      "type": "string",
+      "default": "#166534",
+      "description": "Success pill text (HEX format)"
+    },
+    "pillWarningBg": {
+      "type": "string",
+      "default": "#FEF3C7",
+      "description": "Warning pill background (HEX format)"
+    },
+    "pillWarningFg": {
+      "type": "string",
+      "default": "#92400E",
+      "description": "Warning pill text (HEX format)"
+    },
+    "pillDangerBg": {
+      "type": "string",
+      "default": "#FEE2E2",
+      "description": "Danger pill background (HEX format)"
+    },
+    "pillDangerFg": {
+      "type": "string",
+      "default": "#991B1B",
+      "description": "Danger pill text (HEX format)"
+    },
+    "pillMutedBg": {
+      "type": "string",
+      "default": "#E5E7EB",
+      "description": "Muted pill background (HEX format)"
+    },
+    "pillMutedFg": {
+      "type": "string",
+      "default": "#374151",
+      "description": "Muted pill text (HEX format)"
+    },
+    "pillColor1Bg": {
+      "type": "string",
+      "default": "#DBEAFE",
+      "description": "Utility pill 1 (blue) background (HEX format)"
+    },
+    "pillColor1Fg": {
+      "type": "string",
+      "default": "#1D4ED8",
+      "description": "Utility pill 1 (blue) text (HEX format)"
+    },
+    "pillColor2Bg": {
+      "type": "string",
+      "default": "#EDE9FE",
+      "description": "Utility pill 2 (purple) background (HEX format)"
+    },
+    "pillColor2Fg": {
+      "type": "string",
+      "default": "#6D28D9",
+      "description": "Utility pill 2 (purple) text (HEX format)"
+    },
+    "pillColor3Bg": {
+      "type": "string",
+      "default": "#CCFBF1",
+      "description": "Utility pill 3 (teal) background (HEX format)"
+    },
+    "pillColor3Fg": {
+      "type": "string",
+      "default": "#0F766E",
+      "description": "Utility pill 3 (teal) text (HEX format)"
+    },
+    "selectionBg": {
+      "type": "string",
+      "default": "#EFF6FF",
+      "description": "Selected item background color (HEX format)"
+    },
+    "selectionBorder": {
+      "type": "string",
+      "default": "#0477d1",
+      "description": "Selected item left border color (HEX format)"
+    },
+    "selectionText": {
+      "type": "string",
+      "default": "#222222",
+      "description": "Text color on selected items (HEX format)"
+    },
+    "sidebarBackground": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Sidebar background color (HEX format)"
+    },
+    "sidebarForeground": {
+      "type": "string",
+      "default": "#374151",
+      "description": "Sidebar text color (HEX format)"
+    },
+    "sidebarBorder": {
+      "type": "string",
+      "default": "#e5e7eb",
+      "description": "Sidebar border color (HEX format)"
+    },
+    "sidebarAccent": {
+      "type": "string",
+      "default": "#f3f4f6",
+      "description": "Sidebar hover background (HEX format)"
+    },
+    "sidebarAccentForeground": {
+      "type": "string",
+      "default": "#111827",
+      "description": "Sidebar hover text (HEX format)"
+    },
+    "sidebarPrimary": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Sidebar active item background (HEX format)"
+    },
+    "sidebarPrimaryForeground": {
+      "type": "string",
+      "default": "#c87533",
+      "description": "Sidebar active item text (HEX format)"
+    },
+    "navBackground": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Navigation background (HEX format)"
+    },
+    "navForeground": {
+      "type": "string",
+      "default": "#374151",
+      "description": "Navigation text (HEX format)"
+    },
+    "navMuted": {
+      "type": "string",
+      "default": "#9ca3af",
+      "description": "Inactive nav item text (HEX format)"
+    },
+    "navBorder": {
+      "type": "string",
+      "default": "#e5e7eb",
+      "description": "Navigation border/divider (HEX format)"
+    },
+    "navItemHoverBg": {
+      "type": "string",
+      "default": "#fef3e2",
+      "description": "Nav item hover background (HEX format)"
+    },
+    "navItemActiveBg": {
+      "type": "string",
+      "default": "#fef3e2",
+      "description": "Nav item active background (HEX format)"
+    },
+    "navItemActiveFg": {
+      "type": "string",
+      "default": "#c87533",
+      "description": "Nav item active text (HEX format)"
+    },
+    "navAccent": {
+      "type": "string",
+      "default": "#c87533",
+      "description": "Navigation accent/highlight (HEX format)"
+    },
+    "brandAccent": {
+      "type": "string",
+      "default": "#c87533",
+      "description": "Brand accent color (burnt orange) (HEX format)"
+    },
+    "brandAccentForeground": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Brand accent text/icon color (HEX format)"
+    },
+    "ctaPrimary": {
+      "type": "string",
+      "default": "#c87533",
+      "description": "Primary CTA button background (HEX format)"
+    },
+    "ctaPrimaryForeground": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Primary CTA button text (HEX format)"
+    },
+    "focusRing": {
+      "type": "string",
+      "default": "#3b82f6",
+      "description": "Focus ring/outline color (HEX format)"
+    },
+    "surface0": {
+      "type": "string",
+      "default": "#ffffff",
+      "description": "Primary surface color (HEX format)"
+    },
+    "surface1": {
+      "type": "string",
+      "default": "#f9fafb",
+      "description": "Secondary surface color (HEX format)"
+    },
+    "surfaceMuted": {
+      "type": "string",
+      "default": "#f3f4f6",
+      "description": "Muted surface color (HEX format)"
+    },
+    "borderSubtle": {
+      "type": "string",
+      "default": "#e5e7eb",
+      "description": "Subtle border color (HEX format)"
+    },
+    "text0": {
+      "type": "string",
+      "default": "#111827",
+      "description": "Primary text (headings) (HEX format)"
+    },
+    "text1": {
+      "type": "string",
+      "default": "#4b5563",
+      "description": "Secondary text (body) (HEX format)"
+    },
+    "text2": {
+      "type": "string",
+      "default": "#9ca3af",
+      "description": "Tertiary/muted text (captions) (HEX format)"
+    },
+    "borderRadius": {
+      "type": "string",
+      "default": "0.5rem",
+      "description": "Border radius for UI elements (CSS value)"
+    },
+    "shadowSm": {
+      "type": "string",
+      "default": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+      "description": "Small shadow (CSS value)"
+    },
+    "shadowMd": {
+      "type": "string",
+      "default": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+      "description": "Medium shadow (CSS value)"
+    },
+    "shadowLg": {
+      "type": "string",
+      "default": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+      "description": "Large shadow (CSS value)"
+    },
+    "fontHeadings": {
+      "type": "string",
+      "default": "Inter",
+      "description": "Font family for headings (Google Font name)"
+    },
+    "fontBody": {
+      "type": "string",
+      "default": "Inter",
+      "description": "Font family for body text (Google Font name)"
+    },
+    "toastDuration": {
+      "type": "number",
+      "default": 3000,
+      "description": "Default toast notification duration in milliseconds"
+    },
+    "toastPlacement": {
+      "type": "string",
+      "enum": [
+        "top-left",
+        "top-center",
+        "top-right",
+        "bottom-left",
+        "bottom-center",
+        "bottom-right"
+      ],
+      "default": "top-right",
+      "description": "Where toast notifications appear on screen"
+    },
+    "toastSuccessBg": {
+      "type": "string",
+      "default": "#F0FDF4",
+      "description": "Background color for success toasts (HEX format)"
+    },
+    "toastSuccessText": {
+      "type": "string",
+      "default": "#166534",
+      "description": "Text color for success toasts (HEX format)"
+    },
+    "toastSuccessBorder": {
+      "type": "string",
+      "default": "#86EFAC",
+      "description": "Border color for success toasts (HEX format)"
+    },
+    "toastErrorBg": {
+      "type": "string",
+      "default": "#FEF2F2",
+      "description": "Background color for error toasts (HEX format)"
+    },
+    "toastErrorText": {
+      "type": "string",
+      "default": "#991B1B",
+      "description": "Text color for error toasts (HEX format)"
+    },
+    "toastErrorBorder": {
+      "type": "string",
+      "default": "#FCA5A5",
+      "description": "Border color for error toasts (HEX format)"
+    },
+    "toastWarningBg": {
+      "type": "string",
+      "default": "#FFFBEB",
+      "description": "Background color for warning toasts (HEX format)"
+    },
+    "toastWarningText": {
+      "type": "string",
+      "default": "#92400E",
+      "description": "Text color for warning toasts (HEX format)"
+    },
+    "toastWarningBorder": {
+      "type": "string",
+      "default": "#FDE68A",
+      "description": "Border color for warning toasts (HEX format)"
+    },
+    "toastInfoBg": {
+      "type": "string",
+      "default": "#EFF6FF",
+      "description": "Background color for info toasts (HEX format)"
+    },
+    "toastInfoText": {
+      "type": "string",
+      "default": "#1E40AF",
+      "description": "Text color for info toasts (HEX format)"
+    },
+    "toastInfoBorder": {
+      "type": "string",
+      "default": "#93C5FD",
+      "description": "Border color for info toasts (HEX format)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record was last updated"
+    }
+  },
+  "required": [
+    "brandName"
+  ],
+  "name": "WhitelabelSettings",
+  "description": "Singleton entity for global whitelabel/branding settings. Only one record should exist."
+}

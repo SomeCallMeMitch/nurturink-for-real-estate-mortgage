@@ -1,0 +1,89 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "requesterId": {
+      "type": "string",
+      "description": "User ID of the person requesting credits"
+    },
+    "requesterName": {
+      "type": "string",
+      "description": "Full name of requester (denormalized for display)"
+    },
+    "requesterEmail": {
+      "type": "string",
+      "description": "Email of requester (denormalized for notifications)"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization ID"
+    },
+    "approverUserId": {
+      "type": "string",
+      "nullable": true,
+      "description": "User ID of admin who can approve/deny this request"
+    },
+    "creditsRequested": {
+      "type": "number",
+      "description": "Number of credits being requested"
+    },
+    "reason": {
+      "type": "string",
+      "nullable": true,
+      "description": "Reason for credit request (optional)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "denied",
+        "cancelled"
+      ],
+      "default": "pending",
+      "description": "Current status of the request"
+    },
+    "approvedBy": {
+      "type": "string",
+      "nullable": true,
+      "description": "User ID of admin who approved/denied"
+    },
+    "approvedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When request was approved/denied"
+    },
+    "adminNotes": {
+      "type": "string",
+      "nullable": true,
+      "description": "Notes from admin when approving/denying"
+    },
+    "transactionId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Transaction ID if request was approved and credits transferred"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this request was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this request was last updated"
+    }
+  },
+  "required": [
+    "requesterId",
+    "requesterName",
+    "requesterEmail",
+    "orgId",
+    "creditsRequested"
+  ],
+  "name": "CreditRequest"
+}

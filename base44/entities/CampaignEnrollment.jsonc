@@ -3,10 +3,6 @@
   "type": "object",
   "description": "Tracks which clients are enrolled in which campaigns",
   "properties": {
-    "orgId": {
-      "type": "string",
-      "description": "Organization that owns this enrollment"
-    },
     "campaignId": {
       "type": "string",
       "description": "Campaign the client is enrolled in"
@@ -24,7 +20,7 @@
         "paused"
       ],
       "default": "enrolled",
-      "description": "Canonical enrollment status. Previous dev value active should not be used."
+      "description": "Enrollment status"
     },
     "enrolledAt": {
       "type": "string",
@@ -35,13 +31,19 @@
       "type": "string",
       "format": "date-time",
       "nullable": true,
-      "description": "When the client was excluded"
+      "description": "When excluded (if status=excluded)"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When sequence completed (if status=completed)"
     },
     "lastSentDate": {
       "type": "string",
       "format": "date",
       "nullable": true,
-      "description": "Last date a card was sent"
+      "description": "Last date a card was sent for this enrollment"
     },
     "lastSentStep": {
       "type": "integer",
@@ -51,17 +53,13 @@
     "processedWelcome": {
       "type": "boolean",
       "default": false,
-      "description": "Whether a one-time send has been scheduled"
+      "nullable": true,
+      "description": "Whether a welcome send has been scheduled for this enrollment. Prevents duplicate welcome sends."
     }
   },
   "required": [
     "campaignId",
-    "clientId"
-  ],
-  "rls": {
-    "create": null,
-    "read": null,
-    "update": null,
-    "delete": null
-  }
+    "clientId",
+    "enrolledAt"
+  ]
 }

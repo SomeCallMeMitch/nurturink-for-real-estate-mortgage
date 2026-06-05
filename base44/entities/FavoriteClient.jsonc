@@ -1,0 +1,33 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier for the favorite"
+    },
+    "userId": {
+      "type": "string",
+      "description": "ID of the user who favorited the client"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "ID of the favorited client"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "ID of the organization (for multi-tenancy and querying)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this favorite was created"
+    }
+  },
+  "required": [
+    "userId",
+    "clientId",
+    "orgId"
+  ],
+  "name": "FavoriteClient",
+  "description": "Tracks which clients are marked as favorites by each user. Each user can have their own set of favorite clients."
+}

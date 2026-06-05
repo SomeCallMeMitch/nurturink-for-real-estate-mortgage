@@ -1,0 +1,78 @@
+{
+  "name": "SampleRequest",
+  "type": "object",
+  "description": "Stores free sample card requests submitted via landing page forms",
+  "properties": {
+    "firstName": {
+      "type": "string",
+      "description": "Requester's first name"
+    },
+    "lastName": {
+      "type": "string",
+      "description": "Requester's last name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Requester's email address"
+    },
+    "address": {
+      "type": "string",
+      "description": "Street mailing address for sample delivery"
+    },
+    "city": {
+      "type": "string",
+      "description": "City for mailing address"
+    },
+    "stateZip": {
+      "type": "string",
+      "description": "State and ZIP code (e.g. CA 94102)"
+    },
+    "storeNameOrUrl": {
+      "type": "string",
+      "description": "Store/company name or URL"
+    },
+    "productType": {
+      "type": "string",
+      "nullable": true,
+      "description": "What they sell or what their company does \u2014 used to personalize the sample"
+    },
+    "monthlyOrders": {
+      "type": "string",
+      "nullable": true,
+      "description": "Approximate monthly order/job volume range"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "solar",
+        "roofing",
+        "insurance",
+        "real_estate",
+        "ecommerce",
+        "other"
+      ],
+      "default": "solar",
+      "description": "Which landing page the request came from"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "processing",
+        "sent",
+        "cancelled"
+      ],
+      "default": "new",
+      "description": "Internal fulfillment status"
+    }
+  },
+  "required": [
+    "firstName",
+    "lastName",
+    "email",
+    "address",
+    "city",
+    "stateZip",
+    "storeNameOrUrl"
+  ]
+}

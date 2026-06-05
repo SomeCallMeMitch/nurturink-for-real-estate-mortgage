@@ -1,0 +1,47 @@
+{
+  "name": "AutomationLog",
+  "type": "object",
+  "properties": {
+    "automatedCampaignId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Reference to AutomatedCampaign (if applicable)"
+    },
+    "triggerTypeId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Reference to TriggerType (if applicable)"
+    },
+    "clientId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Reference to Client (if applicable)"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "campaign_created",
+        "campaign_sent",
+        "campaign_failed",
+        "campaign_skipped",
+        "cron_started",
+        "cron_completed",
+        "cron_failed"
+      ],
+      "description": "Type of automation event"
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable log message"
+    },
+    "metadata": {
+      "type": "object",
+      "nullable": true,
+      "description": "Additional structured data (error stack, API response, etc.)"
+    }
+  },
+  "required": [
+    "eventType",
+    "message"
+  ]
+}

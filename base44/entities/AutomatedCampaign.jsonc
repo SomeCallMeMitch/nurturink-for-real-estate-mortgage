@@ -1,0 +1,61 @@
+{
+  "name": "AutomatedCampaign",
+  "type": "object",
+  "properties": {
+    "clientId": {
+      "type": "string",
+      "description": "Reference to Client entity"
+    },
+    "triggerTypeId": {
+      "type": "string",
+      "description": "Reference to TriggerType entity"
+    },
+    "automationRuleId": {
+      "type": "string",
+      "description": "Reference to AutomationRule used for this campaign"
+    },
+    "scheduledDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date when card should be sent (YYYY-MM-DD UTC)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "scheduled",
+        "sent",
+        "failed",
+        "cancelled"
+      ],
+      "default": "scheduled",
+      "description": "Current status of the campaign"
+    },
+    "scribeCampaignId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Scribe API campaign ID (populated after successful send)"
+    },
+    "sentAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "Timestamp when card was actually sent"
+    },
+    "errorMessage": {
+      "type": "string",
+      "nullable": true,
+      "description": "Error details if status is 'failed'"
+    },
+    "metadata": {
+      "type": "object",
+      "nullable": true,
+      "description": "Additional data (template used, message preview, etc.)"
+    }
+  },
+  "required": [
+    "clientId",
+    "triggerTypeId",
+    "automationRuleId",
+    "scheduledDate"
+  ]
+}

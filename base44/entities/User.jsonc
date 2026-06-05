@@ -1,0 +1,142 @@
+{
+  "type": "object",
+  "properties": {
+    "appRole": {
+      "type": "string",
+      "enum": [
+        "sales_rep",
+        "organization_owner",
+        "whitelabel_partner",
+        "super_admin"
+      ],
+      "description": "User's role in the application"
+    },
+    "title": {
+      "type": "string",
+      "nullable": true,
+      "description": "Job title"
+    },
+    "fullName": {
+      "type": "string",
+      "nullable": true,
+      "description": "Display name for the user. Custom field that persists via updateMe(), used as the reliable alternative to the built-in full_name field."
+    },
+    "companyName": {
+      "type": "string",
+      "nullable": true,
+      "description": "User's company name (for {{me.companyName}} placeholder resolution)"
+    },
+    "phone": {
+      "type": "string",
+      "nullable": true,
+      "description": "Phone number"
+    },
+    "orgId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization this user belongs to"
+    },
+    "industry": {
+      "type": "string",
+      "nullable": true,
+      "description": "User's selected industry (e.g., 'Real Estate', 'Roofing')"
+    },
+    "companyAllocatedCredits": {
+      "type": "number",
+      "default": 0,
+      "description": "Credits allocated to this user by organization owner"
+    },
+    "personalPurchasedCredits": {
+      "type": "number",
+      "default": 0,
+      "description": "Credits purchased directly by this user"
+    },
+    "canAccessCompanyPool": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can this user access the organization's credit pool?"
+    },
+    "favoriteTemplateIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of Template IDs favorited by this user"
+    },
+    "favoriteNoteStyleProfileIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of NoteStyleProfile IDs favorited by this user"
+    },
+    "favoriteQuickSendTemplateIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of QuickSendTemplate IDs favorited by this user"
+    },
+    "favoriteCardDesignIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Array of CardDesign IDs favorited by this user"
+    },
+    "onboardingCompleted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Has the user completed the onboarding flow?"
+    },
+    "returnAddressName": {
+      "type": "string",
+      "nullable": true,
+      "description": "Name to display on return address (defaults to full_name if not set)"
+    },
+    "street": {
+      "type": "string",
+      "nullable": true,
+      "description": "Street address for rep return address"
+    },
+    "address2": {
+      "type": "string",
+      "nullable": true,
+      "description": "Address line 2 (apt, suite, etc.)"
+    },
+    "city": {
+      "type": "string",
+      "nullable": true,
+      "description": "City for rep return address"
+    },
+    "state": {
+      "type": "string",
+      "nullable": true,
+      "description": "State for rep return address"
+    },
+    "zipCode": {
+      "type": "string",
+      "nullable": true,
+      "description": "ZIP code for rep return address"
+    },
+    "returnAddressPreference": {
+      "type": "string",
+      "enum": [
+        "company",
+        "rep",
+        "none"
+      ],
+      "nullable": true,
+      "default": "company",
+      "description": "User's preferred return address mode"
+    }
+  },
+  "name": "User",
+  "required": [
+    "appRole"
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "cardPreviewSettings": {
+      "type": "object",
+      "properties": {
+        "fontSize": {
+          "type": "number",
+          "default": 22,
+          "description": "Font size for card text in pixels"
+        },
+        "lineHeight": {
+          "type": "number",
+          "default": 1,
+          "description": "Line height multiplier"
+        },
+        "baseTextWidth": {
+          "type": "number",
+          "default": 360,
+          "description": "Maximum width for text content in pixels"
+        },
+        "baseMarginLeft": {
+          "type": "number",
+          "default": 40,
+          "description": "Left margin in pixels"
+        },
+        "shortCardMaxLines": {
+          "type": "number",
+          "default": 13,
+          "description": "Maximum lines for short card"
+        },
+        "maxPreviewLines": {
+          "type": "number",
+          "default": 19,
+          "description": "Maximum lines to show in preview"
+        },
+        "topHalfPaddingTop": {
+          "type": "number",
+          "default": 345,
+          "description": "Top padding for short cards (<=13 lines) in pixels"
+        },
+        "longCardTopPadding": {
+          "type": "number",
+          "default": 110,
+          "description": "Top padding for long cards (>13 lines) in pixels"
+        },
+        "gapAboveFold": {
+          "type": "number",
+          "default": 14,
+          "description": "Gap above fold line in pixels"
+        },
+        "gapBelowFold": {
+          "type": "number",
+          "default": 14,
+          "description": "Gap below fold line in pixels"
+        },
+        "maxIndent": {
+          "type": "number",
+          "default": 16,
+          "description": "Maximum indent for handwritten effect in pixels"
+        },
+        "indentAmplitude": {
+          "type": "number",
+          "default": 6,
+          "description": "Amplitude of indent variation"
+        },
+        "indentNoise": {
+          "type": "number",
+          "default": 2,
+          "description": "Random noise for indent"
+        },
+        "indentFrequency": {
+          "type": "number",
+          "default": 0.35,
+          "description": "Frequency of indent variation"
+        },
+        "frameWidth": {
+          "type": "number",
+          "default": 412,
+          "description": "Preview frame width in pixels"
+        },
+        "frameHeight": {
+          "type": "number",
+          "default": 600,
+          "description": "Preview frame height in pixels"
+        }
+      },
+      "description": "Global settings for card preview rendering"
+    },
+    "envelopeLayoutSettings": {
+      "type": "object",
+      "properties": {
+        "recipientAddressTop": {
+          "type": "number",
+          "default": 180,
+          "description": "Top position for recipient address in pixels"
+        },
+        "recipientAddressLeft": {
+          "type": "number",
+          "default": 200,
+          "description": "Left position for recipient address in pixels"
+        },
+        "returnAddressTop": {
+          "type": "number",
+          "default": 20,
+          "description": "Top position for return address in pixels"
+        },
+        "returnAddressLeft": {
+          "type": "number",
+          "default": 20,
+          "description": "Left position for return address in pixels"
+        },
+        "envelopeImageUrl": {
+          "type": "string",
+          "default": "",
+          "description": "URL of the uploaded custom envelope background image"
+        },
+        "envelopeFontFamily": {
+          "type": "string",
+          "enum": [
+            "Caveat",
+            "Kalam",
+            "Patrick Hand"
+          ],
+          "default": "Caveat",
+          "description": "Font family for envelope address text"
+        },
+        "envelopeFontSize": {
+          "type": "number",
+          "default": 18,
+          "description": "Font size for envelope address text in pixels"
+        },
+        "envelopeLineHeight": {
+          "type": "number",
+          "default": 1.2,
+          "description": "Line height multiplier for envelope address text"
+        },
+        "envelopeTextColor": {
+          "type": "string",
+          "default": "#000000",
+          "description": "Hex color code for envelope text"
+        },
+        "returnAddressText": {
+          "type": "string",
+          "default": "{{org.name}}\n{{org.street}}\n{{org.city}}, {{org.state}} {{org.zipCode}}",
+          "description": "Return address text template with placeholders"
+        },
+        "returnAddressLeftOffset": {
+          "type": "number",
+          "default": 20,
+          "description": "Left offset in pixels for return address"
+        },
+        "returnAddressTopOffset": {
+          "type": "number",
+          "default": 20,
+          "description": "Top offset in pixels for return address"
+        },
+        "recipientAddressLeftOffset": {
+          "type": "number",
+          "default": 250,
+          "description": "Left offset in pixels for recipient address"
+        },
+        "recipientAddressTopOffset": {
+          "type": "number",
+          "default": 150,
+          "description": "Top offset in pixels for recipient address"
+        },
+        "envelopePreviewWidth": {
+          "type": "number",
+          "default": 500,
+          "description": "Width of envelope preview container in pixels"
+        },
+        "envelopePreviewHeight": {
+          "type": "number",
+          "default": 300,
+          "description": "Height of envelope preview container in pixels"
+        },
+        "defaultReturnAddressMode": {
+          "type": "string",
+          "enum": [
+            "company",
+            "rep",
+            "none"
+          ],
+          "default": "company",
+          "description": "Default return address mode for new mailings"
+        }
+      },
+      "description": "Global settings for envelope layout and preview"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this record was last updated"
+    }
+  },
+  "description": "Singleton entity for global application settings",
+  "name": "InstanceSettings",
+  "required": []
+}

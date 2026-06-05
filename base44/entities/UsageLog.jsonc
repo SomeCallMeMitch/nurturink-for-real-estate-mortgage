@@ -1,0 +1,81 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "accountId": {
+      "type": "string",
+      "description": "User or Organization ID"
+    },
+    "accountType": {
+      "type": "string",
+      "enum": [
+        "user",
+        "organization"
+      ],
+      "description": "Whether this log is for a user or organization"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User who performed the action (may differ from accountId if rep using company credits)"
+    },
+    "orgId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization ID for team member usage tracking"
+    },
+    "creditsUsed": {
+      "type": "number",
+      "description": "Number of credits consumed in this action"
+    },
+    "actionType": {
+      "type": "string",
+      "enum": [
+        "note_sent",
+        "bulk_send",
+        "template_used",
+        "manual_adjustment"
+      ],
+      "description": "Type of action that consumed credits"
+    },
+    "relatedNoteId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Note ID if action was sending a note"
+    },
+    "relatedTransactionId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Transaction ID that recorded this usage"
+    },
+    "creditSource": {
+      "type": "string",
+      "enum": [
+        "personal",
+        "company_allocated",
+        "company_pool"
+      ],
+      "description": "Where the credits came from (for tracking consumption hierarchy)"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional context (recipient count, template used, etc.)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this usage occurred"
+    }
+  },
+  "required": [
+    "accountId",
+    "accountType",
+    "userId",
+    "creditsUsed",
+    "actionType",
+    "creditSource"
+  ],
+  "name": "UsageLog"
+}

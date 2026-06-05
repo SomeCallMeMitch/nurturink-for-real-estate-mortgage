@@ -1,0 +1,52 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Client this note is about"
+    },
+    "userId": {
+      "type": "string",
+      "description": "User who created this note"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization for multi-tenancy"
+    },
+    "content": {
+      "type": "string",
+      "description": "Note content (markdown supported)"
+    },
+    "createdBy": {
+      "type": "string",
+      "description": "Full name of user who created this note (denormalized)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this note was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this note was last edited"
+    },
+    "isEdited": {
+      "type": "boolean",
+      "default": false,
+      "description": "Has this note been edited after creation?"
+    }
+  },
+  "required": [
+    "clientId",
+    "userId",
+    "orgId",
+    "content",
+    "createdBy"
+  ],
+  "name": "ClientInternalNote"
+}

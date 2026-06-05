@@ -1,0 +1,59 @@
+{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Unique identifier"
+    },
+    "name": {
+      "type": "string",
+      "description": "Tag name (e.g., 'VIP', 'Hot Lead', 'Follow Up This Week')"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-friendly version of the tag name (e.g., 'hot-lead')"
+    },
+    "color": {
+      "type": "string",
+      "default": "#3B82F6",
+      "description": "Hex color code for UI display (e.g., '#3B82F6' for blue)"
+    },
+    "isSystemDefault": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is a pre-seeded system tag or user-created"
+    },
+    "orgId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Organization ID for org-wide tags. Null for personal tags."
+    },
+    "userId": {
+      "type": "string",
+      "nullable": true,
+      "description": "User ID for personal tags. Null for org-wide tags."
+    },
+    "usageCount": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of clients tagged with this tag (cached, updated by backend)"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this tag was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this tag was last updated"
+    }
+  },
+  "required": [
+    "name",
+    "slug",
+    "color",
+    "isSystemDefault"
+  ],
+  "name": "Tag"
+}

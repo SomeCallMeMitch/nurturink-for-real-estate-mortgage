@@ -1,0 +1,111 @@
+{
+  "name": "ScheduledSend",
+  "type": "object",
+  "description": "Pre-scheduled card sends for visibility and processing",
+  "properties": {
+    "campaignId": {
+      "type": "string",
+      "description": "Campaign this send belongs to"
+    },
+    "campaignStepId": {
+      "type": "string",
+      "description": "Campaign step this send is for"
+    },
+    "enrollmentId": {
+      "type": "string",
+      "description": "CampaignEnrollment ID linking client to campaign"
+    },
+    "clientId": {
+      "type": "string",
+      "description": "Client receiving the card"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization ID for credit checking and filtering"
+    },
+    "scheduledDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the card should be sent (YYYY-MM-DD)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "processing",
+        "awaiting_approval",
+        "sent",
+        "failed",
+        "cancelled",
+        "insufficient_credits"
+      ],
+      "default": "pending",
+      "description": "Send status - 'processing' prevents race conditions during job execution"
+    },
+    "cardDesignId": {
+      "type": "string",
+      "description": "Card design ID from the campaign step"
+    },
+    "messageTemplateId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Template ID from the campaign step (optional)"
+    },
+    "customMessage": {
+      "type": "string",
+      "nullable": true,
+      "description": "Custom message from the campaign step (optional)"
+    },
+    "returnAddressMode": {
+      "type": "string",
+      "enum": [
+        "company",
+        "rep",
+        "none"
+      ],
+      "default": "company",
+      "description": "Which return address mode to use when this send is processed. Inherited from Campaign at scheduling time."
+    },
+    "failureReason": {
+      "type": "string",
+      "nullable": true,
+      "description": "Reason for failure (if status=failed)"
+    },
+    "processedAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When the send was picked up for processing"
+    },
+    "sentAt": {
+      "type": "string",
+      "format": "date-time",
+      "nullable": true,
+      "description": "When the card was actually sent"
+    },
+    "automationHistoryId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Link to AutomationHistory record after send"
+    },
+    "noteId": {
+      "type": "string",
+      "nullable": true,
+      "description": "Link to Note record created when card is sent"
+    },
+    "mailingBatchId": {
+      "type": "string",
+      "nullable": true,
+      "description": "FK to MailingBatch created by processPendingSends. Null until the send is picked up and a batch is created."
+    }
+  },
+  "required": [
+    "campaignId",
+    "campaignStepId",
+    "enrollmentId",
+    "clientId",
+    "orgId",
+    "scheduledDate",
+    "cardDesignId"
+  ]
+}
