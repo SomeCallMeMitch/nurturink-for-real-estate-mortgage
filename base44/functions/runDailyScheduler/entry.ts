@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 /**
  * runDailyScheduler.ts (Sprint 3 — Data-Driven)
@@ -108,8 +108,13 @@ function isCalendarRunDue(nextRunDate, windowDays = 14) {
   return isWithinDays(runDate, windowDays);
 }
 
+function getEntityField(entity, key) {
+  return entity?.[key] ?? entity?.data?.[key] ?? null;
+}
+
 function isClientAutomationEligible(client) {
-  return client.automation_status == null || client.automation_status === 'active';
+  const automationStatus = getEntityField(client, 'automation_status');
+  return automationStatus == null || automationStatus === 'active';
 }
 
 async function loadClientsForEnrollments(base44, campaign, enrollments) {
@@ -124,12 +129,15 @@ async function loadClientsForEnrollments(base44, campaign, enrollments) {
 
   const orgClients = await base44.asServiceRole.entities.Client.filter(clientQuery);
   const matchingClients = orgClients.filter((client) =>
-    enrolledClientIds.has(client.id) &&
-    (!campaign.ownerId || client.ownerId === campaign.ownerId)
+    enrolledClientIds.has(getEntityField(client, 'id')) &&
+    (!campaign.ownerId || getEntityField(client, 'ownerId') === campaign.ownerId)
   );
 
   for (const client of matchingClients) {
-    clientMap.set(client.id, client);
+    const clientId = getEntityField(client, 'id');
+    if (clientId) {
+      clientMap.set(clientId, client);
+    }
   }
 
   return {
@@ -216,9 +224,13 @@ async function processCalendarCampaign(base44, campaign, stats) {
 
       const client = clientMap.get(enrollment.clientId);
       if (!client) continue;
-      if (client.orgId !== campaign.orgId) continue;
+      const clientId = getEntityField(client, 'id');
+      const clientOrgId = getEntityField(client, 'orgId');
+      const clientOwnerId = getEntityField(client, 'ownerId');
+      if (!clientId) continue;
+      if (clientOrgId !== campaign.orgId) continue;
       if (!isClientAutomationEligible(client)) continue;
-      if (campaign.ownerId && client.ownerId !== campaign.ownerId) continue;
+      if (campaign.ownerId && clientOwnerId !== campaign.ownerId) continue;
 
       for (const step of steps) {
         const sendKey = `${enrollment.id}-${step.id}-${runDateStr}`;
@@ -239,7 +251,7 @@ async function processCalendarCampaign(base44, campaign, stats) {
           campaignId: campaign.id,
           campaignStepId: step.id,
           enrollmentId: enrollment.id,
-          clientId: client.id,
+          clientId,
           orgId: campaign.orgId,
           scheduledDate: runDateStr,
           status,
@@ -251,7 +263,7 @@ async function processCalendarCampaign(base44, campaign, stats) {
 
         stats.sendsCreated++;
         existingSendKeys.add(sendKey);
-        console.log(`[runDailyScheduler] Created calendar ScheduledSend for client ${client.id}, date ${runDateStr}, status ${status}`);
+        console.log(`[runDailyScheduler] Created calendar ScheduledSend for client ${clientId}, date ${runDateStr}, status ${status}`);
       }
     } catch (enrollmentError) {
       console.error(`[runDailyScheduler] Error processing calendar enrollment ${enrollment.id}:`, enrollmentError);
@@ -427,11 +439,15 @@ Deno.serve(async (req) => {
             const client = clientMap.get(enrollment.clientId);
             if (!client) continue;
 
-            if (client.orgId !== campaign.orgId) continue;
+            const clientId = getEntityField(client, 'id');
+            const clientOrgId = getEntityField(client, 'orgId');
+            const clientOwnerId = getEntityField(client, 'ownerId');
+            if (!clientId) continue;
+            if (clientOrgId !== campaign.orgId) continue;
             if (!isClientAutomationEligible(client)) continue;
-            if (campaign.ownerId && client.ownerId !== campaign.ownerId) continue;
+            if (campaign.ownerId && clientOwnerId !== campaign.ownerId) continue;
 
-            const triggerDateStr = client[triggerField];
+            const triggerDateStr = getEntityField(client, triggerField);
             if (!triggerDateStr) {
               stats.sendsSkippedMissingDate++;
               continue;
@@ -495,7 +511,7 @@ Deno.serve(async (req) => {
                 campaignId: campaign.id,
                 campaignStepId: step.id,
                 enrollmentId: enrollment.id,
-                clientId: client.id,
+                clientId,
                 orgId: campaign.orgId,
                 scheduledDate: sendDateStr,
                 status,
@@ -507,7 +523,7 @@ Deno.serve(async (req) => {
 
               stats.sendsCreated++;
               existingSendKeys.add(sendKey);
-              console.log(`[runDailyScheduler] Created ScheduledSend ${scheduledSend.id} for client ${client.id}, date ${sendDateStr}, status ${status}`);
+              console.log(`[runDailyScheduler] Created ScheduledSend ${scheduledSend.id} for client ${clientId}, date ${sendDateStr}, status ${status}`);
             }
 
             // Fix 04 — Mark one-time enrollment as processed to prevent duplicate sends
