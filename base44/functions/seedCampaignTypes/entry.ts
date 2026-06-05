@@ -86,17 +86,17 @@ const PLATFORM_CAMPAIGN_TYPES = [
     slug: 'soi_quarterly',
     triggerField: null,
     triggerMode: 'manual',
-    timingDirection: 'after',
+    timingDirection: 'before',
     defaultTimingDays: 0,
     maxSteps: 1,
-    icon: 'Users',
+    icon: 'Calendar',
     color: 'bg-purple-100 text-purple-700 border-purple-200',
     selectedColor: 'bg-purple-50 border-purple-500 ring-2 ring-purple-500',
     isActive: true,
     scope: 'platform',
     orgId: null,
-    timingLabel: 'manual send',
-    description: 'Keep your sphere of influence warm with quarterly touchpoints',
+    timingLabel: 'quarterly calendar send',
+    description: 'Send cards to your Sphere of Influence once per quarter on a scheduled date.',
     sortOrder: 5
   }
 ];

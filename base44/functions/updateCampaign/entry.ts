@@ -2,9 +2,130 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const MANUAL_SCHEDULING_NOT_IMPLEMENTED =
   'Activation blocked: Campaign Type requires manual scheduling which is not yet implemented.';
+const CALENDAR_SCHEDULING_INVALID =
+  'Campaign Type requires valid calendar scheduling configuration.';
 
 function isClientAutomationEligible(client) {
   return client.automation_status == null || client.automation_status === 'active';
+}
+
+function formatDateOnly(date) {
+  return date.toISOString().split('T')[0];
+}
+
+function parseDateOnly(dateStr) {
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return date;
+}
+
+function todayDateOnly() {
+  return formatDateOnly(new Date());
+}
+
+function normalizeScheduleMonths(months) {
+  if (!Array.isArray(months)) return [];
+  return [...new Set(months.map(Number))]
+    .filter((month) => Number.isInteger(month) && month >= 1 && month <= 12)
+    .sort((a, b) => a - b);
+}
+
+function calculateNextCalendarRunDate(scheduleMonths, scheduleDayOfMonth, fromDateStr = todayDateOnly()) {
+  const months = normalizeScheduleMonths(scheduleMonths);
+  const dayOfMonth = Number(scheduleDayOfMonth);
+  const fromDate = parseDateOnly(fromDateStr) || parseDateOnly(todayDateOnly());
+  if (months.length === 0 || !Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31 || !fromDate) {
+    return null;
+  }
+
+  const fromYear = fromDate.getUTCFullYear();
+  for (let yearOffset = 0; yearOffset <= 1; yearOffset++) {
+    const year = fromYear + yearOffset;
+    for (const month of months) {
+      const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+      const day = Math.min(dayOfMonth, lastDay);
+      const candidate = new Date(Date.UTC(year, month - 1, day));
+      if (candidate >= fromDate) return formatDateOnly(candidate);
+    }
+  }
+
+  return null;
+}
+
+function isCalendarScheduleValid({ scheduleMode, scheduleFrequency, scheduleMonths, scheduleDayOfMonth }) {
+  return (
+    scheduleMode === 'calendar' &&
+    scheduleFrequency === 'quarterly' &&
+    normalizeScheduleMonths(scheduleMonths).length > 0 &&
+    Number.isInteger(Number(scheduleDayOfMonth)) &&
+    Number(scheduleDayOfMonth) >= 1 &&
+    Number(scheduleDayOfMonth) <= 31
+  );
+}
+
+function resolveCalendarScheduleFields(campaign, campaignUpdates, targetStatus, campaignType) {
+  const scheduleMode = Object.prototype.hasOwnProperty.call(campaignUpdates, 'scheduleMode')
+    ? campaignUpdates.scheduleMode
+    : campaign.scheduleMode;
+  const scheduleFrequency = Object.prototype.hasOwnProperty.call(campaignUpdates, 'scheduleFrequency')
+    ? campaignUpdates.scheduleFrequency
+    : campaign.scheduleFrequency;
+  const scheduleMonths = Object.prototype.hasOwnProperty.call(campaignUpdates, 'scheduleMonths')
+    ? campaignUpdates.scheduleMonths
+    : campaign.scheduleMonths;
+  const scheduleDayOfMonth = Object.prototype.hasOwnProperty.call(campaignUpdates, 'scheduleDayOfMonth')
+    ? campaignUpdates.scheduleDayOfMonth
+    : campaign.scheduleDayOfMonth;
+  const requestedNextRunDate = Object.prototype.hasOwnProperty.call(campaignUpdates, 'nextRunDate')
+    ? campaignUpdates.nextRunDate
+    : campaign.nextRunDate;
+  const lastRunDate = Object.prototype.hasOwnProperty.call(campaignUpdates, 'lastRunDate')
+    ? campaignUpdates.lastRunDate
+    : campaign.lastRunDate;
+
+  if (campaignType?.triggerMode !== 'manual') {
+    if (Array.isArray(campaignUpdates.scheduleMonths)) {
+      campaignUpdates.scheduleMonths = normalizeScheduleMonths(campaignUpdates.scheduleMonths);
+    }
+    return { isCalendarCampaign: scheduleMode === 'calendar' };
+  }
+
+  if (targetStatus !== 'active') {
+    if (Array.isArray(campaignUpdates.scheduleMonths)) {
+      campaignUpdates.scheduleMonths = normalizeScheduleMonths(campaignUpdates.scheduleMonths);
+    }
+    return { isCalendarCampaign: scheduleMode === 'calendar' };
+  }
+
+  if (!isCalendarScheduleValid({ scheduleMode, scheduleFrequency, scheduleMonths, scheduleDayOfMonth })) {
+    return { isCalendarCampaign: false, error: CALENDAR_SCHEDULING_INVALID };
+  }
+
+  const normalizedMonths = normalizeScheduleMonths(scheduleMonths);
+  const normalizedDay = Number(scheduleDayOfMonth);
+  const today = todayDateOnly();
+  const nextRun = parseDateOnly(requestedNextRunDate) && requestedNextRunDate >= today
+    ? requestedNextRunDate
+    : calculateNextCalendarRunDate(normalizedMonths, normalizedDay, today);
+
+  if (!nextRun) return { isCalendarCampaign: false, error: CALENDAR_SCHEDULING_INVALID };
+
+  campaignUpdates.scheduleMode = 'calendar';
+  campaignUpdates.scheduleFrequency = scheduleFrequency;
+  campaignUpdates.scheduleMonths = normalizedMonths;
+  campaignUpdates.scheduleDayOfMonth = normalizedDay;
+  campaignUpdates.nextRunDate = nextRun;
+  campaignUpdates.lastRunDate = lastRunDate || null;
+
+  return { isCalendarCampaign: true };
 }
 
 Deno.serve(async (req) => {
@@ -68,14 +189,22 @@ Deno.serve(async (req) => {
       resolvedTriggerField = resolvedTriggerField || resolvedCampaignType?.triggerField || null;
     }
 
-    if (wasActivated && resolvedCampaignType?.triggerMode === 'manual') {
+    const targetStatus = campaignUpdates.status || campaign.status;
+    const calendarSchedule = resolveCalendarScheduleFields(
+      campaign,
+      campaignUpdates,
+      targetStatus,
+      resolvedCampaignType
+    );
+
+    if (calendarSchedule.error) {
       return Response.json({
         success: false,
-        error: MANUAL_SCHEDULING_NOT_IMPLEMENTED
+        error: calendarSchedule.error
       }, { status: 400 });
     }
 
-    if (wasActivated && !resolvedTriggerField) {
+    if (targetStatus === 'active' && !resolvedTriggerField && !(resolvedCampaignType?.triggerMode === 'manual' && calendarSchedule.isCalendarCampaign)) {
       return Response.json({
         success: false,
         error: resolvedCampaignType?.triggerMode === 'manual'
@@ -93,7 +222,6 @@ Deno.serve(async (req) => {
 
     let validatedStepRecords = null;
     if (stepUpdates && Array.isArray(stepUpdates)) {
-      const targetStatus = campaignUpdates.status || campaign.status;
       if (targetStatus === 'active' && stepUpdates.length === 0) {
         return Response.json({
           success: false,
@@ -153,6 +281,8 @@ Deno.serve(async (req) => {
           console.error(`No CampaignType found for slug: ${campaign.type}`);
         } else {
           const triggerField = resolvedTriggerField || campaign.triggerField || campaign.dateField || campaignType.triggerField;
+          const isCalendarCampaign = campaignType.triggerMode === 'manual' &&
+            (campaignUpdates.scheduleMode || campaign.scheduleMode) === 'calendar';
 
           const allClients = await base44.asServiceRole.entities.Client.filter({
             orgId,
@@ -160,7 +290,7 @@ Deno.serve(async (req) => {
           });
 
           const eligibleClients = allClients.filter((client) => {
-            const hasFieldValue = client[triggerField] && client[triggerField] !== '';
+            const hasFieldValue = isCalendarCampaign || (client[triggerField] && client[triggerField] !== '');
             return hasFieldValue && isClientAutomationEligible(client);
           });
 

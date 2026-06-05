@@ -74,8 +74,14 @@ User-created campaign configuration. The `type` field stores the CampaignType sl
 | requiresApproval | boolean | — | If true, sends go to approval queue (default: false) |
 | returnAddressMode | enum: company, rep, none | — | Return address mode (default: company) |
 | description | string | — | Optional description |
+| scheduleMode | enum: calendar | — | Calendar scheduling mode for manual campaigns such as `soi_quarterly` |
+| scheduleFrequency | enum: quarterly | — | Calendar cadence |
+| scheduleMonths | number[] | — | Months when the campaign runs, e.g. `[1, 4, 7, 10]` |
+| scheduleDayOfMonth | number | — | Day of month to run, e.g. `15` |
+| nextRunDate | date | — | Next scheduled calendar run date (`YYYY-MM-DD`) |
+| lastRunDate | date | — | Most recent processed calendar run date (`YYYY-MM-DD`) |
 
-Manual/null-trigger campaigns may save as drafts, but activation is blocked until manual scheduling is implemented. Activation attempts return a structured 400 with: `Activation blocked: Campaign Type requires manual scheduling which is not yet implemented.`
+Manual/null-trigger campaigns may save as drafts without `triggerField`. Manual campaigns may activate only when configured as valid calendar campaigns with `scheduleMode: "calendar"`, `scheduleFrequency: "quarterly"`, valid `scheduleMonths`, `scheduleDayOfMonth`, and `nextRunDate` or enough schedule data to calculate one. Manual activation without valid calendar configuration returns a structured 400.
 
 `triggerField` is canonical. `dateField` is transitional backwards-compatibility debt and should mirror `triggerField` while legacy reads are removed.
 
