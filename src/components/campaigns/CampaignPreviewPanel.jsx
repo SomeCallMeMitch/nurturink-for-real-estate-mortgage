@@ -21,7 +21,14 @@ export default function CampaignPreviewPanel({
   estMonthly,
   estAnnual,
   steps,
+  returnAddressMode,
 }) {
+  const returnAddressLabel = {
+    company: 'Company',
+    rep: 'Rep',
+    none: 'None',
+  }[returnAddressMode] || 'Company';
+
   return (
     <div
       className="flex-shrink-0 overflow-y-auto"
@@ -29,6 +36,10 @@ export default function CampaignPreviewPanel({
     >
       <p className="text-sm font-bold text-foreground mb-3 uppercase tracking-wide">
         Live preview — sample: {SAMPLE_CLIENT.firstName} {SAMPLE_CLIENT.lastName}
+      </p>
+
+      <p className="text-sm text-gray-600 mb-3">
+        Return address: <span className="font-semibold text-foreground">{returnAddressLabel}</span>
       </p>
 
       <div className="flex justify-center mb-4">

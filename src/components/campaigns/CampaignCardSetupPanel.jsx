@@ -28,6 +28,7 @@ export default function CampaignCardSetupPanel({
   onMessageModeChange,
   selectedTemplate,
   currentStep,
+  setupLocked,
   requiresApproval,
   setRequiresApproval,
   onOpenCustomModal,
@@ -39,6 +40,14 @@ export default function CampaignCardSetupPanel({
       className="flex-1 overflow-y-auto border-r border-border"
       style={{ padding: '16px 28px' }}
     >
+      {setupLocked && (
+        <div className="mb-6 rounded-xl border-2 border-dashed border-border bg-gray-50 px-4 py-3">
+          <p className="text-sm font-medium text-gray-600 leading-snug">
+            Choose a campaign type first so we can set the timing and message options.
+          </p>
+        </div>
+      )}
+
       {/* ── Step tabs ─────────────────────────────────────────────────────── */}
       {steps.length > 1 && (
         <div className="flex items-center gap-2 mb-6">
@@ -113,6 +122,10 @@ export default function CampaignCardSetupPanel({
             }`}
             style={{ width: '200px', aspectRatio: '11/8' }}
             onClick={() => {
+              if (setupLocked) {
+                openDesignPicker(activeStepIndex);
+                return;
+              }
               if (selectedDesign) {
                 setCardEnlargeFace('front');
                 setCardEnlargeOpen(true);
@@ -135,7 +148,11 @@ export default function CampaignCardSetupPanel({
             ) : (
               <div className="w-full h-full bg-gray-100 flex items-center justify-center">
                 <span className="text-xs text-gray-400 text-center px-2 leading-snug">
-                  {cardDesigns.length === 0 ? 'No designs\nloaded' : 'No design\nselected'}
+                  {setupLocked
+                    ? 'Choose type\nfirst'
+                    : cardDesigns.length === 0
+                    ? 'No designs\nloaded'
+                    : 'No design\nselected'}
                 </span>
               </div>
             )}
@@ -158,6 +175,7 @@ export default function CampaignCardSetupPanel({
                   variant="outline"
                   size="sm"
                   onClick={() => openDesignPicker(activeStepIndex)}
+                  disabled={setupLocked}
                   className="gap-2 w-full justify-center font-medium"
                 >
                   {selectedDesign ? 'Change card design' : 'Select card design'}
@@ -185,13 +203,13 @@ export default function CampaignCardSetupPanel({
           className="flex gap-6 mb-4"
         >
           <div className="flex items-center gap-2">
-            <RadioGroupItem value="template" id="msg-tmpl" />
+            <RadioGroupItem value="template" id="msg-tmpl" disabled={setupLocked} />
             <Label htmlFor="msg-tmpl" className="text-sm cursor-pointer text-foreground font-normal">
               Use a saved template
             </Label>
           </div>
           <div className="flex items-center gap-2">
-            <RadioGroupItem value="custom" id="msg-custom" />
+            <RadioGroupItem value="custom" id="msg-custom" disabled={setupLocked} />
             <Label htmlFor="msg-custom" className="text-sm cursor-pointer text-foreground font-normal">
               Write a custom message
             </Label>
@@ -203,6 +221,7 @@ export default function CampaignCardSetupPanel({
             <Button
               variant="outline"
               onClick={() => openTemplatePicker(activeStepIndex)}
+              disabled={setupLocked}
               className={`w-full justify-between text-sm font-medium ${
                 !selectedTemplate ? 'border-dashed text-gray-500' : 'text-foreground'
               }`}
@@ -228,6 +247,7 @@ export default function CampaignCardSetupPanel({
                 variant="outline"
                 size="sm"
                 onClick={onOpenCustomModal}
+                disabled={setupLocked}
                 className="gap-2"
               >
                 Edit message
@@ -247,7 +267,11 @@ export default function CampaignCardSetupPanel({
             Cards go to your approval queue — you review before anything is sent
           </p>
         </div>
-        <Switch checked={requiresApproval} onCheckedChange={setRequiresApproval} />
+        <Switch
+          checked={requiresApproval}
+          onCheckedChange={setRequiresApproval}
+          disabled={setupLocked}
+        />
       </div>
 
       {/* ── Add second card prompt ────────────────────────────────────────── */}
