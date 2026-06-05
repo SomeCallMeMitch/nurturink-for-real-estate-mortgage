@@ -267,6 +267,13 @@ Deno.serve(async (req) => {
       isEnabled: step.isEnabled !== false
     })) : [];
 
+    if (campaignStatus === 'active' && preValidatedSteps.length === 0) {
+      return Response.json({
+        success: false,
+        error: 'Cannot activate a campaign with no steps. Add at least one card step first.'
+      }, { status: 400 });
+    }
+
     for (let i = 0; i < preValidatedSteps.length; i++) {
       const step = preValidatedSteps[i];
       if (!step.cardDesignId) {
