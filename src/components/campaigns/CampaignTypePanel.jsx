@@ -78,7 +78,9 @@ export default function CampaignTypePanel({
                     {ct.name}
                   </div>
                   <div className="text-xs text-gray-500 mt-0.5 leading-snug truncate">
-                    {ct.description ||
+                    {disabled
+                      ? 'Not yet supported in this wizard'
+                      : ct.description ||
                       (ct.triggerMode === 'one_time' ? 'One-time send' : 'Annual recurring')}
                   </div>
                   {disabled && (

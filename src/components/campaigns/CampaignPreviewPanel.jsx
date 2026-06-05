@@ -22,6 +22,8 @@ export default function CampaignPreviewPanel({
   estAnnual,
   steps,
   returnAddressMode,
+  isSoiQuarterly,
+  scheduleSummary,
 }) {
   const returnAddressLabel = {
     company: 'Company',
@@ -81,6 +83,17 @@ export default function CampaignPreviewPanel({
       </div>
 
       {/* ── Credit estimate ───────────────────────────────────────────────── */}
+      {isSoiQuarterly && scheduleSummary && (
+        <div className="p-4 rounded-xl border-2 border-border bg-gray-50 mb-4">
+          <p className="text-sm font-bold text-foreground mb-2 uppercase tracking-wide">
+            Schedule
+          </p>
+          <p className="text-sm text-gray-600 leading-snug">
+            Quarterly: {scheduleSummary.monthsShort} on the {scheduleSummary.day}
+          </p>
+        </div>
+      )}
+
       {selectedType && eligibleCount !== null && (
         <div className="p-4 rounded-xl border-2 border-border bg-gray-50">
           <p className="text-sm font-bold text-foreground mb-3 uppercase tracking-wide">

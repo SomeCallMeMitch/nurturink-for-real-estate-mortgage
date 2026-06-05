@@ -17,8 +17,13 @@ import CardDesignPickerModal from '@/components/quicksend/CardDesignPickerModal'
 import TemplatePickerModal from '@/components/quicksend/TemplatePickerModal';
 
 import {
+  DEFAULT_SOI_QUARTERLY_SCHEDULE,
   FALLBACK_PREVIEW,
+  MONTH_LABELS_LONG,
+  SOI_QUARTERLY_SLUG,
   TYPE_TO_CATEGORY_SLUG,
+  formatMonthList,
+  formatOrdinalDay,
   makeDefaultStep,
   sanitizeMessage,
 } from '@/components/campaigns/campaignWizardConfig';
@@ -32,7 +37,8 @@ import CardEnlargeModal      from '@/components/campaigns/CardEnlargeModal';
 const isStepEnabled = (step) => step.isEnabled !== false;
 const stepHasMessage = (step) => !!step.templateId || !!step.messageText?.trim();
 const isStepComplete = (step) => !!step.cardDesignId && stepHasMessage(step);
-const isManualOrNullTriggerType = (type) => type?.triggerMode === 'manual' || !type?.triggerField;
+const isManualOrNullTriggerType = (type) =>
+  type?.slug !== SOI_QUARTERLY_SLUG && (type?.triggerMode === 'manual' || !type?.triggerField);
 
 export default function CampaignSetupWizard() {
   const navigate = useNavigate();
@@ -70,6 +76,7 @@ export default function CampaignSetupWizard() {
   const [enrollmentMode, setEnrollmentMode]     = useState('opt_out');
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [returnAddressMode, setReturnAddressMode] = useState('company');
+  const [scheduleConfig, setScheduleConfig]     = useState(DEFAULT_SOI_QUARTERLY_SCHEDULE);
   const [steps, setSteps]                       = useState([makeDefaultStep(-10)]);
   const [activeStepIndex, setActiveStepIndex]   = useState(0);
   const [messageMode, setMessageMode]           = useState('template');
@@ -153,6 +160,17 @@ export default function CampaignSetupWizard() {
     [campaignTypes, selectedTypeSlug]
   );
 
+  const isSoiQuarterly = selectedTypeSlug === SOI_QUARTERLY_SLUG;
+
+  const scheduleSummary = useMemo(() => {
+    if (!isSoiQuarterly) return null;
+    return {
+      monthsShort: formatMonthList(scheduleConfig.scheduleMonths),
+      monthsLong: formatMonthList(scheduleConfig.scheduleMonths, MONTH_LABELS_LONG),
+      day: formatOrdinalDay(scheduleConfig.scheduleDayOfMonth),
+    };
+  }, [isSoiQuarterly, scheduleConfig]);
+
   const currentStep = steps[activeStepIndex] || steps[0];
   const setupLocked = !selectedTypeSlug;
 
@@ -206,8 +224,10 @@ export default function CampaignSetupWizard() {
       selectedType.triggerField
     );
 
+  const scheduledRunsPerYear = isSoiQuarterly ? scheduleConfig.scheduleMonths.length : 1;
+
   const estAnnual = eligibleCount !== null && selectedType
-    ? eligibleCount * steps.length : null;
+    ? eligibleCount * steps.length * scheduledRunsPerYear : null;
   const estMonthly = estAnnual !== null && selectedType
     ? (selectedType.triggerMode === 'one_time'
         ? estAnnual
@@ -261,7 +281,7 @@ export default function CampaignSetupWizard() {
     const isBefore = type?.timingDirection === 'before';
     const isOn     = type?.timingDirection === 'on';
     const days     = type?.defaultTimingDays || 10;
-    const defaultTimingDays = isOn ? 0 : isBefore ? -days : days;
+    const defaultTimingDays = slug === SOI_QUARTERLY_SLUG ? 0 : isOn ? 0 : isBefore ? -days : days;
 
     const catSlug  = TYPE_TO_CATEGORY_SLUG[slug];
     const matchCat = catSlug ? templateCategories.find(c => c.slug === catSlug) : null;
@@ -279,6 +299,10 @@ export default function CampaignSetupWizard() {
         : null;
     const customMessageText = currentStep?.messageText?.trim() || '';
     const preserveCustomMessage = messageMode === 'custom' && customMessageText.length > 0;
+
+    if (slug === SOI_QUARTERLY_SLUG) {
+      setScheduleConfig(DEFAULT_SOI_QUARTERLY_SCHEDULE);
+    }
 
     setSteps([{
       ...makeDefaultStep(defaultTimingDays),
@@ -350,10 +374,23 @@ export default function CampaignSetupWizard() {
     [campaignName, selectedTypeSlug]
   );
 
+  const hasValidSchedule = useMemo(() => {
+    if (!isSoiQuarterly) return true;
+    return scheduleConfig.scheduleMode === 'calendar' &&
+      scheduleConfig.scheduleFrequency === 'quarterly' &&
+      Array.isArray(scheduleConfig.scheduleMonths) &&
+      scheduleConfig.scheduleMonths.length > 0 &&
+      scheduleConfig.scheduleMonths.every(month => Number.isInteger(month) && month >= 1 && month <= 12) &&
+      Number.isInteger(scheduleConfig.scheduleDayOfMonth) &&
+      scheduleConfig.scheduleDayOfMonth >= 1 &&
+      scheduleConfig.scheduleDayOfMonth <= 31;
+  }, [isSoiQuarterly, scheduleConfig]);
+
   const isValid = useMemo(() => {
     if (!canSaveDraft) return false;
+    if (!hasValidSchedule) return false;
     return steps.every(s => !isStepEnabled(s) || isStepComplete(s));
-  }, [canSaveDraft, steps]);
+  }, [canSaveDraft, hasValidSchedule, steps]);
 
   const buildStepsPayload = (status) => {
     const payloadSteps = status === 'draft'
@@ -383,6 +420,12 @@ export default function CampaignSetupWizard() {
         enrollmentMode, requiresApproval, returnAddressMode, status,
         steps: stepsPayload,
       };
+      if (isSoiQuarterly) {
+        payload.scheduleMode = scheduleConfig.scheduleMode;
+        payload.scheduleFrequency = scheduleConfig.scheduleFrequency;
+        payload.scheduleMonths = scheduleConfig.scheduleMonths;
+        payload.scheduleDayOfMonth = scheduleConfig.scheduleDayOfMonth;
+      }
       // DEBUG ADDED: captures the exact client payload before invoking the backend.
       logCampaignSaveDebug('submit:createCampaign:start', {
         status,
@@ -531,6 +574,9 @@ export default function CampaignSetupWizard() {
             removeStep={removeStep}
             timingDisplayValue={timingDisplayValue}
             timingLabel={timingLabel}
+            isSoiQuarterly={isSoiQuarterly}
+            scheduleConfig={scheduleConfig}
+            scheduleSummary={scheduleSummary}
             cardDesigns={cardDesigns}
             selectedDesign={selectedDesign}
             openDesignPicker={openDesignPicker}
@@ -562,6 +608,8 @@ export default function CampaignSetupWizard() {
             estAnnual={estAnnual}
             steps={steps}
             returnAddressMode={returnAddressMode}
+            isSoiQuarterly={isSoiQuarterly}
+            scheduleSummary={scheduleSummary}
           />
         </div>
       </div>
