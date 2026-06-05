@@ -121,12 +121,12 @@ async function loadClientsForEnrollments(base44, campaign, enrollments) {
   }
 
   const clientQuery = { orgId: campaign.orgId };
-  if (campaign.ownerId) {
-    clientQuery.ownerId = campaign.ownerId;
-  }
 
   const orgClients = await base44.asServiceRole.entities.Client.filter(clientQuery);
-  const matchingClients = orgClients.filter((client) => enrolledClientIds.has(client.id));
+  const matchingClients = orgClients.filter((client) =>
+    enrolledClientIds.has(client.id) &&
+    (!campaign.ownerId || client.ownerId === campaign.ownerId)
+  );
 
   for (const client of matchingClients) {
     clientMap.set(client.id, client);
