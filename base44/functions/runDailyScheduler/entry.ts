@@ -55,8 +55,198 @@ function isWithinDays(date, days) {
   return date >= today && date <= futureLimit;
 }
 
+function parseDateOnly(dateStr) {
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return date;
+}
+
+function todayDateOnly() {
+  return formatDate(new Date());
+}
+
+function normalizeScheduleMonths(months) {
+  if (!Array.isArray(months)) return [];
+  return [...new Set(months.map(Number))]
+    .filter((month) => Number.isInteger(month) && month >= 1 && month <= 12)
+    .sort((a, b) => a - b);
+}
+
+function calculateNextCalendarRunDate(scheduleMonths, scheduleDayOfMonth, fromDateStr = todayDateOnly()) {
+  const months = normalizeScheduleMonths(scheduleMonths);
+  const dayOfMonth = Number(scheduleDayOfMonth);
+  const fromDate = parseDateOnly(fromDateStr) || parseDateOnly(todayDateOnly());
+  if (months.length === 0 || !Number.isInteger(dayOfMonth) || dayOfMonth < 1 || dayOfMonth > 31 || !fromDate) {
+    return null;
+  }
+
+  const fromYear = fromDate.getUTCFullYear();
+  for (let yearOffset = 0; yearOffset <= 1; yearOffset++) {
+    const year = fromYear + yearOffset;
+    for (const month of months) {
+      const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+      const day = Math.min(dayOfMonth, lastDay);
+      const candidate = new Date(Date.UTC(year, month - 1, day));
+      if (candidate >= fromDate) return formatDate(candidate);
+    }
+  }
+
+  return null;
+}
+
+function isCalendarRunDue(nextRunDate, windowDays = 14) {
+  const runDate = parseDateOnly(nextRunDate);
+  if (!runDate) return false;
+  return isWithinDays(runDate, windowDays);
+}
+
 function isClientAutomationEligible(client) {
   return client.automation_status == null || client.automation_status === 'active';
+}
+
+async function processCalendarCampaign(base44, campaign, stats) {
+  const runDateStr = campaign.nextRunDate;
+  const scheduleMonths = normalizeScheduleMonths(campaign.scheduleMonths);
+  const scheduleDayOfMonth = Number(campaign.scheduleDayOfMonth);
+
+  if (!runDateStr) {
+    console.log(`[runDailyScheduler] Calendar campaign ${campaign.id} has no nextRunDate, skipping`);
+    return;
+  }
+
+  if (!isCalendarRunDue(runDateStr)) {
+    return;
+  }
+
+  if (
+    campaign.scheduleFrequency !== 'quarterly' ||
+    scheduleMonths.length === 0 ||
+    !Number.isInteger(scheduleDayOfMonth) ||
+    scheduleDayOfMonth < 1 ||
+    scheduleDayOfMonth > 31
+  ) {
+    stats.errors.push({
+      type: 'campaign',
+      id: campaign.id,
+      error: 'Calendar campaign has invalid schedule configuration'
+    });
+    return;
+  }
+
+  const steps = await base44.asServiceRole.entities.CampaignStep.filter({
+    campaignId: campaign.id,
+    isEnabled: true
+  });
+  if (steps.length === 0) {
+    console.log(`[runDailyScheduler] No enabled steps for calendar campaign ${campaign.name}, skipping`);
+    return;
+  }
+
+  const enrollments = await base44.asServiceRole.entities.CampaignEnrollment.filter({
+    campaignId: campaign.id
+  });
+  const enrolled = enrollments.filter((enrollment) =>
+    enrollment.status === 'enrolled' &&
+    (!enrollment.orgId || enrollment.orgId === campaign.orgId)
+  );
+  console.log(`[runDailyScheduler] Found ${enrolled.length} enrolled calendar recipients for campaign ${campaign.name}`);
+
+  const existingSends = await base44.asServiceRole.entities.ScheduledSend.filter({
+    campaignId: campaign.id,
+    orgId: campaign.orgId,
+    scheduledDate: runDateStr
+  });
+  const existingSendKeys = new Set(
+    existingSends.map((s) => `${s.enrollmentId}-${s.campaignStepId}-${s.scheduledDate}`)
+  );
+
+  const clientIds = [...new Set(enrolled.map((e) => e.clientId))];
+  const clientMap = new Map();
+  if (clientIds.length > 0) {
+    const clientList = await base44.asServiceRole.entities.Client.filter({
+      orgId: campaign.orgId,
+      id: { $in: clientIds }
+    });
+    for (const client of clientList) {
+      clientMap.set(client.id, client);
+    }
+  }
+
+  const creditCheck = await checkOrgCredits(base44, campaign.orgId);
+
+  for (const enrollment of enrolled) {
+    try {
+      stats.enrollmentsProcessed++;
+
+      const client = clientMap.get(enrollment.clientId);
+      if (!client) continue;
+      if (client.orgId !== campaign.orgId) continue;
+      if (!isClientAutomationEligible(client)) continue;
+      if (campaign.ownerId && client.ownerId !== campaign.ownerId) continue;
+
+      for (const step of steps) {
+        const sendKey = `${enrollment.id}-${step.id}-${runDateStr}`;
+        if (existingSendKeys.has(sendKey)) {
+          stats.sendsSkippedDuplicate++;
+          continue;
+        }
+
+        let status = 'pending';
+        if (!creditCheck.hasCredits) {
+          status = 'insufficient_credits';
+          stats.sendsInsufficientCredits++;
+        } else if (campaign.requiresApproval) {
+          status = 'awaiting_approval';
+        }
+
+        await base44.asServiceRole.entities.ScheduledSend.create({
+          campaignId: campaign.id,
+          campaignStepId: step.id,
+          enrollmentId: enrollment.id,
+          clientId: client.id,
+          orgId: campaign.orgId,
+          scheduledDate: runDateStr,
+          status,
+          cardDesignId: step.cardDesignId,
+          messageTemplateId: step.templateId || null,
+          customMessage: step.messageText || null,
+          returnAddressMode: campaign.returnAddressMode || 'company'
+        });
+
+        stats.sendsCreated++;
+        existingSendKeys.add(sendKey);
+        console.log(`[runDailyScheduler] Created calendar ScheduledSend for client ${client.id}, date ${runDateStr}, status ${status}`);
+      }
+    } catch (enrollmentError) {
+      console.error(`[runDailyScheduler] Error processing calendar enrollment ${enrollment.id}:`, enrollmentError);
+      stats.errors.push({ type: 'enrollment', id: enrollment.id, error: enrollmentError.message });
+    }
+  }
+
+  const processedDate = parseDateOnly(runDateStr);
+  const nextSearchDate = processedDate ? formatDate(addDays(processedDate, 1)) : todayDateOnly();
+  const nextRunDate = calculateNextCalendarRunDate(scheduleMonths, scheduleDayOfMonth, nextSearchDate);
+  if (!nextRunDate) {
+    stats.errors.push({
+      type: 'campaign',
+      id: campaign.id,
+      error: 'Unable to calculate next calendar run date'
+    });
+    return;
+  }
+
+  await base44.asServiceRole.entities.Campaign.update(campaign.id, {
+    lastRunDate: runDateStr,
+    nextRunDate
+  });
 }
 
 // ============================================
@@ -117,6 +307,11 @@ Deno.serve(async (req) => {
         }
         if (!triggerField && campaignType) {
           triggerField = campaignType.triggerField;
+        }
+
+        if (campaign.scheduleMode === 'calendar') {
+          await processCalendarCampaign(base44, campaign, stats);
+          continue;
         }
 
         // Fallback for legacy campaigns created before Sprint 3
