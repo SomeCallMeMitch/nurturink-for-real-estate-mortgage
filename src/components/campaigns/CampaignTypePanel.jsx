@@ -13,6 +13,7 @@ export default function CampaignTypePanel({
   campaignTypes,
   selectedTypeSlug,
   onTypeSelect,
+  isTypeDisabled,
   enrollmentMode,
   setEnrollmentMode,
   returnAddressMode,
@@ -50,14 +51,18 @@ export default function CampaignTypePanel({
           {campaignTypes.map(ct => {
             const Icon = getIcon(ct.icon);
             const isActive = selectedTypeSlug === ct.slug;
+            const disabled = isTypeDisabled?.(ct) || false;
             const { hex, bg } = getTypeColor(ct.slug);
             return (
               <button
                 key={ct.id}
-                onClick={() => onTypeSelect(ct.slug)}
+                onClick={() => { if (!disabled) onTypeSelect(ct.slug); }}
+                disabled={disabled}
                 className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl border-2 transition-all text-left ${
                   isActive
                     ? 'border-brand-accent shadow-sm'
+                    : disabled
+                    ? 'border-border bg-gray-50 opacity-70 cursor-not-allowed'
                     : 'border-border hover:border-gray-300 hover:bg-gray-50'
                 }`}
                 style={isActive ? { background: bg } : {}}
@@ -76,6 +81,11 @@ export default function CampaignTypePanel({
                     {ct.description ||
                       (ct.triggerMode === 'one_time' ? 'One-time send' : 'Annual recurring')}
                   </div>
+                  {disabled && (
+                    <div className="text-xs font-medium text-gray-500 mt-1 leading-snug">
+                      Coming soon for manual quarterly campaigns.
+                    </div>
+                  )}
                 </div>
                 {isActive && (
                   <Check className="w-4 h-4 flex-shrink-0" style={{ color: hex }} />
@@ -142,12 +152,13 @@ export default function CampaignTypePanel({
             <TooltipTrigger asChild>
               <button
                 onClick={() => setReturnAddressMode(key)}
-                className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                className={`px-4 py-2 rounded-lg border-2 text-sm font-semibold transition-all flex items-center gap-1.5 ${
                   returnAddressMode === key
-                    ? 'border-brand-accent bg-brand-accent/5 text-brand-accent'
+                    ? 'border-brand-accent bg-brand-accent text-brand-accent-foreground shadow-sm'
                     : 'border-border text-foreground hover:bg-gray-50'
                 }`}
               >
+                {returnAddressMode === key && <Check className="w-3.5 h-3.5" />}
                 {label}
               </button>
             </TooltipTrigger>

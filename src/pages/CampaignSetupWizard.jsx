@@ -32,6 +32,7 @@ import CardEnlargeModal      from '@/components/campaigns/CardEnlargeModal';
 const isStepEnabled = (step) => step.isEnabled !== false;
 const stepHasMessage = (step) => !!step.templateId || !!step.messageText?.trim();
 const isStepComplete = (step) => !!step.cardDesignId && stepHasMessage(step);
+const isManualOrNullTriggerType = (type) => type?.triggerMode === 'manual' || !type?.triggerField;
 
 export default function CampaignSetupWizard() {
   const navigate = useNavigate();
@@ -144,6 +145,7 @@ export default function CampaignSetupWizard() {
   );
 
   const currentStep = steps[activeStepIndex] || steps[0];
+  const setupLocked = !selectedTypeSlug;
 
   const selectedDesign = useMemo(
     () => cardDesigns.find(d => d.id === currentStep.cardDesignId) || null,
@@ -244,6 +246,8 @@ export default function CampaignSetupWizard() {
   // ── Type selection ─────────────────────────────────────────────────────────
   const handleTypeSelect = useCallback((slug) => {
     const type = campaignTypes.find(t => t.slug === slug);
+    if (isManualOrNullTriggerType(type)) return;
+
     setSelectedTypeSlug(slug);
     const isBefore = type?.timingDirection === 'before';
     const isOn     = type?.timingDirection === 'on';
@@ -260,16 +264,42 @@ export default function CampaignSetupWizard() {
       autoTemplateId = match?.id || null;
     }
 
-    setSteps([{ ...makeDefaultStep(defaultTimingDays), templateId: autoTemplateId }]);
+    const preservedCardDesignId =
+      currentStep?.cardDesignId && cardDesigns.some(d => d.id === currentStep.cardDesignId)
+        ? currentStep.cardDesignId
+        : null;
+    const customMessageText = currentStep?.messageText?.trim() || '';
+    const preserveCustomMessage = messageMode === 'custom' && customMessageText.length > 0;
+
+    setSteps([{
+      ...makeDefaultStep(defaultTimingDays),
+      cardDesignId: preservedCardDesignId,
+      templateId: preserveCustomMessage ? null : autoTemplateId,
+      messageText: preserveCustomMessage ? sanitizeMessage(customMessageText) : '',
+    }]);
     setActiveStepIndex(0);
-    setMessageMode('template');
-  }, [campaignTypes, templates, templateCategories]);
+    setMessageMode(preserveCustomMessage ? 'custom' : 'template');
+  }, [campaignTypes, templates, templateCategories, currentStep, cardDesigns, messageMode]);
 
   // ── Design / template handlers ─────────────────────────────────────────────
   const handleDesignSelect   = (design)   => { updateStep(activeStepIndex, { cardDesignId: design.id }); setDesignPickerOpen(false); };
   const handleTemplateSelect = (template) => { updateStep(activeStepIndex, { templateId: template.id, messageText: '' }); setMessageMode('template'); setTemplatePickerOpen(false); };
-  const openDesignPicker     = (idx) => { setActiveStepIndex(idx); setDesignPickerOpen(true); };
-  const openTemplatePicker   = (idx) => { setActiveStepIndex(idx); setTemplatePickerOpen(true); };
+  const openDesignPicker     = (idx) => {
+    if (!selectedTypeSlug) {
+      toast({ title: 'Choose a campaign type first.' });
+      return;
+    }
+    setActiveStepIndex(idx);
+    setDesignPickerOpen(true);
+  };
+  const openTemplatePicker   = (idx) => {
+    if (!selectedTypeSlug) {
+      toast({ title: 'Choose a campaign type first.' });
+      return;
+    }
+    setActiveStepIndex(idx);
+    setTemplatePickerOpen(true);
+  };
 
   // ── Custom message handlers ────────────────────────────────────────────────
   const openCustomModal = () => { setCustomMsgDraft(currentStep.messageText || ''); setCustomMsgOpen(true); };
@@ -440,6 +470,7 @@ export default function CampaignSetupWizard() {
             campaignTypes={campaignTypes}
             selectedTypeSlug={selectedTypeSlug}
             onTypeSelect={handleTypeSelect}
+            isTypeDisabled={isManualOrNullTriggerType}
             enrollmentMode={enrollmentMode}
             setEnrollmentMode={setEnrollmentMode}
             returnAddressMode={returnAddressMode}
@@ -473,6 +504,7 @@ export default function CampaignSetupWizard() {
             onMessageModeChange={handleMessageModeChange}
             selectedTemplate={selectedTemplate}
             currentStep={currentStep}
+            setupLocked={setupLocked}
             requiresApproval={requiresApproval}
             setRequiresApproval={setRequiresApproval}
             onOpenCustomModal={openCustomModal}
@@ -494,6 +526,7 @@ export default function CampaignSetupWizard() {
             estMonthly={estMonthly}
             estAnnual={estAnnual}
             steps={steps}
+            returnAddressMode={returnAddressMode}
           />
         </div>
       </div>
