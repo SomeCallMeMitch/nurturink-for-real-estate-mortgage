@@ -44,6 +44,37 @@ export const TYPE_TO_CATEGORY_SLUG = {
   soi_quarterly:    're-soi-touch',
 };
 
+export const SOI_QUARTERLY_SLUG = 'soi_quarterly';
+
+export const DEFAULT_SOI_QUARTERLY_SCHEDULE = {
+  scheduleMode: 'calendar',
+  scheduleFrequency: 'quarterly',
+  scheduleMonths: [1, 4, 7, 10],
+  scheduleDayOfMonth: 15,
+};
+
+export const MONTH_LABELS_SHORT = {
+  1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
+  7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec',
+};
+
+export const MONTH_LABELS_LONG = {
+  1: 'January', 2: 'February', 3: 'March', 4: 'April', 5: 'May', 6: 'June',
+  7: 'July', 8: 'August', 9: 'September', 10: 'October', 11: 'November', 12: 'December',
+};
+
+export const formatMonthList = (months = [], labels = MONTH_LABELS_SHORT) =>
+  months.map(month => labels[month]).filter(Boolean).join(', ');
+
+export const formatOrdinalDay = (day) => {
+  const value = Number(day);
+  if (!Number.isInteger(value)) return '';
+  const mod100 = value % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${value}th`;
+  const suffix = value % 10 === 1 ? 'st' : value % 10 === 2 ? 'nd' : value % 10 === 3 ? 'rd' : 'th';
+  return `${value}${suffix}`;
+};
+
 // ── Sample client for live preview ────────────────────────────────────────────
 export const SAMPLE_CLIENT = {
   firstName: 'Sarah', lastName: 'Johnson', fullName: 'Sarah Johnson',

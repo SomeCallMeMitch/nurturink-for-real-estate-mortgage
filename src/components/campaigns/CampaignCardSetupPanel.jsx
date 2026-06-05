@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import React from 'react';
-import { Plus, X, AlertTriangle, ZoomIn, ChevronRight } from 'lucide-react';
+import { Plus, X, AlertTriangle, ZoomIn, ChevronRight, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
@@ -20,6 +20,9 @@ export default function CampaignCardSetupPanel({
   removeStep,
   timingDisplayValue,
   timingLabel,
+  isSoiQuarterly,
+  scheduleConfig,
+  scheduleSummary,
   cardDesigns,
   selectedDesign,
   openDesignPicker,
@@ -86,7 +89,51 @@ export default function CampaignCardSetupPanel({
       )}
 
       {/* ── Timing ────────────────────────────────────────────────────────── */}
-      {selectedType && selectedType.timingDirection !== 'on' && (
+      {isSoiQuarterly && (
+        <div className="mb-7">
+          <p className="text-sm font-bold text-foreground mb-2 uppercase tracking-wide">
+            Quarterly schedule
+          </p>
+          <div className="rounded-xl border-2 border-border bg-gray-50 p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-brand-accent/10 flex items-center justify-center flex-shrink-0">
+                <CalendarDays className="w-4 h-4 text-brand-accent" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground">
+                  Quarterly calendar send
+                </p>
+                <p className="text-sm text-gray-600 mt-1 leading-snug">
+                  Send this card every quarter to your selected audience.
+                </p>
+                <div className="grid grid-cols-2 gap-3 mt-4">
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                      Send months
+                    </p>
+                    <p className="text-sm font-semibold text-foreground mt-1">
+                      {scheduleSummary?.monthsShort}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                      Send day
+                    </p>
+                    <p className="text-sm font-semibold text-foreground mt-1">
+                      {scheduleConfig?.scheduleDayOfMonth}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-3">
+                  {scheduleSummary?.monthsLong} on the {scheduleSummary?.day}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedType && !isSoiQuarterly && selectedType.timingDirection !== 'on' && (
         <div className="mb-7">
           <p className="text-sm font-bold text-foreground mb-2 uppercase tracking-wide">
             Timing
