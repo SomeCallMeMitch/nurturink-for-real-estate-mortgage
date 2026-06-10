@@ -19,6 +19,16 @@ import JSZip from 'npm:jszip@3.10.1';
 // Default white inside image - set via environment variable
 const DEFAULT_WHITE_INSIDE_URL = Deno.env.get('DEFAULT_WHITE_INSIDE_URL') || null;
 
+function getPngDimensions(buffer) {
+  const bytes = new Uint8Array(buffer);
+  const sig = [137, 80, 78, 71, 13, 10, 26, 10];
+  for (let i = 0; i < 8; i++) {
+    if (bytes[i] !== sig[i]) return null;
+  }
+  const view = new DataView(buffer);
+  return { width: view.getUint32(16), height: view.getUint32(20) };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -53,22 +63,22 @@ Deno.serve(async (req) => {
     const cardDesign = designList[0];
     console.log(`[generateCardDesignZip] Found design: ${cardDesign.name}`);
     
-    // Validate outside image exists (required)
-    if (!cardDesign.outsideImageUrl) {
+    // Validate print-ready front file exists (required) - this becomes 1.png
+    if (!cardDesign.printReadyFrontUrl) {
       return Response.json({ 
         success: false, 
-        error: 'CardDesign is missing required outsideImageUrl' 
+        error: 'CardDesign is missing the required Print-Ready Outside file (1375x2000 PNG). Upload it in Card Design Management before generating the ZIP.' 
       }, { status: 400 });
     }
     
-    // Determine inside image - use default white if not specified
-    const insideImageUrl = cardDesign.insideImageUrl || DEFAULT_WHITE_INSIDE_URL;
-    const usingDefaultWhite = !cardDesign.insideImageUrl;
+    // Determine print-ready back file - use default white if not specified - this becomes 2.png
+    const printBackUrl = cardDesign.printReadyBackUrl || DEFAULT_WHITE_INSIDE_URL;
+    const usingDefaultWhite = !cardDesign.printReadyBackUrl;
     
-    if (!insideImageUrl) {
+    if (!printBackUrl) {
       return Response.json({ 
         success: false, 
-        error: 'CardDesign has no insideImageUrl and no default white image is configured. Set DEFAULT_WHITE_INSIDE_URL environment variable.' 
+        error: 'CardDesign has no Print-Ready Inside file and no default white image is configured. Set DEFAULT_WHITE_INSIDE_URL environment variable.' 
       }, { status: 400 });
     }
     
@@ -99,7 +109,7 @@ Deno.serve(async (req) => {
     console.log(`[generateCardDesignZip] Fetching outside image...`);
     let outsideBuffer;
     try {
-      outsideBuffer = await fetchImageBuffer(cardDesign.outsideImageUrl, 'outside image');
+      outsideBuffer = await fetchImageBuffer(cardDesign.printReadyFrontUrl, 'print-ready outside file');
     } catch (err) {
       console.error(`[generateCardDesignZip] Failed to fetch outside image:`, err);
       return Response.json({ 
@@ -112,13 +122,45 @@ Deno.serve(async (req) => {
     console.log(`[generateCardDesignZip] Fetching inside image...`);
     let insideBuffer;
     try {
-      insideBuffer = await fetchImageBuffer(insideImageUrl, 'inside image');
+      insideBuffer = await fetchImageBuffer(printBackUrl, 'print-ready inside file');
     } catch (err) {
       console.error(`[generateCardDesignZip] Failed to fetch inside image:`, err);
       return Response.json({ 
         success: false, 
         error: `Failed to fetch inside image: ${err.message}` 
       }, { status: 500 });
+    }
+    
+    // Validate both files are PNGs at Scribe's required print dimensions
+    const REQUIRED_W = 1375;
+    const REQUIRED_H = 2000;
+    
+    const frontDims = getPngDimensions(outsideBuffer);
+    if (!frontDims) {
+      return Response.json({ 
+        success: false, 
+        error: `Print-Ready Outside file for "${cardDesign.name}" is not a valid PNG file.` 
+      }, { status: 400 });
+    }
+    if (frontDims.width !== REQUIRED_W || frontDims.height !== REQUIRED_H) {
+      return Response.json({ 
+        success: false, 
+        error: `Print-Ready Outside file for "${cardDesign.name}" is ${frontDims.width}x${frontDims.height}. Scribe requires exactly ${REQUIRED_W}x${REQUIRED_H}.` 
+      }, { status: 400 });
+    }
+    
+    const backDims = getPngDimensions(insideBuffer);
+    if (!backDims) {
+      return Response.json({ 
+        success: false, 
+        error: `Print-Ready Inside file for "${cardDesign.name}" is not a valid PNG file.` 
+      }, { status: 400 });
+    }
+    if (backDims.width !== REQUIRED_W || backDims.height !== REQUIRED_H) {
+      return Response.json({ 
+        success: false, 
+        error: `Print-Ready Inside file for "${cardDesign.name}" is ${backDims.width}x${backDims.height}. Scribe requires exactly ${REQUIRED_W}x${REQUIRED_H}.` 
+      }, { status: 400 });
     }
     
     // Create ZIP file using JSZip

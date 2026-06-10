@@ -24,7 +24,7 @@ export default function PrintReadyFileUploader({
   sublabel,
   fileUri,
   onFileUriChange,
-  accept = ".pdf,.png,.jpg,.jpeg",
+  accept = ".png",
   maxSizeMB = 10,
   compact = false
 }) {
@@ -97,7 +97,7 @@ export default function PrintReadyFileUploader({
             />
           </label>
           <p className={`text-gray-500 ${compact ? 'text-[10px] mt-1' : 'text-xs mt-2'}`}>
-            PDF or image, max {maxSizeMB}MB
+            PNG 1375x2000, max {maxSizeMB}MB
           </p>
         </div>
       )}

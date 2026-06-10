@@ -263,7 +263,7 @@ export default function SuperAdminCardManagement() {
 
   // Generate all missing ZIPs
   const handleGenerateAllMissingZips = async () => {
-    const designsWithoutZip = designs.filter(d => !d.scribeZipUrl && (d.outsideImageUrl || d.insideImageUrl));
+    const designsWithoutZip = designs.filter(d => !d.scribeZipUrl && d.printReadyFrontUrl);
     
     if (designsWithoutZip.length === 0) {
       toast({
