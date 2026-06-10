@@ -138,7 +138,8 @@ export default function MailingConfirmation() {
   }, []);
   
   const totalAvailableCredits = totalCredits;
-  const isAwaitingScribeSubmission = ['pending_review', 'ready_to_send'].includes(mailingBatch?.status);
+  const isOperatorView = user?.appRole === 'super_admin';
+  const isAwaitingScribeSubmission = isOperatorView && ['pending_review', 'ready_to_send'].includes(mailingBatch?.status);
 
   // Handle download placeholders - UPDATED
   const handleDownloadCSV = async () => {
@@ -253,12 +254,12 @@ export default function MailingConfirmation() {
                 
                 {/* Title */}
                 <h1 className="text-3xl font-bold text-foreground mb-3">
-                  {isAwaitingScribeSubmission ? 'Your Cards are Ready for Review' : 'Your Notes are On The Way!'}
+                  {isAwaitingScribeSubmission ? 'Your Cards are Ready for Review' : 'Your Cards Are Confirmed!'}
                 </h1>
                 
                 {/* Details */}
                 <p className="text-lg text-foreground mb-2">
-                  <span className="font-semibold">{clients.length} card{clients.length !== 1 ? 's' : ''}</span> {isAwaitingScribeSubmission ? 'prepared for admin review.' : `${clients.length !== 1 ? 'have' : 'has'} been sent.`}
+                  <span className="font-semibold">{clients.length} card{clients.length !== 1 ? 's' : ''}</span> {isAwaitingScribeSubmission ? 'prepared for admin review.' : `${clients.length !== 1 ? 'have' : 'has'} been confirmed.`}
                 </p>
                 <p className="text-muted-foreground">
                   {isAwaitingScribeSubmission
@@ -284,11 +285,11 @@ export default function MailingConfirmation() {
                   <ul className="space-y-3 mb-6 text-sm text-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">•</span>
-                      <span>{isAwaitingScribeSubmission ? 'Your cards are queued for admin review before Scribe submission' : 'Your cards are being printed with your custom message right now'}</span>
+                      <span>{isAwaitingScribeSubmission ? 'Your cards are queued for admin review before Scribe submission' : 'Your cards are queued for production with your custom message'}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">•</span>
-                      <span>{isAwaitingScribeSubmission ? 'A staging test send can be submitted first for verification' : 'Each card will be hand-addressed and handwritten by our team'}</span>
+                      <span>{isAwaitingScribeSubmission ? 'A staging test send can be submitted first for verification' : 'Each card will be hand-addressed and handwritten with a real ballpoint pen'}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-0.5">•</span>
