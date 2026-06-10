@@ -33,6 +33,7 @@ import {
   Cake,
   Gift,
   RefreshCw,
+  Home,
   Play,
   Pause,
   Trash2,
@@ -49,6 +50,10 @@ import {
 // Campaign type configuration
 const CAMPAIGN_TYPE_CONFIG = {
   birthday: { label: 'Birthday', icon: Cake, color: 'bg-pink-100 text-pink-700' },
+  home_anniversary: { label: 'Home Anniversary', icon: Home, color: 'bg-orange-100 text-orange-700' },
+  post_close: { label: 'Post Close', icon: Gift, color: 'bg-blue-100 text-blue-700' },
+  loan_anniversary: { label: 'Loan Anniversary', icon: Calendar, color: 'bg-purple-100 text-purple-700' },
+  soi_quarterly: { label: 'SOI Touch', icon: RefreshCw, color: 'bg-green-100 text-green-700' },
   welcome: { label: 'Welcome', icon: Gift, color: 'bg-blue-100 text-blue-700' },
   renewal: { label: 'Renewal', icon: RefreshCw, color: 'bg-green-100 text-green-700' }
 };
@@ -292,7 +297,7 @@ export default function Campaigns() {
       {!isLoading && !isError && campaigns.length > 0 && (
         <div className="space-y-4">
           {campaigns.map((campaign) => {
-            const typeConfig = CAMPAIGN_TYPE_CONFIG[campaign.type] || CAMPAIGN_TYPE_CONFIG.birthday;
+            const typeConfig = CAMPAIGN_TYPE_CONFIG[campaign.type] || { label: campaign.type || 'Campaign', icon: Megaphone, color: 'bg-gray-100 text-gray-700' };
             const statusConfig = CAMPAIGN_STATUS_CONFIG[campaign.status] || CAMPAIGN_STATUS_CONFIG.draft;
             const TypeIcon = typeConfig.icon;
 
