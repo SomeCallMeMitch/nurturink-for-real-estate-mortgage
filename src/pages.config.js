@@ -72,6 +72,7 @@ import CreateContent from './pages/CreateContent';
 import CreateContent2 from './pages/CreateContent2';
 import Credits from './pages/Credits';
 import Dashboard from './pages/Dashboard';
+import DebugRuntimeChecks from './pages/DebugRuntimeChecks';
 import Dream100 from './pages/Dream100';
 import Ecommerce from './pages/Ecommerce';
 import EditQuickSendTemplate from './pages/EditQuickSendTemplate';
@@ -151,6 +152,8 @@ export const PAGES = {
     "CreateContent2": CreateContent2,
     "Credits": Credits,
     "Dashboard": Dashboard,
+    // Added manually so the production direct URL can resolve this diagnostic page.
+    "DebugRuntimeChecks": DebugRuntimeChecks,
     "Dream100": Dream100,
     "Ecommerce": Ecommerce,
     "EditQuickSendTemplate": EditQuickSendTemplate,
