@@ -46,6 +46,107 @@
       "description": "Display order in UI",
       "required": false,
       "default": 0
+    },
+    "type": {
+      "type": "string",
+      "description": "Card design scope/type, such as platform or organization-specific",
+      "required": false,
+      "default": "platform"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization ID for organization-specific card designs",
+      "required": false,
+      "nullable": true
+    },
+    "industry": {
+      "type": "string",
+      "description": "Industry this card design is intended for",
+      "required": false,
+      "nullable": true
+    },
+    "insideImageUrl": {
+      "type": "string",
+      "description": "Digital preview image URL for the inside of the card",
+      "required": false,
+      "nullable": true
+    },
+    "outsideImageUrl": {
+      "type": "string",
+      "description": "Digital preview image URL for the outside of the card",
+      "required": false,
+      "nullable": true
+    },
+    "frontImageUrl": {
+      "type": "string",
+      "description": "Physical card front image URL",
+      "required": false,
+      "nullable": true
+    },
+    "backImageUrl": {
+      "type": "string",
+      "description": "Physical card back image URL",
+      "required": false,
+      "nullable": true
+    },
+    "printReadyFrontUrl": {
+      "type": "string",
+      "description": "Print-ready outside/cover file URL or private file URI",
+      "required": false,
+      "nullable": true
+    },
+    "printReadyBackUrl": {
+      "type": "string",
+      "description": "Print-ready inside/interior file URL or private file URI",
+      "required": false,
+      "nullable": true
+    },
+    "scribeZipUrl": {
+      "type": "string",
+      "description": "Private file URI for the generated Scribe ZIP package",
+      "required": false,
+      "nullable": true
+    },
+    "scribeDesignId": {
+      "type": "string",
+      "description": "External Scribe design identifier",
+      "required": false,
+      "nullable": true
+    },
+    "outsideImageVariants": {
+      "type": "object",
+      "description": "Generated/resized outside image variants for display contexts",
+      "required": false,
+      "nullable": true,
+      "properties": {
+        "w600": {
+          "type": "string",
+          "required": false
+        },
+        "w400": {
+          "type": "string",
+          "required": false
+        },
+        "w200": {
+          "type": "string",
+          "required": false
+        }
+      }
+    },
+    "cardDesignCategoryIds": {
+      "type": "array",
+      "description": "Card design category IDs assigned to this design",
+      "required": false,
+      "nullable": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "usageCount": {
+      "type": "number",
+      "description": "Number of times this design has been used",
+      "required": false,
+      "default": 0
     }
   },
   "required": []
