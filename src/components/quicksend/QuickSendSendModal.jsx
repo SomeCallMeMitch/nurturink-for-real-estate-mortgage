@@ -58,7 +58,7 @@ export default function QuickSendSendModal({
     const q = search.trim().toLowerCase();
     if (!q) return clients.slice(0, 50);
     return clients.filter(c =>
-      c.name?.toLowerCase().includes(q) ||
+      c.fullName?.toLowerCase().includes(q) ||
       c.email?.toLowerCase().includes(q) ||
       c.city?.toLowerCase().includes(q)
     ).slice(0, 50);
@@ -74,7 +74,7 @@ export default function QuickSendSendModal({
         quickSendTemplateId: template.id,
         clientIds: [selectedClient.id],
       });
-      toast({ title: 'Card queued!', description: `Sending to ${selectedClient.name}.` });
+      toast({ title: 'Card queued!', description: `Sending to ${selectedClient.fullName}.` });
       onOpenChange(false);
     } catch (err) {
       toast({ title: 'Send failed', description: err.message, variant: 'destructive' });
@@ -163,12 +163,12 @@ export default function QuickSendSendModal({
                   >
                     {isSelected
                       ? <Check className="w-3.5 h-3.5" />
-                      : (client.name?.[0] || <User className="w-3.5 h-3.5" />)
+                      : (client.fullName?.[0] || <User className="w-3.5 h-3.5" />)
                     }
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium leading-snug text-foreground">
-                      {client.name}
+                      {client.fullName}
                     </p>
                     {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
                   </div>
@@ -193,7 +193,7 @@ export default function QuickSendSendModal({
               ? <Loader2 className="w-4 h-4 animate-spin" />
               : <Zap className="w-4 h-4" />
             }
-            {sending ? 'Sending...' : `Send to ${selectedClient?.name?.split(' ')[0] || '...'}`}
+            {sending ? 'Sending...' : `Send to ${selectedClient?.fullName?.split(' ')[0] || '...'}`}
           </Button>
         </div>
       </DialogContent>
