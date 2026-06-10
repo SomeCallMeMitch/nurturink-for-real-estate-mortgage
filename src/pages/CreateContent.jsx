@@ -211,9 +211,14 @@ export default function CreateContent() {
       // re- = real estate only, anything else = universal (shown to everyone).
       const RE_INDUSTRIES = ['real_estate', 'both'];
       const MORT_INDUSTRIES = ['mortgage', 'both'];
+      const KNOWN_INDUSTRIES = ['real_estate', 'mortgage', 'both'];
       const orgIndustry = currentOrganization?.industry || '';
       const filteredCats = (templateCats || []).filter(cat => {
         const slug = cat.slug || '';
+        // Unrecognized or missing industry values fail open: show all categories
+        if (!KNOWN_INDUSTRIES.includes(orgIndustry)) {
+          return true;
+        }
         if (slug.startsWith('mort-') || slug === 'mortgage-anniversary') {
           return MORT_INDUSTRIES.includes(orgIndustry);
         }
