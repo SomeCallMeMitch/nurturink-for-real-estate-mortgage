@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
       let fetchUrl = imageUrl;
       
       // Check if it's a private file URI
-      if (imageUrl.startsWith('private/') || imageUrl.includes('file_uri') || imageUrl.startsWith('file:')) {
+      if (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://')) {
         const signedUrlResult = await base44.integrations.Core.CreateFileSignedUrl({
           file_uri: imageUrl
         });
