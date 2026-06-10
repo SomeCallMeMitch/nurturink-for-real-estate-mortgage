@@ -106,26 +106,34 @@ export default function Dashboard() {
         10
       );
 
-      // Fetch client details for recent sends
+      // Fetch client details and Mailing address snapshots for recent sends
       if (recentNotes.length > 0) {
         const clientIds = [...new Set(recentNotes.map(note => note.clientId).filter(Boolean))];
+        const clientsById = {};
         if (clientIds.length > 0) {
           const recentClients = await base44.entities.Client.filter({
             id: { $in: clientIds },
             orgId: currentUser.orgId
           });
-          const clientsById = recentClients.reduce((acc, client) => {
-            acc[client.id] = client;
-            return acc;
-          }, {});
-          
-          setRecentSends(recentNotes.map(note => ({
-            ...note,
-            client: clientsById[note.clientId] || null
-          })));
-        } else {
-          setRecentSends(recentNotes.map(note => ({ ...note, client: null })));
+          recentClients.forEach(c => { clientsById[c.id] = c; });
         }
+
+        // Mailing snapshots survive client deletion
+        const noteIds = recentNotes.map(note => note.id).filter(Boolean);
+        const mailingsByNoteId = {};
+        if (noteIds.length > 0) {
+          const mailings = await base44.entities.Mailing.filter({
+            noteId: { $in: noteIds },
+            orgId: currentUser.orgId
+          });
+          mailings.forEach(m => { mailingsByNoteId[m.noteId] = m; });
+        }
+
+        setRecentSends(recentNotes.map(note => ({
+          ...note,
+          client: clientsById[note.clientId] || null,
+          mailing: mailingsByNoteId[note.id] || null
+        })));
       }
 
       // Fetch team stats for organization owners
@@ -347,7 +355,9 @@ export default function Dashboard() {
                             {note.client?.fullName || note.recipientName || 'Unknown'}
                           </td>
                           <td className="py-3 px-4 text-sm text-foreground">
-                            {note.client ? (
+                            {note.mailing?.recipientAddress?.street ? (
+                              <span>{note.mailing.recipientAddress.street}, {note.mailing.recipientAddress.city}, {note.mailing.recipientAddress.state} {note.mailing.recipientAddress.zip}</span>
+                            ) : note.client?.street ? (
                               <span>{note.client.street}, {note.client.city}, {note.client.state} {note.client.zipCode}</span>
                             ) : (
                               <span className="text-muted-foreground">—</span>
