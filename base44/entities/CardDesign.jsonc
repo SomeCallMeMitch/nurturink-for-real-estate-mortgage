@@ -5,138 +5,114 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "Display name of the card design (e.g., 'Thank you - Plain White')",
-      "required": true
+      "description": "Display name of the card design (e.g., 'Thank you - Plain White')"
     },
     "key": {
       "type": "string",
-      "description": "Unique identifier for the card design (e.g., 'thank_you_plain_white')",
-      "required": true
+      "description": "Unique identifier for the card design (e.g., 'thank_you_plain_white')"
     },
     "description": {
       "type": "string",
-      "description": "Description of the card design",
-      "required": false
+      "description": "Description of the card design"
     },
     "category": {
       "type": "string",
-      "description": "Category of card design (e.g., 'Thank You', 'Birthday', 'Congratulations')",
-      "required": false
+      "description": "Category of card design (e.g., 'Thank You', 'Birthday', 'Congratulations')"
     },
     "imageUrl": {
       "type": "string",
       "format": "uri",
-      "description": "URL to preview image of the card design",
-      "required": false
+      "description": "URL to preview image of the card design"
     },
     "isActive": {
       "type": "boolean",
       "description": "Whether this card design is available for use",
-      "required": true,
       "default": true
     },
     "isDefault": {
       "type": "boolean",
       "description": "Whether this is a default card design provided by Scribe",
-      "required": false,
       "default": false
     },
     "sortOrder": {
       "type": "integer",
       "description": "Display order in UI",
-      "required": false,
       "default": 0
     },
     "type": {
       "type": "string",
       "description": "Card design scope/type, such as platform or organization-specific",
-      "required": false,
       "default": "platform"
     },
     "orgId": {
       "type": "string",
       "description": "Organization ID for organization-specific card designs",
-      "required": false,
       "nullable": true
     },
     "industry": {
       "type": "string",
       "description": "Industry this card design is intended for",
-      "required": false,
       "nullable": true
     },
     "insideImageUrl": {
       "type": "string",
       "description": "Digital preview image URL for the inside of the card",
-      "required": false,
       "nullable": true
     },
     "outsideImageUrl": {
       "type": "string",
       "description": "Digital preview image URL for the outside of the card",
-      "required": false,
       "nullable": true
     },
     "frontImageUrl": {
       "type": "string",
       "description": "Physical card front image URL",
-      "required": false,
       "nullable": true
     },
     "backImageUrl": {
       "type": "string",
       "description": "Physical card back image URL",
-      "required": false,
       "nullable": true
     },
     "printReadyFrontUrl": {
       "type": "string",
       "description": "Print-ready outside/cover file URL or private file URI",
-      "required": false,
       "nullable": true
     },
     "printReadyBackUrl": {
       "type": "string",
       "description": "Print-ready inside/interior file URL or private file URI",
-      "required": false,
       "nullable": true
     },
     "scribeZipUrl": {
       "type": "string",
       "description": "Private file URI for the generated Scribe ZIP package",
-      "required": false,
       "nullable": true
     },
     "scribeDesignId": {
       "type": "string",
       "description": "External Scribe design identifier",
-      "required": false,
       "nullable": true
     },
     "outsideImageVariants": {
       "type": "object",
       "description": "Generated/resized outside image variants for display contexts",
-      "required": false,
       "nullable": true,
       "properties": {
         "w600": {
-          "type": "string",
-          "required": false
+          "type": "string"
         },
         "w400": {
-          "type": "string",
-          "required": false
+          "type": "string"
         },
         "w200": {
-          "type": "string",
-          "required": false
+          "type": "string"
         }
       }
     },
     "cardDesignCategoryIds": {
       "type": "array",
       "description": "Card design category IDs assigned to this design",
-      "required": false,
       "nullable": true,
       "items": {
         "type": "string"
@@ -145,7 +121,6 @@
     "usageCount": {
       "type": "number",
       "description": "Number of times this design has been used",
-      "required": false,
       "default": 0
     }
   },
