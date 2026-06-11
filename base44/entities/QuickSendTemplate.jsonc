@@ -6,6 +6,11 @@
       "type": "string",
       "description": "Template name (e.g., 'Thank You - Post Job')"
     },
+    "key": {
+      "type": "string",
+      "nullable": true,
+      "description": "Stable key or slug for identifying this Quick Send template"
+    },
     "purpose": {
       "type": "string",
       "enum": [
