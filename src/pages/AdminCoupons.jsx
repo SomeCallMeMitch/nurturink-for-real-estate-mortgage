@@ -16,7 +16,8 @@ import {
   Trash,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  Shield
 } from 'lucide-react';
 import {
   Dialog,
@@ -41,6 +42,7 @@ export default function AdminCoupons() {
   const { toast } = useToast();
   
   // Data
+  const [user, setUser] = useState(null);
   const [coupons, setCoupons] = useState([]);
   const [pricingTiers, setPricingTiers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,6 +79,9 @@ export default function AdminCoupons() {
   const loadData = async () => {
     try {
       setLoading(true);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      if (currentUser?.appRole !== "super_admin") return;
       
       const [couponList, tierList] = await Promise.all([
         base44.entities.Coupon.list('-created_date'),
@@ -305,6 +310,19 @@ export default function AdminCoupons() {
       <SuperAdminLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+        </div>
+      </SuperAdminLayout>
+    );
+  }
+
+  // Security guard: block direct page rendering for non-super-admin users.
+  if (user?.appRole !== "super_admin") {
+    return (
+      <SuperAdminLayout>
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <Shield className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Access Denied</h2>
+          <p className="text-muted-foreground">This page is only accessible to super administrators.</p>
         </div>
       </SuperAdminLayout>
     );

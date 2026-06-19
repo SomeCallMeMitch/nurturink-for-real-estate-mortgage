@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Upload, Save, AlertCircle, CheckCircle, X } from 'lucide-react';
+import { Loader2, Upload, Save, AlertCircle, CheckCircle, X, Shield } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { debounce } from 'lodash';
 
@@ -43,6 +43,7 @@ export default function AdminEnvelopeLayout() {
   const { toast } = useToast();
   
   // State
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState(null);
   const [localSettings, setLocalSettings] = useState(null);
@@ -57,6 +58,9 @@ export default function AdminEnvelopeLayout() {
   const loadSettings = async () => {
     try {
       setLoading(true);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      if (currentUser?.appRole !== "super_admin") return;
       const response = await base44.functions.invoke('getInstanceSettings');
       const data = response.data;
       
@@ -143,6 +147,19 @@ export default function AdminEnvelopeLayout() {
       <SuperAdminLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+        </div>
+      </SuperAdminLayout>
+    );
+  }
+  
+  // Security guard: block direct page rendering for non-super-admin users.
+  if (user?.appRole !== "super_admin") {
+    return (
+      <SuperAdminLayout>
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <Shield className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Access Denied</h2>
+          <p className="text-muted-foreground">This page is only accessible to super administrators.</p>
         </div>
       </SuperAdminLayout>
     );

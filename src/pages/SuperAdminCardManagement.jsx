@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Plus, Search, FileArchive } from 'lucide-react';
+import { Plus, Search, FileArchive, Shield } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
 import CardDesignFormWithUpload from '@/components/sa/CardDesignFormWithUpload';
@@ -24,6 +24,7 @@ export default function SuperAdminCardManagement() {
   const { toast } = useToast();
   
   // Data state
+  const [user, setUser] = useState(null);
   const [designs, setDesigns] = useState([]);
   const [categories, setCategories] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
@@ -53,6 +54,10 @@ export default function SuperAdminCardManagement() {
   const loadData = async () => {
     try {
       setLoading(true);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      if (currentUser?.appRole !== "super_admin") return;
+
       const [designsData, categoriesData] = await Promise.all([
         base44.entities.CardDesign.filter({ type: 'platform' }, '-created_date'),
         base44.entities.CardDesignCategory.filter({ orgId: null }, 'sortOrder')
@@ -312,6 +317,19 @@ export default function SuperAdminCardManagement() {
       <SuperAdminLayout>
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </SuperAdminLayout>
+    );
+  }
+
+  // Security guard: block direct page rendering for non-super-admin users.
+  if (user?.appRole !== "super_admin") {
+    return (
+      <SuperAdminLayout>
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <Shield className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Access Denied</h2>
+          <p className="text-muted-foreground">This page is only accessible to super administrators.</p>
         </div>
       </SuperAdminLayout>
     );

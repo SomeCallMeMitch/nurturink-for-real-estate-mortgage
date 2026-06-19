@@ -64,6 +64,7 @@ export default function AdminClients() {
   const location = useLocation();
   const { toast } = useToast();
   
+  const [user, setUser] = useState(null);
   const [clients, setClients] = useState([]);
   const [favoriteClientIds, setFavoriteClientIds] = useState(new Set());
   const [availableTags, setAvailableTags] = useState([]);
@@ -101,6 +102,7 @@ export default function AdminClients() {
     try {
       setLoading(true);
       const user = await base44.auth.me();
+      setUser(user);
       
       // PHASE 3: Build client filter based on app role.
       // Base44 user.role is a platform role; app-level access uses appRole/orgRole.
@@ -323,6 +325,15 @@ export default function AdminClients() {
 
   const handleDelete = async () => {
     if (!deleteDialog.client) return;
+    if (!hasAdminPrivileges(user)) {
+      toast({
+        title: 'Admin Privileges Required',
+        description: 'Deleting clients requires admin privileges.',
+        variant: 'destructive'
+      });
+      setDeleteDialog({ open: false, client: null });
+      return;
+    }
     
     try {
       setDeleting(true);

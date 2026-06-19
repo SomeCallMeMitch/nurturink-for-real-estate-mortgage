@@ -29,6 +29,35 @@ export default function SuperAdminLayout({ children }) {
 
   const isSuperAdmin = user?.appRole === 'super_admin';
 
+  // Security guard: block direct URL access for non-super-admin users.
+  if (!isSuperAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Shield className="w-6 h-6 text-indigo-600" />
+                <h1 className="text-xl font-bold text-gray-900">Super Admin</h1>
+              </div>
+              <Link
+                to={createPageUrl('Home')}
+                className="text-sm text-indigo-600 hover:text-indigo-700"
+              >
+                Exit Admin
+              </Link>
+            </div>
+          </div>
+        </header>
+        <main className="flex flex-col items-center justify-center h-96 gap-4">
+          <Shield className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Access Denied</h2>
+          <p className="text-muted-foreground">This page is only accessible to super administrators.</p>
+        </main>
+      </div>
+    );
+  }
+
   // Build menu only for super admins
   const menuItems = [];
   if (isSuperAdmin) {

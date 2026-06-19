@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Loader2, Mail, MapPin, Building2, ShoppingCart,
-  RefreshCcw, Download, Filter
+  RefreshCcw, Download, Filter, Shield
 } from 'lucide-react';
 
 const STATUS_STYLES = {
@@ -28,6 +28,7 @@ const ALL_SOURCES  = ['all', 'solar', 'roofing', 'insurance', 'real_estate', 'ec
 const ALL_STATUSES = ['all', 'new', 'processing', 'sent', 'cancelled'];
 
 export default function AdminSampleRequests() {
+  const [user, setUser]                 = useState(null);
   const [requests, setRequests]         = useState([]);
   const [filtered, setFiltered]         = useState([]);
   const [loading, setLoading]           = useState(true);
@@ -48,6 +49,9 @@ export default function AdminSampleRequests() {
     setLoading(true);
     setError(null);
     try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      if (currentUser?.appRole !== "super_admin") return;
       const data = await base44.entities.SampleRequest.list('-created_date', 500);
       setRequests(data || []);
     } catch (err) {
@@ -113,8 +117,17 @@ export default function AdminSampleRequests() {
           <div className="text-center py-16 text-red-500">{error}</div>
         )}
 
+        {/* Security guard: block direct page rendering for non-super-admin users. */}
+        {!loading && user?.appRole !== "super_admin" && (
+          <div className="flex flex-col items-center justify-center h-96 gap-4">
+            <Shield className="w-16 h-16 text-muted-foreground" />
+            <h2 className="text-xl font-semibold">Access Denied</h2>
+            <p className="text-muted-foreground">This page is only accessible to super administrators.</p>
+          </div>
+        )}
+
         {/* Content */}
-        {!loading && !error && (
+        {!loading && !error && user?.appRole === "super_admin" && (
           <div>
             {/* Header */}
             <div className="flex flex-wrap items-start justify-between gap-4 mb-6">

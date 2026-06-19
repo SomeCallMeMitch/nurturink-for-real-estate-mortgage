@@ -29,7 +29,8 @@ import {
   DollarSign,
   User,
   Building,
-  Loader2
+  Loader2,
+  Shield
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/components/ui/use-toast';
@@ -48,6 +49,7 @@ function getStatusPillVariant(status) {
 export default function AdminRefunds() {
   const { toast } = useToast();
   
+  const [user, setUser] = useState(null);
   const [refundRequests, setRefundRequests] = useState([]);
   const [users, setUsers] = useState({});
   const [loading, setLoading] = useState(true);
@@ -67,6 +69,9 @@ export default function AdminRefunds() {
   const loadData = async () => {
     try {
       setLoading(true);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      if (currentUser?.appRole !== "super_admin") return;
       
       const requests = await base44.entities.RefundRequest.filter({});
       
@@ -228,6 +233,19 @@ export default function AdminRefunds() {
           <Skeleton className="h-10 w-64" />
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-64 w-full" />
+        </div>
+      </SuperAdminLayout>
+    );
+  }
+
+  // Security guard: block direct page rendering for non-super-admin users.
+  if (user?.appRole !== "super_admin") {
+    return (
+      <SuperAdminLayout>
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <Shield className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Access Denied</h2>
+          <p className="text-muted-foreground">This page is only accessible to super administrators.</p>
         </div>
       </SuperAdminLayout>
     );

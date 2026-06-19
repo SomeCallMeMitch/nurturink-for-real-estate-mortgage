@@ -5,10 +5,11 @@ import { createPageUrl } from '@/utils';
 import SuperAdminLayout from '@/components/sa/SuperAdminLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Layout, Mail, ArrowRight, Loader2, ImageIcon, DollarSign, Tag, Palette, ClipboardList } from 'lucide-react';
+import { Layout, Mail, ArrowRight, Loader2, ImageIcon, DollarSign, Tag, Palette, ClipboardList, Shield } from 'lucide-react';
 
 export default function SuperAdminDashboard() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     cardLayoutExists: false,
@@ -23,6 +24,9 @@ export default function SuperAdminDashboard() {
   const loadStats = async () => {
     try {
       setLoading(true);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      if (currentUser?.appRole !== "super_admin") return;
       
       // Check if settings exist
       // Note: These invocations were duplicated for cardSettings and envelopeSettings.
@@ -112,6 +116,19 @@ export default function SuperAdminDashboard() {
       <SuperAdminLayout>
         <div className="flex items-center justify-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        </div>
+      </SuperAdminLayout>
+    );
+  }
+
+  // Security guard: block direct page rendering for non-super-admin users.
+  if (user?.appRole !== "super_admin") {
+    return (
+      <SuperAdminLayout>
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <Shield className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Access Denied</h2>
+          <p className="text-muted-foreground">This page is only accessible to super administrators.</p>
         </div>
       </SuperAdminLayout>
     );

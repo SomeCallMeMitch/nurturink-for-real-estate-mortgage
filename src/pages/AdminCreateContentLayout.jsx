@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save, RotateCcw, CheckCircle, AlertCircle, Layout } from 'lucide-react';
+import { Loader2, Save, RotateCcw, CheckCircle, AlertCircle, Layout, Shield } from 'lucide-react';
 
 export default function AdminCreateContentLayout() {
+  const [user, setUser] = useState(null);
   const [settings, setSettings] = useState(null);
   const [localSettings, setLocalSettings] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,9 @@ export default function AdminCreateContentLayout() {
     try {
       setLoading(true);
       setError(null);
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      if (currentUser?.appRole !== "super_admin") return;
       const response = await base44.functions.invoke('getCreateContentLayoutSettings');
       setSettings(response.data);
       setLocalSettings(response.data);
@@ -98,6 +102,19 @@ export default function AdminCreateContentLayout() {
       <SuperAdminLayout>
         <div className="flex items-center justify-center h-64">
           <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+        </div>
+      </SuperAdminLayout>
+    );
+  }
+
+  // Security guard: block direct page rendering for non-super-admin users.
+  if (user?.appRole !== "super_admin") {
+    return (
+      <SuperAdminLayout>
+        <div className="flex flex-col items-center justify-center h-96 gap-4">
+          <Shield className="w-16 h-16 text-muted-foreground" />
+          <h2 className="text-xl font-semibold">Access Denied</h2>
+          <p className="text-muted-foreground">This page is only accessible to super administrators.</p>
         </div>
       </SuperAdminLayout>
     );
