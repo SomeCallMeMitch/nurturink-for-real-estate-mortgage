@@ -74,7 +74,7 @@ export function getOrgRole(user, profile = null) {
  */
 export function isSuperAdmin(user) {
   if (!user) return false;
-  return user.appRole === APP_ROLES.SUPER_ADMIN || user.role === 'admin';
+  return user.appRole === APP_ROLES.SUPER_ADMIN;
 }
 
 /**
