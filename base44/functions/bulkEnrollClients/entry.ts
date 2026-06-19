@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     if (userProfiles && userProfiles.length > 0) {
       userProfile = userProfiles[0];
       orgId = userProfile.orgId;
-    } else if (user.role === 'admin') {
+    } else if (user.appRole === 'super_admin') {
       // Super admin
     } else {
       return Response.json({ 

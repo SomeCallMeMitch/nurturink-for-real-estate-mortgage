@@ -67,6 +67,14 @@ function getTriggerField(campaignType) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const adminUser = await base44.auth.me();
+    if (!adminUser) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    if (adminUser.appRole !== 'super_admin') {
+      return Response.json({ success: false, error: 'Forbidden: super admin access required' }, { status: 403 });
+    }
+
     const { clientId, campaignId } = await req.json();
 
     if (!clientId) {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, Play, CheckCircle, XCircle, AlertTriangle, Info, ChevronDown, ChevronRight, RefreshCw, Package, Calendar, User, Mail } from 'lucide-react';
+import { Loader2, Play, CheckCircle, XCircle, AlertTriangle, Info, ChevronDown, ChevronRight, RefreshCw, Package, Calendar, User, Mail, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 
 const TEST_CONFIGS = [
@@ -47,6 +47,22 @@ export default function ScribeApiTest() {
   const [loading, setLoading] = useState(null); // Which test is loading
   const [results, setResults] = useState({}); // Results keyed by test ID
   const [runningAll, setRunningAll] = useState(false);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const currentUser = await base44.auth.me();
+        setUser(currentUser);
+      } catch (e) {
+        console.error('Failed to load user:', e);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+    loadUser();
+  }, []);
 
   const runTest = async (testId, payload) => {
     setLoading(testId);
@@ -149,6 +165,25 @@ export default function ScribeApiTest() {
       default: return 'text-gray-800';
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Super-admin guard mirrors the administrative testing pages.
+  if (user?.appRole !== 'super_admin') {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <Shield className="w-16 h-16 text-muted-foreground" />
+        <h2 className="text-xl font-semibold">Access Denied</h2>
+        <p className="text-muted-foreground">This page is only accessible to super administrators.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">

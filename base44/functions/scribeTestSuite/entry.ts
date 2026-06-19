@@ -430,12 +430,20 @@ Deno.serve(async (req) => {
   console.log('SCRIBE_API_BASE_URL:', SCRIBE_API_BASE_URL);
   console.log('SCRIBE_API_TOKEN set:', !!SCRIBE_API_TOKEN);
   
-  if (!SCRIBE_API_TOKEN) {
-    return Response.json({ success: false, error: 'SCRIBE_API_TOKEN not configured' }, { status: 500 });
-  }
-  
   try {
     const base44 = createClientFromRequest(req);
+    const adminUser = await base44.auth.me();
+    if (!adminUser) {
+      return Response.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    if (adminUser.appRole !== 'super_admin') {
+      return Response.json({ success: false, error: 'Forbidden: super admin access required' }, { status: 403 });
+    }
+
+    if (!SCRIBE_API_TOKEN) {
+      return Response.json({ success: false, error: 'SCRIBE_API_TOKEN not configured' }, { status: 500 });
+    }
+
     const body = await req.json();
     
     const testNumber = body.test || 1;
