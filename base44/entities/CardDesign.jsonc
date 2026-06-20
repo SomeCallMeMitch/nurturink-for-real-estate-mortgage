@@ -123,6 +123,5 @@
       "description": "Number of times this design has been used",
       "default": 0
     }
-  },
-  "required": []
+  }
 }

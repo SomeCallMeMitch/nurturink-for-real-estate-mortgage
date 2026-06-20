@@ -68,6 +68,5 @@
       "description": "Display order in UI",
       "default": 0
     }
-  },
-  "required": []
+  }
 }

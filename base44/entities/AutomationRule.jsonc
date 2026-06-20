@@ -63,6 +63,5 @@
       "type": "object",
       "description": "Optional filter to limit which clients this rule applies to (e.g., by tag or custom field)"
     }
-  },
-  "required": []
+  }
 }
