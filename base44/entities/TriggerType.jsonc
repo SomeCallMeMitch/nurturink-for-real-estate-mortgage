@@ -5,28 +5,23 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "Display name of the trigger type (e.g., 'Birthday')",
-      "required": true
+      "description": "Display name of the trigger type (e.g., 'Birthday')"
     },
     "key": {
       "type": "string",
-      "description": "Unique identifier for the trigger type (e.g., 'birthday')",
-      "required": true
+      "description": "Unique identifier for the trigger type (e.g., 'birthday')"
     },
     "description": {
       "type": "string",
-      "description": "Description of when this trigger fires",
-      "required": false
+      "description": "Description of when this trigger fires"
     },
     "icon": {
       "type": "string",
-      "description": "Icon name for UI display (e.g., 'cake' for birthday)",
-      "required": false
+      "description": "Icon name for UI display (e.g., 'cake' for birthday)"
     },
     "isActive": {
       "type": "boolean",
       "description": "Whether this trigger type is available for use",
-      "required": true,
       "default": true
     },
     "defaultDaysBefore": {
@@ -34,7 +29,6 @@
       "minimum": 0,
       "maximum": 365,
       "description": "Default number of days before trigger to send card",
-      "required": true,
       "default": 0
     },
     "defaultDaysAfter": {
@@ -42,7 +36,6 @@
       "minimum": 0,
       "maximum": 365,
       "description": "Default number of days after trigger to send card",
-      "required": true,
       "default": 0
     },
     "defaultFrequencyCap": {
@@ -54,18 +47,15 @@
         "per_event"
       ],
       "description": "Default frequency cap for this trigger type",
-      "required": true,
       "default": "annually"
     },
     "clientFieldRequired": {
       "type": "string",
-      "description": "Which client field is required for this trigger (e.g., 'birthday', 'renewal_date')",
-      "required": false
+      "description": "Which client field is required for this trigger (e.g., 'birthday', 'renewal_date')"
     },
     "sortOrder": {
       "type": "integer",
       "description": "Display order in UI",
-      "required": false,
       "default": 0
     }
   },

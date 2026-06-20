@@ -5,13 +5,11 @@
   "properties": {
     "automationRuleId": {
       "type": "string",
-      "description": "Reference to the AutomationRule that triggered this send",
-      "required": true
+      "description": "Reference to the AutomationRule that triggered this send"
     },
     "clientId": {
       "type": "string",
-      "description": "Reference to the Client who received the card",
-      "required": true
+      "description": "Reference to the Client who received the card"
     },
     "triggerType": {
       "type": "string",
@@ -21,24 +19,20 @@
         "renewal_reminder",
         "referral_request"
       ],
-      "description": "Type of trigger that caused this card to be sent",
-      "required": true
+      "description": "Type of trigger that caused this card to be sent"
     },
     "templateId": {
       "type": "string",
-      "description": "Reference to the Template used for this card",
-      "required": true
+      "description": "Reference to the Template used for this card"
     },
     "sentDate": {
       "type": "string",
       "format": "date-time",
-      "description": "ISO 8601 timestamp when the card was sent",
-      "required": true
+      "description": "ISO 8601 timestamp when the card was sent"
     },
     "scribeBatchId": {
       "type": "string",
-      "description": "Batch ID returned by Scribe API for tracking fulfillment",
-      "required": false
+      "description": "Batch ID returned by Scribe API for tracking fulfillment"
     },
     "status": {
       "type": "string",
@@ -49,38 +43,31 @@
         "cancelled"
       ],
       "description": "Current status of the automated card send",
-      "required": true,
       "default": "pending"
     },
     "errorMessage": {
       "type": "string",
-      "description": "Error message if status is 'failed'",
-      "required": false
+      "description": "Error message if status is 'failed'"
     },
     "recipientName": {
       "type": "string",
-      "description": "Name of the card recipient",
-      "required": false
+      "description": "Name of the card recipient"
     },
     "recipientEmail": {
       "type": "string",
-      "description": "Email of the card recipient",
-      "required": false
+      "description": "Email of the card recipient"
     },
     "cardDesign": {
       "type": "string",
-      "description": "Card design used (e.g., 'Thank you - Plain White')",
-      "required": false
+      "description": "Card design used (e.g., 'Thank you - Plain White')"
     },
     "noteStyle": {
       "type": "string",
-      "description": "Note style profile used (e.g., 'casual')",
-      "required": false
+      "description": "Note style profile used (e.g., 'casual')"
     },
     "messageContent": {
       "type": "string",
-      "description": "Rendered message content sent on the card",
-      "required": false
+      "description": "Rendered message content sent on the card"
     }
   },
   "required": []

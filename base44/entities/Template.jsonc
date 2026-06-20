@@ -5,29 +5,24 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "Display name of the template (e.g., 'Birthday - Default')",
-      "required": true
+      "description": "Display name of the template (e.g., 'Birthday - Default')"
     },
     "key": {
       "type": "string",
-      "description": "Unique identifier for the template (e.g., 'birthday_default')",
-      "required": true
+      "description": "Unique identifier for the template (e.g., 'birthday_default')"
     },
     "content": {
       "type": "string",
-      "description": "Template content with placeholders like {{clientName}}, {{userFullName}}",
-      "required": true
+      "description": "Template content with placeholders like {{clientName}}, {{userFullName}}"
     },
     "category": {
       "type": "string",
       "description": "Category of template (e.g., 'Personal', 'Professional')",
-      "required": false,
       "default": "Personal"
     },
     "cardDesign": {
       "type": "string",
       "description": "Card design to use (e.g., 'Thank you - Plain White')",
-      "required": true,
       "default": "Thank you - Plain White"
     },
     "noteStyle": {
@@ -38,7 +33,6 @@
         "formal"
       ],
       "description": "Style profile for the note",
-      "required": true,
       "default": "casual"
     },
     "tone": {
@@ -51,24 +45,20 @@
         "grateful"
       ],
       "description": "Tone of the message",
-      "required": false,
       "default": "casual"
     },
     "description": {
       "type": "string",
-      "description": "Description of when to use this template",
-      "required": false
+      "description": "Description of when to use this template"
     },
     "isDefault": {
       "type": "boolean",
       "description": "Whether this is a default template provided by NurturInk",
-      "required": false,
       "default": false
     },
     "isActive": {
       "type": "boolean",
       "description": "Whether this template is available for use",
-      "required": true,
       "default": true
     },
     "placeholders": {
@@ -76,13 +66,11 @@
       "items": {
         "type": "string"
       },
-      "description": "List of available placeholders (e.g., ['clientName', 'userFullName', 'clientCompany'])",
-      "required": false
+      "description": "List of available placeholders (e.g., ['clientName', 'userFullName', 'clientCompany'])"
     },
     "sortOrder": {
       "type": "integer",
       "description": "Display order in UI",
-      "required": false,
       "default": 0
     }
   },
