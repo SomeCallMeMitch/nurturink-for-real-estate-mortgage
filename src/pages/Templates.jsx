@@ -43,9 +43,8 @@ export default function TemplatesPage() {
                     type: 'organization'
                 }),
                 
-                // Platform templates — seeder creates them with orgId set to user's org
+                // Platform templates are global, so do not restrict them by orgId.
                 base44.entities.Template.filter({ 
-                    orgId: currentUser.orgId,
                     type: 'platform',
                     status: 'approved' 
                 }),

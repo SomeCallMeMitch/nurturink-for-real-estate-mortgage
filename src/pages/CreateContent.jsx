@@ -197,7 +197,6 @@ export default function CreateContent() {
           type: 'organization'
         }),
         base44.entities.Template.filter({ 
-          orgId: currentUser.orgId,
           type: 'platform',
           status: 'approved' 
         }),
