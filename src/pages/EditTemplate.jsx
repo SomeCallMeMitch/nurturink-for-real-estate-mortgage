@@ -223,7 +223,7 @@ export default function EditTemplate() {
           templateCategoryIds: [],
           status: 'approved',
           isDefault: false,
-          type: isSuperAdminOrWL ? 'platform' : 'organization'
+          type: isSuperAdminOrWL ? 'personal' : 'organization'
         };
         setTemplate(newTemplate);
         setInitialTemplate(newTemplate);
