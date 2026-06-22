@@ -72,6 +72,29 @@
       "type": "integer",
       "description": "Display order in UI",
       "default": 0
+    },
+    "type": {
+      "type": "string",
+      "description": "Template visibility scope, such as personal, organization, or platform"
+    },
+    "status": {
+      "type": "string",
+      "description": "Template approval or visibility status, such as approved, private, or draft"
+    },
+    "orgId": {
+      "type": "string",
+      "description": "Organization ID associated with this template"
+    },
+    "createdByUserId": {
+      "type": "string",
+      "description": "User ID of the person who created this template"
+    },
+    "templateCategoryIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Template category IDs assigned to this template"
     }
   }
 }
